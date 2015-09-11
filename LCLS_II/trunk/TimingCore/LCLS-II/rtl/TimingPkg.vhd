@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-02
+-- Last update: 2015-09-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ package TimingPkg is
       experiment      : slv32Array(0 to 8);
       patternAddress  : slv(15 downto 0);
       pattern         : Slv16Array(0 to 7);
-      crc        : slv(31 downto 0);
+      crc             : slv(31 downto 0);
    end record;
 
    constant TIMING_MSG_INIT_C : TimingMsgType := (
@@ -79,11 +79,11 @@ package TimingPkg is
       experiment      => (others => (others => '0')),
       patternAddress  => (others => '0'),
       pattern         => (others => (others => '0')),
-      crc        => (others => '0'));
+      crc             => (others => '0'));
 
    function toSlv(msg              : TimingMsgType) return slv;
    function toTimingMsgType(vector : slv) return TimingMsgType;
-   
+
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
       linkUp : sl;
@@ -98,14 +98,14 @@ package TimingPkg is
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
       linkUp => '0');      
 
-   type LclsTimingDataType is record
+   type TimingDataType is record
       v1 : LclsV1TimingDataType;
       v2 : LclsV2TimingDataType;
    end record;
-   constant LCLS_TIMING_DATA_INIT_C : LclsTimingDataType := (
+   constant TIMING_DATA_INIT_C : TimingDataType := (
       v1 => LCLS_V1_TIMING_DATA_INIT_C,
       v2 => LCLS_V2_TIMING_DATA_INIT_C);    
-      
+
 end package TimingPkg;
 
 package body TimingPkg is
