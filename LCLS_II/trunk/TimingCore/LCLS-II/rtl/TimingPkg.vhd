@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-11
+-- Last update: 2015-09-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -99,12 +99,16 @@ package TimingPkg is
       linkUp => '0');      
 
    type TimingDataType is record
-      v1 : LclsV1TimingDataType;
-      v2 : LclsV2TimingDataType;
+      strb : sl;                        -- 1 MHz timing strobe
+      msg  : TimingMsgType;
+      v1   : LclsV1TimingDataType;
+      v2   : LclsV2TimingDataType;
    end record;
    constant TIMING_DATA_INIT_C : TimingDataType := (
-      v1 => LCLS_V1_TIMING_DATA_INIT_C,
-      v2 => LCLS_V2_TIMING_DATA_INIT_C);    
+      strb => '0',
+      msg  => TIMING_MSG_INIT_C,
+      v1   => LCLS_V1_TIMING_DATA_INIT_C,
+      v2   => LCLS_V2_TIMING_DATA_INIT_C);    
 
 end package TimingPkg;
 
