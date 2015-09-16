@@ -1,1 +1,7 @@
 vhdl work rtl/TimingPkg.vhd  
+vhdl work rtl/AxiRingBuffer.vhd
+vhdl work rtl/TimingFrameRx.vhd
+vhdl work rtl/TimingGthWrapper.vhd
+vhdl work rtl/TimingMsgAxiRingBuffer.vhd
+vhdl work rtl/TimingMsgDelay.vhd
+vhdl work rtl/TimingMsgToAxiStream.vhd

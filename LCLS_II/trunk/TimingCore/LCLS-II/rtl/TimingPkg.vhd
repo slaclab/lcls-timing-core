@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-14
+-- Last update: 2015-09-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ package TimingPkg is
    constant TIMING_MSG_BITS_C  : integer := 1136;
    constant TIMING_MSG_WORDS_C : integer := TIMING_MSG_BITS_C/16;
 
+--   type TimingMsgSlv is slv(TIMING_MSG_BITS_C-1 downto 0);
 
    type TimingMsgType is record
       version         : slv(63 downto 0);
