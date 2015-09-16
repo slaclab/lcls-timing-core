@@ -48,8 +48,8 @@ architecture rtl of TimingMsgDelay is
    constant TIME_SIZE_C  : integer := 32;
    constant FIFO_WIDTH_C : integer := TIMING_MSG_BITS_C + TIME_SIZE_C;
 
-   type READOUT_C is range(TIMING_MSG_BITS_C+TIME_SIZE_C-1 downto TIMING_MSG_BITS_C);
-   type TIMING_C is range(TIMING_MSG_BITS_C-1 downto 0);
+   type READOUT_RANGE_C is range TIMING_MSG_BITS_C+TIME_SIZE_C-1 downto TIMING_MSG_BITS_C;
+   type TIMING_RANGE_C is range TIMING_MSG_BITS_C-1 downto 0;
 
    type RegType is record
       timeNow            : slv(TIME_SIZE_C-1 downto 0);
@@ -80,12 +80,12 @@ begin
          rst                   => timingRst,
          wr_clk                => timingClk,
          wr_en                 => timingMsgStrobeIn,
-         din(READOUT_C'range)  => r.readoutTime,
-         din(TIMING_C'range)   => timingMsgSlv,
+         din(READOUT_RANGE_C)  => r.readoutTime,
+         din(TIMING_RANGE_C)   => timingMsgSlv,
          rd_clk                => timingClk,
          rd_en                 => r.fifoRdEn,
-         dout(READOUT_C'range) => fifoReadoutTime,
-         dout(TIMING_C'range)  => fifoTimingMsg,
+         dout(READOUT_RANGE_C) => fifoReadoutTime,
+         dout(TIMING_RANGE_C)  => fifoTimingMsg,
          valid                 => fifoValid);
 
    comb : process (delay, fifoReadoutTime, r, timingRst) is

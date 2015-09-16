@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-15
+-- Last update: 2015-09-16
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ begin
          timingMsgStrobe => timingMsgStrobe,
          axisClk         => timingClk,
          axisRst         => timingRst,
-         axisMaster      => axisMaster)
+         axisMaster      => axisMaster);
 
       -- Pipe into AxiRingBuffer
       AxiRingBuffer_1 : entity work.AxiRingBuffer

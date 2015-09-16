@@ -36,8 +36,8 @@ entity TimingGthWrapper is
 
       txUsrClk  : in  sl;
       txRstDone : out sl;
-      txData    : in  slv(15 downto 0)
-      txDataK   : in  slv(1 downto 0)
+      txData    : in  slv(15 downto 0);
+      txDataK   : in  slv(1 downto 0);
 
       rxUsrClk  : in  sl;
       rxRstDone : out sl;

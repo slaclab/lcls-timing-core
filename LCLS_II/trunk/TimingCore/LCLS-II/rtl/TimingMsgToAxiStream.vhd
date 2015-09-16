@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-02
+-- Last update: 2015-09-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,9 +55,8 @@ architecture rtl of TimingMsgToAxiStream is
    constant SHIFT_COUNT_MAX_C : integer             := TIMING_MSG_BITS_C/SHIFT_SIZE_C;
    constant COUNT_SIZE_C      : integer             := bitSize(SHIFT_COUNT_MAX_C);
 
-   constant
 
-      type RegType is record
+   type RegType is record
       ssiMaster : SsiMasterType;
       msg       : slv(TIMING_MSG_BITS_C-1 downto 0);
       active    : sl;
@@ -85,8 +84,8 @@ begin
       v.count := (others => '0');
 
       if (timingMsgStrobe = '1') then
-         v.msg := toSlv(timingMsg);
-         v.active = '1';
+         v.msg    := toSlv(timingMsg);
+         v.active := '1';
       end if;
 
       v.ssiMaster     := ssiMasterInit(INT_AXIS_CONFIG_C);

@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-14
+-- Last update: 2015-09-16
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,10 +43,10 @@ entity AxiRingBuffer is
    -- Axi Lite interface for readout
       axilClk         : in  sl;
       axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 
 end AxiRingBuffer;
 
@@ -243,7 +243,7 @@ begin
          else
             -- AXI-Lite address is automatically offset by firstAddr.
             -- Thus axil address 0 always pulls from firstAddr, etc
-            v.ramReadAddr = axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + r.axilFirstAddr;
+            v.ramReadAddr := axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + r.axilFirstAddr;
 
             -- If output of ram is registered, read data will be ready 2 cycles after address asserted
             -- If not registered it will be ready on next cycle
