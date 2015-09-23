@@ -134,7 +134,7 @@ begin
          gtwiz_reset_rx_done_out            => rxDone,
          gtwiz_userdata_tx_in               => (others => '0'),
          gtwiz_userdata_rx_out              => rxData,
-         drpclk_in                          => stableClk
+         drpclk_in                          => stableClk,
          gthrxn_in                          => gtRxN,
          gthrxp_in                          => gtRxP,
          gtrefclk0_in                       => gtRefClk,
@@ -159,9 +159,9 @@ begin
          rxctrl0_out(15 downto 2)           => (others => '0'),
          rxctrl1_out(1 downto 0)            => dispErr,
          rxctrl1_out(15 downto 2)           => open,
-         rxctrl2_out                        => open
+         rxctrl2_out                        => open,
          rxctrl3_out(1 downto 0)            => decErr,
-         rxctrl3_out(7 downto 2)            => open
+         rxctrl3_out(7 downto 2)            => open,
          rxoutclk_out                       => rxoutclk_out,
          rxpmaresetdone_out                 => rxpmaresetdone_out,
          txoutclk_out                       => txoutclk_out,
