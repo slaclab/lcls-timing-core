@@ -20,9 +20,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+use work.TimingPkg.all;
+
 
 entity TimingMsgDelay is
    generic (
@@ -48,8 +47,8 @@ architecture rtl of TimingMsgDelay is
    constant TIME_SIZE_C  : integer := 32;
    constant FIFO_WIDTH_C : integer := TIMING_MSG_BITS_C + TIME_SIZE_C;
 
-   type READOUT_RANGE_C is range TIMING_MSG_BITS_C+TIME_SIZE_C-1 downto TIMING_MSG_BITS_C;
-   type TIMING_RANGE_C is range TIMING_MSG_BITS_C-1 downto 0;
+   subtype READOUT_RANGE_C is natural range TIMING_MSG_BITS_C+TIME_SIZE_C-1 downto TIMING_MSG_BITS_C;
+   subtype TIMING_RANGE_C is natural range TIMING_MSG_BITS_C-1 downto 0;
 
    type RegType is record
       timeNow            : slv(TIME_SIZE_C-1 downto 0);
@@ -59,8 +58,20 @@ architecture rtl of TimingMsgDelay is
       timingMsgStrobeOut : sl;
    end record RegType;
 
+   constant REG_INIT_C : RegType := (
+      timeNow            => (others => '0'),
+      readoutTime        => (others => '0'),
+      fifoRdEn           => '0',
+      timingMsgOut       => TIMING_MSG_INIT_C,
+      timingMsgStrobeOut => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal timingMsgSlv    : slv(TIMING_MSG_BITS_C-1 downto 0);
+   signal fifoTimingMsg   : slv(TIMING_MSG_BITS_C-1 downto 0);
    signal fifoReadoutTime : slv(TIME_SIZE_C-1 downto 0);
+   signal fifoValid       : sl;
 
 begin
 
@@ -88,7 +99,7 @@ begin
          dout(TIMING_RANGE_C)  => fifoTimingMsg,
          valid                 => fifoValid);
 
-   comb : process (delay, fifoReadoutTime, r, timingRst) is
+   comb : process (delay, fifoReadoutTime, fifoTimingMsg, r, timingRst) is
       variable v : RegType;
    begin
       v := r;

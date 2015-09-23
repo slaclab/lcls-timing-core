@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-02
+-- Last update: 2015-09-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -20,12 +20,15 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 use work.TimingPkg.all;
+
 
 entity TimingFrameRx is
 
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G             : time            := 1 ns;
+      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
 
    port (
       timingClk       : in  sl;
@@ -37,12 +40,12 @@ entity TimingFrameRx is
       timingMsg       : out TimingMsgType;
       timingMsgStrobe : out sl;
 
-      axilClk        : in  sl;
-      axilRst        : in  sl;
-      axiReadMaster  : in  AxiLiteReadMasterType;
-      axiReadSlave   : out AxiLiteReadSlaveType;
-      axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType
       );
 
 end entity TimingFrameRx;
@@ -56,7 +59,12 @@ architecture rtl of TimingFrameRx is
 
    type RegType is record
       state           : StateType;
+      lastFrameValid  : sl;
       crcReset        : sl;
+      crcOut          : slv32Array(1 downto 0);
+      sofStrobe       : sl;
+      eofStrobe       : sl;
+      crcErrorStrobe  : sl;
       timingMsgShift  : slv(TIMING_MSG_BITS_C-1 downto 0);
       timingMsgOut    : TimingMsgType;
       timingMsgStrobe : sl;
@@ -64,7 +72,12 @@ architecture rtl of TimingFrameRx is
 
    constant REG_INIT_C : RegType := (
       state           => IDLE_S,
+      lastFrameValid  => '0',
       crcReset        => '1',
+      crcOut          => (others => (others => '0')),
+      sofStrobe       => '0',
+      eofStrobe       => '0',
+      crcErrorStrobe  => '0',
       timingMsgShift  => (others => '0'),
       timingMsgOut    => TIMING_MSG_INIT_C,
       timingMsgStrobe => '0');
@@ -78,7 +91,26 @@ architecture rtl of TimingFrameRx is
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
+   type AxilRegType is record
+      cntRst         : sl;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+   end record AxilRegType;
 
+   constant AXIL_REG_INIT_C : AxilRegType := (
+      cntRst         => '0',
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+
+   signal axilR   : AxilRegType := AXIL_REG_INIT_C;
+   signal axilRin : AxilRegType;
+
+   constant NUM_COUNTERS_C  : integer := 6;
+   constant COUNTER_WIDTH_C : integer := 32;
+
+   -- Synchronized to AXIL clk
+   signal axilStatusCounters : SlVectorArray(NUM_COUNTERS_C-1 downto 0, COUNTER_WIDTH_C-1 downto 0);
+   signal axilRxLinkUp       : sl;
 
 begin
 
@@ -90,12 +122,13 @@ begin
          CRC_INIT_G   => X"FFFFFFFF",
          TPD_G        => TPD_G)
       port map (
-         crcOut       => crcOut,
-         crcClk       => timingClk,
-         crcDataValid => crcDataValid,
-         crcDataWidth => "001",
-         crcIn        => rxData,
-         crcReset     => r.crcReset);
+         crcOut              => crcOut,
+         crcClk              => timingClk,
+         crcDataValid        => crcDataValid,
+         crcDataWidth        => "001",
+         crcIn(31 downto 16) => (others => '0'),
+         crcIn(15 downto 0)  => rxData,
+         crcReset            => r.crcReset);
 
    comb : process (crcOut, r, rxData, rxDataK, rxError, rxLinkUp, timingRst) is
       variable v : RegType;
@@ -138,12 +171,12 @@ begin
                if ((rxDataK = "01" and rxData = (D_215_C & K_EOF_C))) then
                   -- EOF character seen, check crc
                   v.eofStrobe      := '1';
-                  v.lastFrameValid := toSl(toTimingMsgType(r.timingMsgShift).crc = crcOut(0));
+                  v.lastFrameValid := toSl(toTimingMsgType(r.timingMsgShift).crc = r.crcOut(0));
                   v.crcErrorStrobe := not v.lastFrameValid;
                end if;
             else
                -- Shift in new data if not a K char
-               v.timingMsgSlv := rxData & r.timingMsgSlv(TIMING_MSG_BITS_C-1 downto 16);
+               v.timingMsgShift := rxData & r.timingMsgShift(TIMING_MSG_BITS_C-1 downto 16);
             end if;
 
          when others => null;
@@ -171,11 +204,14 @@ begin
       end if;
    end process seq;
 
+   -------------------------------------------------------------------------------------------------
+   -- AXI-LITE Logic
+   -------------------------------------------------------------------------------------------------
    SyncStatusVector_1 : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "011111",
-         OUT_POLARITY_G => "011111",
+--         OUT_POLARITY_G => '1'
          USE_DSP48_G    => "no",
 --         SYNTH_CNT_G     => SYNTH_CNT_G,
          CNT_RST_EDGE_G => false,
@@ -198,9 +234,9 @@ begin
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
-   axilComb : process (axilReadMaster, axilRst, axilWriteMaster, dnaValid, dnaValue, fdSerial, fdValid, r,
-                       stringRom, userValues) is
-      variable v         : RegType;
+   axilComb : process (axilR, axilReadMaster, axilRst, axilRxLinkUp, axilStatusCounters,
+                       axilWriteMaster) is
+      variable v          : AxilRegType;
       variable axilStatus : AxiLiteStatusType;
 
       -- Wrapper procedures to make calls cleaner.
@@ -232,10 +268,10 @@ begin
 
    begin
       -- Latch the current value
-      v := r;
+      v := axilR;
 
       -- Determine the transaction type
-      axilSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       -- Status Counters
       axilSlaveRegisterR(X"00", 0, muxSlVectorArray(axilStatusCounters, 0));
@@ -255,16 +291,22 @@ begin
       -- Reset
       ----------------------------------------------------------------------------------------------
       if (axilRst = '1') then
-         v := REG_INIT_C;
+         v := AXIL_REG_INIT_C;
       end if;
 
-      rin <= v;
+      axilRin <= v;
 
-      axilReadSlave  <= r.axilReadSlave;
-      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= axilR.axilReadSlave;
+      axilWriteSlave <= axilR.axilWriteSlave;
 
    end process;
 
-
+   axilSeq : process (axilClk) is
+   begin
+      if (rising_edge(axilClk)) then
+         axilR <= axilRin after TPD_G;
+      end if;
+   end process;
+   
 end architecture rtl;
 
