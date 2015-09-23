@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-08-17
+-- Last update: 2015-09-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -139,8 +139,9 @@ architecture rtl of EvrV1EventReceiver is
    signal dbgClkOut     : slv(7 downto 0);
 
    signal rxLinkUpDly : sl;
-   signal rxDataKDly  : Slv2Array(4 downto 0);
-   signal rxDataDly   : Slv16Array(4 downto 0);
+   signal rxDataKDly  : slv(1 downto 0);
+   signal rxDataDly   : slv(15 downto 0);
+   signal rxDataEvent : slv(15 downto 0);
    signal rxSize      : slv(11 downto 0);
 
    signal isK            : slv(1 downto 0);
@@ -467,43 +468,47 @@ begin
    ------------------
    -- Event Insertion
    ------------------
+   process(evrRst, extEventCode, extEventEn, extEventPulse, intEventCode, intEventEn, intEventPulse,
+           rxData)
+   begin
+      if evrRst = '1' then
+         rxDataEvent <= (others => '0');
+      -- Check the Event Enable flags
+      elsif (intEventEn = '1') or (extEventEn = '1') then
+         -- Check for internal event
+         if (intEventEn = '1') and (intEventPulse = '1') then
+            rxDataEvent(15 downto 8) <= x"00";
+            rxDataEvent(7 downto 0)  <= intEventCode;
+         elsif (extEventEn = '1') and (extEventPulse = '1') then
+            rxDataEvent(15 downto 8) <= x"00";
+            rxDataEvent(7 downto 0)  <= extEventCode;
+         else
+            rxDataEvent <= (others => '0');
+         end if;
+      else
+         rxDataEvent <= rxData;
+      end if;
+   end process;
+
    process(evrClk)
       variable i : natural;
    begin
       if rising_edge(evrClk) then
          if evrRst = '1' then
-            rxDataDly  <= (others => (others => '0')) after TPD_G;
-            rxDataKDly <= (others => (others => '0')) after TPD_G;
+            rxDataKDly <= (others => '0') after TPD_G;
+            rxDataDly  <= (others => '0') after TPD_G;
          else
             -- Shift Registers
-            rxDataKDly(0) <= rxDataK after TPD_G;
-            for i in 3 downto 0 loop
-               rxDataDly(i+1)  <= rxDataDly(i)  after TPD_G;
-               rxDataKDly(i+1) <= rxDataKDly(i) after TPD_G;
-            end loop;
-            -- Check the Event Enable flags
-            if (intEventEn = '1') or (extEventEn = '1') then
-               -- Check for internal event
-               if (intEventEn = '1') and (intEventPulse = '1') then
-                  rxDataDly(0)(15 downto 8) <= x"00"        after TPD_G;
-                  rxDataDly(0)(7 downto 0)  <= intEventCode after TPD_G;
-               elsif (extEventEn = '1') and (extEventPulse = '1') then
-                  rxDataDly(0)(15 downto 8) <= x"00"        after TPD_G;
-                  rxDataDly(0)(7 downto 0)  <= extEventCode after TPD_G;
-               else
-                  rxDataDly(0) <= (others => '0') after TPD_G;
-               end if;
-            else
-               rxDataDly(0) <= rxData after TPD_G;
-            end if;
+            rxDataKDly <= rxDataK     after TPD_G;
+            rxDataDly  <= rxDataEvent after TPD_G;
          end if;
       end if;
    end process;
 
-   dataStream  <= rxDataDly(4)(15 downto 8);
-   isK         <= rxDataKDly(4);
-   memoryEvent <= x"00" when(rxDataKDly(3)(0) = '1') else rxDataDly(3)(7 downto 0);
-   eventStream <= x"00" when(rxDataKDly(4)(0) = '1') else rxDataDly(4)(7 downto 0);
+   dataStream  <= rxDataDly(15 downto 8);
+   isK         <= rxDataKDly;
+   memoryEvent <= x"00" when(rxDataK(0) = '1')    else rxDataEvent(7 downto 0);
+   eventStream <= x"00" when(rxDataKDly(0) = '1') else rxDataDly(7 downto 0);
 
    ---------------------
    -- Generate Event RAM
