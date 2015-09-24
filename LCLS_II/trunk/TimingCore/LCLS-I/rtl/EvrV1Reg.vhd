@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-08-17
+-- Last update: 2015-09-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -83,6 +83,7 @@ architecture rtl of EvrV1Reg is
       irqClr2       : slv(31 downto 0);
       dbena         : slv(3 downto 0);
       dbdis         : slv(3 downto 0);
+      axiRdEn       : slv(1 downto 0);
       rdDone        : sl;
       wrDone        : sl;
       config        : EvrV1ConfigType;
@@ -101,6 +102,7 @@ architecture rtl of EvrV1Reg is
       irqClr2       => (others => '0'),
       dbena         => (others => '0'),
       dbdis         => (others => '0'),
+      axiRdEn       => (others => '0'),
       rdDone        => '0',
       wrDone        => '0',
       config        => EVR_V1_CONFIG_INIT_C,
@@ -371,7 +373,7 @@ begin
                      v.config.outputMap(11) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when others =>
-                  null;
+                  axiWriteResp := AXI_ERROR_RESP_G;
             end case;
          else
             axiWriteResp := AXI_ERROR_RESP_G;
@@ -394,207 +396,219 @@ begin
             v.config.dbRdAddr     := axiReadMaster.araddr(10 downto 2);
             -- Address is aligned
             axiReadResp           := AXI_RESP_OK_C;
-            -- Decode the read address
-            case rdPntr is
-               when 0 =>
-                  v.axiReadSlave.rdata := r.statusReg;
-               when 1 =>
-                  v.axiReadSlave.rdata := r.controlReg;
-               when 2 =>
-                  v.axiReadSlave.rdata(31)          := '0';
-                  v.axiReadSlave.rdata(30 downto 0) := status.intFlag(30 downto 0);
-               when 3 =>
-                  v.axiReadSlave.rdata := r.config.intControl;
-               when 4 =>
-                  v.axiReadSlave.rdata := r.hardwareInt;
-               when 5 =>
-                  v.axiReadSlave.rdata(31 downto 2) := r.pcieIntEna(31 downto 2);
-                  v.axiReadSlave.rdata(1)           := irqActive;
-                  v.axiReadSlave.rdata(0)           := r.pcieIntEna(0);
-               when 8 =>
-                  v.axiReadSlave.rdata(15)          := status.dbrx;
-                  v.axiReadSlave.rdata(14)          := status.dbrdy;
-                  v.axiReadSlave.rdata(13)          := status.dbcs;
-                  v.axiReadSlave.rdata(12)          := r.config.dben;
-                  v.axiReadSlave.rdata(11 downto 0) := status.rxSize(11 downto 0);
-               when 11 =>
-                  v.axiReadSlave.rdata := fwVersion;
-               when 12 =>
-                  v.axiReadSlave.rdata(7 downto 0)   := FPGA_VERSION_C(31 downto 24);
-                  v.axiReadSlave.rdata(15 downto 8)  := FPGA_VERSION_C(23 downto 16);
-                  v.axiReadSlave.rdata(23 downto 16) := FPGA_VERSION_C(15 downto 8);
-                  v.axiReadSlave.rdata(31 downto 24) := FPGA_VERSION_C(7 downto 0);
-               when 19 =>
-                  v.axiReadSlave.rdata := r.config.uSecDivider;
-               when 23 =>
-                  v.axiReadSlave.rdata := r.secondsShift;
-               when 24 =>
-                  v.axiReadSlave.rdata := r.seconds;
-               when 28 =>
-                  v.axiReadSlave.rdata := status.tsFifoTsLow;
-               when 29 =>
-                  v.axiReadSlave.rdata := status.tsFifoTsHigh;
-               when 30 =>
-                  v.config.tsFifoRdEna             := '1';
-                  v.axiReadSlave.rdata(7 downto 0) := status.tsFifoEventCode;
-               when 40 =>
-                  v.axiReadSlave.rdata(0) := r.config.intEventEn;
-               when 41 =>
-                  v.axiReadSlave.rdata := r.config.intEventCount;
-               when 42 =>
-                  v.axiReadSlave.rdata(7 downto 0) := r.config.intEventCode;
-               when 43 =>
-                  v.axiReadSlave.rdata(0) := r.config.extEventEn;
-               when 44 =>
-                  v.axiReadSlave.rdata(7 downto 0) := r.config.extEventCode;
-               when 128 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(0);
-               when 129 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(0);
-               when 130 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(0);
-               when 131 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(0);
-               when 132 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(1);
-               when 133 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(1);
-               when 134 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(1);
-               when 135 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(1);
-               when 136 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(2);
-               when 137 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(2);
-               when 138 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(2);
-               when 139 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(2);
-               when 140 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(3);
-               when 141 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(3);
-               when 142 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(3);
-               when 143 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(3);
-               when 144 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(4);
-               when 145 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(4);
-               when 146 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(4);
-               when 147 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(4);
-               when 148 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(5);
-               when 149 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(5);
-               when 150 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(5);
-               when 151 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(5);
-               when 152 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(6);
-               when 153 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(6);
-               when 154 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(6);
-               when 155 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(6);
-               when 156 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(7);
-               when 157 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(7);
-               when 158 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(7);
-               when 159 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(7);
-               when 160 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(8);
-               when 161 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(8);
-               when 162 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(8);
-               when 163 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(8);
-               when 164 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(9);
-               when 165 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(9);
-               when 166 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(9);
-               when 167 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(9);
-               when 168 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(10);
-               when 169 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(10);
-               when 170 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(10);
-               when 171 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(10);
-               when 172 =>
-                  v.axiReadSlave.rdata := r.config.pulseControl(11);
-               when 173 =>
-                  v.axiReadSlave.rdata := r.config.pulsePrescale(11);
-               when 174 =>
-                  v.axiReadSlave.rdata := r.config.pulseDelay(11);
-               when 175 =>
-                  v.axiReadSlave.rdata := r.config.pulseWidth(11);
-               when 272 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(0);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(1);
-               when 273 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(2);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(3);
-               when 274 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(4);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(5);
-               when 275 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(6);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(7);
-               when 276 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(8);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(9);
-               when 277 =>
-                  v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(10);
-                  v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(11);
-               when 512 to 1023 =>
-                  v.axiReadSlave.rdata := status.dbData;
-               when 4096 to 5119 =>
-                  case axiReadMaster.araddr(3 downto 2) is
-                     when "11" =>
-                        v.axiReadSlave.rdata := status.eventRamReset(0);
-                     when "10" =>
-                        v.axiReadSlave.rdata := status.eventRamSet(0);
-                     when "01" =>
-                        v.axiReadSlave.rdata := status.eventRamPulse(0);
-                     when "00" =>
-                        v.axiReadSlave.rdata := status.eventRamInt(0);
-                     when others =>
-                        v.axiReadSlave.rdata := (others => '0');
-                  end case;
-               when 5120 to 6143 =>
-                  case axiReadMaster.araddr(3 downto 2) is
-                     when "11" =>
-                        v.axiReadSlave.rdata := status.eventRamReset(1);
-                     when "10" =>
-                        v.axiReadSlave.rdata := status.eventRamSet(1);
-                     when "01" =>
-                        v.axiReadSlave.rdata := status.eventRamPulse(1);
-                     when "00" =>
-                        v.axiReadSlave.rdata := status.eventRamInt(1);
-                     when others =>
-                        v.axiReadSlave.rdata := (others => '0');
-                  end case;
-               when others =>
-                  v.axiReadSlave.rdata := x"DEADBEEF";
-            end case;
+            -- BRAM 2 cycles read delay
+            v.axiRdEn             := r.axiRdEn(0) & '1';
+            -- Check if BRAM output value is valid
+            if (r.axiRdEn(1) = '1') then
+               -- Decode the read address
+               case rdPntr is
+                  when 0 =>
+                     v.axiReadSlave.rdata := r.statusReg;
+                  when 1 =>
+                     v.axiReadSlave.rdata := r.controlReg;
+                  when 2 =>
+                     v.axiReadSlave.rdata(31)          := '0';
+                     v.axiReadSlave.rdata(30 downto 0) := status.intFlag(30 downto 0);
+                  when 3 =>
+                     v.axiReadSlave.rdata := r.config.intControl;
+                  when 4 =>
+                     v.axiReadSlave.rdata := r.hardwareInt;
+                  when 5 =>
+                     v.axiReadSlave.rdata(31 downto 2) := r.pcieIntEna(31 downto 2);
+                     v.axiReadSlave.rdata(1)           := irqActive;
+                     v.axiReadSlave.rdata(0)           := r.pcieIntEna(0);
+                  when 8 =>
+                     v.axiReadSlave.rdata(15)          := status.dbrx;
+                     v.axiReadSlave.rdata(14)          := status.dbrdy;
+                     v.axiReadSlave.rdata(13)          := status.dbcs;
+                     v.axiReadSlave.rdata(12)          := r.config.dben;
+                     v.axiReadSlave.rdata(11 downto 0) := status.rxSize(11 downto 0);
+                  when 11 =>
+                     v.axiReadSlave.rdata := fwVersion;
+                  when 12 =>
+                     v.axiReadSlave.rdata(7 downto 0)   := FPGA_VERSION_C(31 downto 24);
+                     v.axiReadSlave.rdata(15 downto 8)  := FPGA_VERSION_C(23 downto 16);
+                     v.axiReadSlave.rdata(23 downto 16) := FPGA_VERSION_C(15 downto 8);
+                     v.axiReadSlave.rdata(31 downto 24) := FPGA_VERSION_C(7 downto 0);
+                  when 19 =>
+                     v.axiReadSlave.rdata := r.config.uSecDivider;
+                  when 23 =>
+                     v.axiReadSlave.rdata := r.secondsShift;
+                  when 24 =>
+                     v.axiReadSlave.rdata := r.seconds;
+                  when 28 =>
+                     v.axiReadSlave.rdata := status.tsFifoTsLow;
+                  when 29 =>
+                     v.axiReadSlave.rdata := status.tsFifoTsHigh;
+                  when 30 =>
+                     v.config.tsFifoRdEna             := '1';
+                     v.axiReadSlave.rdata(7 downto 0) := status.tsFifoEventCode;
+                  when 40 =>
+                     v.axiReadSlave.rdata(0) := r.config.intEventEn;
+                  when 41 =>
+                     v.axiReadSlave.rdata := r.config.intEventCount;
+                  when 42 =>
+                     v.axiReadSlave.rdata(7 downto 0) := r.config.intEventCode;
+                  when 43 =>
+                     v.axiReadSlave.rdata(0) := r.config.extEventEn;
+                  when 44 =>
+                     v.axiReadSlave.rdata(7 downto 0) := r.config.extEventCode;
+                  when 128 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(0);
+                  when 129 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(0);
+                  when 130 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(0);
+                  when 131 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(0);
+                  when 132 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(1);
+                  when 133 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(1);
+                  when 134 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(1);
+                  when 135 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(1);
+                  when 136 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(2);
+                  when 137 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(2);
+                  when 138 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(2);
+                  when 139 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(2);
+                  when 140 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(3);
+                  when 141 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(3);
+                  when 142 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(3);
+                  when 143 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(3);
+                  when 144 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(4);
+                  when 145 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(4);
+                  when 146 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(4);
+                  when 147 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(4);
+                  when 148 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(5);
+                  when 149 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(5);
+                  when 150 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(5);
+                  when 151 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(5);
+                  when 152 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(6);
+                  when 153 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(6);
+                  when 154 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(6);
+                  when 155 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(6);
+                  when 156 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(7);
+                  when 157 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(7);
+                  when 158 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(7);
+                  when 159 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(7);
+                  when 160 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(8);
+                  when 161 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(8);
+                  when 162 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(8);
+                  when 163 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(8);
+                  when 164 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(9);
+                  when 165 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(9);
+                  when 166 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(9);
+                  when 167 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(9);
+                  when 168 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(10);
+                  when 169 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(10);
+                  when 170 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(10);
+                  when 171 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(10);
+                  when 172 =>
+                     v.axiReadSlave.rdata := r.config.pulseControl(11);
+                  when 173 =>
+                     v.axiReadSlave.rdata := r.config.pulsePrescale(11);
+                  when 174 =>
+                     v.axiReadSlave.rdata := r.config.pulseDelay(11);
+                  when 175 =>
+                     v.axiReadSlave.rdata := r.config.pulseWidth(11);
+                  when 272 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(0);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(1);
+                  when 273 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(2);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(3);
+                  when 274 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(4);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(5);
+                  when 275 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(6);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(7);
+                  when 276 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(8);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(9);
+                  when 277 =>
+                     v.axiReadSlave.rdata(31 downto 16) := r.config.outputMap(10);
+                     v.axiReadSlave.rdata(15 downto 0)  := r.config.outputMap(11);
+                  when 512 to 1023 =>
+                     v.axiReadSlave.rdata := status.dbData;
+                  when 4096 to 5119 =>
+                     case axiReadMaster.araddr(3 downto 2) is
+                        when "11" =>
+                           v.axiReadSlave.rdata := status.eventRamReset(0);
+                        when "10" =>
+                           v.axiReadSlave.rdata := status.eventRamSet(0);
+                        when "01" =>
+                           v.axiReadSlave.rdata := status.eventRamPulse(0);
+                        when "00" =>
+                           v.axiReadSlave.rdata := status.eventRamInt(0);
+                        when others =>
+                           v.axiReadSlave.rdata := (others => '0');
+                     end case;
+                  when 5120 to 6143 =>
+                     case axiReadMaster.araddr(3 downto 2) is
+                        when "11" =>
+                           v.axiReadSlave.rdata := status.eventRamReset(1);
+                        when "10" =>
+                           v.axiReadSlave.rdata := status.eventRamSet(1);
+                        when "01" =>
+                           v.axiReadSlave.rdata := status.eventRamPulse(1);
+                        when "00" =>
+                           v.axiReadSlave.rdata := status.eventRamInt(1);
+                        when others =>
+                           v.axiReadSlave.rdata := (others => '0');
+                     end case;
+                  when others =>
+                     v.axiReadSlave.rdata := x"DEADBEEF";
+                     axiReadResp          := AXI_ERROR_RESP_G;
+               end case;
+               -- Send AXI response
+               axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
+            end if;
+         else
+            -- Send AXI response
+            axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
          end if;
-         -- Send AXI response
-         axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
+      else
+         -- Reset
+         v.axiRdEn := "00";
       end if;
 
       -- Misc. Mapping and Logic
