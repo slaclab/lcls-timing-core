@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-09-23
+-- Last update: 2015-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -102,7 +102,6 @@ architecture rtl of EvrV1EventReceiver is
    signal dbIntEna : sl;
    signal dbdis    : sl;
    signal dbrdy    : sl;
-   signal dbRdAddr : slv(8 downto 0);
 
    signal evrEnable   : sl;
    signal mapRamPage  : sl;
@@ -227,16 +226,6 @@ begin
    SyncIn_4 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 9)          
-      port map (
-         wr_clk => axiClk,
-         din    => config.dbRdAddr,
-         rd_clk => evrClk,
-         dout   => dbRdAddr); 
-
-   SyncIn_5 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)          
       port map (
          wr_clk => axiClk,
@@ -244,7 +233,7 @@ begin
          rd_clk => evrClk,
          dout   => uSecDivider);  
 
-   SyncIn_6 : entity work.SynchronizerFifo
+   SyncIn_5 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 8)          
@@ -254,7 +243,7 @@ begin
          rd_clk => evrClk,
          dout   => intEventCode); 
 
-   SyncIn_7 : entity work.SynchronizerFifo
+   SyncIn_6 : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 8)          
@@ -703,7 +692,7 @@ begin
          Reset       => evrRst,
          dbus        => dataStream,
          isK         => isK(1),
-         dbRdAddr    => dbRdAddr,
+         dbRdAddr    => config.dbRdAddr,
          dbena       => dbena,
          dbdis       => dbdis,
          dben        => dben,

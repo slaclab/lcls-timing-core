@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-09-24
+-- Last update: 2015-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -606,9 +606,12 @@ begin
             -- Send AXI response
             axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
          end if;
-      else
+      end if;
+
+      -- Check if need to reset the shift register
+      if (axiStatus.readEnable = '0') then
          -- Reset
-         v.axiRdEn := "00";
+         v.axiRdEn := (others => '0');
       end if;
 
       -- Misc. Mapping and Logic
