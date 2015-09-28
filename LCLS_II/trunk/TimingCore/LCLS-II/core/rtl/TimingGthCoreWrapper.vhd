@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2015-09-18
+-- Last update: 2015-09-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -146,12 +146,12 @@ begin
          gthrxn_in(0)                          => gtRxN,
          gthrxp_in(0)                          => gtRxP,
          gtrefclk0_in(0)                       => gtRefClk,
-         loopback_in                           => loopback,
+--         loopback_in                           => loopback,
          rx8b10ben_in(0)                       => '1',
          rxcommadeten_in(0)                    => '1',
          rxmcommaalignen_in(0)                 => '1',
          rxpcommaalignen_in(0)                 => '1',
-         rxpolarity_in(0)                      => rxPolarity,
+--         rxpolarity_in(0)                      => rxPolarity,
          rxusrclk_in(0)                        => rxUsrClk,
          rxusrclk2_in(0)                       => rxUsrClk,
          tx8b10ben_in(0)                       => '1',

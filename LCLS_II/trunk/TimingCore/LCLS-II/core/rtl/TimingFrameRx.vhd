@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-18
+-- Last update: 2015-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -85,20 +85,23 @@ architecture rtl of TimingFrameRx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal crcDataValid : sl;
-   signal crcOut       : slv(31 downto 0);
+   signal timingMsgDelay : slv(15 downto 0);
+   signal crcDataValid   : sl;
+   signal crcOut         : slv(31 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
    type AxilRegType is record
       cntRst         : sl;
+      msgDelay       : slv(15 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
       cntRst         => '0',
+      msgDelay       => toSlv(20000, 16),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -205,6 +208,37 @@ begin
    end process seq;
 
    -------------------------------------------------------------------------------------------------
+   -- Delay the timing message
+   -------------------------------------------------------------------------------------------------
+   TimingMsgDelay_1 : entity work.TimingMsgDelay
+      generic map (
+         TPD_G             => TPD_G,
+         BRAM_EN_G         => BRAM_EN_G,
+         FIFO_ADDR_WIDTH_G => bitSize(150))
+      port map (
+         timingClk          => timingClk,
+         timingRst          => timingRst,
+         timingMsgIn        => timingMsgIn,
+         timingMsgStrobeIn  => timingMsgStrobeIn,
+         delay              => timingMsgDelay,
+         timingMsgOut       => timingMsgOut,
+         timingMsgStrobeOut => timingMsgStrobeOut);
+
+   -------------------------------------------------------------------------------------------------
+   -- Synchronize msg delay to timing domain
+   -------------------------------------------------------------------------------------------------
+   SynchronizerFifo_1 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
+      port map (
+         rst    => axilRst,
+         wr_clk => axilClk,
+         din    => axilR.msgDelay,
+         rd_clk => timingClk,
+         dout   => timingMsgDelay);
+
+   -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic
    -------------------------------------------------------------------------------------------------
    SyncStatusVector_1 : entity work.SyncStatusVector
@@ -284,6 +318,8 @@ begin
       axilSlaveRegisterW(X"18", 0, v.cntRst);
       axilSlaveRegisterR(X"18", 1, axilRxLinkUp);
 
+      axilSlaveRegisterW(X"1C", 0, v.msgDelay);
+
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
 
@@ -307,6 +343,6 @@ begin
          axilR <= axilRin after TPD_G;
       end if;
    end process;
-   
+
 end architecture rtl;
 

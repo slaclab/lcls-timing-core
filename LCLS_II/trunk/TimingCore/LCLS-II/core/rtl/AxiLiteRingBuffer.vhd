@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : AxiRingBuffer.vhd
+-- File       : AxiLiteRingBuffer.vhd
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-16
+-- Last update: 2015-09-25
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 
-entity AxiRingBuffer is
+entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
       TPD_G            : time                        := 1 ns;
@@ -48,9 +48,9 @@ entity AxiRingBuffer is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 
-end AxiRingBuffer;
+end AxiLiteRingBuffer;
 
-architecture rtl of AxiRingBuffer is
+architecture rtl of AxiLiteRingBuffer is
 
    -------------------------------------------------------------------------------------------------
    -- Stream clock domain signals
