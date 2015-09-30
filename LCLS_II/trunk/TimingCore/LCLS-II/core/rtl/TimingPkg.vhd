@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-24
+-- Last update: 2015-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,12 +26,12 @@ package TimingPkg is
    constant K_SOF_C : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7
    constant K_EOF_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
 
-   constant TIMING_MSG_BITS_C  : integer := 1136;
-   constant TIMING_MSG_WORDS_C : integer := TIMING_MSG_BITS_C/16;
+   constant TIMING_MESSAGE_BITS_C  : integer := 1136;
+   constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
 
---   type TimingMsgSlv is slv(TIMING_MSG_BITS_C-1 downto 0);
+--   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
 
-   type TimingMsgType is record
+   type TimingMessageType is record
       version         : slv(63 downto 0);
       pulseId         : slv(63 downto 0);
       timeStamp       : slv(63 downto 0);
@@ -57,7 +57,7 @@ package TimingPkg is
       crc             : slv(31 downto 0);
    end record;
 
-   constant TIMING_MSG_INIT_C : TimingMsgType := (
+   constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
       version         => (others => '0'),
       pulseId         => (others => '0'),
       timeStamp       => (others => '0'),
@@ -82,34 +82,34 @@ package TimingPkg is
       pattern         => (others => (others => '0')),
       crc             => (others => '0'));
 
-   function toSlv(msg              : TimingMsgType) return slv;
-   function toTimingMsgType(vector : slv) return TimingMsgType;
+   function toSlv(message              : TimingMessageType) return slv;
+   function toTimingMessageType(vector : slv) return TimingMessageType;
 
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
       linkUp : sl;
    end record;
    constant LCLS_V1_TIMING_DATA_INIT_C : LclsV1TimingDataType := (
-      linkUp => '0'); 
+      linkUp => '0');
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record
       linkUp : sl;
    end record;
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
-      linkUp => '0');      
+      linkUp => '0');
 
-   type TimingDataType is record
-      strb : sl;                        -- 1 MHz timing strobe
-      msg  : TimingMsgType;
-      v1   : LclsV1TimingDataType;
-      v2   : LclsV2TimingDataType;
+   type TimingBusType is record
+      strobe  : sl;                     -- 1 MHz timing strobe
+      message : TimingMessageType;
+      v1      : LclsV1TimingDataType;
+      v2      : LclsV2TimingDataType;
    end record;
-   constant TIMING_DATA_INIT_C : TimingDataType := (
-      strb => '0',
-      msg  => TIMING_MSG_INIT_C,
-      v1   => LCLS_V1_TIMING_DATA_INIT_C,
-      v2   => LCLS_V2_TIMING_DATA_INIT_C); 
+   constant TIMING_BUS_INIT_C : TimingBusType := (
+      strobe  => '0',
+      message => TIMING_MESSAGE_INIT_C,
+      v1      => LCLS_V1_TIMING_DATA_INIT_C,
+      v2      => LCLS_V2_TIMING_DATA_INIT_C);
 
    type TimingPhyType is record
       dataK : slv(1 downto 0);
@@ -117,7 +117,7 @@ package TimingPkg is
    end record;
    constant TIMING_PHY_INIT_C : TimingPhyType := (
       dataK => "00",
-      data  => x"0000");       
+      data  => x"0000");
 
 end package TimingPkg;
 
@@ -127,87 +127,87 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    -- Convert a timing message record into a big long SLV
    -------------------------------------------------------------------------------------------------
-   function toSlv (msg : TimingMsgType) return slv
+   function toSlv (message : TimingMessageType) return slv
    is
-      variable vector : slv(TIMING_MSG_BITS_C-1 downto 0) := (others => '0');
-      variable i      : integer                           := 0;
+      variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
+      variable i      : integer                               := 0;
    begin
-      assignSlv(i, vector, msg.version);
-      assignSlv(i, vector, msg.pulseId);
-      assignSlv(i, vector, msg.timeStamp);
-      assignSlv(i, vector, msg.fixedRates);
-      assignSlv(i, vector, msg.acRates);
-      assignSlv(i, vector, msg.acTimeSlot);
-      assignSlv(i, vector, msg.acTimeSlotPhase);
-      assignSlv(i, vector, msg.resync);
-      assignSlv(i, vector, msg.beamRequest);
-      assignSlv(i, vector, msg.syncStatus);
-      assignSlv(i, vector, msg.bcsFault);
-      assignSlv(i, vector, msg.mpsValid);
+      assignSlv(i, vector, message.version);
+      assignSlv(i, vector, message.pulseId);
+      assignSlv(i, vector, message.timeStamp);
+      assignSlv(i, vector, message.fixedRates);
+      assignSlv(i, vector, message.acRates);
+      assignSlv(i, vector, message.acTimeSlot);
+      assignSlv(i, vector, message.acTimeSlotPhase);
+      assignSlv(i, vector, message.resync);
+      assignSlv(i, vector, message.beamRequest);
+      assignSlv(i, vector, message.syncStatus);
+      assignSlv(i, vector, message.bcsFault);
+      assignSlv(i, vector, message.mpsValid);
       assignSlv(i, vector, "00000000");        -- 8 unused bits
-      for j in msg.mpsLimits'range loop
-         assignSlv(i, vector, msg.mpsLimits(j));
+      for j in message.mpsLimits'range loop
+         assignSlv(i, vector, message.mpsLimits(j));
       end loop;
-      assignSlv(i, vector, msg.historyActive);
-      assignSlv(i, vector, msg.calibrationGap);
+      assignSlv(i, vector, message.historyActive);
+      assignSlv(i, vector, message.calibrationGap);
       assignSlv(i, vector, "00000000000000");  -- 14 unused bits
       assignSlv(i, vector, X"000000000000");   -- 3 unused words
-      assignSlv(i, vector, msg.bsaInit);
-      assignSlv(i, vector, msg.bsaActive);
-      assignSlv(i, vector, msg.bsaAvgDone);
-      assignSlv(i, vector, msg.bsaDone);
-      for j in msg.experiment'range loop
-         assignSlv(i, vector, msg.experiment(j));
+      assignSlv(i, vector, message.bsaInit);
+      assignSlv(i, vector, message.bsaActive);
+      assignSlv(i, vector, message.bsaAvgDone);
+      assignSlv(i, vector, message.bsaDone);
+      for j in message.experiment'range loop
+         assignSlv(i, vector, message.experiment(j));
       end loop;
-      assignSlv(i, vector, msg.patternAddress);
-      for j in msg.pattern'range loop
-         assignSlv(i, vector, msg.pattern(j));
+      assignSlv(i, vector, message.patternAddress);
+      for j in message.pattern'range loop
+         assignSlv(i, vector, message.pattern(j));
       end loop;
-      assignSlv(i, vector, msg.crc);
+      assignSlv(i, vector, message.crc);
       return vector;
    end function;
 
    -------------------------------------------------------------------------------------------------
    -- Convert an SLV into a timing record
    -------------------------------------------------------------------------------------------------
-   function toTimingMsgType (vector : slv) return TimingMsgType
+   function toTimingMessageType (vector : slv) return TimingMessageType
    is
-      variable msg : TimingMsgType;
-      variable i   : integer := 0;
+      variable message : TimingMessageType;
+      variable i       : integer := 0;
    begin
-      assignRecord(i, vector, msg.version);
-      assignRecord(i, vector, msg.pulseId);
-      assignRecord(i, vector, msg.timeStamp);
-      assignRecord(i, vector, msg.fixedRates);
-      assignRecord(i, vector, msg.acRates);
-      assignRecord(i, vector, msg.acTimeSlot);
-      assignRecord(i, vector, msg.acTimeSlotPhase);
-      assignRecord(i, vector, msg.resync);
-      assignRecord(i, vector, msg.beamRequest);
-      assignRecord(i, vector, msg.syncStatus);
-      assignRecord(i, vector, msg.bcsFault);
-      assignRecord(i, vector, msg.mpsValid);
+      assignRecord(i, vector, message.version);
+      assignRecord(i, vector, message.pulseId);
+      assignRecord(i, vector, message.timeStamp);
+      assignRecord(i, vector, message.fixedRates);
+      assignRecord(i, vector, message.acRates);
+      assignRecord(i, vector, message.acTimeSlot);
+      assignRecord(i, vector, message.acTimeSlotPhase);
+      assignRecord(i, vector, message.resync);
+      assignRecord(i, vector, message.beamRequest);
+      assignRecord(i, vector, message.syncStatus);
+      assignRecord(i, vector, message.bcsFault);
+      assignRecord(i, vector, message.mpsValid);
       i := i+ 8;                        -- 8 unused bits
-      for j in msg.mpsLimits'range loop
-         assignRecord(i, vector, msg.mpsLimits(j));
+      for j in message.mpsLimits'range loop
+         assignRecord(i, vector, message.mpsLimits(j));
       end loop;
-      assignRecord(i, vector, msg.historyActive);
-      assignRecord(i, vector, msg.calibrationGap);
+      assignRecord(i, vector, message.historyActive);
+      assignRecord(i, vector, message.calibrationGap);
       i := i+ 14;                       -- 14 unused bits of word
       i := i+ (16*3);                   -- 3 unused words
-      assignRecord(i, vector, msg.bsaInit);
-      assignRecord(i, vector, msg.bsaActive);
-      assignRecord(i, vector, msg.bsaAvgDone);
-      assignRecord(i, vector, msg.bsaDone);
-      for j in msg.experiment'range loop
-         assignRecord(i, vector, msg.experiment(j));
+      assignRecord(i, vector, message.bsaInit);
+      assignRecord(i, vector, message.bsaActive);
+      assignRecord(i, vector, message.bsaAvgDone);
+      assignRecord(i, vector, message.bsaDone);
+      for j in message.experiment'range loop
+         assignRecord(i, vector, message.experiment(j));
       end loop;
-      assignRecord(i, vector, msg.patternAddress);
-      for j in msg.pattern'range loop
-         assignRecord(i, vector, msg.pattern(j));
+      assignRecord(i, vector, message.patternAddress);
+      for j in message.pattern'range loop
+         assignRecord(i, vector, message.pattern(j));
       end loop;
-      assignRecord(i, vector, msg.crc);
-      return msg;
+      assignRecord(i, vector, message.crc);
+      return message;
    end function;
 
 
