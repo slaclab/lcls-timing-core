@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2015-10-02
+-- Last update: 2015-10-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ entity TimingGthCoreWrapper is
       rxOutClk       : out sl;
 
       -- Tx Ports
+      txInhibit      : in  sl;
       txReset        : in  sl;
       txUsrClk       : in  sl;
       txUsrClkActive : in  sl;
@@ -99,6 +100,7 @@ architecture rtl of TimingGthCoreWrapper is
          txctrl0_in                         : in  std_logic_vector(15 downto 0);
          txctrl1_in                         : in  std_logic_vector(15 downto 0);
          txctrl2_in                         : in  std_logic_vector(7 downto 0);
+         txinhibit_in                       : in  std_logic_vector(0 downto 0);
          txusrclk_in                        : in  std_logic_vector(0 downto 0);
          txusrclk2_in                       : in  std_logic_vector(0 downto 0);
          gthtxn_out                         : out std_logic_vector(0 downto 0);
@@ -116,7 +118,7 @@ architecture rtl of TimingGthCoreWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
          );
    end component;
-
+   
 begin
 
    U_TimingGthCore : TimingGth
@@ -160,6 +162,7 @@ begin
          txctrl1_in                            => X"0000",
          txctrl2_in(1 downto 0)                => txDataK,
          txctrl2_in(7 downto 2)                => (others => '0'),
+         txinhibit_in(0)                       => txInhibit,
          txusrclk_in(0)                        => txUsrClk,
          txusrclk2_in(0)                       => txUsrClk,
          gthtxn_out(0)                         => gtTxN,
