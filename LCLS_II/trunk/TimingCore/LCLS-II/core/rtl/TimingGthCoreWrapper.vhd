@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2015-10-05
+-- Last update: 2015-10-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ entity TimingGthCoreWrapper is
       rxDataK        : out slv(1 downto 0);
       rxDispErr      : out slv(1 downto 0);
       rxDecErr       : out slv(1 downto 0);
-      rxPolarity     : in  sl;
       rxOutClk       : out sl;
 
       -- Tx Ports
@@ -60,10 +59,63 @@ entity TimingGthCoreWrapper is
 end entity TimingGthCoreWrapper;
 
 architecture rtl of TimingGthCoreWrapper is
-
+-- entity TimingGth is
+--   Port ( 
+--     gtwiz_userclk_tx_active_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_userclk_rx_active_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_tx_reset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_tx_start_user_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_tx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_tx_error_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_rx_reset_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_rx_start_user_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_rx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_buffbypass_rx_error_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_clk_freerun_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_all_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_tx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_tx_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_rx_pll_and_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_rx_datapath_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_rx_cdr_stable_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_tx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_reset_rx_done_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtwiz_userdata_tx_in : in STD_LOGIC_VECTOR ( 15 downto 0 );
+--     gtwiz_userdata_rx_out : out STD_LOGIC_VECTOR ( 15 downto 0 );
+--     drpclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gthrxn_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gthrxp_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gtrefclk0_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     loopback_in : in STD_LOGIC_VECTOR ( 2 downto 0 );
+--     rx8b10ben_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxcommadeten_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxmcommaalignen_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxpcommaalignen_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     tx8b10ben_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     txctrl0_in : in STD_LOGIC_VECTOR ( 15 downto 0 );
+--     txctrl1_in : in STD_LOGIC_VECTOR ( 15 downto 0 );
+--     txctrl2_in : in STD_LOGIC_VECTOR ( 7 downto 0 );
+--     txusrclk_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     txusrclk2_in : in STD_LOGIC_VECTOR ( 0 to 0 );
+--     gthtxn_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     gthtxp_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxbyteisaligned_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxbyterealign_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxcommadet_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxctrl0_out : out STD_LOGIC_VECTOR ( 15 downto 0 );
+--     rxctrl1_out : out STD_LOGIC_VECTOR ( 15 downto 0 );
+--     rxctrl2_out : out STD_LOGIC_VECTOR ( 7 downto 0 );
+--     rxctrl3_out : out STD_LOGIC_VECTOR ( 7 downto 0 );
+--     rxoutclk_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     rxpmaresetdone_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     txoutclk_out : out STD_LOGIC_VECTOR ( 0 to 0 );
+--     txpmaresetdone_out : out STD_LOGIC_VECTOR ( 0 to 0 )
+--   );
    component TimingGth
       port (
-         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+--         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
          gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector(0 downto 0);
@@ -123,7 +175,7 @@ begin
 
    U_TimingGthCore : TimingGth
       port map (
-         gtwiz_userclk_tx_reset_in(0)          => txReset,
+--         gtwiz_userclk_tx_reset_in(0)          => txReset,
          gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
          gtwiz_buffbypass_tx_reset_in(0)       => '0',
@@ -154,7 +206,6 @@ begin
          rxcommadeten_in(0)                    => '1',
          rxmcommaalignen_in(0)                 => '1',
          rxpcommaalignen_in(0)                 => '1',
---         rxpolarity_in(0)                      => rxPolarity,
          rxusrclk_in(0)                        => rxUsrClk,
          rxusrclk2_in(0)                       => rxUsrClk,
          tx8b10ben_in(0)                       => '1',

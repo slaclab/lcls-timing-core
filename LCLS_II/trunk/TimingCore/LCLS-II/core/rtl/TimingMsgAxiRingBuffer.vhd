@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-16
+-- Last update: 2015-10-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.TimingPkg.all;
 
 entity TimingMsgAxiRingBuffer is
    generic (
@@ -33,11 +34,11 @@ entity TimingMsgAxiRingBuffer is
       RAM_ADDR_WIDTH_G : positive range 1 to (2**24) := 10);
 
    port (
-      -- Timing Msg interface
+      -- Timing Message interface
       timingClk       : in sl;
       timingRst       : in sl;
-      timingMsg       : in TimingMsgType;
-      timingMsgStrobe : in sl;
+      timingMessage       : in TimingMessageType;
+      timingMessageStrobe : in sl;
 
       -- Axi Lite interface for readout
       axilClk         : in  sl;
@@ -65,14 +66,14 @@ begin
       port map (
          timingClk       => timingClk,
          timingRst       => timingRst,
-         timingMsg       => timingMsg,
-         timingMsgStrobe => timingMsgStrobe,
+         timingMessage       => timingMessage,
+         timingMessageStrobe => timingMessageStrobe,
          axisClk         => timingClk,
          axisRst         => timingRst,
          axisMaster      => axisMaster);
 
       -- Pipe into AxiRingBuffer
-      AxiRingBuffer_1 : entity work.AxiRingBuffer
+      AxiLiteRingBuffer_1 : entity work.AxiLiteRingBuffer
       generic map (
          TPD_G            => TPD_G,
          BRAM_EN_G        => BRAM_EN_G,

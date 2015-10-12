@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-16
+-- Last update: 2015-10-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,48 +34,48 @@ entity TimingMsgDelay is
       -- Timing Msg interface
       timingClk          : in  sl;
       timingRst          : in  sl;
-      timingMsgIn        : in  TimingMsgType;
-      timingMsgStrobeIn  : in  sl;
+      timingMessageIn        : in  TimingMessageType;
+      timingMessageStrobeIn  : in  sl;
       delay              : in  slv(15 downto 0);
-      timingMsgOut       : out TimingMsgType;
-      timingMsgStrobeOut : out sl);
+      timingMessageOut       : out TimingMessageType;
+      timingMessageStrobeOut : out sl);
 
 end TimingMsgDelay;
 
 architecture rtl of TimingMsgDelay is
 
    constant TIME_SIZE_C  : integer := 32;
-   constant FIFO_WIDTH_C : integer := TIMING_MSG_BITS_C + TIME_SIZE_C;
+   constant FIFO_WIDTH_C : integer := TIMING_MESSAGE_BITS_C + TIME_SIZE_C;
 
-   subtype READOUT_RANGE_C is natural range TIMING_MSG_BITS_C+TIME_SIZE_C-1 downto TIMING_MSG_BITS_C;
-   subtype TIMING_RANGE_C is natural range TIMING_MSG_BITS_C-1 downto 0;
+   subtype READOUT_RANGE_C is natural range TIMING_MESSAGE_BITS_C+TIME_SIZE_C-1 downto TIMING_MESSAGE_BITS_C;
+   subtype TIMING_RANGE_C is natural range TIMING_MESSAGE_BITS_C-1 downto 0;
 
    type RegType is record
       timeNow            : slv(TIME_SIZE_C-1 downto 0);
       readoutTime        : slv(TIME_SIZE_C-1 downto 0);
       fifoRdEn           : sl;
-      timingMsgOut       : TimingMsgType;
-      timingMsgStrobeOut : sl;
+      timingMessageOut       : TimingMessageType;
+      timingMessageStrobeOut : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       timeNow            => (others => '0'),
       readoutTime        => (others => '0'),
       fifoRdEn           => '0',
-      timingMsgOut       => TIMING_MSG_INIT_C,
-      timingMsgStrobeOut => '0');
+      timingMessageOut       => TIMING_MESSAGE_INIT_C,
+      timingMessageStrobeOut => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal timingMsgSlv    : slv(TIMING_MSG_BITS_C-1 downto 0);
-   signal fifoTimingMsg   : slv(TIMING_MSG_BITS_C-1 downto 0);
+   signal timingMessageSlv    : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal fifoTimingMessage   : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
    signal fifoReadoutTime : slv(TIME_SIZE_C-1 downto 0);
    signal fifoValid       : sl;
 
 begin
 
-   timingMsgSlv <= toSlv(timingMsgIn);
+   timingMessageSlv <= toSlv(timingMessageIn);
 
    Fifo_1 : entity work.Fifo
       generic map (
@@ -90,16 +90,16 @@ begin
       port map (
          rst                   => timingRst,
          wr_clk                => timingClk,
-         wr_en                 => timingMsgStrobeIn,
+         wr_en                 => timingMessageStrobeIn,
          din(READOUT_RANGE_C)  => r.readoutTime,
-         din(TIMING_RANGE_C)   => timingMsgSlv,
+         din(TIMING_RANGE_C)   => timingMessageSlv,
          rd_clk                => timingClk,
          rd_en                 => r.fifoRdEn,
          dout(READOUT_RANGE_C) => fifoReadoutTime,
-         dout(TIMING_RANGE_C)  => fifoTimingMsg,
+         dout(TIMING_RANGE_C)  => fifoTimingMessage,
          valid                 => fifoValid);
 
-   comb : process (delay, fifoReadoutTime, fifoTimingMsg, r, timingRst) is
+   comb : process (delay, fifoReadoutTime, fifoTimingMessage, r, timingRst) is
       variable v : RegType;
    begin
       v := r;
@@ -108,13 +108,13 @@ begin
       v.readoutTime := r.timeNow + delay;
 
       v.fifoRdEn           := '0';
-      v.timingMsgStrobeOut := '0';
-      v.timingMsgOut       := toTimingMsgType(fifoTimingMsg);
+      v.timingMessageStrobeOut := '0';
+      v.timingMessageOut       := toTimingMessageType(fifoTimingMessage);
 
       if (fifoValid = '1' and r.fifoRdEn = '0') then
          if (fifoReadoutTime = r.timeNow) then
             v.fifoRdEn           := '1';
-            v.timingMsgStrobeOut := '1';
+            v.timingMessageStrobeOut := '1';
          end if;
       end if;
 
@@ -124,8 +124,8 @@ begin
 
       rin <= v;
 
-      timingMsgOut       <= r.timingMsgOut;
-      timingMsgStrobeOut <= r.timingMsgStrobeOut;
+      timingMessageOut       <= r.timingMessageOut;
+      timingMessageStrobeOut <= r.timingMessageStrobeOut;
 
    end process comb;
 

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-30
+-- Last update: 2015-10-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -110,6 +110,7 @@ package TimingPkg is
       message => TIMING_MESSAGE_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C);
+
 
    type TimingPhyType is record
       dataK : slv(1 downto 0);

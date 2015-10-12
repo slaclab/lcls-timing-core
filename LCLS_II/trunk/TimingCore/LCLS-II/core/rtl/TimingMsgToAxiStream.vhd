@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-16
+-- Last update: 2015-10-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,8 +36,8 @@ entity TimingMsgToAxiStream is
    port (
       timingClk       : in sl;
       timingRst       : in sl;
-      timingMsg       : in TimingMsgType;
-      timingMsgStrobe : in sl;
+      timingMessage       : in TimingMessageType;
+      timingMessageStrobe : in sl;
 
       axisClk    : in  sl;
       axisRst    : in  sl;
@@ -52,20 +52,20 @@ architecture rtl of TimingMsgToAxiStream is
    -- timingClk Domain
    -------------------------------------------------------------------------------------------------
    constant INT_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(SHIFT_SIZE_G/8, AXIS_CONFIG_G.TKEEP_MODE_C);
-   constant SHIFT_COUNT_MAX_C : integer             := TIMING_MSG_BITS_C/SHIFT_SIZE_C;
+   constant SHIFT_COUNT_MAX_C : integer             := TIMING_MESSAGE_BITS_C/SHIFT_SIZE_G;
    constant COUNT_SIZE_C      : integer             := bitSize(SHIFT_COUNT_MAX_C);
 
 
    type RegType is record
       ssiMaster : SsiMasterType;
-      msg       : slv(TIMING_MSG_BITS_C-1 downto 0);
+      message       : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
       active    : sl;
       count     : slv(COUNT_SIZE_C-1 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
       ssiMaster => ssiMasterInit(INT_AXIS_CONFIG_C),
-      msg       => (others => '0'),
+      message       => (others => '0'),
       active    => '0',
       count     => (others => '0'));
 
@@ -76,15 +76,15 @@ architecture rtl of TimingMsgToAxiStream is
 
 begin
 
-   comb : process (r, timingMsg, timingMsgStrobe, timingRst) is
+   comb : process (r, timingMessage, timingMessageStrobe, timingRst) is
       variable v : RegType;
    begin
       v := r;
 
       v.count := (others => '0');
 
-      if (timingMsgStrobe = '1') then
-         v.msg    := toSlv(timingMsg);
+      if (timingMessageStrobe = '1') then
+         v.message    := toSlv(timingMessage);
          v.active := '1';
       end if;
 
@@ -93,11 +93,11 @@ begin
       v.ssiMaster.eof := ite(r.count = SHIFT_COUNT_MAX_C, '1', '0');
 
       if (r.active = '1') then
-         v.ssiMaster.data(SHIFT_SIZE_C-1 downto 0) := r.msg(SHIFT_SIZE_C-1 downto 0);
+         v.ssiMaster.data(SHIFT_SIZE_G-1 downto 0) := r.message(SHIFT_SIZE_G-1 downto 0);
 
          v.ssiMaster.valid := '1';
          v.active          := ite(v.ssiMaster.eof = '1', '0', '1');
-         v.msg             := slvZero(SHIFT_SIZE_C) & r.msg(TIMING_MSG_BITS_C-1 downto SHIFT_SIZE_C);
+         v.message             := slvZero(SHIFT_SIZE_G) & r.message(TIMING_MESSAGE_BITS_C-1 downto SHIFT_SIZE_G);
       end if;
 
 
@@ -105,7 +105,7 @@ begin
          v := REG_INIT_C;
       end if;
 
-      timingAxisMaster <= ssi2AxisMaster(r.ssiMaster, INT_AXIS_CONFIG_C);
+      timingAxisMaster <= ssi2AxisMaster(INT_AXIS_CONFIG_C, r.ssiMaster);
 
       rin <= v;
 

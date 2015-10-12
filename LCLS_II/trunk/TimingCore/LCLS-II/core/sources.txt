@@ -5,3 +5,4 @@ vhdl work rtl/TimingGthCoreWrapper.vhd
 vhdl work rtl/TimingMsgAxiRingBuffer.vhd
 vhdl work rtl/TimingMsgDelay.vhd
 vhdl work rtl/TimingMsgToAxiStream.vhd
+vhdl work rtl/TimingCore.vhd

@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-09-25
+-- Last update: 2015-10-09
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ architecture rtl of AxiLiteRingBuffer is
       nextAddr  : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    end record;
 
-   constant DATA_REG_INIT_C : AxisRegType := (
+   constant DATA_REG_INIT_C : DataRegType := (
       firstAddr => (others => '0'),
       nextAddr  => (others => '0'));
 
@@ -79,7 +79,7 @@ architecture rtl of AxiLiteRingBuffer is
       logEn          : sl;
       bufferClear    : sl;
       ramRdAddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      axiRdEn        : slv(1 downto 0);
+      axilRdEn        : slv(1 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
@@ -139,7 +139,7 @@ begin
          dataIn  => axilR.logEn,
          dataOut => dataLogEn);
 
-   Synchronizer_logEn : entity work.SynchronizerOneShot
+   Synchronizer_bufferClear : entity work.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -151,7 +151,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main AXI-Stream process
    -------------------------------------------------------------------------------------------------
-   dataComb : process (dataLogEn, dataR, dataRst, ssiMaster, ssiSlave) is
+   dataComb : process (dataBufferClear, dataLogEn, dataR, dataRst, dataValid) is
       variable v : DataRegType;
    begin
       -- Latch the current value
@@ -168,7 +168,7 @@ begin
       -- If logging not enabled, will keep writing to nextAddr, which is never read
 
       -- Synchronous Reset
-      if (dataRst = '1' or dataClear = '1') then
+      if (dataRst = '1' or dataBufferClear = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
@@ -211,8 +211,8 @@ begin
          rd_clk => axilClk,
          dout   => axilNextAddr);
 
-   axiComb : process (axiReadMaster, axiWriteMaster, axilFirstAddr, axilNextAddr, axilR,
-                      axilRamRdData, axilRst) is
+   axiComb : process (axilFirstAddr, axilNextAddr, axilR, axilRamRdData, axilReadMaster, axilRst,
+                      axilWriteMaster) is
       variable v          : AxilRegType;
       variable axilStatus : AxiLiteStatusType;
 
@@ -221,12 +221,12 @@ begin
       v := axilR;
 
       v.bufferClear := '0';
-      v.axiRdEn     := r.axiRdEn(0) & '0';
+      v.axilRdEn     := axilR.axilRdEn(0) & '0';
 
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       if (axilStatus.writeEnable = '1') then
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_C)) then
+         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
             v.logEn       := axilWriteMaster.wdata(0);
             v.bufferClear := axilWriteMaster.wdata(1);
          end if;
@@ -235,21 +235,21 @@ begin
 
       if (axilStatus.readEnable = '1') then
          v.axilReadSlave.rdata := (others => '0');
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_C)) then
-            v.axilReadSlave.rdata(0)           := r.logEn;
-            v.axilReadSlave.rdata(1)           := r.bufferClear;
+         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
+            v.axilReadSlave.rdata(0)           := axilR.logEn;
+            v.axilReadSlave.rdata(1)           := axilR.bufferClear;
             v.axilReadSlave.rdata(31 downto 8) := resize(axilNextAddr-axilFirstAddr, 24);
             axiSlaveReadResponse(v.axilReadSlave);
          else
             -- AXI-Lite address is automatically offset by firstAddr.
             -- Thus axil address 0 always pulls from firstAddr, etc
-            v.ramReadAddr := axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + r.axilFirstAddr;
+            v.ramRdAddr := axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) + axilFirstAddr;
 
             -- If output of ram is registered, read data will be ready 2 cycles after address asserted
             -- If not registered it will be ready on next cycle
             v.axilRdEn := ite(REG_EN_G or BRAM_EN_G, "01", "10");
 
-            if (r.axilRdEn(1) = '1') then
+            if (axilR.axilRdEn(1) = '1') then
                v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axilRamRdData;
                axiSlaveReadResponse(v.axilReadSlave);
             end if;

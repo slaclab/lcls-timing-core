@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-09-25
+-- Last update: 2015-10-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,14 +31,14 @@ entity TimingFrameRx is
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
 
    port (
-      timingClk       : in  sl;
-      timingRst       : in  sl;
-      rxData          : in  slv(15 downto 0);
-      rxDataK         : in  slv(1 downto 0);
-      rxError         : in  sl;
-      rxLinkUp        : in  sl;
-      timingMsg       : out TimingMsgType;
-      timingMsgStrobe : out sl;
+      rxClk     : in sl;
+      rxData    : in slv(15 downto 0);
+      rxDataK   : in slv(1 downto 0);
+      rxDispErr : in slv(1 downto 0);
+      rxDecErr  : in slv(1 downto 0);
+
+      timingMessage       : out TimingMessageType;
+      timingMessageStrobe : out sl;
 
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -53,55 +53,55 @@ end entity TimingFrameRx;
 architecture rtl of TimingFrameRx is
 
    -------------------------------------------------------------------------------------------------
-   -- timingClk Domain
+   -- rxClk Domain
    -------------------------------------------------------------------------------------------------
    type StateType is (IDLE_S, FRAME_S);
 
    type RegType is record
-      state           : StateType;
-      lastFrameValid  : sl;
-      crcReset        : sl;
-      crcOut          : slv32Array(1 downto 0);
-      sofStrobe       : sl;
-      eofStrobe       : sl;
-      crcErrorStrobe  : sl;
-      timingMsgShift  : slv(TIMING_MSG_BITS_C-1 downto 0);
-      timingMsgOut    : TimingMsgType;
-      timingMsgStrobe : sl;
+      state               : StateType;
+      lastFrameValid      : sl;
+      crcReset            : sl;
+      crcOut              : slv32Array(1 downto 0);
+      sofStrobe           : sl;
+      eofStrobe           : sl;
+      crcErrorStrobe      : sl;
+      timingMessageShift  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+      timingMessageOut    : TimingMessageType;
+      timingMessageStrobe : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state           => IDLE_S,
-      lastFrameValid  => '0',
-      crcReset        => '1',
-      crcOut          => (others => (others => '0')),
-      sofStrobe       => '0',
-      eofStrobe       => '0',
-      crcErrorStrobe  => '0',
-      timingMsgShift  => (others => '0'),
-      timingMsgOut    => TIMING_MSG_INIT_C,
-      timingMsgStrobe => '0');
+      state               => IDLE_S,
+      lastFrameValid      => '0',
+      crcReset            => '1',
+      crcOut              => (others => (others => '0')),
+      sofStrobe           => '0',
+      eofStrobe           => '0',
+      crcErrorStrobe      => '0',
+      timingMessageShift  => (others => '0'),
+      timingMessageOut    => TIMING_MESSAGE_INIT_C,
+      timingMessageStrobe => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal timingMsgDelay : slv(15 downto 0);
-   signal crcDataValid   : sl;
-   signal crcOut         : slv(31 downto 0);
+   signal timingMessageDelay : slv(15 downto 0);
+   signal crcDataValid       : sl;
+   signal crcOut             : slv(31 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
    type AxilRegType is record
       cntRst         : sl;
-      msgDelay       : slv(15 downto 0);
+      messageDelay   : slv(15 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
       cntRst         => '0',
-      msgDelay       => toSlv(20000, 16),
+      messageDelay   => toSlv(20000, 16),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -126,14 +126,14 @@ begin
          TPD_G        => TPD_G)
       port map (
          crcOut              => crcOut,
-         crcClk              => timingClk,
+         crcClk              => rxClk,
          crcDataValid        => crcDataValid,
          crcDataWidth        => "001",
          crcIn(31 downto 16) => (others => '0'),
          crcIn(15 downto 0)  => rxData,
          crcReset            => r.crcReset);
 
-   comb : process (crcOut, r, rxData, rxDataK, rxError, rxLinkUp, timingRst) is
+   comb : process (crcOut, r, rxData, rxDataK, rxDecErr, rxDispErr) is
       variable v : RegType;
    begin
       v := r;
@@ -143,11 +143,11 @@ begin
       v.crcOut(1) := r.crcOut(0);
 
       -- Strobed registers
-      v.crcReset        := '0';
-      v.sofStrobe       := '0';
-      v.eofStrobe       := '0';
-      v.timingMsgStrobe := '0';
-      v.crcErrorStrobe  := '0';
+      v.crcReset            := '0';
+      v.sofStrobe           := '0';
+      v.eofStrobe           := '0';
+      v.timingMessageStrobe := '0';
+      v.crcErrorStrobe      := '0';
 
 
       case (r.state) is
@@ -160,49 +160,42 @@ begin
                v.crcReset       := '1';
 
                if (r.lastFrameValid = '1') then
-                  v.timingMsgOut    := toTimingMsgType(r.timingMsgShift);
-                  v.timingMsgStrobe := '1';
+                  v.timingMessageOut    := toTimingMessageType(r.timingMessageShift);
+                  v.timingMessageStrobe := '1';
                end if;
 
             end if;
 
          when FRAME_S =>
             if (rxDataK /= "00") then
-               -- Error, go back to IDLE_S without marking the frame as valid
                v.state := IDLE_S;
-
                if ((rxDataK = "01" and rxData = (D_215_C & K_EOF_C))) then
                   -- EOF character seen, check crc
                   v.eofStrobe      := '1';
-                  v.lastFrameValid := toSl(toTimingMsgType(r.timingMsgShift).crc = r.crcOut(0));
+                  v.lastFrameValid := toSl(toTimingMessageType(r.timingMessageShift).crc = r.crcOut(0));
                   v.crcErrorStrobe := not v.lastFrameValid;
                end if;
             else
                -- Shift in new data if not a K char
-               v.timingMsgShift := rxData & r.timingMsgShift(TIMING_MSG_BITS_C-1 downto 16);
+               v.timingMessageShift := rxData & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
             end if;
 
          when others => null;
       end case;
 
-      if (rxLinkUp = '0' or rxError = '1') then
+      if (rxDecErr /= "00" or rxDispErr /= X"00") then
          v.state          := IDLE_S;
          v.lastFrameValid := '0';
       end if;
 
-      if (timingRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
-      timingMsg       <= r.timingMsgOut;
-      timingMsgStrobe <= r.timingMsgStrobe;
-      rin             <= v;
+   
+      rin                 <= v;
 
    end process comb;
 
-   seq : process (timingClk) is
+   seq : process (rxClk) is
    begin
-      if (rising_edge(timingClk)) then
+      if (rising_edge(rxClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -213,19 +206,19 @@ begin
    TimingMsgDelay_1 : entity work.TimingMsgDelay
       generic map (
          TPD_G             => TPD_G,
-         BRAM_EN_G         => BRAM_EN_G,
+         BRAM_EN_G         => true,
          FIFO_ADDR_WIDTH_G => bitSize(150))
       port map (
-         timingClk          => timingClk,
-         timingRst          => timingRst,
-         timingMsgIn        => timingMsgIn,
-         timingMsgStrobeIn  => timingMsgStrobeIn,
-         delay              => timingMsgDelay,
-         timingMsgOut       => timingMsgOut,
-         timingMsgStrobeOut => timingMsgStrobeOut);
+         timingClk              => rxClk,
+         timingRst              => '0',
+         timingMessageIn        => r.timingMessageOut,
+         timingMessageStrobeIn  => r.timingMessageStrobe,
+         delay                  => timingMessageDelay,
+         timingMessageOut       => timingMessage,
+         timingMessageStrobeOut => timingMessageStrobe);
 
    -------------------------------------------------------------------------------------------------
-   -- Synchronize msg delay to timing domain
+   -- Synchronize message delay to timing domain
    -------------------------------------------------------------------------------------------------
    SynchronizerFifo_1 : entity work.SynchronizerFifo
       generic map (
@@ -234,9 +227,9 @@ begin
       port map (
          rst    => axilRst,
          wr_clk => axilClk,
-         din    => axilR.msgDelay,
-         rd_clk => timingClk,
-         dout   => timingMsgDelay);
+         din    => axilR.messageDelay,
+         rd_clk => rxClk,
+         dout   => timingMessageDelay);
 
    -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic
@@ -254,17 +247,17 @@ begin
       port map (
          statusIn(0)           => r.sofStrobe,
          statusIn(1)           => r.eofStrobe,
-         statusIn(2)           => r.timingMsgStrobe,
+         statusIn(2)           => r.timingMessageStrobe,
          statusIn(3)           => r.crcErrorStrobe,
-         statusIn(4)           => rxError,
-         statusIn(5)           => rxLinkUp,
+         statusIn(4)           => '0',
+         statusIn(5)           => '0',
          statusOut(4 downto 0) => open,
          statusOut(5)          => axilRxLinkUp,
          cntRstIn              => axilR.cntRst,
          rollOverEnIn          => (others => '0'),
          cntOut                => axilStatusCounters,
-         wrClk                 => timingClk,
-         wrRst                 => timingRst,
+         wrClk                 => rxClk,
+         wrRst                 => '0',
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
@@ -318,7 +311,7 @@ begin
       axilSlaveRegisterW(X"18", 0, v.cntRst);
       axilSlaveRegisterR(X"18", 1, axilRxLinkUp);
 
-      axilSlaveRegisterW(X"1C", 0, v.msgDelay);
+      axilSlaveRegisterW(X"1C", 0, v.messageDelay);
 
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
