@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2015-10-09
+-- Last update: 2015-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,16 +66,16 @@ architecture rtl of TimingCore is
 
    constant AXIL_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
       FRAME_RX_AXIL_INDEX_C           => (
-         baseAddr                     => AXIL_BASE_ADDR_G + X"0000",
-         addrBits                     => 12,
+         baseAddr                     => AXIL_BASE_ADDR_G + X"00000",
+         addrBits                     => 16,
          connectivity                 => X"FFFF"),
       RAW_BUFFER_AXIL_INDEX_C         => (
-         baseAddr                     => AXIL_BASE_ADDR_G + X"1000",
-         addrBits                     => 12,
+         baseAddr                     => AXIL_BASE_ADDR_G + X"10000",
+         addrBits                     => 16,
          connectivity                 => X"FFFF"),
       MESSAGE_BUFFER_AXIL_INDEX_C => (
-         baseAddr                     => AXIL_BASE_ADDR_G + X"2000",
-         addrBits                     => 12,
+         baseAddr                     => AXIL_BASE_ADDR_G + X"20000",
+         addrBits                     => 16,
          connectivity                 => X"FFFF"));
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
@@ -141,7 +141,7 @@ begin
          BRAM_EN_G        => true,
          REG_EN_G         => true,
          DATA_WIDTH_G     => 18,
-         RAM_ADDR_WIDTH_G => 9)
+         RAM_ADDR_WIDTH_G => 13)
       port map (
          dataClk                 => gtRxRecClk,
          dataRst                 => '0',
@@ -163,7 +163,7 @@ begin
          TPD_G            => TPD_G,
          BRAM_EN_G        => true,
          REG_EN_G         => true,
-         RAM_ADDR_WIDTH_G => 9)
+         RAM_ADDR_WIDTH_G => 13)
       port map (
          timingClk       => gtRxRecClk,
          timingRst       => '0',

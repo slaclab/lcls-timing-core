@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-10-09
+-- Last update: 2015-10-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ architecture rtl of TimingFrameRx is
       eofStrobe           : sl;
       crcErrorStrobe      : sl;
       timingMessageShift  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-      timingMessageOut    : TimingMessageType;
+--      timingMessageOut    : TimingMessageType;
       timingMessageStrobe : sl;
    end record;
 
@@ -79,12 +79,13 @@ architecture rtl of TimingFrameRx is
       eofStrobe           => '0',
       crcErrorStrobe      => '0',
       timingMessageShift  => (others => '0'),
-      timingMessageOut    => TIMING_MESSAGE_INIT_C,
+--      timingMessageOut    => TIMING_MESSAGE_INIT_C,
       timingMessageStrobe => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal timingMessageOut : TimingMessageType;
    signal timingMessageDelay : slv(15 downto 0);
    signal crcDataValid       : sl;
    signal crcOut             : slv(31 downto 0);
@@ -160,7 +161,7 @@ begin
                v.crcReset       := '1';
 
                if (r.lastFrameValid = '1') then
-                  v.timingMessageOut    := toTimingMessageType(r.timingMessageShift);
+--                  v.timingMessageOut    := toTimingMessageType(r.timingMessageShift);
                   v.timingMessageStrobe := '1';
                end if;
 
@@ -188,7 +189,7 @@ begin
          v.lastFrameValid := '0';
       end if;
 
-   
+      timingMessageOut <= toTimingMessageType(r.timingMessageShift);
       rin                 <= v;
 
    end process comb;
@@ -207,11 +208,11 @@ begin
       generic map (
          TPD_G             => TPD_G,
          BRAM_EN_G         => true,
-         FIFO_ADDR_WIDTH_G => bitSize(150))
+         FIFO_ADDR_WIDTH_G => 9)
       port map (
          timingClk              => rxClk,
          timingRst              => '0',
-         timingMessageIn        => r.timingMessageOut,
+         timingMessageIn        => timingMessageOut,
          timingMessageStrobeIn  => r.timingMessageStrobe,
          delay                  => timingMessageDelay,
          timingMessageOut       => timingMessage,
