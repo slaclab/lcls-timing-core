@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-09-25
+-- Last update: 2015-10-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,6 +45,8 @@ entity EvrV1EventReceiver is
 end EvrV1EventReceiver;
 
 architecture rtl of EvrV1EventReceiver is
+
+   constant TIMEOUT_C : natural := getTimeRatio(200.0E+6, 1.0);
 
    component EvrV1EventReceiverChannel is
       port(
@@ -132,10 +134,11 @@ architecture rtl of EvrV1EventReceiver is
    signal intEventCount : slv(31 downto 0);
    signal intEventCnt   : slv(31 downto 0);
 
-   signal heartBeat     : sl;
-   signal heartBeatDly  : sl;
-   signal evrTriggerInt : slv(11 downto 0);
-   signal dbgClkOut     : slv(7 downto 0);
+   signal heartBeat      : sl;
+   signal heartBeatPulse : sl;
+   signal heartBeatCnt   : natural range 0 to TIMEOUT_C;
+   signal evrTriggerInt  : slv(11 downto 0);
+   signal dbgClkOut      : slv(7 downto 0);
 
    signal rxLinkUpDly : sl;
    signal rxDataKDly  : slv(1 downto 0);
@@ -707,17 +710,32 @@ begin
    ----------------------
    -- Generate Interrupts
    ----------------------       
-   process(evrClk)
+   Sync_heartbeat : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)          
+      port map (
+         clk     => axiClk,
+         dataIn  => heartBeat,
+         dataOut => heartBeatPulse);    
+
+   process(axiClk)
    begin
-      if rising_edge(evrClk) then
-         heartBeatDly <= heartBeat after TPD_G;
-         if evrRst = '1' then
-            intFlag(2) <= '0' after TPD_G;
+      if rising_edge(axiClk) then
+         if axiRst = '1' then
+            intFlag(2)   <= '0' after TPD_G;
+            heartBeatCnt <= 0   after TPD_G;
          else
             if irqClr(2) = '1' then
                intFlag(2) <= '0' after TPD_G;
-            elsif (evrEnable = '1') and (heartBeatDly = '0') and (heartBeat = '1') then
+            elsif (evrEnable = '1') and (heartBeatPulse = '1') and (heartBeatCnt = TIMEOUT_C) then
                intFlag(2) <= '1' after TPD_G;
+            end if;
+            -- Check if need reset counter
+            if (heartBeatPulse = '1') or (heartBeatCnt = TIMEOUT_C) then
+               heartBeatCnt <= 0 after TPD_G;
+            else
+               -- Increment the counter
+               heartBeatCnt <= heartBeatCnt + 1;
             end if;
          end if;
       end if;
