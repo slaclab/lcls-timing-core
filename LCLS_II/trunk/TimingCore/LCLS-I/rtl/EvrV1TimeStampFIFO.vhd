@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-17
--- Last update: 2015-08-18
+-- Last update: 2015-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ begin
          wr_en         => wr_en,
          din           => din,
          wr_data_count => wr_data_count,
-         full          => full,
+         overflow      => full,
          -- Read Ports (rd_clk domain)
          rd_clk        => rd_clk,
          rd_en         => rd_en,

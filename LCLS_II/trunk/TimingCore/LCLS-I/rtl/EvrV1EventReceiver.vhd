@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-10-26
+-- Last update: 2015-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,6 +115,7 @@ architecture rtl of EvrV1EventReceiver is
    signal fifoWrEn         : sl;
    signal tsFIFOempty      : sl;
    signal tsFIFOfull       : sl;
+   signal tsFIFOfullSync   : sl;
    signal tsFIFOfullDly    : sl;
    signal tsFifoWrCnt      : slv(8 downto 0);
    signal tsFifoWrCntInt   : slv(8 downto 0);
@@ -140,11 +141,12 @@ architecture rtl of EvrV1EventReceiver is
    signal evrTriggerInt  : slv(11 downto 0);
    signal dbgClkOut      : slv(7 downto 0);
 
-   signal rxLinkUpDly : sl;
-   signal rxDataKDly  : slv(1 downto 0);
-   signal rxDataDly   : slv(15 downto 0);
-   signal rxDataEvent : slv(15 downto 0);
-   signal rxSize      : slv(11 downto 0);
+   signal rxLinkUpDly  : sl;
+   signal rxLinkUpSync : sl;
+   signal rxDataKDly   : slv(1 downto 0);
+   signal rxDataDly    : slv(15 downto 0);
+   signal rxDataEvent  : slv(15 downto 0);
+   signal rxSize       : slv(11 downto 0);
 
    signal isK            : slv(1 downto 0);
    signal dataStream     : slv(7 downto 0);
@@ -725,14 +727,16 @@ begin
             intFlag(2)   <= '0' after TPD_G;
             heartBeatCnt <= 0   after TPD_G;
          else
-            if irqClr(2) = '1' then
+            if config.irqClr(2) = '1' then
                intFlag(2) <= '0' after TPD_G;
-            elsif (evrEnable = '1') and (heartBeatPulse = '1') and (heartBeatCnt = TIMEOUT_C) then
+            elsif (config.evrEnable = '1') and (heartBeatPulse = '1') then
                intFlag(2) <= '1' after TPD_G;
             end if;
-            -- Check if need reset counter
-            if (heartBeatPulse = '1') or (heartBeatCnt = TIMEOUT_C) then
+            if (heartBeatPulse = '1') then
                heartBeatCnt <= 0 after TPD_G;
+            elsif (heartBeatCnt = TIMEOUT_C) then
+               heartBeatCnt <= 0                after TPD_G;
+               intFlag(2)   <= config.evrEnable after TPD_G;
             else
                -- Increment the counter
                heartBeatCnt <= heartBeatCnt + 1;
@@ -741,16 +745,26 @@ begin
       end if;
    end process;
 
-   process(evrClk)
+   SyncOut_tsFIFOfull : entity work.RstSync
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1')
+      port map (
+         clk      => axiClk,
+         asyncRst => tsFIFOfull,
+         syncRst  => tsFIFOfullSync);          
+
+   process(axiClk)
    begin
-      if rising_edge(evrClk) then
-         tsFIFOfullDly <= tsFIFOfull after TPD_G;
+      if rising_edge(axiClk) then
+         tsFIFOfullDly <= tsFIFOfullSync after TPD_G;
          if evrRst = '1' then
             intFlag(1) <= '0' after TPD_G;
          else
-            if irqClr(1) = '1' then
+            if config.irqClr(1) = '1' then
                intFlag(1) <= '0' after TPD_G;
-            elsif (evrEnable = '1') and (tsFIFOfullDly = '0') and (tsFIFOfull = '1') then
+            elsif (config.evrEnable = '1') and (tsFIFOfullDly = '0') and (tsFIFOfullSync = '1') then
                intFlag(1) <= '1' after TPD_G;
             end if;
          end if;
@@ -782,7 +796,7 @@ begin
          else
             if config.irqClr(5) = '1' then
                intFlag(5) <= '0' after TPD_G;
-            elsif (evrEnable = '1') and (dbrdy = '1') then
+            elsif (config.evrEnable = '1') and (dbrdy = '1') then
                intFlag(5) <= '1' after TPD_G;
             end if;
          end if;
@@ -790,13 +804,23 @@ begin
    end process;
    status.dbrdy <= dbrdy;
 
-   process(evrClk)
+   SyncIn_rxLinkUp : entity work.RstSync
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '0')
+      port map (
+         clk      => axiClk,
+         asyncRst => rxLinkUp,
+         syncRst  => rxLinkUpSync);    
+
+   process(axiClk)
    begin
-      if rising_edge(evrClk) then
-         rxLinkUpDly <= rxLinkUp after TPD_G;
-         if irqClr(0) = '1' then
+      if rising_edge(axiClk) then
+         rxLinkUpDly <= rxLinkUpSync after TPD_G;
+         if config.irqClr(0) = '1' then
             intFlag(0) <= '0' after TPD_G;
-         elsif (evrEnable = '1') and (rxLinkUpDly = '1') and (rxLinkUp = '0') then
+         elsif (config.evrEnable = '1') and (rxLinkUpDly = '1') and (rxLinkUpSync = '0') then
             intFlag(0) <= '1' after TPD_G;
          end if;
       end if;
@@ -837,14 +861,15 @@ begin
          dataOut(0) => status.dbInt,
          dataOut(1) => status.dbIntEna);
 
-   SyncOut_1 : entity work.SynchronizerVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 32)          
-      port map (
-         clk     => axiClk,
-         dataIn  => intFlag,
-         dataOut => status.intFlag); 
+-- SyncOut_1 : entity work.SynchronizerVector
+-- generic map (
+-- TPD_G   => TPD_G,
+-- WIDTH_G => 32)          
+-- port map (
+-- clk     => axiClk,
+-- dataIn  => intFlag,
+-- dataOut => status.intFlag); 
+   status.intFlag <= intFlag;
 
    SyncOut_2 : entity work.SynchronizerFifo
       generic map (

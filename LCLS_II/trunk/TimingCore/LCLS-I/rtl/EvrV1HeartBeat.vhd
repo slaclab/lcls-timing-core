@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-02-18
--- Last update: 2015-02-18
+-- Last update: 2015-10-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,22 +35,24 @@ end entity EvrV1HeartBeat;
 architecture rtl of EvrV1HeartBeat is
 
    type RegType is record
-      cnt : slv(31 downto 0);
+      heartBeatTimeOut : sl;
+      cnt              : slv(31 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      cnt => (others => '0'));
+      heartBeatTimeOut => '0',
+      cnt              => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   heartBeatTimeOut <= '1' when(r.cnt = 0) else '0';
-
    comb : process (eventCode, r, reset, uSecDividerReg) is
       variable v : RegType;
    begin
       v := r;
+
+      v.heartBeatTimeOut := '0';
 
       if eventCode = x"7A" then
          v.cnt := uSecDividerReg;
@@ -58,11 +60,18 @@ begin
          v.cnt := r.cnt - 1;
       end if;
 
+      if r.cnt = 0 then
+         v.heartBeatTimeOut := '1';
+      end if;
+
       if (reset = '1') then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
+
+      heartBeatTimeOut <= r.heartBeatTimeOut;
+      
    end process comb;
 
    seq : process (eventClk) is
