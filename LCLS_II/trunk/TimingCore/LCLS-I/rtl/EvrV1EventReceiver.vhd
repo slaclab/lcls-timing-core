@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-10-27
+-- Last update: 2015-10-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ end EvrV1EventReceiver;
 
 architecture rtl of EvrV1EventReceiver is
 
-   constant TIMEOUT_C : natural := getTimeRatio(200.0E+6, 1.0);
+   constant TIMEOUT_C : natural := 200000000;
 
    component EvrV1EventReceiverChannel is
       port(
@@ -115,8 +115,7 @@ architecture rtl of EvrV1EventReceiver is
    signal fifoWrEn         : sl;
    signal tsFIFOempty      : sl;
    signal tsFIFOfull       : sl;
-   signal tsFIFOfullSync   : sl;
-   signal tsFIFOfullDly    : sl;
+   signal tsFIFOfullPulse  : sl;
    signal tsFifoWrCnt      : slv(8 downto 0);
    signal tsFifoWrCntInt   : slv(8 downto 0);
    signal tsFifoTsLowLast  : slv(31 downto 0);
@@ -649,28 +648,26 @@ begin
       --------------------------
       -- Output Trigger Crossbar
       --------------------------
-      process(evrClk)
+      process(dbgClkOut, evrTriggerInt, outputMap)
       begin
-         if rising_edge(evrClk) then
-            case conv_integer(outputMap(i)) is
-               when 0      => trigOut(i) <= evrTriggerInt(0)  after TPD_G;
-               when 1      => trigOut(i) <= evrTriggerInt(1)  after TPD_G;
-               when 2      => trigOut(i) <= evrTriggerInt(2)  after TPD_G;
-               when 3      => trigOut(i) <= evrTriggerInt(3)  after TPD_G;
-               when 4      => trigOut(i) <= evrTriggerInt(4)  after TPD_G;
-               when 5      => trigOut(i) <= evrTriggerInt(5)  after TPD_G;
-               when 6      => trigOut(i) <= evrTriggerInt(6)  after TPD_G;
-               when 7      => trigOut(i) <= evrTriggerInt(7)  after TPD_G;
-               when 8      => trigOut(i) <= evrTriggerInt(8)  after TPD_G;
-               when 9      => trigOut(i) <= evrTriggerInt(9)  after TPD_G;
-               when 10     => trigOut(i) <= evrTriggerInt(10) after TPD_G;
-               when 11     => trigOut(i) <= evrTriggerInt(11) after TPD_G;
-               when 61     => trigOut(i) <= dbgClkOut(7)      after TPD_G;
-               when 62     => trigOut(i) <= '1'               after TPD_G;
-               when 63     => trigOut(i) <= '0'               after TPD_G;
-               when others => trigOut(i) <= '0'               after TPD_G;
-            end case;
-         end if;
+         case conv_integer(outputMap(i)) is
+            when 0      => trigOut(i) <= evrTriggerInt(0)  after TPD_G;
+            when 1      => trigOut(i) <= evrTriggerInt(1)  after TPD_G;
+            when 2      => trigOut(i) <= evrTriggerInt(2)  after TPD_G;
+            when 3      => trigOut(i) <= evrTriggerInt(3)  after TPD_G;
+            when 4      => trigOut(i) <= evrTriggerInt(4)  after TPD_G;
+            when 5      => trigOut(i) <= evrTriggerInt(5)  after TPD_G;
+            when 6      => trigOut(i) <= evrTriggerInt(6)  after TPD_G;
+            when 7      => trigOut(i) <= evrTriggerInt(7)  after TPD_G;
+            when 8      => trigOut(i) <= evrTriggerInt(8)  after TPD_G;
+            when 9      => trigOut(i) <= evrTriggerInt(9)  after TPD_G;
+            when 10     => trigOut(i) <= evrTriggerInt(10) after TPD_G;
+            when 11     => trigOut(i) <= evrTriggerInt(11) after TPD_G;
+            when 61     => trigOut(i) <= dbgClkOut(7)      after TPD_G;
+            when 62     => trigOut(i) <= '1'               after TPD_G;
+            when 63     => trigOut(i) <= '0'               after TPD_G;
+            when others => trigOut(i) <= '0'               after TPD_G;
+         end case;
       end process;
    end generate GEN_TRIG_OUTPUT;
 
@@ -729,14 +726,14 @@ begin
          else
             if config.irqClr(2) = '1' then
                intFlag(2) <= '0' after TPD_G;
-            elsif (config.evrEnable = '1') and (heartBeatPulse = '1') then
+            elsif (config.evrEnable = '1') and (heartBeatPulse = '1') and (rxLinkUpSync = '1') then
                intFlag(2) <= '1' after TPD_G;
             end if;
-            if (heartBeatPulse = '1') then
+            if (heartBeatPulse = '1') and (rxLinkUpSync = '1') then
                heartBeatCnt <= 0 after TPD_G;
-            elsif (heartBeatCnt = TIMEOUT_C) then
-               heartBeatCnt <= 0                after TPD_G;
-               intFlag(2)   <= config.evrEnable after TPD_G;
+            elsif (heartBeatCnt = TIMEOUT_C-1) then
+               heartBeatCnt <= 0   after TPD_G;
+               intFlag(2)   <= '1' after TPD_G;
             else
                -- Increment the counter
                heartBeatCnt <= heartBeatCnt + 1;
@@ -745,26 +742,23 @@ begin
       end if;
    end process;
 
-   SyncOut_tsFIFOfull : entity work.RstSync
+   Sync_tsFIFOfull : entity work.SynchronizerOneShot
       generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1')
+         TPD_G => TPD_G)          
       port map (
-         clk      => axiClk,
-         asyncRst => tsFIFOfull,
-         syncRst  => tsFIFOfullSync);          
+         clk     => axiClk,
+         dataIn  => tsFIFOfull,
+         dataOut => tsFIFOfullPulse);    
 
    process(axiClk)
    begin
       if rising_edge(axiClk) then
-         tsFIFOfullDly <= tsFIFOfullSync after TPD_G;
-         if evrRst = '1' then
+         if axiRst = '1' then
             intFlag(1) <= '0' after TPD_G;
          else
             if config.irqClr(1) = '1' then
                intFlag(1) <= '0' after TPD_G;
-            elsif (config.evrEnable = '1') and (tsFIFOfullDly = '0') and (tsFIFOfullSync = '1') then
+            elsif (config.evrEnable = '1') and (tsFIFOfullPulse = '1') and (rxLinkUpSync = '1') then
                intFlag(1) <= '1' after TPD_G;
             end if;
          end if;
@@ -779,7 +773,7 @@ begin
          else
             if config.irqClr(3) = '1' then
                intFlag(3) <= '0' after TPD_G;
-            elsif (config.evrEnable = '1') and (tsFIFOempty = '0') then
+            elsif (config.evrEnable = '1') and (tsFIFOempty = '0') and (rxLinkUpSync = '1') then
                intFlag(3) <= '1' after TPD_G;
             else
                intFlag(3) <= '0' after TPD_G;
@@ -796,7 +790,7 @@ begin
          else
             if config.irqClr(5) = '1' then
                intFlag(5) <= '0' after TPD_G;
-            elsif (config.evrEnable = '1') and (dbrdy = '1') then
+            elsif (config.evrEnable = '1') and (dbrdy = '1') and (rxLinkUpSync = '1') then
                intFlag(5) <= '1' after TPD_G;
             end if;
          end if;
