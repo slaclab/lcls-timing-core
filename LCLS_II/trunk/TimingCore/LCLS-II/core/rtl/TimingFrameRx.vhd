@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-10-14
+-- Last update: 2015-11-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ entity TimingFrameRx is
 
    port (
       rxClk     : in sl;
+      rxRstDone : in sl;
       rxData    : in slv(15 downto 0);
       rxDataK   : in slv(1 downto 0);
       rxDispErr : in slv(1 downto 0);
@@ -59,9 +60,9 @@ architecture rtl of TimingFrameRx is
 
    type RegType is record
       state               : StateType;
-      lastFrameValid      : sl;
+      toggleClk           : sl;
       crcReset            : sl;
-      crcOut              : slv32Array(1 downto 0);
+      crcOut              : slv32Array(0 downto 0);
       sofStrobe           : sl;
       eofStrobe           : sl;
       crcErrorStrobe      : sl;
@@ -72,7 +73,7 @@ architecture rtl of TimingFrameRx is
 
    constant REG_INIT_C : RegType := (
       state               => IDLE_S,
-      lastFrameValid      => '0',
+      toggleClk           => '0',
       crcReset            => '1',
       crcOut              => (others => (others => '0')),
       sofStrobe           => '0',
@@ -82,6 +83,8 @@ architecture rtl of TimingFrameRx is
 --      timingMessageOut    => TIMING_MESSAGE_INIT_C,
       timingMessageStrobe => '0');
 
+   constant NO_DELAY : boolean := true;
+   
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
@@ -122,7 +125,7 @@ begin
    crcDataValid <= '1' when rxDataK = "00" else '0';
    Crc32Parallel_1 : entity work.Crc32Parallel
       generic map (
-         BYTE_WIDTH_G => 4,
+         BYTE_WIDTH_G => 2,
          CRC_INIT_G   => X"FFFFFFFF",
          TPD_G        => TPD_G)
       port map (
@@ -130,7 +133,6 @@ begin
          crcClk              => rxClk,
          crcDataValid        => crcDataValid,
          crcDataWidth        => "001",
-         crcIn(31 downto 16) => (others => '0'),
          crcIn(15 downto 0)  => rxData,
          crcReset            => r.crcReset);
 
@@ -139,9 +141,7 @@ begin
    begin
       v := r;
 
-      -- Save CRC from 2 cycles ago so that transmitted CRC not inculded in CRC calc once you see EOF
-      v.crcOut(0) := crcOut;
-      v.crcOut(1) := r.crcOut(0);
+      v.toggleClk := not r.toggleClk;
 
       -- Strobed registers
       v.crcReset            := '0';
@@ -157,12 +157,13 @@ begin
             if (rxDataK = "01" and rxData = (D_215_C & K_SOF_C)) then
                v.state          := FRAME_S;
                v.sofStrobe      := '1';
-               v.lastFrameValid := '0';  -- reset for next frame
                v.crcReset       := '1';
 
-               if (r.lastFrameValid = '1') then
---                  v.timingMessageOut    := toTimingMessageType(r.timingMessageShift);
+               v.timingMessageStrobe := '1';  -- always for now, until CRC is fixed
+               if (toTimingMessageType(r.timingMessageShift).crc = r.crcOut(0)) then
                   v.timingMessageStrobe := '1';
+               else
+                  v.crcErrorStrobe := '1';
                end if;
 
             end if;
@@ -172,13 +173,12 @@ begin
                v.state := IDLE_S;
                if ((rxDataK = "01" and rxData = (D_215_C & K_EOF_C))) then
                   -- EOF character seen, check crc
-                  v.eofStrobe      := '1';
-                  v.lastFrameValid := toSl(toTimingMessageType(r.timingMessageShift).crc = r.crcOut(0));
-                  v.crcErrorStrobe := not v.lastFrameValid;
+                 v.eofStrobe      := '1';
                end if;
             else
                -- Shift in new data if not a K char
                v.timingMessageShift := rxData & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
+               v.crcOut(0)          := crcOut;
             end if;
 
          when others => null;
@@ -186,7 +186,6 @@ begin
 
       if (rxDecErr /= "00" or rxDispErr /= X"00") then
          v.state          := IDLE_S;
-         v.lastFrameValid := '0';
       end if;
 
       timingMessageOut <= toTimingMessageType(r.timingMessageShift);
@@ -204,12 +203,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Delay the timing message
    -------------------------------------------------------------------------------------------------
-   TimingMsgDelay_1 : entity work.TimingMsgDelay
-      generic map (
+   GEN_DELAY: if NO_DELAY=false generate
+     TimingMsgDelay_1 : entity work.TimingMsgDelay
+       generic map (
          TPD_G             => TPD_G,
          BRAM_EN_G         => true,
          FIFO_ADDR_WIDTH_G => 9)
-      port map (
+       port map (
          timingClk              => rxClk,
          timingRst              => '0',
          timingMessageIn        => timingMessageOut,
@@ -217,7 +217,12 @@ begin
          delay                  => timingMessageDelay,
          timingMessageOut       => timingMessage,
          timingMessageStrobeOut => timingMessageStrobe);
+   end generate GEN_DELAY;
 
+   GEN_NODELAY: if NO_DELAY=true generate
+     timingMessage       <= timingMessageOut;
+     timingMessageStrobe <= r.timingMessageStrobe;
+   end generate GEN_NODELAY;
    -------------------------------------------------------------------------------------------------
    -- Synchronize message delay to timing domain
    -------------------------------------------------------------------------------------------------
@@ -238,7 +243,7 @@ begin
    SyncStatusVector_1 : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => "011111",
+         IN_POLARITY_G  => "111111",
 --         OUT_POLARITY_G => '1'
          USE_DSP48_G    => "no",
 --         SYNTH_CNT_G     => SYNTH_CNT_G,
@@ -250,12 +255,12 @@ begin
          statusIn(1)           => r.eofStrobe,
          statusIn(2)           => r.timingMessageStrobe,
          statusIn(3)           => r.crcErrorStrobe,
-         statusIn(4)           => '0',
-         statusIn(5)           => '0',
+         statusIn(4)           => r.toggleClk,
+         statusIn(5)           => rxRstDone,
          statusOut(4 downto 0) => open,
          statusOut(5)          => axilRxLinkUp,
          cntRstIn              => axilR.cntRst,
-         rollOverEnIn          => (others => '0'),
+         rollOverEnIn          => "010111",
          cntOut                => axilStatusCounters,
          wrClk                 => rxClk,
          wrRst                 => '0',
