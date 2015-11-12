@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2015-10-14
+-- Last update: 2015-11-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,12 +26,18 @@ entity TimingCore is
 
    generic (
       TPD_G             : time             := 1 ns;
+      TPGEN_G           : boolean          := false;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       AXIL_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_OK_C);
 
    port (
 
       -- Interface to GT
+      gtTxUsrClk    : in  sl;
+      gtTxUsrRst    : in  sl;
+      gtTxData      : out slv(15 downto 0);
+      gtTxDataK     : out slv( 1 downto 0);
+
       gtRxRecClk    : in  sl;
       gtRxData      : in  slv(15 downto 0);
       gtRxDataK     : in  slv(1 downto 0);
@@ -58,11 +64,12 @@ end entity TimingCore;
 
 architecture rtl of TimingCore is
 
-   constant NUM_AXIL_MASTERS_C : integer := 3;
+   constant NUM_AXIL_MASTERS_C : integer := 4;
 
    constant FRAME_RX_AXIL_INDEX_C       : natural := 0;
    constant RAW_BUFFER_AXIL_INDEX_C     : natural := 1;
    constant MESSAGE_BUFFER_AXIL_INDEX_C : natural := 2;
+   constant FRAME_TX_AXIL_INDEX_C       : natural := 3;
 
    constant AXIL_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
       FRAME_RX_AXIL_INDEX_C           => (
@@ -75,6 +82,10 @@ architecture rtl of TimingCore is
          connectivity                 => X"FFFF"),
       MESSAGE_BUFFER_AXIL_INDEX_C => (
          baseAddr                     => AXIL_BASE_ADDR_G + X"20000",
+         addrBits                     => 16,
+         connectivity                 => X"FFFF"),
+      FRAME_TX_AXIL_INDEX_C => (
+         baseAddr                     => AXIL_BASE_ADDR_G + X"30000",
          addrBits                     => 16,
          connectivity                 => X"FFFF"));
 
@@ -119,6 +130,7 @@ begin
          AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
       port map (
          rxClk               => gtRxRecClk,
+         rxRstDone           => gtRxResetDone,
          rxData              => gtRxData,
          rxDataK             => gtRxDataK,
          rxDispErr           => gtRxDispErr,
@@ -176,7 +188,41 @@ begin
          axilWriteMaster => locAxilWriteMasters(MESSAGE_BUFFER_AXIL_INDEX_C),
          axilWriteSlave  => locAxilWriteSlaves(MESSAGE_BUFFER_AXIL_INDEX_C));
 
+   GEN_MINICORE: if TPGEN_G=false generate
+   TPGMiniCore_1 : entity work.TPGMiniCore
+      generic map (
+         NARRAYSBSA      => 2)
+      port map (
+         txClk           => gtTxUsrClk,
+         txRst           => gtTxUsrRst,
+         txRdy           => '1',
+         txData          => gtTxData,
+         txDataK         => gtTxDataK,
+         axiClk          => axilClk,
+         axiRst          => axilRst,
+         axiReadMaster   => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
+         axiReadSlave    => locAxilReadSlaves  (FRAME_TX_AXIL_INDEX_C),
+         axiWriteMaster  => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
+         axiWriteSlave   => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C) );
+   end generate GEN_MINICORE;
 
+   NOGEN_MINICORE: if TPGEN_G=true generate
+     gtTxData  <= (others=>'0');
+     gtTxDataK <= "00";
+     U_AxiLiteEmpty : entity work.AxiLiteEmpty
+       generic map (
+         TPD_G            => TPD_G )
+       port map (
+         -- AXI-Lite Bus
+         axiClk         => axilClk,
+         axiClkRst      => axilRst,
+         axiReadMaster   => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
+         axiReadSlave    => locAxilReadSlaves  (FRAME_TX_AXIL_INDEX_C),
+         axiWriteMaster  => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
+         axiWriteSlave   => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C) );
+          
+   end generate NOGEN_MINICORE;
+   
    -------------------------------------------------------------------------------------------------
    -- Synchronize timing message to appTimingClk
    -------------------------------------------------------------------------------------------------
