@@ -25,7 +25,8 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity BsaControl is
-   port (
+  generic ( ASYNC_REGCLK_G : boolean := false ); 
+  port (
       sysclk     : in  sl;
       sysrst     : in  sl;
       bsadef     : in  BsaDefType;
@@ -57,7 +58,7 @@ architecture BsaControl of BsaControl is
    signal avgToWr, avgToWrn                 : slv(15 downto 0);
    signal fifoRst                           : sl;
    signal control0, control1                : slv(35 downto 0);
-   signal trig0, trig1                      : slv(255 downto 0);
+   signal expSeqWord                        : slv(31 downto 0);
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
@@ -66,6 +67,7 @@ begin
 
    process (txclk, bsadef, fixedRate, acTS, acRate, expSeq, initd, initq)
       variable rateType : slv(1 downto 0);
+      variable expI : integer;
    begin
       if bsadef.init = '0' then
          initq   <= '0';
@@ -76,6 +78,12 @@ begin
             if bsadef.avgToWr = x"0000" then
                persist <= '1';
             end if;
+         end if;
+         expI := conv_integer(bsadef.rateSel(10 downto 5));
+         if expI<MAXEXPSEQDEPTH then
+           expSeqWord <= expSeq(expI);
+         else
+           expSeqWord <= (others=>'0');
          end if;
       end if;
 
@@ -91,7 +99,7 @@ begin
             else
                rateSel <= acRate(conv_integer(bsadef.rateSel(2 downto 0)));
             end if;
-         when "10"   => rateSel <= expSeq(conv_integer(bsadef.rateSel(10 downto 5)))(conv_integer(bsadef.rateSel(4 downto 0)));
+         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(4 downto 0)));
          when others => rateSel <= '0';
       end case;
    end process;
@@ -114,20 +122,27 @@ begin
               nToAvg;
    fifoRst <= initq and not initd;
 
-   U_SynchFifo : entity work.SynchronizerFifo
-      generic map (DATA_WIDTH_G => 32,
-                   ADDR_WIDTH_G => 2)
-      port map (rst                => fifoRst,
-                wr_clk             => txclk,
-                wr_en              => '1',
-                din(15 downto 0)   => nToAvg,
-                din(31 downto 16)  => avgToWr,
-                rd_clk             => sysclk,
-                rd_en              => '1',
-                valid              => open,
-                dout(15 downto 0)  => nToAvgOut,
-                dout(31 downto 16) => avgToWrOut);
+   GEN_ASYNC: if ASYNC_REGCLK_G=true generate
+     U_SynchFifo : entity work.SynchronizerFifo
+       generic map (DATA_WIDTH_G => 32,
+                    ADDR_WIDTH_G => 2)
+       port map (rst                => fifoRst,
+                 wr_clk             => txclk,
+                 wr_en              => '1',
+                 din(15 downto 0)   => nToAvg,
+                 din(31 downto 16)  => avgToWr,
+                 rd_clk             => sysclk,
+                 rd_en              => '1',
+                 valid              => open,
+                 dout(15 downto 0)  => nToAvgOut,
+                 dout(31 downto 16) => avgToWrOut);
+   end generate GEN_ASYNC;
 
+   GEN_SYNC: if ASYNC_REGCLK_G=false generate
+     nToAvgOut  <= nToAvg;
+     avgToWrOUt <= avgToWr;
+   end generate GEN_SYNC;
+   
    process (txclk, txrst)
    begin  -- process
       if txrst = '1' then

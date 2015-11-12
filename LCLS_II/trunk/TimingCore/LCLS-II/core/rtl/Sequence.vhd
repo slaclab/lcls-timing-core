@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015-09-21
+-- Last update: 2015-11-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -119,11 +119,12 @@ begin
    seqNotify      <= SeqAddrType(r.notifyaddr);
    monCount       <= r.monCount;
 
-   U_Ram : entity work.TrueDualPortRam
+   U_Ram : entity work.DualPortRam
       generic map (
+         TPD_G        => 1ns,
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 11,
-         MODE_G       => "no-change")
+         MODE_G       => "read-first")
       port map (
          clka  => clkA,
          ena   => '1',
@@ -134,14 +135,13 @@ begin
          douta => rdStepA,
          clkb  => clkB,
          enb   => '1',
-         web   => '0',
          rstb  => rstB,
          addrb => rin.index,
-         dinb  => (others => '0'),
          doutb => rdStepB);
 
    process (r, seqReset, rdStepB, fixedRate, acRate, acTS, rdEnB, waitB, startAddr, seqNotifyAck, monReset)
       variable v : RegType;
+      variable rateI, acTSI : integer;
    begin  -- process
 
       v := r;
@@ -191,12 +191,15 @@ begin
             end if;
          when SEQ_STEP_WAIT =>                                  -- Sync
             if waitB = '1' then
+               rateI := conv_integer(rdStepB(19 downto 16));
+               acTSI := conv_integer(acTS);
                if rdStepB(30) = '0' then                        -- FixedRate
-                  if fixedRate(conv_integer(rdStepB(19 downto 16))) = '1' then
+                  if (rateI<fixedRate'length and fixedRate(rateI) = '1') then
                      v.delaycount := r.delaycount+1;
                   end if;
-               elsif rdStepB(23+conv_integer(acTS)) = '1' then  -- 29:24
-                  if acRate(conv_integer(rdStepB(19 downto 16))) = '1' then
+--               elsif (acTSI>0 and acTSI<7 and rdStepB(23+acTSI) = '1') then  -- 29:24
+               elsif (rdStepB(23+acTSI) = '1') then  -- 29:24
+                  if (rateI<acRate'length and acRate(rateI) = '1') then
                      v.delaycount := r.delaycount+1;
                   end if;
                end if;
@@ -242,4 +245,7 @@ begin
       end if;
    end process;
 
+   debug0 <= (others=>'0');
+   debug1 <= (others=>'0');
+   
 end ISequence;
