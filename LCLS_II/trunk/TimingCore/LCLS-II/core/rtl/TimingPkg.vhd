@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-10-09
+-- Last update: 2015-10-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,8 +26,9 @@ package TimingPkg is
    constant K_SOF_C : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7
    constant K_EOF_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 1136;
+   constant TIMING_MESSAGE_BITS_C  : integer := 1264;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
+   constant TIMING_MESSAGE_VERSION_C : slv(63 downto 0) := x"0000060504030201";
 
 --   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
 
@@ -52,8 +53,8 @@ package TimingPkg is
       bsaAvgDone      : slv(63 downto 0);
       bsaDone         : slv(63 downto 0);
       experiment      : slv32Array(0 to 8);
-      patternAddress  : slv(15 downto 0);
-      pattern         : Slv16Array(0 to 7);
+      partitionAddr   : slv(15 downto 0);
+      partitionWord   : Slv32Array(0 to 7);
       crc             : slv(31 downto 0);
    end record;
 
@@ -78,8 +79,8 @@ package TimingPkg is
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
       experiment      => (others => (others => '0')),
-      patternAddress  => (others => '0'),
-      pattern         => (others => (others => '0')),
+      partitionAddr   => (others => '0'),
+      partitionWord   => (others => (others => '0')),
       crc             => (others => '0'));
 
    function toSlv(message              : TimingMessageType) return slv;
@@ -160,9 +161,9 @@ package body TimingPkg is
       for j in message.experiment'range loop
          assignSlv(i, vector, message.experiment(j));
       end loop;
-      assignSlv(i, vector, message.patternAddress);
-      for j in message.pattern'range loop
-         assignSlv(i, vector, message.pattern(j));
+      assignSlv(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignSlv(i, vector, message.partitionWord(j));
       end loop;
       assignSlv(i, vector, message.crc);
       return vector;
@@ -203,9 +204,9 @@ package body TimingPkg is
       for j in message.experiment'range loop
          assignRecord(i, vector, message.experiment(j));
       end loop;
-      assignRecord(i, vector, message.patternAddress);
-      for j in message.pattern'range loop
-         assignRecord(i, vector, message.pattern(j));
+      assignRecord(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignRecord(i, vector, message.partitionWord(j));
       end loop;
       assignRecord(i, vector, message.crc);
       return message;
