@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2015-10-09
+-- Last update: 2015-10-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -170,7 +170,10 @@ architecture rtl of TimingGthCoreWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
          );
    end component;
-   
+
+   signal rxCtrl0Out : slv(15 downto 0);
+   signal rxCtrl1Out : slv(15 downto 0);
+   signal rxCtrl3Out : slv( 7 downto 0);
 begin
 
    U_TimingGthCore : TimingGth
@@ -180,19 +183,19 @@ begin
          gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
          gtwiz_buffbypass_tx_reset_in(0)       => '0',
          gtwiz_buffbypass_tx_start_user_in(0)  => '0',
-         gtwiz_buffbypass_tx_done_out(0)       => open,
-         gtwiz_buffbypass_tx_error_out(0)      => open,
+         gtwiz_buffbypass_tx_done_out          => open,
+         gtwiz_buffbypass_tx_error_out         => open,
          gtwiz_buffbypass_rx_reset_in(0)       => '0',
          gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-         gtwiz_buffbypass_rx_done_out(0)       => open,  -- Might need this
-         gtwiz_buffbypass_rx_error_out(0)      => open,  -- Might need this
+         gtwiz_buffbypass_rx_done_out          => open,  -- Might need this
+         gtwiz_buffbypass_rx_error_out         => open,  -- Might need this
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
          gtwiz_reset_all_in(0)                 => '0',
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_rx_datapath_in(0)         => rxReset,
-         gtwiz_reset_rx_cdr_stable_out(0)      => open,
+         gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
          gtwiz_reset_tx_done_out(0)            => txResetDone,
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
@@ -218,19 +221,20 @@ begin
          txusrclk2_in(0)                       => txUsrClk,
          gthtxn_out(0)                         => gtTxN,
          gthtxp_out(0)                         => gtTxP,
-         rxbyteisaligned_out(0)                => open,
-         rxbyterealign_out(0)                  => open,
-         rxcommadet_out(0)                     => open,
-         rxctrl0_out(1 downto 0)               => rxDataK,
-         rxctrl0_out(15 downto 2)              => open,
-         rxctrl1_out(1 downto 0)               => rxDispErr,
-         rxctrl1_out(15 downto 2)              => open,
+         rxbyteisaligned_out                   => open,
+         rxbyterealign_out                     => open,
+         rxcommadet_out                        => open,
+         rxctrl0_out                           => rxCtrl0Out,
+         rxctrl1_out                           => rxCtrl1Out,
          rxctrl2_out                           => open,
-         rxctrl3_out(1 downto 0)               => rxDecErr,
-         rxctrl3_out(7 downto 2)               => open,
+         rxctrl3_out                           => rxCtrl3Out,
          rxoutclk_out(0)                       => rxOutClk,
-         rxpmaresetdone_out(0)                 => open,
+         rxpmaresetdone_out                    => open,
          txoutclk_out(0)                       => txOutClk,
-         txpmaresetdone_out(0)                 => open);
+         txpmaresetdone_out                    => open);
 
+   rxDataK   <= rxCtrl0Out(1 downto 0);
+   rxDispErr <= rxCtrl1Out(1 downto 0);
+   rxDecErr  <= rxCtrl3Out(1 downto 0);
+   
 end architecture rtl;
