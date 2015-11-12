@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-10-09
+-- Last update: 2015-11-06
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -235,10 +235,11 @@ begin
 
       if (axilStatus.readEnable = '1') then
          v.axilReadSlave.rdata := (others => '0');
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
-            v.axilReadSlave.rdata(0)           := axilR.logEn;
-            v.axilReadSlave.rdata(1)           := axilR.bufferClear;
-            v.axilReadSlave.rdata(31 downto 8) := resize(axilNextAddr-axilFirstAddr, 24);
+         if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = slvOne(RAM_ADDR_WIDTH_G)) then
+            v.axilReadSlave.rdata(0)            := axilR.logEn;
+            v.axilReadSlave.rdata(1)            := axilR.bufferClear;
+            v.axilReadSlave.rdata(19 downto  8) := resize(axilFirstAddr,12);
+            v.axilReadSlave.rdata(31 downto 20) := resize(axilNextAddr,12);
             axiSlaveReadResponse(v.axilReadSlave);
          else
             -- AXI-Lite address is automatically offset by firstAddr.
@@ -247,9 +248,9 @@ begin
 
             -- If output of ram is registered, read data will be ready 2 cycles after address asserted
             -- If not registered it will be ready on next cycle
-            v.axilRdEn := ite(REG_EN_G or BRAM_EN_G, "01", "10");
-
+            v.axilRdEn(0) := '1';
             if (axilR.axilRdEn(1) = '1') then
+               v.axilRdEn := "00";
                v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := axilRamRdData;
                axiSlaveReadResponse(v.axilReadSlave);
             end if;
