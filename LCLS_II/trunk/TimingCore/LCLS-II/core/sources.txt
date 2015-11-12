@@ -1,4 +1,12 @@
 vhdl work rtl/TimingPkg.vhd  
+vhdl work rtl/TPGPkg.vhd
+vhdl work rtl/TPGMiniReg.vhd
+vhdl work rtl/Divider.vhd
+vhdl work rtl/BsaControl.vhd
+vhdl work rtl/ClockTime_186MHz.vhd
+vhdl work rtl/TPSerializer.vhd
+vhdl work rtl/TPGMini.vhd
+vhdl work rtl/TPGMiniCore.vhd
 vhdl work rtl/AxiLiteRingBuffer.vhd
 vhdl work rtl/TimingFrameRx.vhd
 vhdl work rtl/TimingGthCoreWrapper.vhd
