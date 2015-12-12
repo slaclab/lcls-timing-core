@@ -40,7 +40,8 @@ entity BsaControl is
       acRate     : in  slv(ACRATEDEPTH-1 downto 0);
       acTS       : in  slv(2 downto 0);
       beamSeq    : in  slv(31 downto 0);
-      expSeq     : in  Slv32Array(MAXEXPSEQDEPTH-1 downto 0);
+--      expSeq     : in  Slv32Array(MAXEXPSEQDEPTH-1 downto 0);
+      expSeq     : in  Slv16Array(MAXEXPSEQDEPTH-1 downto 0);
       bsaInit    : out sl;
       bsaActive  : out sl;
       bsaAvgDone : out sl;
@@ -58,7 +59,8 @@ architecture BsaControl of BsaControl is
    signal avgToWr, avgToWrn                 : slv(15 downto 0);
    signal fifoRst                           : sl;
    signal control0, control1                : slv(35 downto 0);
-   signal expSeqWord                        : slv(31 downto 0);
+--   signal expSeqWord                        : slv(31 downto 0);
+   signal expSeqWord                        : slv(15 downto 0);
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
@@ -99,7 +101,8 @@ begin
             else
                rateSel <= acRate(conv_integer(bsadef.rateSel(2 downto 0)));
             end if;
-         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(4 downto 0)));
+--         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(4 downto 0)));
+         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(3 downto 0)));
          when others => rateSel <= '0';
       end case;
    end process;

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-10-15
+-- Last update: 2015-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,7 +52,8 @@ package TimingPkg is
       bsaActive       : slv(63 downto 0);
       bsaAvgDone      : slv(63 downto 0);
       bsaDone         : slv(63 downto 0);
-      experiment      : slv32Array(0 to 8);
+--      experiment      : slv32Array(0 to 8);
+      experiment      : slv16Array(0 to 17);
       partitionAddr   : slv(15 downto 0);
       partitionWord   : Slv32Array(0 to 7);
       crc             : slv(31 downto 0);
@@ -83,7 +84,8 @@ package TimingPkg is
       partitionWord   => (others => (others => '0')),
       crc             => (others => '0'));
 
-   function toSlv(message              : TimingMessageType) return slv;
+   function toSlv  (message              : TimingMessageType) return slv;
+   function toSlv32(message              : TimingMessageType) return Slv32Array;
    function toTimingMessageType(vector : slv) return TimingMessageType;
 
    -- LCLS-I Timing Data Type
@@ -95,10 +97,10 @@ package TimingPkg is
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record
-      linkUp : sl;
+      linkUp     : sl;
    end record;
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
-      linkUp => '0');
+      linkUp     => '0');
 
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
@@ -116,10 +118,12 @@ package TimingPkg is
    type TimingPhyType is record
       dataK : slv(1 downto 0);
       data  : slv(15 downto 0);
+      polarity : sl;
    end record;
    constant TIMING_PHY_INIT_C : TimingPhyType := (
       dataK => "00",
-      data  => x"0000");
+      data  => x"0000",
+      polarity => '0');
 
 end package TimingPkg;
 
@@ -167,6 +171,28 @@ package body TimingPkg is
       end loop;
       assignSlv(i, vector, message.crc);
       return vector;
+   end function;
+
+   -------------------------------------------------------------------------------------------------
+   -- Convert a timing message record into a big long SLV
+   -------------------------------------------------------------------------------------------------
+   function toSlv32 (message : TimingMessageType) return Slv32Array
+   is
+      variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
+      variable vec32  : Slv32Array(31 downto 0) := (others => x"00000000");
+      variable i      : integer                 := 0;
+   begin
+     vector := toSlv(message);
+     if TIMING_MESSAGE_BITS_C > 32*32 then
+       for j in 0 to 31 loop
+         vec32(j) := vector(j*32+31 downto j*32);
+       end loop;  -- j
+     else
+       for j in 0 to TIMING_MESSAGE_BITS_C/32-1 loop
+         vec32(j) := vector(j*32+31 downto j*32);
+       end loop;  -- j
+     end if;
+     return vec32;
    end function;
 
    -------------------------------------------------------------------------------------------------

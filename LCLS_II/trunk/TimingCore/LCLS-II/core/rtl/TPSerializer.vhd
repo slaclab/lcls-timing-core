@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015-11-09
+-- Last update: 2015-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -130,15 +130,17 @@ begin
          end if;
       end if;
 
+      if txRst='1' then
+        v := REG_INIT_C;
+      end if;
+      
       rin <= v;
 
    end process;
 
-   process (txClk, txRst)
+   process (txClk)
    begin  -- process
-      if txRst = '1' then
-         r <= REG_INIT_C;
-      elsif rising_edge(txClk) then
+      if rising_edge(txClk) then
          r <= rin;
       end if;
    end process;

@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015/09/16
+-- Last update: 2015-11-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ package TPGPkg is
   constant MAXBEAMSEQDEPTH : integer :=  7;   -- max number of beam destination sequences
   constant BEAMSEQWIDTH   : integer := 32;   -- number of bits in beam sequence data
   constant BEAMPRIOBITS   : integer :=  4;   -- number of bits in beam priority word
-  constant MAXEXPSEQDEPTH    : integer :=  9;   -- max number of expt sequences
+  constant MAXEXPSEQDEPTH    : integer :=  18;   -- max number of expt sequences
   constant EXPSEQWIDTH    : integer := 32;   -- number of bits in expt sequence
   constant EXPPARTITIONS  : integer :=  8;   -- number of expt partitions
   constant MAXSEQDEPTH       : integer := MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
@@ -35,7 +35,7 @@ package TPGPkg is
   constant BCSWIDTH       : integer := 6;
   constant MPSDEPTH       : integer := 5;
   constant MPSWIDTH       : integer := 6;
-  constant MAXARRAYSBSA   : integer := 64;
+  constant MAXARRAYSBSA   : integer := 50;
   constant NTRIGGERSIN    : integer := 12;
   constant MPSCHAN        : integer := 14;
   
@@ -91,8 +91,8 @@ package TPGPkg is
 
   type TPGStatusType is record
                           -- implemented resources
-                          nbeamseq      : slv (3 downto 0);
-                          nexptseq      : slv (3 downto 0);
+                          nbeamseq      : slv (7 downto 0);
+                          nexptseq      : slv (7 downto 0);
                           narraysbsa    : slv (7 downto 0);
                           seqaddrlen    : slv (3 downto 0);
                           fifoaddrlen   : slv (3 downto 0);
@@ -114,6 +114,9 @@ package TPGPkg is
                           countTrig     : Slv32Array(NTRIGGERSIN-1 downto 0);
                           countSeq      : Slv32Array(MAXSEQDEPTH-1 downto 0);
                           countUpdate   : sl;  -- single sysclk pulse
+                          rxStatus      : slv(11 downto 0);
+                          rxClkCnt      : slv(31 downto 0);
+                          rxDVCnt       : slv(31 downto 0);
                           seqRdData     : Slv32Array(MAXSEQDEPTH-1 downto 0);
                           bsaStatus     : Slv32Array(63 downto 0);
                           seqState      : SequencerStateArray(MAXSEQDEPTH-1 downto 0);
@@ -148,12 +151,16 @@ package TPGPkg is
     countTrig     => (others=>(others=>'0')),
     countSeq      => (others=>(others=>'0')),
     countUpdate   => '0',
+    rxStatus      => (others=>'0'),
+    rxClkCnt      => (others=>'0'),
+    rxDVCnt       => (others=>'0'),
     seqRdData     => (others=>(others=>'0')),
     bsaStatus     => (others=>(others=>'0')),
     seqState      => (others=>SEQUENCER_STATE_INIT_C),
     bcsFault      => (others=>'0') );
     
   type TPGConfigType is record
+                          txPolarity    : sl;
                           baseDivisor   : slv(15 downto 0);
                           pulseId       : slv(63 downto 0);
                           pulseIdWrEn   : sl;
@@ -196,6 +203,7 @@ package TPGPkg is
     );
   
   constant TPG_CONFIG_INIT_C : TPGConfigType := (
+    txPolarity        => '0',
     baseDivisor       => x"00C8",
     pulseId           => (others=>'0'),
     pulseIdWrEn       => '1',
@@ -236,6 +244,8 @@ package TPGPkg is
     seqJumpConfig     => (others=>TPG_JUMPCONFIG_INIT_C)
     );
 
+  type TPGConfigArray is array(natural range<>) of TPGConfigType;
+  
 end TPGPkg;
 
 package body TPGPkg is

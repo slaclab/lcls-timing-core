@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-11-09
+-- Last update: 2015-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity TPGMiniCore is
      txRdy           : in  sl;
      txData          : out slv(15 downto 0);
      txDataK         : out slv( 1 downto 0);
+     txPolarity      : out sl;
      axiClk          : in  sl;
      axiRst          : in  sl;
      axiReadMaster   : in  AxiLiteReadMasterType;
@@ -58,6 +59,7 @@ begin  -- rtl
 
    regClk <= txClk;
    regRst <= txRst;
+   txPolarity <= config.txPolarity;
    
    U_AxiLiteAsync : entity work.AxiLiteAsync
       generic map (

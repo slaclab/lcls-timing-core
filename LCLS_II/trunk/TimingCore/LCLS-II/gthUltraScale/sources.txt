@@ -1,1 +1,2 @@
-vhdl work coregen/TimingGth.dcp 
+#vhdl work coregen/TimingGth.dcp 
+vhdl work coregen/TimingGth_polarity.dcp 

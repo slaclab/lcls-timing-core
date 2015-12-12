@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-11-12
+-- Last update: 2015-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -147,6 +147,7 @@ begin
           axiWriteResp          := AXI_RESP_OK_C;
 
           case wrPntr is
+            when CLKSEL    => v.config.txPolarity              := regWrData(1);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
             when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
             when PULSEIDL  => v.config.pulseId(31 downto  0)   := regWrData;
@@ -205,6 +206,7 @@ begin
           axiReadResp           := AXI_RESP_OK_C;
           -- Decode the read address
           case rdPntr is
+            when CLKSEL     => tmpRdData(1)           := r.config.txPolarity;
             when BASE_CNTL  => tmpRdData(15 downto 0) := r.config.baseDivisor;
             when PULSEIDU   => tmpRdData              := status.pulseId(63 downto 32);
                                v.pulseId              := status.pulseId(31 downto  0);
@@ -265,9 +267,9 @@ begin
       end if;
 
       -- Synchronous Reset
-      if axiRst = '1' then
-        v := REG_INIT_C;
-      end if;
+      --if axiRst = '1' then
+      --  v := REG_INIT_C;
+      --end if;
 
       -- Register the variable for next clock cycle
       rin <= v;

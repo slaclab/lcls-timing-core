@@ -24,6 +24,8 @@ use UNISIM.VCOMPONENTS.all;
 use work.TPGPkg.all;
 use work.StdRtlPkg.all;
 use work.TimingPkg.all;
+use work.AxiStreamPkg.all;
+use work.AmcCarrierPkg.all;
 
 entity TPGCore is
   generic (
@@ -46,12 +48,20 @@ entity TPGCore is
     txRdy      : in  sl;
     txData     : out slv(15 downto 0);
     txDataK    : out slv(1 downto 0);
+    txPolarity : out sl;
     extTrigger : in  slv(4 downto 0);
 
     rxClk   : in sl;
     rxRst   : in sl;
     rxData  : in slv(15 downto 0);
-    rxDataK : in slv(1 downto 0)
+    rxDataK : in slv(1 downto 0);
+    rxStatus: in slv(31 downto 0);
+
+    diagClk : out sl;
+    diagRst : out sl;
+    diagBus : out DiagnosticBusType;
+    diagMa  : out AxiStreamMasterType;
+    diagSl  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C
     );
 end TPGCore;
 
@@ -59,7 +69,8 @@ end TPGCore;
 -- Define architecture for top level module
 architecture TPGCore of TPGCore is
 
-  signal frame : TimingMessageType := TIMING_MESSAGE_INIT_C;
+  signal frame                   : TimingMessageType := TIMING_MESSAGE_INIT_C;
+  signal diagframe               : TimingMessageType := TIMING_MESSAGE_INIT_C;
 
   signal trigger360q             : sl;
   signal triggerTS1, triggerTS1q : sl;
@@ -68,21 +79,21 @@ architecture TPGCore of TPGCore is
   signal triggerInq              : slv(11 downto 0);
   signal intTrigger              : slv(6 downto 0);
 
-  signal baseEnable  : sl;
-  signal baseEnabled : slv(4 downto 0);
+  signal baseEnable              : sl;
+  signal baseEnabled             : slv(4 downto 0);
 
-  signal pulseIdn : slv(63 downto 0);
+  signal pulseIdn                : slv(63 downto 0);
 
-  signal pulseIdWr : sl;
+  signal pulseIdWr               : sl;
 
-  signal acTSn      : slv(2 downto 0);
-  signal acTSPhasen : slv(11 downto 0);
+  signal acTSn                   : slv(2 downto 0);
+  signal acTSPhasen              : slv(11 downto 0);
 
-  constant ACRateWidth : integer := 8;
-  constant ACRateDepth : integer := ACRATEDEPTH;
+  constant ACRateWidth           : integer := 8;
+  constant ACRateDepth           : integer := ACRATEDEPTH;
 
-  constant FixedRateWidth : integer := 20;
-  constant FixedRateDepth : integer := FIXEDRATEDEPTH;
+  constant FixedRateWidth        : integer := 20;
+  constant FixedRateDepth        : integer := FIXEDRATEDEPTH;
 
   signal SeqNotify    : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
   signal SeqNotifyWr  : slv(MAXSEQDEPTH-1 downto 0);
@@ -100,6 +111,7 @@ architecture TPGCore of TPGCore is
   signal txDataWord : slv(3 downto 0);
 
   signal rxDataValid : sl;
+  signal rxClkToggle : sl := '0';
 
   signal syncReset : sl;
 
@@ -114,6 +126,7 @@ architecture TPGCore of TPGCore is
   signal countBRT, countBRTn   : slv(31 downto 0);
   signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
 
+  signal rxCounters            : SlVectorArray(13 downto 0, 31 downto 0);
   signal configTrigger : L1TrigConfigArray(6 downto 0);
 
   -- Delay registers (for closing timing)
@@ -125,27 +138,43 @@ architecture TPGCore of TPGCore is
 
 begin
 
+  --  Diagnostic and BSA data
+  diagClk                         <= txClk;
+  diagRst                         <= txRst;
+  diagBus.strobe                  <= baseEnable;
+  diagBus.data                    <= toSlv32(frame);
+  diagBus.timingMessage           <= diagFrame;
+  diagMa.tValid                   <= '1';
+  diagMa.tData( 11 downto  0)     <= triggerInq;
+  diagMa.tData(127 downto 12)     <= (others=>'0');
+  diagMa.tKeep                    <= x"0003";
+  diagMa.tLast                    <= '0';
+  diagMa.tDest                    <= x"00";
+  diagMa.tId                      <= x"00";
+  diagMa.tUser                    <= (others=>'0');
+
   frame.version <= TIMING_MESSAGE_VERSION_C;
 
   -- Dont know about these inputs yet
-  frame.bcsFault <= (others => '0');
+  frame.bcsFault                  <= (others => '0');
 
-  frame.mpsValid       <= '0';
-  frame.mpsLimits      <= (others => (others => '0'));
-  frame.calibrationGap <= '0';
-  frame.historyActive  <= config.histActive;
+  frame.mpsValid                  <= '0';
+  frame.mpsLimits                 <= (others => (others => '0'));
+  frame.calibrationGap            <= '0';
+  frame.historyActive             <= config.histActive;
 
   txData  <= txDataB;
   txDataK <= txDataKB;
-
+  txPolarity <= config.txPolarity;
+  
   triggerTS1q <= trigger360q and triggerTS1;
 
   -- resources
-  status.nbeamseq    <= slv(conv_unsigned(BEAMSEQDEPTH, 4));
-  status.nexptseq    <= slv(conv_unsigned(EXPSEQDEPTH, 4));
-  status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA, 8));
-  status.seqaddrlen  <= slv(conv_unsigned(SEQADDRLEN, 4));
-  status.fifoaddrlen <= slv(conv_unsigned(TPFIFODEPTH, 4));
+  status.nbeamseq    <= slv(conv_unsigned(BEAMSEQDEPTH, 8));
+  status.nexptseq    <= slv(conv_unsigned(EXPSEQDEPTH , 8));
+  status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA  , 8));
+  status.seqaddrlen  <= slv(conv_unsigned(SEQADDRLEN  , 4));
+  status.fifoaddrlen <= slv(conv_unsigned(TPFIFODEPTH , 4));
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -211,6 +240,29 @@ begin
         trigO  => intTrigger(i));
   end generate int_trigger;
 
+  status.rxClkCnt <= muxSlVectorArray(rxCounters,12);
+  status.rxDVCnt  <= muxSlVectorArray(rxCounters,13);
+
+  U_LCLSI_Status : entity work.SyncStatusVector
+    generic map (
+      TPD_G         => tpd,
+      IN_POLARITY_G => "11111111111111",
+      CNT_WIDTH_G   => 32,
+      WIDTH_G       => 14)
+    port map (
+      statusIn(11 downto 0)   => rxStatus(11 downto 0),
+      statusIn(12)            => rxClkToggle,
+      statusIn(13)            => rxDataValid,
+      statusOut(13 downto 12) => open,
+      statusOut(11 downto  0) => status.rxStatus,
+      cntRstIn     => '0',
+      rollOverEnIn => "11111111111111",
+      cntOut       => rxCounters,
+      wrClk        => rxClk,
+      wrRst        => '0',
+      rdClk        => txClk,
+      rdRst        => txRst );
+  
   U_Resync : entity work.TPGResync
     port map (
       clk       => txClk,
@@ -368,7 +420,9 @@ begin
     SeqData         (i) <= (others=>'0');
   end generate NoSeqExpt;
 
-  frame.experiment <= SeqData(MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH-1 downto MAXBEAMSEQDEPTH);
+  GEN_EXPT_DATA: for i in MAXEXPSEQDEPTH-1 downto 0 generate
+    frame.experiment(i) <= SeqData(MAXBEAMSEQDEPTH+i)(15 downto 0);
+  end generate GEN_EXPT_DATA;
 
   U_DestnArbiter : entity work.DestnArbiter
     port map (
@@ -466,6 +520,13 @@ begin
                countBRT+1 when baseEnable = '1' else
                countBRT;
 
+  process (rxClk)
+  begin
+    if rising_edge(rxClk) then
+      rxClkToggle <= not rxClkToggle;
+    end if;
+  end process;
+  
   process (txClk, txRst, txRdy, config)
     variable outOfSyncd : sl;
     variable txRdyd     : sl;
@@ -523,6 +584,7 @@ begin
     variable countUpdate : slv(1 downto 0);
     variable bsaComplete : Slv64Array(1 downto 0);
     variable bsaDoneQ    : slv(63 downto 0);
+    variable tmpFrame    : TimingMessageType;
   begin  -- process
     bsaDoneQ                      := (others => '0');
     bsaDoneQ(frame.bsaDone'range) := frame.bsaDone;
@@ -542,8 +604,14 @@ begin
     end if;
     bsaComplete(1) := bsaComplete(1) and not bsaDoneQ;
     bsaComplete(0) := bsaComplete(0) or bsaDoneQ;
+
+    -- Record frame in diagnostics only on the last BSA accumulation
+    tmpFrame           := frame;
+    tmpFrame.bsaActive := frame.bsaAvgDone;
+    diagFrame          <= tmpFrame;
   end process;
 
+  
   U_ClockTime : entity work.ClockTime
     port map (
       rst    => sysReset,

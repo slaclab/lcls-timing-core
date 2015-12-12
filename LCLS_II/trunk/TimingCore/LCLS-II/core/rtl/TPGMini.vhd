@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-11-12
+-- Last update: 2015-11-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -94,8 +94,8 @@ begin
   frame.historyActive  <= config.histActive;
 
   -- resources
-  status.nbeamseq    <= slv(conv_unsigned(0, 4));
-  status.nexptseq    <= slv(conv_unsigned(0, 4));
+  status.nbeamseq    <= slv(conv_unsigned(0, status.nbeamseq'length));
+  status.nexptseq    <= slv(conv_unsigned(0, status.nexptseq'length));
   status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA, 8));
   status.seqaddrlen  <= slv(conv_unsigned(0, 4));
   status.fifoaddrlen <= slv(conv_unsigned(0, 4));

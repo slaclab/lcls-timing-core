@@ -9,7 +9,8 @@ vhdl work rtl/TPGMini.vhd
 vhdl work rtl/TPGMiniCore.vhd
 vhdl work rtl/AxiLiteRingBuffer.vhd
 vhdl work rtl/TimingFrameRx.vhd
-vhdl work rtl/TimingGthCoreWrapper.vhd
+#vhdl work rtl/TimingGthCoreWrapper.vhd
+vhdl work rtl/TimingGthCoreWrapper_polarity.vhd
 vhdl work rtl/TimingMsgAxiRingBuffer.vhd
 vhdl work rtl/TimingMsgDelay.vhd
 vhdl work rtl/TimingMsgToAxiStream.vhd

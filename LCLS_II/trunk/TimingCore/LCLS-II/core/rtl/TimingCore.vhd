@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2015-11-12
+-- Last update: 2015-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,22 +35,21 @@ entity TimingCore is
       -- Interface to GT
       gtTxUsrClk    : in  sl;
       gtTxUsrRst    : in  sl;
-      gtTxData      : out slv(15 downto 0);
-      gtTxDataK     : out slv( 1 downto 0);
 
       gtRxRecClk    : in  sl;
       gtRxData      : in  slv(15 downto 0);
       gtRxDataK     : in  slv(1 downto 0);
       gtRxDispErr   : in  slv(1 downto 0);
       gtRxDecErr    : in  slv(1 downto 0);
-      gtRxReset     : out sl := '0';
+      gtRxReset     : out sl;
       gtRxResetDone : in  sl;
-
+      gtRxPolarity  : out sl;
+      timingPhy     : out TimingPhyType;
       -- Decoded timing message interface
       appTimingClk : in  sl;
       appTimingRst : in  sl;
       appTimingBus : out TimingBusType;
-
+      
       -- AXI Lite interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -135,6 +134,8 @@ begin
          rxDataK             => gtRxDataK,
          rxDispErr           => gtRxDispErr,
          rxDecErr            => gtRxDecErr,
+         rxPolarity          => gtRxPolarity,
+         rxReset             => gtRxReset,
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          axilClk             => axilClk,
@@ -196,8 +197,9 @@ begin
          txClk           => gtTxUsrClk,
          txRst           => gtTxUsrRst,
          txRdy           => '1',
-         txData          => gtTxData,
-         txDataK         => gtTxDataK,
+         txData          => timingPhy.data,
+         txDataK         => timingPhy.dataK,
+         txPolarity      => timingPhy.polarity,
          axiClk          => axilClk,
          axiRst          => axilRst,
          axiReadMaster   => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
@@ -207,8 +209,9 @@ begin
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE: if TPGEN_G=true generate
-     gtTxData  <= (others=>'0');
-     gtTxDataK <= "00";
+     timingPhy.data     <= (others=>'0');
+     timingPhy.dataK    <= "00";
+     timingPhy.polarity <= '0';
      U_AxiLiteEmpty : entity work.AxiLiteEmpty
        generic map (
          TPD_G            => TPD_G )

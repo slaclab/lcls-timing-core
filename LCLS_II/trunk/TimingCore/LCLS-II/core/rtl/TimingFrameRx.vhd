@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-11-09
+-- Last update: 2015-11-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,9 @@ entity TimingFrameRx is
       rxDataK   : in slv(1 downto 0);
       rxDispErr : in slv(1 downto 0);
       rxDecErr  : in slv(1 downto 0);
-
+      rxPolarity: out sl;
+      rxReset   : out sl;
+      
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
 
@@ -92,12 +94,16 @@ architecture rtl of TimingFrameRx is
    signal timingMessageDelay : slv(15 downto 0);
    signal crcDataValid       : sl;
    signal crcOut             : slv(31 downto 0);
-
+   signal rxDecErrSum        : sl;
+   signal rxDspErrSum        : sl;
+   
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
    type AxilRegType is record
       cntRst         : sl;
+      rxPolarity     : sl;
+      rxReset        : sl;
       messageDelay   : slv(15 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -105,6 +111,8 @@ architecture rtl of TimingFrameRx is
 
    constant AXIL_REG_INIT_C : AxilRegType := (
       cntRst         => '0',
+      rxPolarity     => '0',
+      rxReset        => '0',
       messageDelay   => toSlv(20000, 16),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -112,7 +120,7 @@ architecture rtl of TimingFrameRx is
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
-   constant NUM_COUNTERS_C  : integer := 6;
+   constant NUM_COUNTERS_C  : integer := 8;
    constant COUNTER_WIDTH_C : integer := 32;
 
    -- Synchronized to AXIL clk
@@ -240,16 +248,19 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic
    -------------------------------------------------------------------------------------------------
+   rxDecErrSum <= rxDecErr(0) or rxDecErr(1);
+   rxDspErrSum <= rxDispErr(0) or rxDispErr(1);
+   
    SyncStatusVector_1 : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => "111111",
+         IN_POLARITY_G  => "11111111",
 --         OUT_POLARITY_G => '1'
          USE_DSP48_G    => "no",
 --         SYNTH_CNT_G     => SYNTH_CNT_G,
          CNT_RST_EDGE_G => false,
          CNT_WIDTH_G    => 32,
-         WIDTH_G        => 6)
+         WIDTH_G        => 8)
       port map (
          statusIn(0)           => r.sofStrobe,
          statusIn(1)           => r.eofStrobe,
@@ -257,10 +268,13 @@ begin
          statusIn(3)           => r.crcErrorStrobe,
          statusIn(4)           => r.toggleClk,
          statusIn(5)           => rxRstDone,
+         statusIn(6)           => rxDecErrSum,
+         statusIn(7)           => rxDspErrSum,
          statusOut(4 downto 0) => open,
          statusOut(5)          => axilRxLinkUp,
+         statusOut(7 downto 6) => open,
          cntRstIn              => axilR.cntRst,
-         rollOverEnIn          => "010111",
+         rollOverEnIn          => "00010111",
          cntOut                => axilStatusCounters,
          wrClk                 => rxClk,
          wrRst                 => '0',
@@ -313,11 +327,15 @@ begin
       axilSlaveRegisterR(X"0C", 0, muxSlVectorArray(axilStatusCounters, 3));
       axilSlaveRegisterR(X"10", 0, muxSlVectorArray(axilStatusCounters, 4));
       axilSlaveRegisterR(X"14", 0, muxSlVectorArray(axilStatusCounters, 5));
+      axilSlaveRegisterR(X"18", 0, muxSlVectorArray(axilStatusCounters, 6));
+      axilSlaveRegisterR(X"1C", 0, muxSlVectorArray(axilStatusCounters, 7));
 
-      axilSlaveRegisterW(X"18", 0, v.cntRst);
-      axilSlaveRegisterR(X"18", 1, axilRxLinkUp);
+      axilSlaveRegisterW(X"20", 0, v.cntRst);
+      axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
+      axilSlaveRegisterW(X"20", 2, v.rxPolarity);
+      axilSlaveRegisterW(X"20", 3, v.rxReset);
 
-      axilSlaveRegisterW(X"1C", 0, v.messageDelay);
+      axilSlaveRegisterW(X"24", 0, v.messageDelay);
 
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
@@ -331,6 +349,8 @@ begin
 
       axilRin <= v;
 
+      rxPolarity     <= axilR.rxPolarity;
+      rxReset        <= axilR.rxReset;
       axilReadSlave  <= axilR.axilReadSlave;
       axilWriteSlave <= axilR.axilWriteSlave;
 
