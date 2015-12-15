@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-11-16
+-- Last update: 2015-12-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -226,7 +226,7 @@ begin
             when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
             when HIST_CNTL  => tmpRdData(0)                   := r.config.histActive;
             when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
-            when RESOURCES  => tmpRdData(23 downto 0) := status.fifoaddrlen &
+            when RESOURCES  => tmpRdData              := status.fifoaddrlen &
                                                          status.seqaddrlen &
                                                          status.narraysbsa &
                                                          status.nexptseq &
