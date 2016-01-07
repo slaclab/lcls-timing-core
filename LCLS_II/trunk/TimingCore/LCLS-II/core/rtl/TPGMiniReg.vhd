@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-12-15
+-- Last update: 2015-12-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ use work.TPGPkg.all;
 entity TPGMiniReg is
    generic (
       TPD_G            : time            := 1 ns;
+      NARRAYS_BSA      : integer         := 1;
       USE_WSTRB_G      : boolean         := false;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);      
    port (
@@ -64,7 +65,7 @@ architecture rtl of TPGMiniReg is
    constant BSACMPLU   : integer := 20;
    constant BSACMPLL   : integer := 21;
    constant BSADEF     : integer := 128;  -- 128 registers
-   constant BSADEF_END : integer := 255;
+   constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA;
    constant BSASTATUS  : integer := 256;  -- 64 registers
    constant BSASTATUS_END  : integer := 319;
    constant CNTPLL     : integer := 320;

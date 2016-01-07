@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-11-16
+-- Last update: 2015-12-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -82,7 +82,8 @@ begin  -- rtl
   
    TPGMiniReg_Inst : entity work.TPGMiniReg
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         NARRAYS_BSA => NARRAYSBSA)
       port map (
          axiClk         => regClk,
          axiRst         => regRst,

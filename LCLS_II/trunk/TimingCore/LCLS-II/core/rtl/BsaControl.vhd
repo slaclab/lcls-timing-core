@@ -51,31 +51,32 @@ end BsaControl;
 
 architecture BsaControl of BsaControl is
 
-   signal initq, initd, initn               : sl;
+   signal initq                             : sl := '0';
+   signal initd, initn                      : sl;
    signal done, donen, doned                : sl;
-   signal persist                           : sl;
+   signal persist                           : sl := '0';
    signal active, rateSel, destSel, avgDone : sl;
    signal nToAvg, nToAvgn                   : slv(15 downto 0);
    signal avgToWr, avgToWrn                 : slv(15 downto 0);
    signal fifoRst                           : sl;
    signal control0, control1                : slv(35 downto 0);
 --   signal expSeqWord                        : slv(31 downto 0);
-   signal expSeqWord                        : slv(15 downto 0);
+   signal expSeqWord                        : slv(15 downto 0) := (others=>'0');
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
 
 begin
 
-   process (txclk, bsadef, fixedRate, acTS, acRate, expSeq, initd, initq)
-      variable rateType : slv(1 downto 0);
+   
+   process (txclk)
       variable expI : integer;
    begin
-      if bsadef.init = '0' then
-         initq   <= '0';
-         persist <= '0';
-      elsif rising_edge(txclk) then
-         if enable = '1' and initq = '0' then
+      if rising_edge(txclk) then
+         if bsadef.init = '0' then
+           initq      <= '0';
+           persist    <= '0';
+         elsif enable = '1' and initq = '0' then
             initq <= '1';
             if bsadef.avgToWr = x"0000" then
                persist <= '1';
@@ -88,7 +89,11 @@ begin
            expSeqWord <= (others=>'0');
          end if;
       end if;
+   end process;
 
+   process (bsadef, fixedRate, acTS, acRate, expSeqWord, initd, initq)
+      variable rateType : slv(1 downto 0);
+   begin 
       initn <= initq and not initd;
 
       rateType := bsadef.rateSel(15 downto 14);

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-11-13
+-- Last update: 2016-01-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -126,7 +126,7 @@ architecture rtl of TimingFrameRx is
    -- Synchronized to AXIL clk
    signal axilStatusCounters : SlVectorArray(NUM_COUNTERS_C-1 downto 0, COUNTER_WIDTH_C-1 downto 0);
    signal axilRxLinkUp       : sl;
-
+   signal stv                : slv(7 downto 0);
 begin
 
    -- Any word without K chars added to CRC
@@ -250,7 +250,8 @@ begin
    -------------------------------------------------------------------------------------------------
    rxDecErrSum <= rxDecErr(0) or rxDecErr(1);
    rxDspErrSum <= rxDispErr(0) or rxDispErr(1);
-   
+   axilRxLinkUp <= stv(5);
+
    SyncStatusVector_1 : entity work.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
@@ -270,9 +271,7 @@ begin
          statusIn(5)           => rxRstDone,
          statusIn(6)           => rxDecErrSum,
          statusIn(7)           => rxDspErrSum,
-         statusOut(4 downto 0) => open,
-         statusOut(5)          => axilRxLinkUp,
-         statusOut(7 downto 6) => open,
+         statusOut             => stv,
          cntRstIn              => axilR.cntRst,
          rollOverEnIn          => "00010111",
          cntOut                => axilStatusCounters,

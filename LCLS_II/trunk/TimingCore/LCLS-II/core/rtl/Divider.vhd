@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015/09/15
+-- Last update: 2016-01-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ end Divider;
 -- Define architecture for top level module
 architecture Divider of Divider is 
 
-  signal count : std_logic_vector(Width-1 downto 0);
+  signal count : std_logic_vector(Width-1 downto 0) := (others=>'0');
 
   -- Register delay for simulation
   constant tpd:time := 0.5 ns;
