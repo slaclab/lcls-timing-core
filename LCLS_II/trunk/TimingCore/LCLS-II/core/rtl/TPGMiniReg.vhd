@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-12-21
+-- Last update: 2016-01-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,18 +58,18 @@ architecture rtl of TPGMiniReg is
 
    constant CLKSEL     : integer := 0;
    constant BASE_CNTL  : integer := 1;
-   constant PULSEIDU   : integer := 2;
-   constant PULSEIDL   : integer := 3;
-   constant TSTAMPU    : integer := 4;
-   constant TSTAMPL    : integer := 5;
+   constant PULSEIDL   : integer := 2;
+   constant PULSEIDU   : integer := 3;
+   constant TSTAMPL    : integer := 4;
+   constant TSTAMPU    : integer := 5;
    constant FIXEDRATE0 : integer := 6;   -- 10 registers
    constant FIXEDRATE9 : integer := 15;
    constant RATERELOAD : integer := 16;
    constant HIST_CNTL  : integer := 17;
    constant FWVERSION  : integer := 18;
    constant RESOURCES  : integer := 19;
-   constant BSACMPLU   : integer := 20;
-   constant BSACMPLL   : integer := 21;
+   constant BSACMPLL   : integer := 20;
+   constant BSACMPLU   : integer := 21;
    constant BSADEF     : integer := 128;  -- 128 registers
    constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA;
    constant BSASTATUS  : integer := 256;  -- 64 registers
@@ -156,11 +156,11 @@ begin
           case wrPntr is
             when CLKSEL    => v.config.txPolarity              := regWrData(1);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
-            when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
             when PULSEIDL  => v.config.pulseId(31 downto  0)   := regWrData;
+            when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
                               v.config.pulseIdWrEn             := '1';
-            when TSTAMPU   => v.config.timeStamp(63 downto 32) := regWrData;
             when TSTAMPL   => v.config.timeStamp(31 downto  0) := regWrData;
+            when TSTAMPU   => v.config.timeStamp(63 downto 32) := regWrData;
                               v.config.timeStampWrEn           := '1'                 ;
             when FIXEDRATE0+0 => v.FixedRateDivisors(0)        := regWrData(19 downto 0);
             when FIXEDRATE0+1 => v.FixedRateDivisors(1)        := regWrData(19 downto 0);
@@ -174,8 +174,8 @@ begin
             when FIXEDRATE0+9 => v.FixedRateDivisors(9)        := regWrData(19 downto 0);
             when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
             when HIST_CNTL  => v.config.histActive             := regWrData(0);
-            when BSACMPLU   => v.bsaComplete(63 downto 32)     := v.bsaComplete(63 downto 32) and not regWrData;
             when BSACMPLL   => v.bsaComplete(31 downto  0)     := v.bsaComplete(31 downto  0) and not regWrData;
+            when BSACMPLU   => v.bsaComplete(63 downto 32)     := v.bsaComplete(63 downto 32) and not regWrData;
             when BSADEF to BSADEF_END =>
               iseq               := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
