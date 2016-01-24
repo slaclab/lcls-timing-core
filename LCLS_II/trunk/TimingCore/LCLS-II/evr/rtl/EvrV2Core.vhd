@@ -32,7 +32,7 @@ use work.AxiStreamPkg.all;
 use work.SsiPciePkg.all;
 use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
-use work.PciPkg.all;
+--use work.PciPkg.all;
 use work.SsiPkg.all;
 
 entity EvrV2Core is
