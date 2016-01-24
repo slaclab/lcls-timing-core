@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-11-16
+-- Last update: 2016-01-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -92,6 +92,7 @@ package TimingPkg is
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(message              : TimingMessageType) return Slv32Array;
+   function toSlvNoBsa(message           : TimingMessageType) return slv;
    function toTimingMessageType(vector : slv) return TimingMessageType;
 
    -- LCLS-I Timing Data Type
@@ -199,6 +200,45 @@ package body TimingPkg is
        end loop;  -- j
      end if;
      return vec32;
+   end function;
+
+   -------------------------------------------------------------------------------------------------
+   -- Convert a timing message record into a big long SLV with no BSA
+   -------------------------------------------------------------------------------------------------
+   function toSlvNoBsa (message : TimingMessageType) return slv
+   is
+      variable vector : slv(TIMING_MESSAGE_BITS_C-257 downto 0) := (others => '0');
+      variable i      : integer                               := 0;
+   begin
+      assignSlv(i, vector, message.version);
+      assignSlv(i, vector, message.pulseId);
+      assignSlv(i, vector, message.timeStamp);
+      assignSlv(i, vector, message.fixedRates);
+      assignSlv(i, vector, message.acRates);
+      assignSlv(i, vector, message.acTimeSlot);
+      assignSlv(i, vector, message.acTimeSlotPhase);
+      assignSlv(i, vector, message.resync);
+      assignSlv(i, vector, message.beamRequest);
+      assignSlv(i, vector, message.syncStatus);
+      assignSlv(i, vector, message.bcsFault);
+      assignSlv(i, vector, message.mpsValid);
+      assignSlv(i, vector, "00000000");        -- 8 unused bits
+      for j in message.mpsLimits'range loop
+         assignSlv(i, vector, message.mpsLimits(j));
+      end loop;
+      assignSlv(i, vector, message.historyActive);
+      assignSlv(i, vector, message.calibrationGap);
+      assignSlv(i, vector, "00000000000000");  -- 14 unused bits
+      assignSlv(i, vector, X"000000000000");   -- 3 unused words
+      for j in message.experiment'range loop
+         assignSlv(i, vector, message.experiment(j));
+      end loop;
+      assignSlv(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignSlv(i, vector, message.partitionWord(j));
+      end loop;
+      assignSlv(i, vector, message.crc);
+      return vector;
    end function;
 
    -------------------------------------------------------------------------------------------------
