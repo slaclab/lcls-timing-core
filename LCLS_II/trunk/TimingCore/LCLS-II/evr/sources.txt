@@ -1,0 +1,12 @@
+vhdl work rtl/EvrV2Core.vhd
+vhdl work rtl/EvrV2Pkg.vhd
+vhdl work rtl/EvrV2BsaControl.vhd
+vhdl work rtl/EvrV2BsaChannel.vhd
+vhdl work rtl/EvrV2EventSelect.vhd
+vhdl work rtl/EvrV2Cache.vhd
+vhdl work rtl/EvrV2Dma.vhd
+vhdl work rtl/EvrV2EventDma.vhd
+vhdl work rtl/EvrV2Trigger.vhd
+vhdl work rtl/EvrV2Axi.vhd
+vhdl work rtl/EvrV2PcieRxDesc.vhd
+vhdl work rtl/EvrV2PcieRxDma.vhd
