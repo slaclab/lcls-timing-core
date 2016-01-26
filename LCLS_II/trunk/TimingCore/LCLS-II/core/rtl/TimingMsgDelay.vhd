@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-10-09
+-- Last update: 2016-01-11
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,11 +38,11 @@ entity TimingMsgDelay is
 
    port (
       -- Timing Msg interface
-      timingClk          : in  sl;
-      timingRst          : in  sl;
+      timingClk              : in  sl;
+      timingRst              : in  sl;
       timingMessageIn        : in  TimingMessageType;
       timingMessageStrobeIn  : in  sl;
-      delay              : in  slv(15 downto 0);
+      delay                  : in  slv(15 downto 0);
       timingMessageOut       : out TimingMessageType;
       timingMessageStrobeOut : out sl);
 
@@ -57,55 +57,73 @@ architecture rtl of TimingMsgDelay is
    subtype TIMING_RANGE_C is natural range TIMING_MESSAGE_BITS_C-1 downto 0;
 
    type RegType is record
-      timeNow            : slv(TIME_SIZE_C-1 downto 0);
-      readoutTime        : slv(TIME_SIZE_C-1 downto 0);
-      fifoRdEn           : sl;
+      timeNow                : slv(TIME_SIZE_C-1 downto 0);
+      readoutTime            : slv(TIME_SIZE_C-1 downto 0);
+      fifoRdEn               : sl;
       timingMessageOut       : TimingMessageType;
       timingMessageStrobeOut : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      timeNow            => (others => '0'),
-      readoutTime        => (others => '0'),
-      fifoRdEn           => '0',
+      timeNow                => (others => '0'),
+      readoutTime            => (others => '0'),
+      fifoRdEn               => '0',
       timingMessageOut       => TIMING_MESSAGE_INIT_C,
       timingMessageStrobeOut => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal timingMessageSlv    : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-   signal fifoTimingMessage   : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-   signal fifoReadoutTime : slv(TIME_SIZE_C-1 downto 0);
-   signal fifoValid       : sl;
+   signal timingMessageSlv  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal fifoTimingMessage : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal fifoReadoutTime   : slv(TIME_SIZE_C-1 downto 0);
+   signal fifoValid         : sl;
 
 begin
 
    timingMessageSlv <= toSlv(timingMessageIn);
 
-   Fifo_1 : entity work.Fifo
+   Fifo_Time : entity work.Fifo
       generic map (
          TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => BRAM_EN_G,
+         GEN_SYNC_FIFO_G => false,
+         BRAM_EN_G       => true,
          FWFT_EN_G       => true,
          USE_DSP48_G     => "no",
          USE_BUILT_IN_G  => false,
-         DATA_WIDTH_G    => FIFO_WIDTH_C,
-         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
+         DATA_WIDTH_G    => 32,
+         ADDR_WIDTH_G    => 9)
       port map (
-         rst                   => timingRst,
-         wr_clk                => timingClk,
-         wr_en                 => timingMessageStrobeIn,
-         din(READOUT_RANGE_C)  => r.readoutTime,
-         din(TIMING_RANGE_C)   => timingMessageSlv,
-         rd_clk                => timingClk,
-         rd_en                 => r.fifoRdEn,
-         dout(READOUT_RANGE_C) => fifoReadoutTime,
-         dout(TIMING_RANGE_C)  => fifoTimingMessage,
-         valid                 => fifoValid);
+         rst    => timingRst,
+         wr_clk => timingClk,
+         wr_en  => timingMessageStrobeIn,
+         din    => r.readoutTime,
+         rd_clk => timingClk,
+         rd_en  => r.fifoRdEn,
+         dout   => fifoReadoutTime,
+         valid  => fifoValid);
 
-   comb : process (delay, fifoReadoutTime, fifoTimingMessage, r, timingRst) is
+   Fifo_Data : entity work.Fifo
+      generic map (
+         TPD_G           => TPD_G,
+         GEN_SYNC_FIFO_G => false,
+         BRAM_EN_G       => true,
+         FWFT_EN_G       => true,
+         USE_DSP48_G     => "no",
+         USE_BUILT_IN_G  => false,
+         DATA_WIDTH_G    => TIMING_MESSAGE_BITS_C,
+         ADDR_WIDTH_G    => 9)
+      port map (
+         rst    => timingRst,
+         wr_clk => timingClk,
+         wr_en  => timingMessageStrobeIn,
+         din    => timingMessageSlv,
+         rd_clk => timingClk,
+         rd_en  => r.fifoRdEn,
+         dout   => fifoTimingMessage,
+         valid  => open);
+
+   comb : process (delay, fifoReadoutTime, fifoTimingMessage, fifoValid, r, timingRst) is
       variable v : RegType;
    begin
       v := r;
@@ -113,13 +131,13 @@ begin
       v.timeNow     := r.timeNow + 1;
       v.readoutTime := r.timeNow + delay;
 
-      v.fifoRdEn           := '0';
+      v.fifoRdEn               := '0';
       v.timingMessageStrobeOut := '0';
       v.timingMessageOut       := toTimingMessageType(fifoTimingMessage);
 
       if (fifoValid = '1' and r.fifoRdEn = '0') then
          if (fifoReadoutTime = r.timeNow) then
-            v.fifoRdEn           := '1';
+            v.fifoRdEn               := '1';
             v.timingMessageStrobeOut := '1';
          end if;
       end if;

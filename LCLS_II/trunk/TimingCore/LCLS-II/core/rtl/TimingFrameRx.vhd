@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-01-06
+-- Last update: 2016-01-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,15 +37,15 @@ entity TimingFrameRx is
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
 
    port (
-      rxClk     : in sl;
-      rxRstDone : in sl;
-      rxData    : in slv(15 downto 0);
-      rxDataK   : in slv(1 downto 0);
-      rxDispErr : in slv(1 downto 0);
-      rxDecErr  : in slv(1 downto 0);
-      rxPolarity: out sl;
-      rxReset   : out sl;
-      
+      rxClk      : in  sl;
+      rxRstDone  : in  sl;
+      rxData     : in  slv(15 downto 0);
+      rxDataK    : in  slv(1 downto 0);
+      rxDispErr  : in  slv(1 downto 0);
+      rxDecErr   : in  slv(1 downto 0);
+      rxPolarity : out sl;
+      rxReset    : out sl;
+
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
 
@@ -91,18 +91,18 @@ architecture rtl of TimingFrameRx is
 --      timingMessageOut    => TIMING_MESSAGE_INIT_C,
       timingMessageStrobe => '0');
 
-   constant NO_DELAY : boolean := true;
-   
+   constant NO_DELAY_C : boolean := true;
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal timingMessageOut : TimingMessageType;
+   signal timingMessageOut   : TimingMessageType;
    signal timingMessageDelay : slv(15 downto 0);
    signal crcDataValid       : sl;
    signal crcOut             : slv(31 downto 0);
    signal rxDecErrSum        : sl;
    signal rxDspErrSum        : sl;
-   
+
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
@@ -143,12 +143,12 @@ begin
          CRC_INIT_G   => X"FFFFFFFF",
          TPD_G        => TPD_G)
       port map (
-         crcOut              => crcOut,
-         crcClk              => rxClk,
-         crcDataValid        => crcDataValid,
-         crcDataWidth        => "001",
-         crcIn(15 downto 0)  => rxData,
-         crcReset            => r.crcReset);
+         crcOut             => crcOut,
+         crcClk             => rxClk,
+         crcDataValid       => crcDataValid,
+         crcDataWidth       => "001",
+         crcIn(15 downto 0) => rxData,
+         crcReset           => r.crcReset);
 
    comb : process (crcOut, r, rxData, rxDataK, rxDecErr, rxDispErr) is
       variable v : RegType;
@@ -169,9 +169,9 @@ begin
          -- Wait for a new frame to start, then latch out the previous message if it was valid.         
          when IDLE_S =>
             if (rxDataK = "01" and rxData = (D_215_C & K_SOF_C)) then
-               v.state          := FRAME_S;
-               v.sofStrobe      := '1';
-               v.crcReset       := '1';
+               v.state     := FRAME_S;
+               v.sofStrobe := '1';
+               v.crcReset  := '1';
 
                v.timingMessageStrobe := '1';  -- always for now, until CRC is fixed
                if (toTimingMessageType(r.timingMessageShift).crc = r.crcOut(0)) then
@@ -187,7 +187,7 @@ begin
                v.state := IDLE_S;
                if ((rxDataK = "01" and rxData = (D_215_C & K_EOF_C))) then
                   -- EOF character seen, check crc
-                 v.eofStrobe      := '1';
+                  v.eofStrobe := '1';
                end if;
             else
                -- Shift in new data if not a K char
@@ -199,11 +199,11 @@ begin
       end case;
 
       if (rxDecErr /= "00" or rxDispErr /= X"00") then
-         v.state          := IDLE_S;
+         v.state := IDLE_S;
       end if;
 
       timingMessageOut <= toTimingMessageType(r.timingMessageShift);
-      rin                 <= v;
+      rin              <= v;
 
    end process comb;
 
@@ -217,25 +217,25 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Delay the timing message
    -------------------------------------------------------------------------------------------------
-   GEN_DELAY: if NO_DELAY=false generate
-     TimingMsgDelay_1 : entity work.TimingMsgDelay
-       generic map (
-         TPD_G             => TPD_G,
-         BRAM_EN_G         => true,
-         FIFO_ADDR_WIDTH_G => 9)
-       port map (
-         timingClk              => rxClk,
-         timingRst              => '0',
-         timingMessageIn        => timingMessageOut,
-         timingMessageStrobeIn  => r.timingMessageStrobe,
-         delay                  => timingMessageDelay,
-         timingMessageOut       => timingMessage,
-         timingMessageStrobeOut => timingMessageStrobe);
+   GEN_DELAY : if NO_DELAY_C = false generate
+      TimingMsgDelay_1 : entity work.TimingMsgDelay
+         generic map (
+            TPD_G             => TPD_G,
+            BRAM_EN_G         => true,
+            FIFO_ADDR_WIDTH_G => 9)
+         port map (
+            timingClk              => rxClk,
+            timingRst              => '0',
+            timingMessageIn        => timingMessageOut,
+            timingMessageStrobeIn  => r.timingMessageStrobe,
+            delay                  => timingMessageDelay,
+            timingMessageOut       => timingMessage,
+            timingMessageStrobeOut => timingMessageStrobe);
    end generate GEN_DELAY;
 
-   GEN_NODELAY: if NO_DELAY=true generate
-     timingMessage       <= timingMessageOut;
-     timingMessageStrobe <= r.timingMessageStrobe;
+   GEN_NODELAY : if NO_DELAY_C = true generate
+      timingMessage       <= timingMessageOut;
+      timingMessageStrobe <= r.timingMessageStrobe;
    end generate GEN_NODELAY;
    -------------------------------------------------------------------------------------------------
    -- Synchronize message delay to timing domain
@@ -254,8 +254,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic
    -------------------------------------------------------------------------------------------------
-   rxDecErrSum <= rxDecErr(0) or rxDecErr(1);
-   rxDspErrSum <= rxDispErr(0) or rxDispErr(1);
+   rxDecErrSum  <= rxDecErr(0) or rxDecErr(1);
+   rxDspErrSum  <= rxDispErr(0) or rxDispErr(1);
    axilRxLinkUp <= stv(5);
 
    SyncStatusVector_1 : entity work.SyncStatusVector
@@ -269,22 +269,22 @@ begin
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 8)
       port map (
-         statusIn(0)           => r.sofStrobe,
-         statusIn(1)           => r.eofStrobe,
-         statusIn(2)           => r.timingMessageStrobe,
-         statusIn(3)           => r.crcErrorStrobe,
-         statusIn(4)           => r.toggleClk,
-         statusIn(5)           => rxRstDone,
-         statusIn(6)           => rxDecErrSum,
-         statusIn(7)           => rxDspErrSum,
-         statusOut             => stv,
-         cntRstIn              => axilR.cntRst,
-         rollOverEnIn          => "00010111",
-         cntOut                => axilStatusCounters,
-         wrClk                 => rxClk,
-         wrRst                 => '0',
-         rdClk                 => axilClk,
-         rdRst                 => axilRst);
+         statusIn(0)  => r.sofStrobe,
+         statusIn(1)  => r.eofStrobe,
+         statusIn(2)  => r.timingMessageStrobe,
+         statusIn(3)  => r.crcErrorStrobe,
+         statusIn(4)  => r.toggleClk,
+         statusIn(5)  => rxRstDone,
+         statusIn(6)  => rxDecErrSum,
+         statusIn(7)  => rxDspErrSum,
+         statusOut    => stv,
+         cntRstIn     => axilR.cntRst,
+         rollOverEnIn => "00010111",
+         cntOut       => axilStatusCounters,
+         wrClk        => rxClk,
+         wrRst        => '0',
+         rdClk        => axilClk,
+         rdRst        => axilRst);
 
    axilComb : process (axilR, axilReadMaster, axilRst, axilRxLinkUp, axilStatusCounters,
                        axilWriteMaster) is
