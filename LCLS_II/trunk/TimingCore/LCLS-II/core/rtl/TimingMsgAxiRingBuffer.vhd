@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2015-10-09
+-- Last update: 2016-02-28
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,13 +37,14 @@ entity TimingMsgAxiRingBuffer is
       TPD_G            : time                        := 1 ns;
       BRAM_EN_G        : boolean                     := true;
       REG_EN_G         : boolean                     := true;
-      RAM_ADDR_WIDTH_G : positive range 1 to (2**24) := 10);
+      RAM_ADDR_WIDTH_G : positive range 1 to (2**24) := 10;
+      VECTOR_SIZE_G    : integer );
 
    port (
       -- Timing Message interface
       timingClk       : in sl;
       timingRst       : in sl;
-      timingMessage       : in TimingMessageType;
+      timingMessage       : in slv(VECTOR_SIZE_G-1 downto 0);
       timingMessageStrobe : in sl;
 
       -- Axi Lite interface for readout
@@ -68,7 +69,8 @@ begin
          TPD_G          => TPD_G,
          COMMON_CLOCK_G => true,
          SHIFT_SIZE_G   => 32,
-         AXIS_CONFIG_G  => ssiAxiStreamConfig(4))
+         AXIS_CONFIG_G  => ssiAxiStreamConfig(4),
+         VECTOR_SIZE_G  => VECTOR_SIZE_G )
       port map (
          timingClk       => timingClk,
          timingRst       => timingRst,

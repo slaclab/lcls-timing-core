@@ -5,26 +5,28 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015-11-05
+-- Last update: 2016-03-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Sequence engine for timing generator.
 --
 --  Sequencer instruction word bits:
---    (31:30)="10"  Fixed Rate Sync
+--    (31:29)="010"  Fixed Rate Sync -- shifted down 1
 --       (19:16)=marker_id
 --       (11:0)=occurrence
---    (31:30)="11"  AC Rate Sync
---       (29:24)=timeslot_mask
+--    (31:29)="011"  AC Rate Sync -- shifted down 1
+--       (28:23)=timeslot_mask  -- shifted down 1
 --       (19:16)=marker_id
 --       (11:0)=occurrence
---    (31:30)="01"  Checkpoint/Notify
---    (31:30)="00"  Branch
+--    (31:29)="001"  Checkpoint/Notify -- shifted down 1
+--    (31:29)="000"  Branch -- shifted down 1
 --       (28:27)=counter
---       (24)=unconditional
+--       (24)=conditional  -- flipped polarity
 --       (23:16)=test_value
---       (9:0)=address
+--       (10:0)=address
+--    (31:29)="100" Request
+--       (15:0)  Value
 --
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
@@ -47,6 +49,7 @@ use work.TPGPkg.all;
 use work.StdRtlPkg.all;
 
 entity Sequence is
+   generic ( DEBUG : boolean := false );
    port (
       -- Clock and reset
       clkA         : in  sl;
@@ -68,27 +71,24 @@ entity Sequence is
       seqNotify    : out SeqAddrType;
       seqNotifyWr  : out sl;
       seqNotifyAck : in  sl;
-      dataO        : out slv(31 downto 0);
+      dataO        : out slv(16 downto 0);
 
       monReset : in  sl;
-      monCount : out slv(31 downto 0);
-
-      debug0 : out slv(63 downto 0);
-      debug1 : out slv(63 downto 0)
+      monCount : out slv(31 downto 0)
       );
 end Sequence;
 
 -- Define architecture for top level module
 architecture ISequence of Sequence is
 
-   type SEQ_STATE is (SEQ_STOPPED, SEQ_LOAD, SEQ_TEST_BRANCH, SEQ_TEST_OCC, SEQ_STEP_WAIT, SEQ_STEP_LOAD, SEQ_STEP_EXEC);
+   type SEQ_STATE is (SEQ_STOPPED, SEQ_LOAD, SEQ_TEST_BRANCH, SEQ_TEST_OCC, SEQ_STEP_WAIT, SEQ_STEP_LOAD);
 
    type RegType is
    record
       index      : slv(SEQADDRLEN-1 downto 0);
       delaycount : slv(15 downto 0);
       count      : Slv8Array(3 downto 0);
-      data       : slv(31 downto 0);
+      data       : slv(16 downto 0);
       counter    : slv(7 downto 0);
       counterI   : integer range 0 to 3;
       jump       : sl;
@@ -116,8 +116,38 @@ architecture ISequence of Sequence is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal istate : slv(2 downto 0);
+   signal icount : slv(1 downto 0);
+   
+   component ila_0
+     port ( clk    : in  sl;
+            probe0 : in slv(255 downto 0) );
+   end component;
 begin
 
+   GEN_DEBUG: if DEBUG generate
+     istate <= "000" when r.state=SEQ_STOPPED else
+               "001" when r.state=SEQ_LOAD else
+               "010" when r.state=SEQ_TEST_BRANCH else
+               "011" when r.state=SEQ_TEST_OCC else
+               "100" when r.state=SEQ_STEP_WAIT else
+               "101";
+     icount <= toSlv(r.counterI,2);
+     U_ILA : ila_0
+       port map ( clk                    => clkB,
+                  probe0( 31 downto   0) => rdStepB,
+                  probe0( 39 downto  32) => r.count(0),
+                  probe0( 47 downto  40) => r.count(1),
+                  probe0( 55 downto  48) => r.count(2),
+                  probe0( 63 downto  56) => r.count(3),
+                  probe0( 79 downto  64) => r.data,
+                  probe0( 95 downto  80) => r.delaycount,
+                  probe0(103 downto  96) => r.counter,
+                  probe0(106 downto 104) => istate,
+                  probe0(108 downto 107) => icount,
+                  probe0(255 downto 109) => (others=>'0') );
+   end generate GEN_DEBUG;
+     
    dataO          <= r.data;
    seqState.index <= SeqAddrType(r.index);
    seqState.count <= r.count;
@@ -163,16 +193,15 @@ begin
          when SEQ_LOAD =>
             v.counterI := conv_integer(rdStepB(28 downto 27));
             v.counter  := r.count(v.counterI);
-            if (r.count(v.counterI) = rdStepB(23 downto 16)) then
+            if (v.counterI = rdStepB(23 downto 16)) then
                v.jump := '1';
             end if;
             v.state := SEQ_TEST_BRANCH;
          when SEQ_TEST_BRANCH =>
-            case rdStepB(31 downto 30) is
-               when "00" =>                                     -- Branch
-                  if rdStepB(24) = '1' then
+            case rdStepB(31 downto 29) is
+               when "000" =>                                     -- Branch
+                  if rdStepB(24) = '0' then
                      v.index := rdStepB(v.index'range);
---            elsif (rdStepB(23 downto 16)=r.counter) then
                   elsif (r.jump = '1') then
                      v.index             := r.index+1;
                      v.count(r.counterI) := (others => '0');
@@ -181,10 +210,15 @@ begin
                      v.count(r.counterI) := r.count(r.counterI)+1;
                   end if;
                   v.state := SEQ_LOAD;
-               when "01" =>                                     -- Notify
+               when "001" =>                                     -- Notify
                   v.index      := r.index+1;
                   v.notify     := '1';
                   v.notifyaddr := r.index;
+                  v.state      := SEQ_LOAD;
+               when "100" =>                                    -- Request
+                  v.monCount   := r.monCount+1;
+                  v.index      := r.index+1;
+                  v.data       := '1' & rdStepB(15 downto 0);
                   v.state      := SEQ_LOAD;
                when others =>                                   -- Sync
                   v.state := SEQ_TEST_OCC;
@@ -199,12 +233,11 @@ begin
             if waitB = '1' then
                rateI := conv_integer(rdStepB(19 downto 16));
                acTSI := conv_integer(acTS);
-               if rdStepB(30) = '0' then                        -- FixedRate
+               if rdStepB(29) = '0' then                        -- FixedRate
                   if (rateI<fixedRate'length and fixedRate(rateI) = '1') then
                      v.delaycount := r.delaycount+1;
                   end if;
---               elsif (acTSI>0 and acTSI<7 and rdStepB(23+acTSI) = '1') then  -- 29:24
-               elsif (rdStepB(23+acTSI) = '1') then  -- 29:24
+               elsif (rdStepB(22+acTSI) = '1') then  -- 28:23
                   if (rateI<acRate'length and acRate(rateI) = '1') then
                      v.delaycount := r.delaycount+1;
                   end if;
@@ -212,24 +245,17 @@ begin
                v.state := SEQ_TEST_OCC;
             end if;
          when SEQ_STEP_LOAD =>
-            v.index := r.index+1;
-            v.state := SEQ_STEP_EXEC;
-         when SEQ_STEP_EXEC =>
-            v.delaycount := (others => '0');
             v.index      := r.index+1;
+            v.delaycount := (others => '0');
             v.state      := SEQ_LOAD;
       end case;
 
       if rdEnB = '1' then
          v.data := (others => '0');
-      elsif r.state = SEQ_STEP_EXEC then
-         v.data := rdStepB;
       end if;
 
       if monReset = '1' then
          v.monCount := (others => '0');
-      elsif r.state = SEQ_STEP_EXEC then
-         v.monCount := r.monCount+1;
       end if;
 
       -- from any state
@@ -251,7 +277,4 @@ begin
       end if;
    end process;
 
-   debug0 <= (others=>'0');
-   debug1 <= (others=>'0');
-   
 end ISequence;

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-01-24
+-- Last update: 2016-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,9 @@ package TimingPkg is
    constant K_COM_C : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC
    constant K_SOF_C : slv(7 downto 0) := "11110111";  -- K23.7, 0xF7
    constant K_EOF_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
-
+   constant K_280_C : slv(7 downto 0) := "00011100";  -- K28.0, 0x1C
+   constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
+   
    constant TIMING_MESSAGE_BITS_C  : integer := 1264;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
    constant TIMING_MESSAGE_VERSION_C : slv(63 downto 0) := x"0000060504030201";
@@ -95,6 +97,47 @@ package TimingPkg is
    function toSlvNoBsa(message           : TimingMessageType) return slv;
    function toTimingMessageType(vector : slv) return TimingMessageType;
 
+   constant TIMING_DATABUFF_BITS_C  : integer := 416;
+   constant TIMING_STREAM_BITS_C  : integer := 704;
+
+   type TimingDataBuffType is record
+      dtype      : slv(15 downto 0);
+      version    : slv(15 downto 0);
+      dmod       : slv(191 downto 0);
+      epicsTime  : slv(63 downto 0);
+      edefAvgDn  : slv(31 downto 0);
+      edefMinor  : slv(31 downto 0);
+      edefMajor  : slv(31 downto 0);
+      edefInit   : slv(31 downto 0);
+   end record;
+
+   constant TIMING_DATA_BUFF_INIT_C : TimingDataBuffType := (
+      dtype      => (others=>'0'),
+      version    => (others=>'0'),
+      dmod       => (others=>'0'),
+      epicsTime  => (others=>'0'),
+      edefAvgDn  => (others=>'0'),
+      edefMinor  => (others=>'0'),
+      edefMajor  => (others=>'0'),
+      edefInit   => (others=>'0') );
+
+   type TimingDataBuffArray is array (natural range<>) of TimingDataBuffType;
+   
+   type TimingStreamType is record
+      pulseId         : slv(31 downto 0);
+      eventCodes      : slv(255 downto 0);
+      dbuff           : TimingDataBuffType;
+   end record;
+
+   constant TIMING_STREAM_INIT_C : TimingStreamType := (
+      pulseId         => (others=>'0'),
+      eventCodes      => (others=>'0'),
+      dbuff           => TIMING_DATA_BUFF_INIT_C );
+
+   function toTimingDataBuffType(vector : slv) return TimingDataBuffType;
+   function toTimingStreamType(vector : slv) return TimingStreamType;
+   function toSlv(stream : TimingStreamType) return slv;
+
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
       linkUp : sl;
@@ -112,25 +155,27 @@ package TimingPkg is
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
       message : TimingMessageType;
+      stream  : TimingStreamType;
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
       message => TIMING_MESSAGE_INIT_C,
+      stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C);
 
 
    type TimingPhyType is record
-      dataK : slv(1 downto 0);
-      data  : slv(15 downto 0);
-      polarity : sl;
+      dataK      : slv(1 downto 0);
+      data       : slv(15 downto 0);
+      polarity   : sl;
    end record;
    constant TIMING_PHY_INIT_C : TimingPhyType := (
-      dataK => "00",
-      data  => x"0000",
-      polarity => '0');
+      dataK      => "00",
+      data       => x"0000",
+      polarity   => '0' );
 
 end package TimingPkg;
 
@@ -284,5 +329,56 @@ package body TimingPkg is
       return message;
    end function;
 
+   function toTimingDataBuffType(vector : slv) return TimingDataBuffType
+   is
+      variable message : TimingDataBuffType;
+      variable i       : integer := 0;
+   begin
+      assignRecord(i, vector, message.dtype);
+      assignRecord(i, vector, message.version);
+      assignRecord(i, vector, message.dmod);
+      assignRecord(i, vector, message.epicsTime);
+      assignRecord(i, vector, message.edefAvgDn);
+      assignRecord(i, vector, message.edefMinor);
+      assignRecord(i, vector, message.edefMajor);
+      assignRecord(i, vector, message.edefInit);
+      return message;
+   end function;
 
+   function toTimingStreamType(vector : slv) return TimingStreamType
+   is
+      variable message : TimingStreamType;
+      variable i       : integer := 0;
+   begin
+      assignRecord(i, vector, message.pulseId);
+      assignRecord(i, vector, message.eventCodes);
+      assignRecord(i, vector, message.dbuff.dtype);
+      assignRecord(i, vector, message.dbuff.version);
+      assignRecord(i, vector, message.dbuff.dmod);
+      assignRecord(i, vector, message.dbuff.epicsTime);
+      assignRecord(i, vector, message.dbuff.edefAvgDn);
+      assignRecord(i, vector, message.dbuff.edefMinor);
+      assignRecord(i, vector, message.dbuff.edefMajor);
+      assignRecord(i, vector, message.dbuff.edefInit);
+      return message;
+   end function;
+
+   function toSlv (stream : TimingStreamType) return slv
+   is
+      variable vector : slv(TIMING_STREAM_BITS_C-1 downto 0) := (others => '0');
+      variable i      : integer                              := 0;
+   begin
+      assignSlv(i, vector, stream.pulseId);
+      assignSlv(i, vector, stream.eventCodes);
+      assignSlv(i, vector, stream.dbuff.dtype);
+      assignSlv(i, vector, stream.dbuff.version);
+      assignSlv(i, vector, stream.dbuff.dmod);
+      assignSlv(i, vector, stream.dbuff.epicsTime);
+      assignSlv(i, vector, stream.dbuff.edefAvgDn);
+      assignSlv(i, vector, stream.dbuff.edefMinor);
+      assignSlv(i, vector, stream.dbuff.edefMajor);
+      assignSlv(i, vector, stream.dbuff.edefInit);
+      return vector;
+   end function;
+   
 end package body TimingPkg;

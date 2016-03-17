@@ -46,7 +46,6 @@ entity BsaControl is
       acRate     : in  slv(ACRATEDEPTH-1 downto 0);
       acTS       : in  slv(2 downto 0);
       beamSeq    : in  slv(31 downto 0);
---      expSeq     : in  Slv32Array(MAXEXPSEQDEPTH-1 downto 0);
       expSeq     : in  Slv16Array(MAXEXPSEQDEPTH-1 downto 0);
       bsaInit    : out sl;
       bsaActive  : out sl;
@@ -66,17 +65,27 @@ architecture BsaControl of BsaControl is
    signal avgToWr, avgToWrn                 : slv(15 downto 0);
    signal fifoRst                           : sl;
    signal control0, control1                : slv(35 downto 0);
---   signal expSeqWord                        : slv(31 downto 0);
-   signal expSeqWord                        : slv(15 downto 0) := (others=>'0');
 
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
 
 begin
 
-   
+   U_Select : entity work.EventSelect
+     port map ( clk       => txclk,
+                rateType  => bsadef.rateSel(15 downto 14),
+                fxRateSel => bsadef.rateSel( 3 downto 0),
+                acRateSel => bsadef.rateSel( 2 downto 0),
+                acTSmask  => bsadef.rateSel( 8 downto 3),
+                seqword   => bsadef.rateSel(10 downto 5),
+                seqbit    => bsadef.rateSel( 4 downto 0),
+                fixedRate => fixedRate,
+                acRate    => acRate,
+                acTS      => acTS,
+                expSeq    => expSeq,
+                rateSel   => rateSel );
+                
    process (txclk)
-      variable expI : integer;
    begin
       if rising_edge(txclk) then
          if bsadef.init = '0' then
@@ -88,35 +97,10 @@ begin
                persist <= '1';
             end if;
          end if;
-         expI := conv_integer(bsadef.rateSel(10 downto 5));
-         if expI<MAXEXPSEQDEPTH then
-           expSeqWord <= expSeq(expI);
-         else
-           expSeqWord <= (others=>'0');
-         end if;
       end if;
    end process;
 
-   process (bsadef, fixedRate, acTS, acRate, expSeqWord, initd, initq)
-      variable rateType : slv(1 downto 0);
-   begin 
-      initn <= initq and not initd;
-
-      rateType := bsadef.rateSel(15 downto 14);
-      case rateType is
-         when "00" => rateSel <= fixedRate(conv_integer(bsadef.rateSel(3 downto 0)));
-         when "01" =>
-            if (bsadef.rateSel(conv_integer(acTS)+3-1) = '0') then
-               -- acTS counts from "1"
-               rateSel <= '0';
-            else
-               rateSel <= acRate(conv_integer(bsadef.rateSel(2 downto 0)));
-            end if;
---         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(4 downto 0)));
-         when "10"   => rateSel <= expSeqWord(conv_integer(bsadef.rateSel(3 downto 0)));
-         when others => rateSel <= '0';
-      end case;
-   end process;
+   initn <= initq and not initd;
 
    destSel <= '1' when (bsadef.destSel(15) = '1' or
                         bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1') else
@@ -174,7 +158,8 @@ begin
             bsaInit    <= initq and not initd;
             bsaActive  <= active;
             bsaAvgDone <= avgDone;
-            bsaDone    <= done and not doned;
+            --bsaDone    <= done and not doned;
+            bsaDone    <= donen and not done;  -- must overlap with bsaAvgDone
             initd      <= initq;
             done       <= donen;
             doned      <= done;

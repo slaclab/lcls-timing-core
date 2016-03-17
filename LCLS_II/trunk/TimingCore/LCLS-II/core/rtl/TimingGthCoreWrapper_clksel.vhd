@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-03-05
+-- Last update: 2016-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ entity TimingGthCoreWrapper is
 end entity TimingGthCoreWrapper;
 
 architecture rtl of TimingGthCoreWrapper is
-   component TimingGth_polarity
+   component TimingGth_clksel
       port (
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
@@ -137,9 +137,8 @@ architecture rtl of TimingGthCoreWrapper is
    
 begin
 
-   U_TimingGthCore : TimingGth_polarity
+   U_TimingGthCore : TimingGth_clksel
       port map (
---         gtwiz_userclk_tx_reset_in(0)          => txReset,
          gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
          gtwiz_buffbypass_tx_reset_in(0)       => '0',
@@ -207,7 +206,7 @@ begin
          CEMASK  => '1',
          CLR     => '0',
          CLRMASK => '1',
-         DIV     => "001",              -- Divide-by-2
+         DIV     => "000",              -- Divide-by-1
          O       => txOutClk);
 
    TIMING_RECCLK_BUFG_GT : BUFG_GT

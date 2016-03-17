@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015-11-19
+-- Last update: 2016-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -77,9 +77,8 @@ package TPGPkg is
   type L1TrigConfigArray  is array (natural range <>) of L1TrigConfig;
 
   type TPGJumpConfigType is record
-                          trgEn   : sl;
-                          trgSel  : slv(2 downto 0);
-                          trgJump : SeqAddrType;
+                          syncSel : slv(15 downto 0);
+                          syncJump: SeqAddrType;
                           bcsEn   : sl;
                           bcsJump : SeqAddrType;
                           mpsEn   : slv(13 downto 0);
@@ -166,6 +165,9 @@ package TPGPkg is
     bcsFault      => (others=>'0') );
     
   type TPGConfigType is record
+                          clock_step      : slv( 4 downto 0);
+                          clock_remainder : slv( 4 downto 0);
+                          clock_divisor   : slv( 4 downto 0);
                           txPolarity    : sl;
                           baseDivisor   : slv(15 downto 0);
                           pulseId       : slv(63 downto 0);
@@ -177,6 +179,8 @@ package TPGPkg is
                           IntTrigger    : L1TrigConfigArray(6 downto 0);
                           SeqRestart    : slv(MAXSEQDEPTH-1 downto 0);
                           SeqRstAddr    : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
+                          SeqSync       : slv(MAXSEQDEPTH-1 downto 0);
+
                           histActive    : sl;
                           forceSync     : sl;
                           destnPriority : slv(4*MAXBEAMSEQDEPTH-1 downto 0);
@@ -199,16 +203,18 @@ package TPGPkg is
                         end record;
 
   constant TPG_JUMPCONFIG_INIT_C : TPGJumpConfigType := (
-    trgEn   => '0',
-    trgSel  => (others=>'0'),
-    trgJump => (others=>'0'),
-    bcsEn   => '0',
-    bcsJump => (others=>'0'),
-    mpsEn   => (others=>'0'),
-    mpsJump => (others=>(others=>'0'))
+    syncSel  => (others=>'0'),
+    syncJump => (others=>'0'),
+    bcsEn    => '0',
+    bcsJump  => (others=>'0'),
+    mpsEn    => (others=>'0'),
+    mpsJump  => (others=>(others=>'0'))
     );
   
   constant TPG_CONFIG_INIT_C : TPGConfigType := (
+    clock_step        => "00101",
+    clock_remainder   => "00101",
+    clock_divisor     => "01101",
     txPolarity        => '0',
     baseDivisor       => x"00C8",
     pulseId           => (others=>'0'),
@@ -229,6 +235,7 @@ package TPGPkg is
     IntTrigger        => (others=>L1TRIGCONFIG_INIT_C),
     SeqRestart        => (others=>'0'),
     SeqRstAddr        => (others=>(others=>'0')),
+    SeqSync           => (others=>'0'),
     histActive        => '1',
     forceSync         => '0',
     destnPriority     => (others=>'0'),

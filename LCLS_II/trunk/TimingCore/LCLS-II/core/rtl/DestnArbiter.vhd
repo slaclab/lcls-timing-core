@@ -33,7 +33,7 @@ use work.StdRtlPkg.all;
 entity DestnArbiter is
    port (
       beamPrio           : in  std_logic_vector(MAXBEAMSEQDEPTH*BEAMPRIOBITS-1 downto 0);
-      beamSeq            : in  Slv32Array(MAXBEAMSEQDEPTH-1 downto 0);
+      beamSeq            : in  Slv17Array(MAXBEAMSEQDEPTH-1 downto 0);
       beamSeqO           : out std_logic_vector(BEAMSEQWIDTH-1 downto 0)
      );
 end DestnArbiter;
@@ -46,14 +46,18 @@ begin
 
   process (beamPrio, beamSeq, beamPrioI)
     variable iseq : integer;
+    variable idst : slv(BEAMPRIOBITS-1 downto 0);
   begin  -- process
     
     beamSeqO <= (others=>'0');
     beamPrioI_loop: for i in 0 to MAXBEAMSEQDEPTH-1 loop
-      iseq := conv_integer(beamPrio((i+1)*BEAMPRIOBITS-1 downto i*BEAMPRIOBITS));
+      idst := beamPrio((i+1)*BEAMPRIOBITS-1 downto i*BEAMPRIOBITS);
+      iseq := conv_integer(idst);
       if (iseq>=0 and iseq<beamSeq'length) then
-        if beamSeq(iseq)(0)='1' then
-          beamSeqO <= beamSeq(iseq);
+        if beamSeq(iseq)(16)='1' then
+          beamSeqO(31 downto 16)           <= beamSeq(iseq)(15 downto 0);
+          beamSeqO(BEAMPRIOBITS downto  1) <= idst;
+          beamSeqO(0)                      <= '1';
         end if;
       end if;
     end loop beamPrioI_loop;

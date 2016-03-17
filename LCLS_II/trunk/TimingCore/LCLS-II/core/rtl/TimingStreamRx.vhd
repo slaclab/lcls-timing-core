@@ -30,7 +30,7 @@ use work.AxiLitePkg.all;
 use work.TimingPkg.all;
 
 
-entity TimingFrameRx is
+entity TimingStreamRx is
 
    generic (
       TPD_G             : time            := 1 ns;
@@ -46,11 +46,11 @@ entity TimingFrameRx is
       rxPolarity : out sl;
       rxReset    : out sl;
 
-      timingMessage       : out TimingMessageType;
+      timingMessage       : out TimingStreamType;
       timingMessageStrobe : out sl;
 
-      txClk      : in  sl;
-
+      txClk           : in  sl;
+      
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -59,9 +59,9 @@ entity TimingFrameRx is
       axilWriteSlave  : out AxiLiteWriteSlaveType
       );
 
-end entity TimingFrameRx;
+end entity TimingStreamRx;
 
-architecture rtl of TimingFrameRx is
+architecture rtl of TimingStreamRx is
 
    -------------------------------------------------------------------------------------------------
    -- rxClk Domain
@@ -69,42 +69,45 @@ architecture rtl of TimingFrameRx is
    type StateType is (IDLE_S, FRAME_S);
 
    type RegType is record
-      state               : StateType;
-      crcReset            : sl;
-      crcOut              : slv32Array(0 downto 0);
+      dstate              : StateType;
+      estate              : StateType;
       sofStrobe           : sl;
       eofStrobe           : sl;
-      crcErrorStrobe      : sl;
-      timingMessageShift  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
---      timingMessageOut    : TimingMessageType;
+      ecount              : slv(19 downto 0);
+      dataBuffEn          : sl;
+      dataBuffShift       : slv(TIMING_DATABUFF_BITS_C-1 downto 0);
+      pulseIdShift        : slv(31 downto 0);
+      eventCodes          : slv(255 downto 0);
+      timingStream        : TimingStreamType;
+      dataBuffCache       : TimingDataBuffArray(2 downto 0);
       timingMessageStrobe : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state               => IDLE_S,
-      crcReset            => '1',
-      crcOut              => (others => (others => '0')),
+      dstate              => IDLE_S,
+      estate              => IDLE_S,
       sofStrobe           => '0',
       eofStrobe           => '0',
-      crcErrorStrobe      => '0',
-      timingMessageShift  => (others => '0'),
---      timingMessageOut    => TIMING_MESSAGE_INIT_C,
+      ecount              => (others => '0'),
+      dataBuffEn          => '0',
+      dataBuffShift       => (others => '0'),
+      pulseIdShift        => (others => '0'),
+      eventCodes          => (others => '0'),
+      timingStream        => TIMING_STREAM_INIT_C,
+      dataBuffCache       => (others=>TIMING_DATA_BUFF_INIT_C),
       timingMessageStrobe => '0');
 
-   constant NO_DELAY_C : boolean := true;
-
+   constant FRAME_LEN : slv(19 downto 0) := x"036b0";  -- end of EVG stream
+   
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal timingMessageOut   : TimingMessageType;
-   signal timingMessageDelay : slv(15 downto 0);
-   signal crcDataValid       : sl;
-   signal crcOut             : slv(31 downto 0);
+   signal rxDbuf             : slv(7 downto 0);
+   signal rxEcod             : slv(7 downto 0);
+   signal timingStreamOut    : TimingStreamType;
    signal rxDecErrSum        : sl;
    signal rxDspErrSum        : sl;
 
-   signal rxClkCnt,txClkCnt : slv(3 downto 0) := (others=>'0');
-   
    -------------------------------------------------------------------------------------------------
    -- axilClk Domain
    -------------------------------------------------------------------------------------------------
@@ -112,7 +115,6 @@ architecture rtl of TimingFrameRx is
       cntRst         : sl;
       rxPolarity     : sl;
       rxReset        : sl;
-      messageDelay   : slv(15 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record AxilRegType;
@@ -121,13 +123,14 @@ architecture rtl of TimingFrameRx is
       cntRst         => '0',
       rxPolarity     => '0',
       rxReset        => '0',
-      messageDelay   => toSlv(20000, 16),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
+   signal rxClkCnt : slv(3 downto 0) := (others=>'0');
+   
    constant NUM_COUNTERS_C  : integer := 8;
    constant COUNTER_WIDTH_C : integer := 32;
 
@@ -135,78 +138,82 @@ architecture rtl of TimingFrameRx is
    signal axilStatusCounters : SlVectorArray(NUM_COUNTERS_C-1 downto 0, COUNTER_WIDTH_C-1 downto 0);
    signal axilRxLinkUp       : sl;
    signal stv                : slv(NUM_COUNTERS_C-1 downto 0);
-   signal txClkCntS          : slv(COUNTER_WIDTH_C-1 downto 0);
 begin
 
-   -- Any word without K chars added to CRC
-   crcDataValid <= '1' when rxDataK = "00" else '0';
-   Crc32Parallel_1 : entity work.Crc32Parallel
-      generic map (
-         BYTE_WIDTH_G => 2,
-         CRC_INIT_G   => X"FFFFFFFF",
-         TPD_G        => TPD_G)
-      port map (
-         crcOut             => crcOut,
-         crcClk             => rxClk,
-         crcDataValid       => crcDataValid,
-         crcDataWidth       => "001",
-         crcIn(15 downto 0) => rxData,
-         crcReset           => r.crcReset);
+  rxDbuf <= rxData(15 downto 8);
+  rxEcod <= rxData( 7 downto 0);
 
-   comb : process (crcOut, r, rxData, rxDataK, rxDecErr, rxDispErr) is
-      variable v : RegType;
-   begin
-      v := r;
+  comb : process (r, rxDbuf, rxEcod, rxDataK, rxDecErr, rxDispErr) is
+    variable v : RegType;
+  begin
+    v := r;
 
-      -- Strobed registers
-      v.crcReset            := '0';
-      v.sofStrobe           := '0';
-      v.eofStrobe           := '0';
-      v.timingMessageStrobe := '0';
-      v.crcErrorStrobe      := '0';
+    -- Strobed registers
+    v.sofStrobe           := '0';
+    v.eofStrobe           := '0';
+    v.timingMessageStrobe := '0';
 
+    case (r.dstate) is
+      when IDLE_S =>
+        if (rxDataK(1)='1' and rxDbuf=K_280_C) then
+          v.dstate     := FRAME_S;
+          v.dataBuffEn := '0';
+          v.sofStrobe  := '1';
+        end if;
+      when FRAME_S =>
+        if (rxDataK(1)='1' and (rxDbuf=K_COM_C or rxDbuf=K_281_C)) then
+          v.dstate        := IDLE_S;
+          v.eofStrobe     := '1';
+          -- shift data buffer into storage
+          v.dataBuffCache := r.dataBuffCache(1 downto 0) & toTimingDataBuffType(r.dataBuffShift);
+        elsif (rxDataK(1)='0' and r.dataBuffEn='1') then
+          v.dataBuffShift := r.dataBuffShift(r.dataBuffShift'left-8 downto 0) & rxDbuf;
+        end if;
+        v.dataBuffEn    := not r.dataBuffEn;
+      when others => null;
+    end case;
 
-      case (r.state) is
-         -- Wait for a new frame to start, then latch out the previous message if it was valid.         
-         when IDLE_S =>
-            if (rxDataK = "01" and rxData = (D_215_C & K_SOF_C)) then
-               v.state     := FRAME_S;
-               v.sofStrobe := '1';
-               v.crcReset  := '1';
+    case (r.estate) is
+      when IDLE_S =>
+        if (rxDataK(0)='0') then
+          if (rxEcod=x"7D") then
+            v.ecount := (others=>'0');
+            v.estate := FRAME_S;
+          elsif rxEcod=x"70" then
+            v.pulseIdShift := '0' & r.pulseIdShift(31 downto 1);
+          elsif rxEcod=x"71" then
+            v.pulseIdShift := '1' & r.pulseIdShift(31 downto 1);
+          else
+            v.eventCodes(conv_integer(rxEcod)) := '1';
+          end if;
+        end if;
+      when FRAME_S =>
+        if r.ecount = FRAME_LEN then
+          v.estate := IDLE_S;
+          v.eventCodes := (others=>'0');
+          v.timingStream.pulseId := r.pulseIdShift;
+          v.timingStream.eventCodes  := r.eventCodes;
+          v.timingStream.dbuff   := r.dataBuffCache(2);
+          v.timingMessageStrobe  := '1';
+        else
+          v.ecount := r.ecount+1;
+          if rxDataK(0)='0' then
+            v.eventCodes(conv_integer(rxEcod)) := '1';
+          end if;
+        end if;
+      when others =>  null;
+    end case;
 
-               v.timingMessageStrobe := '1';  -- always for now, until CRC is fixed
-               if (toTimingMessageType(r.timingMessageShift).crc = r.crcOut(0)) then
-                  v.timingMessageStrobe := '1';
-               else
-                  v.crcErrorStrobe := '1';
-               end if;
+    
+    if (rxDecErr /= "00" or rxDispErr /= X"00") then
+      v.dstate := IDLE_S;
+    end if;
 
-            end if;
-
-         when FRAME_S =>
-            if (rxDataK /= "00") then
-               v.state := IDLE_S;
-               if ((rxDataK = "01" and rxData = (D_215_C & K_EOF_C))) then
-                  -- EOF character seen, check crc
-                  v.eofStrobe := '1';
-               end if;
-            else
-               -- Shift in new data if not a K char
-               v.timingMessageShift := rxData & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
-               v.crcOut(0)          := crcOut;
-            end if;
-
-         when others => null;
-      end case;
-
-      if (rxDecErr /= "00" or rxDispErr /= X"00") then
-         v.state := IDLE_S;
-      end if;
-
-      timingMessageOut <= toTimingMessageType(r.timingMessageShift);
-      rin              <= v;
-
-   end process comb;
+    rin              <= v;
+  end process comb;
+  
+  timingMessage       <= r.timingStream;
+  timingMessageStrobe <= r.timingMessageStrobe;
 
    seq : process (rxClk) is
    begin
@@ -214,43 +221,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   -------------------------------------------------------------------------------------------------
-   -- Delay the timing message
-   -------------------------------------------------------------------------------------------------
-   GEN_DELAY : if NO_DELAY_C = false generate
-      TimingMsgDelay_1 : entity work.TimingMsgDelay
-         generic map (
-            TPD_G             => TPD_G,
-            BRAM_EN_G         => true,
-            FIFO_ADDR_WIDTH_G => 9)
-         port map (
-            timingClk              => rxClk,
-            timingRst              => '0',
-            timingMessageIn        => timingMessageOut,
-            timingMessageStrobeIn  => r.timingMessageStrobe,
-            delay                  => timingMessageDelay,
-            timingMessageOut       => timingMessage,
-            timingMessageStrobeOut => timingMessageStrobe);
-   end generate GEN_DELAY;
-
-   GEN_NODELAY : if NO_DELAY_C = true generate
-      timingMessage       <= timingMessageOut;
-      timingMessageStrobe <= r.timingMessageStrobe;
-   end generate GEN_NODELAY;
-   -------------------------------------------------------------------------------------------------
-   -- Synchronize message delay to timing domain
-   -------------------------------------------------------------------------------------------------
-   SynchronizerFifo_1 : entity work.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 16)
-      port map (
-         rst    => axilRst,
-         wr_clk => axilClk,
-         din    => axilR.messageDelay,
-         rd_clk => rxClk,
-         dout   => timingMessageDelay);
 
    -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic
@@ -273,7 +243,7 @@ begin
          statusIn(0)  => r.sofStrobe,
          statusIn(1)  => r.eofStrobe,
          statusIn(2)  => r.timingMessageStrobe,
-         statusIn(3)  => r.crcErrorStrobe,
+         statusIn(3)  => '0',
          statusIn(4)  => rxClkCnt(rxClkCnt'left),
          statusIn(5)  => rxRstDone,
          statusIn(6)  => rxDecErrSum,
@@ -286,22 +256,6 @@ begin
          wrRst        => '0',
          rdClk        => axilClk,
          rdRst        => axilRst);
-
-   SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
-     generic map (
-       TPD_G          => TPD_G,
-       CNT_RST_EDGE_G => false,
-       CNT_WIDTH_G    => COUNTER_WIDTH_C )
-     port map (
-       dataIn       => txClkCnt(txClkCnt'left),
-       rollOverEn   => '1',
-       cntRst       => axilR.cntRst,
-       dataOut      => open,
-       cntOut       => txClkCntS,
-       wrClk        => txClk,
-       wrRst        => '0',
-       rdClk        => axilClk,
-       rdRst        => axilRst );
 
    axilComb : process (axilR, axilReadMaster, axilRst, axilRxLinkUp, axilStatusCounters,
                        axilWriteMaster) is
@@ -357,10 +311,6 @@ begin
       axilSlaveRegisterW(X"20", 2, v.rxPolarity);
       axilSlaveRegisterW(X"20", 3, v.rxReset);
 
-      axilSlaveRegisterW(X"24", 0, v.messageDelay);
-      axilSlaveRegisterR(X"28", 0, txClkCntS);
-
-
       axilSlaveDefault(AXIL_ERROR_RESP_G);
 
       ----------------------------------------------------------------------------------------------
@@ -388,17 +338,10 @@ begin
 
    rxClkCnt_seq : process (rxClk) is
    begin
-     if rising_edge(rxClk) then
-       rxClkCnt <= rxClkCnt+1;
-     end if;
+      if (rising_edge(rxClk)) then
+         rxClkCnt <= rxClkCnt+1;
+      end if;
    end process rxClkCnt_seq;
-   
-   txClkCnt_seq : process (txClk) is
-   begin
-     if rising_edge(txClk) then
-       txClkCnt <= txClkCnt+1;
-     end if;
-   end process txClkCnt_seq;
-   
+
 end architecture rtl;
 

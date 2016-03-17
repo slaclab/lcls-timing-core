@@ -8,6 +8,16 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- Timing pattern generator core
+-- The base rate trigger ("baseEnable") runs at 1/200th of the tx interface
+--    The sequence of evaluations is:
+--    ==  baseEnable='1':
+--    latch and serialize the outgoing frame;
+--    update pulseId, timestamp, resync, syncStatus, acRates, fixedRates;
+--    clear jumps, sequence results;
+--    == baseEnable='1' +2 clks: 
+--    test sequence sync conditions (depends on markers)
+--    == baseEnable='1' +19 clks:
+--    update bsa control words (depends on sequence results)
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -66,8 +76,7 @@ entity TPGCore is
     diagClk : out sl;
     diagRst : out sl;
     diagBus : out DiagnosticBusType;
-    diagMa  : out AxiStreamMasterType;
-    diagSl  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C
+    diagMa  : out AxiStreamMasterType
     );
 end TPGCore;
 
@@ -86,7 +95,7 @@ architecture TPGCore of TPGCore is
   signal intTrigger              : slv(6 downto 0);
 
   signal baseEnable              : sl;
-  signal baseEnabled             : slv(4 downto 0);
+  signal baseEnabled             : slv(30 downto 0);
 
   signal pulseIdn                : slv(63 downto 0);
 
@@ -106,7 +115,7 @@ architecture TPGCore of TPGCore is
   signal SeqNotifyAck : slv(MAXSEQDEPTH-1 downto 0);
   signal seqJump      : slv(MAXSEQDEPTH-1 downto 0);
   signal seqJumpAddr  : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
-  signal SeqData      : Slv32Array(MAXSEQDEPTH-1 downto 0);
+  signal SeqData      : Slv17Array(MAXSEQDEPTH-1 downto 0);
 
   constant DestnBits : integer := BEAMPRIOBITS;
 
@@ -139,6 +148,11 @@ architecture TPGCore of TPGCore is
   signal status : TPGStatusType;
   signal config : TPGConfigType;
 
+  -- Raw diagnostics
+  signal seqstate0 : SequencerState := SEQUENCER_STATE_INIT_C;
+  signal tvalid, tlast    : sl;
+  signal tdata : slv(63 downto 0);
+  
   -- Register delay for simulation
   constant tpd : time := 0.5 ns;
 
@@ -147,18 +161,35 @@ begin
   --  Diagnostic and BSA data
   diagClk                         <= txClk;
   diagRst                         <= txRst;
-  diagBus.strobe                  <= baseEnable;
-  diagBus.data                    <= toSlv32(frame);
+  -- synchronize BSA where it is stable
+  diagBus.strobe                  <= baseEnabled(21);
+  diagBus.data(31 downto 28)      <= (others=>x"00000000");
+  -- test if BSA is latching data on a different clk
+  diagBus.data(27)                <= baseEnabled & baseEnable;
+  diagBus.data(26 downto  0)      <= toSlv32(frame)(28 downto 2);
+  --diagBus_G: for i in 0 to 31 generate
+  --  diagBus.data(i)               <= slv(conv_unsigned(i,5)) & frame.timeStamp(26 downto 0);
+  --end generate diagBus_G;
   diagBus.timingMessage           <= diagFrame;
-  diagMa.tValid                   <= '1';
-  diagMa.tData( 11 downto  0)     <= triggerInq;
-  diagMa.tData(127 downto 12)     <= (others=>'0');
-  diagMa.tKeep                    <= x"0003";
-  diagMa.tLast                    <= '0';
+
+  tvalid <= '1' when seqstate0.index /= status.seqState(0).index else
+            '0';
+  
+  tdata <= status.count186M(19 downto 0) &
+           '0' & slv(seqstate0.index) &
+           seqstate0.count(3) &
+           seqstate0.count(2) &
+           seqstate0.count(1) &
+           seqstate0.count(1);
+  diagMa.tData(63 downto 0)       <= tdata;
+  diagMa.tData(127 downto 64)     <= (others=>'0');
+  diagMa.tKeep                    <= x"00FF";
+  diagMa.tValid                   <= tvalid;
+  diagMa.tLast                    <= tlast;
   diagMa.tDest                    <= x"00";
   diagMa.tId                      <= x"00";
   diagMa.tUser                    <= (others=>'0');
-
+  
   frame.version <= TIMING_MESSAGE_VERSION_C;
 
   -- Dont know about these inputs yet
@@ -357,9 +388,7 @@ begin
         seqNotifyAck => SeqNotifyAck(i),
         dataO        => SeqData(i),
         monReset     => countRst,
-        monCount     => countSeq(i),
-        debug0       => open,
-        debug1       => open);
+        monCount     => countSeq(i));
 
   end generate SeqBeam_loop;
 
@@ -402,9 +431,7 @@ begin
         seqNotifyAck => SeqNotifyAck(i),
         dataO        => SeqData(i),
         monReset     => countRst,
-        monCount     => countSeq(i),
-        debug0       => open,
-        debug1       => open);
+        monCount     => countSeq(i));
 
   end generate SeqExpt_loop;
 
@@ -447,7 +474,7 @@ begin
         avgToWrOut => status.bsaStatus(i)(31 downto 16),
         txclk      => txClk,
         txrst      => txRst,
-        enable     => baseEnabled(4),
+        enable     => baseEnabled(19),
         fixedRate  => frame.fixedRates,
         acRate     => frame.acRates,
         acTS       => frame.acTimeSlot,
@@ -479,23 +506,25 @@ begin
       txDataK    => txDataKB,
       txDataWord => txDataWord);
 
-  U_TPFifo : entity work.TPFifo
-    generic map (
-      LOGDEPTH => TPFIFODEPTH)
-    port map (
-      rst        => config.fifoReset,
-      wrClk      => txClk,
-      sof        => sof,
-      eof        => eof,
-      wrData     => txDataB,
-      wrDataWord => txDataWord,
-      trig       => config.fifoTrig,
-      wsel       => config.fifoSel,
-      rdClk      => sysClk,
-      rdEn       => config.fifoRead,
-      rdData     => status.fifoData,
-      full       => status.fifoFull,
-      empty      => status.fifoEmpty);
+  TPFIFO_G: if TPFIFODEPTH>0 generate
+    U_TPFifo : entity work.TPFifo
+      generic map (
+        LOGDEPTH => TPFIFODEPTH)
+      port map (
+        rst        => config.fifoReset,
+        wrClk      => txClk,
+        sof        => sof,
+        eof        => eof,
+        wrData     => txDataB,
+        wrDataWord => txDataWord,
+        trig       => config.fifoTrig,
+        wsel       => config.fifoSel,
+        rdClk      => sysClk,
+        rdEn       => config.fifoRead,
+        rdData     => status.fifoData,
+        full       => status.fifoFull,
+        empty      => status.fifoEmpty);
+  end generate TPFIFO_G;
 
   U_IrqSeqFifo : entity work.IrqSeqFifo
     port map (
@@ -532,7 +561,23 @@ begin
       rxClkToggle <= not rxClkToggle;
     end if;
   end process;
-  
+
+  process (txClk,tvalid)
+    variable cnt : slv(2 downto 0) := (others=>'0');
+  begin
+    if cnt="111" then
+      tlast <= tvalid;
+    else
+      tlast <= '0';
+      end if;
+    if rising_edge(txClk) then
+      seqstate0 <= status.seqState(0);
+      if (tvalid='1') then
+        cnt := cnt+1;
+      end if;
+    end if;
+  end process;
+    
   process (txClk, txRst, txRdy, config)
     variable outOfSyncd : sl;
     variable txRdyd     : sl;
@@ -620,6 +665,9 @@ begin
   
   U_ClockTime : entity work.ClockTime
     port map (
+      step      => config.clock_step,
+      remainder => config.clock_remainder,
+      divisor   => config.clock_divisor,
       rst    => sysReset,
       clkA   => sysClk,
       wrEnA  => config.timeStampWrEn,

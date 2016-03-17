@@ -3,13 +3,19 @@ vhdl work rtl/TPGPkg.vhd
 vhdl work rtl/TPGMiniReg.vhd
 vhdl work rtl/Divider.vhd
 vhdl work rtl/BsaControl.vhd
-vhdl work rtl/ClockTime_186MHz.vhd
+#vhdl work rtl/ClockTime_186MHz.vhd
+vhdl work rtl/ClockTime.vhd
+vhdl work rtl/EventSelect.vhd
 vhdl work rtl/TPSerializer.vhd
 vhdl work rtl/TPGMini.vhd
 vhdl work rtl/TPGMiniCore.vhd
 vhdl work rtl/TimingFrameRx.vhd
-#vhdl work rtl/TimingGthCoreWrapper.vhd
-vhdl work rtl/TimingGthCoreWrapper_polarity.vhd
+vhdl work rtl/TimingStreamRx.vhd
+vhdl work rtl/TimingGthCoreWrapper.vhd
+## This one for local oscillator reference
+#vhdl work rtl/TimingGthCoreWrapper_polarity.vhd
+## This one for external timing reference
+#vhdl work rtl/TimingGthCoreWrapper_clksel.vhd
 vhdl work rtl/TimingMsgAxiRingBuffer.vhd
 vhdl work rtl/TimingMsgDelay.vhd
 vhdl work rtl/TimingMsgToAxiStream.vhd

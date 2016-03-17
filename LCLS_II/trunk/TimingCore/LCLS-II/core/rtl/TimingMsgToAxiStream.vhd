@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2015-10-09
+-- Last update: 2016-02-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,12 +37,13 @@ entity TimingMsgToAxiStream is
       TPD_G          : time                := 1 ns;
       COMMON_CLOCK_G : boolean             := false;  -- Set true if timingClk=axisClk
       SHIFT_SIZE_G   : integer range 16 to 128;
-      AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
+      AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
+      VECTOR_SIZE_G  : integer );
 
    port (
       timingClk       : in sl;
       timingRst       : in sl;
-      timingMessage       : in TimingMessageType;
+      timingMessage       : in slv(VECTOR_SIZE_G-1 downto 0);
       timingMessageStrobe : in sl;
 
       axisClk    : in  sl;
@@ -58,13 +59,13 @@ architecture rtl of TimingMsgToAxiStream is
    -- timingClk Domain
    -------------------------------------------------------------------------------------------------
    constant INT_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(SHIFT_SIZE_G/8, AXIS_CONFIG_G.TKEEP_MODE_C);
-   constant SHIFT_COUNT_MAX_C : integer             := TIMING_MESSAGE_BITS_C/SHIFT_SIZE_G;
+   constant SHIFT_COUNT_MAX_C : integer             := VECTOR_SIZE_G/SHIFT_SIZE_G;
    constant COUNT_SIZE_C      : integer             := bitSize(SHIFT_COUNT_MAX_C);
 
 
    type RegType is record
       ssiMaster : SsiMasterType;
-      message       : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+      message       : slv(VECTOR_SIZE_G-1 downto 0);
       active    : sl;
       count     : slv(COUNT_SIZE_C-1 downto 0);
    end record;
@@ -90,7 +91,7 @@ begin
       v.count := (others => '0');
 
       if (timingMessageStrobe = '1') then
-         v.message    := toSlv(timingMessage);
+         v.message    := timingMessage;
          v.active := '1';
       end if;
 
@@ -103,7 +104,7 @@ begin
 
          v.ssiMaster.valid := '1';
          v.active          := ite(v.ssiMaster.eof = '1', '0', '1');
-         v.message             := slvZero(SHIFT_SIZE_G) & r.message(TIMING_MESSAGE_BITS_C-1 downto SHIFT_SIZE_G);
+         v.message             := slvZero(SHIFT_SIZE_G) & r.message(VECTOR_SIZE_G-1 downto SHIFT_SIZE_G);
       end if;
 
 

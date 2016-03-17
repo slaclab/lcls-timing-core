@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015/09/16
+-- Last update: 2016-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ architecture mapping of SeqJump is
 
   signal trigEn : slv(NTRIGGERSIN-1 downto 0);
   signal bcsfEn : sl;
-  signal bcsEn, trgEn, manResetQ : sl;
+  signal bcsEn, manResetQ : sl;
 begin
 
   process (clk, rst, bcsFault)
@@ -90,15 +90,12 @@ begin
     end if;
   end process;
 
-  trgEn  <= '1' when (config.trgEn='1' and trigEn(conv_integer(config.trgSel))='1') else
-            '0';
   bcsEn  <= '1' when (config.bcsEn='1' and bcsfEn='1') else
             '0';
-  jumpEn <= manResetQ or trgEn or bcsEn;
+  jumpEn <= manResetQ or bcsEn;
 
   jumpAddr <= manAddr        when (manResetQ='1') else
               config.bcsJump when (bcsEn='1') else
-              config.trgJump when (trgEn='1') else
               (others=>'0');
   
 end mapping;
