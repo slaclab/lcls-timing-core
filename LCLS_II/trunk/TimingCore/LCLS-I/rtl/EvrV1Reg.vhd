@@ -146,7 +146,7 @@ begin
 
       -- Reset strobing signals
       v.config.tsFifoRdEna := '0';
-      v.controlReg(9)      := '0';
+      v.controlReg(10)     := '0';
 
       -- Shift Registers
       v.irqClr2  := r.irqClr1;
@@ -625,7 +625,7 @@ begin
 
       -- Misc. Mapping and Logic
       v.config.evrEnable  := r.controlReg(31);
-      v.config.latchTs    := r.controlReg(9);
+      v.config.latchTs    := r.controlReg(10);
       v.config.mapRamPage := r.controlReg(8);
       v.config.irqClr     := r.irqClr1 or r.irqClr2;
       v.config.dbena      := uOr(r.dbena);
