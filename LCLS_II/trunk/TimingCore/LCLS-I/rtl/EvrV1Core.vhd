@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-06-12
+-- Last update: 2016-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ entity EvrV1Core is
       -- Trigger and Sync Port
       sync           : in  sl;
       trigOut        : out slv(11 downto 0);
+      eventStream    : out slv(7 downto 0);
       -- EVR Interface
       evrClk         : in  sl;
       evrRst         : in  sl;
@@ -135,19 +136,20 @@ begin
          SYNC_POLARITY_G => SYNC_POLARITY_G)
       port map (
          -- Register Interface
-         axiClk   => axiClk,
-         axiRst   => axiRst,
-         status   => status,
-         config   => config,
+         axiClk         => axiClk,
+         axiRst         => axiRst,
+         status         => status,
+         config         => config,
          -- Trigger and Sync Port
-         sync     => sync,
-         trigOut  => trigOut,
+         sync           => sync,
+         trigOut        => trigOut,
+         eventStreamOut => eventStream,
          -- EVR Interface
-         evrClk   => evrClk,
-         evrRst   => evrRst,
-         rxLinkUp => rxLinkUp,
-         rxError  => rxError,
-         rxData   => rxData,
-         rxDataK  => rxDataK);        
+         evrClk         => evrClk,
+         evrRst         => evrRst,
+         rxLinkUp       => rxLinkUp,
+         rxError        => rxError,
+         rxData         => rxData,
+         rxDataK        => rxDataK);        
 
 end mapping;

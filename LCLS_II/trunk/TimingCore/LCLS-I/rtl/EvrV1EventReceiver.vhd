@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-07
+-- Last update: 2016-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,20 +34,21 @@ entity EvrV1EventReceiver is
       SYNC_POLARITY_G : sl   := '1');   -- '1' = active HIGH logic
    port (
       -- AXI-Lite and IRQ Interface
-      axiClk   : in  sl;
-      axiRst   : in  sl;
-      status   : out EvrV1StatusType;
-      config   : in  EvrV1ConfigType;
+      axiClk         : in  sl;
+      axiRst         : in  sl;
+      status         : out EvrV1StatusType;
+      config         : in  EvrV1ConfigType;
       -- Trigger and Sync Port
-      sync     : in  sl;
-      trigOut  : out slv(11 downto 0);
+      sync           : in  sl;
+      trigOut        : out slv(11 downto 0);
+      eventStreamOut : out slv(7 downto 0);
       -- EVR Interface
-      evrClk   : in  sl;
-      evrRst   : in  sl;
-      rxLinkUp : in  sl;
-      rxError  : in  sl;
-      rxData   : in  slv(15 downto 0);
-      rxDataK  : in  slv(1 downto 0));
+      evrClk         : in  sl;
+      evrRst         : in  sl;
+      rxLinkUp       : in  sl;
+      rxError        : in  sl;
+      rxData         : in  slv(15 downto 0);
+      rxDataK        : in  slv(1 downto 0));
 end EvrV1EventReceiver;
 
 architecture rtl of EvrV1EventReceiver is
@@ -183,6 +184,8 @@ architecture rtl of EvrV1EventReceiver is
    signal eventRamIntDataInt   : slv(31 downto 0);
 
 begin
+
+   eventStreamOut <= eventStreamDly;
 
    ---------------------
    -- Synchronize Inputs
