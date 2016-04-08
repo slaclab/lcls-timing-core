@@ -29,12 +29,13 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module EvrV1TimeofDayReceiver(Clock, Reset, EventStream, TimeStamp, timeDebug);
+module EvrV1TimeofDayReceiver(Clock, Reset, EventStream, TimeStamp, timeDebug, secondsShift);
    input Clock;
    input Reset;
    input   [7:0] EventStream;
    output [63:0] TimeStamp;
    output [36:0] timeDebug;
+   output [31:0] secondsShift;
 
    reg [31:0] Seconds;
    reg [4:0]  Position;
@@ -80,5 +81,6 @@ module EvrV1TimeofDayReceiver(Clock, Reset, EventStream, TimeStamp, timeDebug);
    end
    
    assign timeDebug = {Position, Seconds};
+   assign secondsShift = Seconds;
 
 endmodule

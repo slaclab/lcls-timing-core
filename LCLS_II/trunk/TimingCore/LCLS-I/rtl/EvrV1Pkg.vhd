@@ -15,7 +15,10 @@ use work.AxiLitePkg.all;
 
 package EvrV1Pkg is
 
-   type EvrV1StatusType is record      
+   type EvrV1StatusType is record
+      ts              : slv(63 downto 0);
+      secondsShift    : slv(31 downto 0);
+      tsLatch         : slv(63 downto 0);
       tsFifoTsLow     : slv(31 downto 0);
       tsFifoTsHigh    : slv(31 downto 0);
       tsFifoEventCode : slv(7 downto 0);
@@ -37,6 +40,7 @@ package EvrV1Pkg is
    end record;
 
    type EvrV1ConfigType is record
+      latchTs       : sl;
       pulseControl  : Slv32Array(11 downto 0);
       pulsePrescale : Slv32Array(11 downto 0);
       pulseDelay    : Slv32Array(11 downto 0);
@@ -63,6 +67,7 @@ package EvrV1Pkg is
       intEventCount : slv(31 downto 0);
    end record;
    constant EVR_V1_CONFIG_INIT_C : EvrV1ConfigType := (
+      latchTs       => '0',
       pulseControl  => (others => (others => '0')),
       pulsePrescale => (others => (others => '0')),
       pulseDelay    => (others => (others => '0')),

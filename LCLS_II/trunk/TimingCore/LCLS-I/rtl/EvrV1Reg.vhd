@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-09-25
+-- Last update: 2016-04-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -83,8 +83,6 @@ architecture rtl of EvrV1Reg is
       controlReg    : slv(31 downto 0);
       hardwareInt   : slv(31 downto 0);
       pcieIntEna    : slv(31 downto 0);
-      secondsShift  : slv(31 downto 0);
-      seconds       : slv(31 downto 0);
       irqClr1       : slv(31 downto 0);
       irqClr2       : slv(31 downto 0);
       dbena         : slv(3 downto 0);
@@ -102,8 +100,6 @@ architecture rtl of EvrV1Reg is
       controlReg    => (others => '0'),
       hardwareInt   => (others => '0'),
       pcieIntEna    => (others => '0'),
-      secondsShift  => (others => '0'),
-      seconds       => (others => '0'),
       irqClr1       => (others => '0'),
       irqClr2       => (others => '0'),
       dbena         => (others => '0'),
@@ -150,6 +146,7 @@ begin
 
       -- Reset strobing signals
       v.config.tsFifoRdEna := '0';
+      v.controlReg(9)      := '0';
 
       -- Shift Registers
       v.irqClr2  := r.irqClr1;
@@ -439,9 +436,15 @@ begin
                   when 19 =>
                      v.axiReadSlave.rdata := r.config.uSecDivider;
                   when 23 =>
-                     v.axiReadSlave.rdata := r.secondsShift;
+                     v.axiReadSlave.rdata := status.secondsShift;
                   when 24 =>
-                     v.axiReadSlave.rdata := r.seconds;
+                     v.axiReadSlave.rdata := status.ts(63 downto 32);
+                  when 25 =>
+                     v.axiReadSlave.rdata := status.ts(31 downto 0);
+                  when 26 =>
+                     v.axiReadSlave.rdata := status.tsLatch(63 downto 32);
+                  when 27 =>
+                     v.axiReadSlave.rdata := status.tsLatch(31 downto 0);
                   when 28 =>
                      v.axiReadSlave.rdata := status.tsFifoTsLow;
                   when 29 =>
@@ -622,6 +625,7 @@ begin
 
       -- Misc. Mapping and Logic
       v.config.evrEnable  := r.controlReg(31);
+      v.config.latchTs    := r.controlReg(9);
       v.config.mapRamPage := r.controlReg(8);
       v.config.irqClr     := r.irqClr1 or r.irqClr2;
       v.config.dbena      := uOr(r.dbena);

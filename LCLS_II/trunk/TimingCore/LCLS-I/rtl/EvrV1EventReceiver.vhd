@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2015-10-28
+-- Last update: 2016-04-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -71,11 +71,12 @@ architecture rtl of EvrV1EventReceiver is
 
    component EvrV1TimeofDayReceiver is
       port(
-         Clock       : in  sl;
-         Reset       : in  sl;
-         EventStream : in  slv(7 downto 0);
-         TimeStamp   : out slv(63 downto 0);
-         timeDebug   : out slv(36 downto 0));
+         Clock        : in  sl;
+         Reset        : in  sl;
+         EventStream  : in  slv(7 downto 0);
+         TimeStamp    : out slv(63 downto 0);
+         timeDebug    : out slv(36 downto 0);
+         secondsShift : out slv(31 downto 0));
    end component EvrV1TimeofDayReceiver;
 
    component EvrV1TimeStampGenerator is
@@ -126,6 +127,9 @@ architecture rtl of EvrV1EventReceiver is
    signal tsFifoWrCntInt   : slv(8 downto 0);
    signal tsFifoTsLowLast  : slv(31 downto 0);
    signal tsFifoTsHighLast : slv(31 downto 0);
+   signal tsLatch          : slv(63 downto 0);
+   signal latchTs          : sl;
+   signal secondsShift     : slv(31 downto 0);
 
    signal irqClr  : slv(31 downto 0);
    signal intFlag : slv(31 downto 0) := (others => '0');
@@ -261,7 +265,15 @@ begin
          wr_clk => axiClk,
          din    => config.extEventCode,
          rd_clk => evrClk,
-         dout   => extEventCode);          
+         dout   => extEventCode);         
+
+   SyncIn_7 : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => evrClk,
+         dataIn  => config.latchTs,
+         dataOut => latchTs);          
 
    ------------------------
    -- Generate enable dbInt     
@@ -357,11 +369,12 @@ begin
    ------------------------
    TimeofDayReceiver_Inst : EvrV1TimeofDayReceiver
       port map (
-         Clock       => evrClk,
-         Reset       => evrRst,
-         EventStream => eventStream,
-         TimeStamp   => timeStamp,
-         timeDebug   => open); 
+         Clock        => evrClk,
+         Reset        => evrRst,
+         EventStream  => eventStream,
+         TimeStamp    => timeStamp,
+         timeDebug    => open,
+         secondsShift => secondsShift); 
 
    -----------------------------
    -- Debug Time Stamp Generator
@@ -381,6 +394,7 @@ begin
          if evrRst = '1' then
             timeStampDly   <= (others => '0') after TPD_G;
             eventStreamDly <= (others => '0') after TPD_G;
+            tsLatch        <= (others => '0') after TPD_G;
          else
             if intEventEn = '1' then
                timeStampDly <= intTimeStamp after TPD_G;
@@ -388,6 +402,9 @@ begin
                timeStampDly <= timeStamp after TPD_G;
             end if;
             eventStreamDly <= eventStream after TPD_G;
+            if latchTs = '1' then
+               tsLatch <= timeStampDly after TPD_G;
+            end if;
          end if;
       end if;
    end process;
@@ -879,6 +896,36 @@ begin
          wr_clk => evrClk,
          din    => rxSize,
          rd_clk => axiClk,
-         dout   => status.rxSize);        
+         dout   => status.rxSize);   
+
+   SyncOut_3 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 64)          
+      port map (
+         wr_clk => evrClk,
+         din    => tsLatch,
+         rd_clk => axiClk,
+         dout   => status.tsLatch);   
+
+   SyncOut_4 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 64)          
+      port map (
+         wr_clk => evrClk,
+         din    => timeStampDly,
+         rd_clk => axiClk,
+         dout   => status.ts);      
+
+   SyncOut_5 : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 32)          
+      port map (
+         wr_clk => evrClk,
+         din    => secondsShift,
+         rd_clk => axiClk,
+         dout   => status.secondsShift);               
 
 end rtl;
