@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-07
+-- Last update: 2016-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,6 +90,8 @@ architecture rtl of EvrV1Reg is
       axiRdEn       : slv(1 downto 0);
       rdDone        : sl;
       wrDone        : sl;
+      rdEn          : sl;
+      wrEn          : sl;
       config        : EvrV1ConfigType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -107,6 +109,8 @@ architecture rtl of EvrV1Reg is
       axiRdEn       => (others => '0'),
       rdDone        => '0',
       wrDone        => '0',
+      rdEn          => '0',
+      wrEn          => '0',
       config        => EVR_V1_CONFIG_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -116,7 +120,7 @@ architecture rtl of EvrV1Reg is
 
    signal fwVersion : slv(31 downto 0);
 
-   -- attribute dont_touch : string;
+   -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
    
 begin
@@ -144,9 +148,14 @@ begin
       wrPntr := conv_integer(axiWriteMaster.awaddr(14 downto 2));
       rdPntr := conv_integer(axiReadMaster.araddr(14 downto 2));
 
+      -- Update debug signals
+      v.wrEn := axiStatus.writeEnable;
+      v.rdEn := axiStatus.readEnable;
+
       -- Reset strobing signals
       v.config.tsFifoRdEna := '0';
       v.controlReg(10)     := '0';
+      v.irqClr1            := (others => '0');
 
       -- Shift Registers
       v.irqClr2  := r.irqClr1;

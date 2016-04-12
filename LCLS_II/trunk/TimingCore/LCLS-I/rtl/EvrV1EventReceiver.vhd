@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-08
+-- Last update: 2016-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -183,6 +183,13 @@ architecture rtl of EvrV1EventReceiver is
    signal eventRamPulseDataInt : slv(31 downto 0);
    signal eventRamIntDataInt   : slv(31 downto 0);
 
+   -- attribute dont_touch                : string;
+   -- attribute dont_touch of rxDataKDly  : signal is "true";   
+   -- attribute dont_touch of rxDataDly   : signal is "true";   
+   -- attribute dont_touch of intFlag     : signal is "true";   
+   -- attribute dont_touch of irqClr      : signal is "true";   
+   -- attribute dont_touch of latchTs     : signal is "true";   
+
 begin
 
    eventStreamOut <= eventStreamDly;
@@ -221,7 +228,7 @@ begin
          dataOut(5) => intEventEn,
          dataOut(6) => extEventEn);
 
-   SyncIn_2 : entity work.SynchronizerVector
+   SyncIn_2 : entity work.SynchronizerOneShotVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)          
