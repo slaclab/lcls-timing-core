@@ -183,12 +183,13 @@ architecture rtl of EvrV1EventReceiver is
    signal eventRamPulseDataInt : slv(31 downto 0);
    signal eventRamIntDataInt   : slv(31 downto 0);
 
-   -- attribute dont_touch                : string;
-   -- attribute dont_touch of rxDataKDly  : signal is "true";   
-   -- attribute dont_touch of rxDataDly   : signal is "true";   
-   -- attribute dont_touch of intFlag     : signal is "true";   
-   -- attribute dont_touch of irqClr      : signal is "true";   
-   -- attribute dont_touch of latchTs     : signal is "true";   
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of rxDataKDly   : signal is "true";
+   -- attribute dont_touch of rxDataDly    : signal is "true";
+   -- attribute dont_touch of intFlag      : signal is "true";
+   -- attribute dont_touch of irqClr       : signal is "true";
+   -- attribute dont_touch of latchTs      : signal is "true";
+   -- attribute dont_touch of timeStampDly : signal is "true";
 
 begin
 

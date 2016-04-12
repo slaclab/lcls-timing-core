@@ -457,9 +457,9 @@ begin
                   when 28 =>
                      v.axiReadSlave.rdata := status.tsFifoTsLow;
                   when 29 =>
+                     v.config.tsFifoRdEna := '1';
                      v.axiReadSlave.rdata := status.tsFifoTsHigh;
                   when 30 =>
-                     v.config.tsFifoRdEna             := '1';
                      v.axiReadSlave.rdata(7 downto 0) := status.tsFifoEventCode;
                   when 40 =>
                      v.axiReadSlave.rdata(0) := r.config.intEventEn;
