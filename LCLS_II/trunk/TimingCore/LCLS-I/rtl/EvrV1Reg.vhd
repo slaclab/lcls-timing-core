@@ -55,6 +55,8 @@ end EvrV1Reg;
 
 architecture rtl of EvrV1Reg is
 
+   constant LATCH_TS_LATENCY_C : natural := 63;  -- Not optimized
+
    procedure Set4bitMask (
       mask   : inout slv(3 downto 0);
       addr   : in    slv(31 downto 0);
@@ -92,6 +94,7 @@ architecture rtl of EvrV1Reg is
       wrDone        : sl;
       rdEn          : sl;
       wrEn          : sl;
+      cnt           : natural range 0 to LATCH_TS_LATENCY_C;
       config        : EvrV1ConfigType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -111,6 +114,7 @@ architecture rtl of EvrV1Reg is
       wrDone        => '0',
       rdEn          => '0',
       wrEn          => '0',
+      cnt           => 0,
       config        => EVR_V1_CONFIG_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -167,6 +171,11 @@ begin
       v.dbdis(1) := r.dbdis(0);
       v.dbdis(2) := r.dbdis(1);
       v.dbdis(3) := r.dbdis(2);
+
+      -- Increment the counter
+      if r.cnt /= LATCH_TS_LATENCY_C then
+         v.cnt := r.cnt + 1;
+      end if;
 
       -----------------------------
       -- AXI-Lite Write Logic
@@ -395,7 +404,7 @@ begin
       -----------------------------
       -- AXI-Lite Read Logic
       -----------------------------      
-      elsif (axiStatus.readEnable = '1') then
+      elsif (axiStatus.readEnable = '1') and (r.cnt = LATCH_TS_LATENCY_C) then
          -- Reset the bus
          v.axiReadSlave.rdata := (others => '0');
          -- Check for alignment
@@ -639,6 +648,11 @@ begin
       v.config.irqClr     := r.irqClr1 or r.irqClr2;
       v.config.dbena      := uOr(r.dbena);
       v.config.dbdis      := uOr(r.dbdis(3 downto 1)) and not(r.config.dbena);
+
+      -- Check if need to reset counter
+      if v.controlReg(10) = '1' then
+         v.cnt := 0;
+      end if;
 
       -- Synchronous Reset
       if axiRst = '1' then
