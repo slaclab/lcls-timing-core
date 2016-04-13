@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-12
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,9 +32,10 @@ use work.EvrV1Pkg.all;
 
 entity EvrV1Reg is
    generic (
-      TPD_G            : time            := 1 ns;
-      USE_WSTRB_G      : boolean         := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);      
+      TPD_G              : time            := 1 ns;
+      USE_WSTRB_G        : boolean         := false;
+      LATCH_TS_LATENCY_G : natural         := 15;
+      AXI_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);      
    port (
       -- PCIe Interface
       irqActive      : in  sl;
@@ -54,8 +55,6 @@ entity EvrV1Reg is
 end EvrV1Reg;
 
 architecture rtl of EvrV1Reg is
-
-   constant LATCH_TS_LATENCY_C : natural := 63;  -- Not optimized
 
    procedure Set4bitMask (
       mask   : inout slv(3 downto 0);
@@ -94,7 +93,7 @@ architecture rtl of EvrV1Reg is
       wrDone        : sl;
       rdEn          : sl;
       wrEn          : sl;
-      cnt           : natural range 0 to LATCH_TS_LATENCY_C;
+      cnt           : natural range 0 to LATCH_TS_LATENCY_G;
       config        : EvrV1ConfigType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
@@ -173,7 +172,7 @@ begin
       v.dbdis(3) := r.dbdis(2);
 
       -- Increment the counter
-      if r.cnt /= LATCH_TS_LATENCY_C then
+      if r.cnt /= LATCH_TS_LATENCY_G then
          v.cnt := r.cnt + 1;
       end if;
 
@@ -404,7 +403,7 @@ begin
       -----------------------------
       -- AXI-Lite Read Logic
       -----------------------------      
-      elsif (axiStatus.readEnable = '1') and (r.cnt = LATCH_TS_LATENCY_C) then
+      elsif (axiStatus.readEnable = '1') and (r.cnt = LATCH_TS_LATENCY_G) then
          -- Reset the bus
          v.axiReadSlave.rdata := (others => '0');
          -- Check for alignment
