@@ -1,0 +1,233 @@
+##############################################################################
+## This file is part of 'LCLS1 Timing Core'.
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'LCLS1 Timing Core', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+EvrV1Reg: &EvrV1Reg 
+  name: EvrV1Reg
+  description: LCLS-I EVR Registers
+  size: 0x8000
+  registers:
+    #########################################################
+    - address: 0x00 # address(14 downto 2) = 0
+      name: Status
+      mode: RO
+      description: Status Register
+    #########################################################
+    - address: 0x04 # address(14 downto 2) = 1
+      name: Control
+      mode: RW
+      description: Control Register   
+    #########################################################
+    - address: 0x08 # address(14 downto 2) = 2
+      name: IrqFlag
+      mode: RW
+      description: Interrupt Flag Register    
+    #########################################################
+    - address: 0x0C # address(14 downto 2) = 3
+      name: IrqEnable
+      mode: RW
+      description: Interrupt Enable Register       
+    #########################################################
+    - address: 0x010 # address(14 downto 2) = 4
+      name: PulseIrqMap
+      mode: RW
+      description: Mapping register for pulse interrupt 
+    #########################################################
+    - address: 0x014 # address(14 downto 2) = 5
+      name: PcieIntEna
+      mode: RW
+      description: PCIe interrupt Enable and state status
+    #########################################################
+    - address: 0x020 # address(14 downto 2) = 8
+      name: DataBufCtrl
+      mode: RW
+      description: Data Buffer Control and Status Register     
+    #########################################################
+    - address: 0x02C # address(14 downto 2) = 11
+      name: FWVersion
+      mode: RO
+      description: Firmware Version Register
+    #########################################################
+    - address: 0x030 # address(14 downto 2) = 12
+      name: FWVersionUnmasked
+      mode: RO
+      description: Firmware Version without 0x1F mask and byte swapped
+    #########################################################
+    - address: 0x04C # address(14 downto 2) = 19
+      name: UsecDivider
+      mode: RW
+      description: Divider to get from Event Clock to 1 MHz
+    #########################################################
+    - address: 0x05C # address(14 downto 2) = 23
+      name: SecSR
+      mode: RO
+      description: Seconds Shift Register   
+    #########################################################
+    - address: 0x060 # address(14 downto 2) = 24
+      name: SecCounter
+      mode: RO
+      description: Timestamp Seconds Counter 
+    #########################################################
+    - address: 0x064 # address(14 downto 2) = 25
+      name: EventCounter
+      mode: RO
+      description: Timestamp Event Counter      
+    #########################################################
+    - address: 0x068 # address(14 downto 2) = 26
+      name: SecLatch
+      mode: RO
+      description: Timestamp Seconds Counter Latch     
+    #########################################################
+    - address: 0x06C # address(14 downto 2) = 27
+      name: EvCntLatch
+      mode: RO
+      description: Timestamp Event Counter Latch 
+    #########################################################
+    - address: 0x070 # address(14 downto 2) = 28
+      name: EvFIFOSec
+      mode: RW
+      description: Event FIFO Seconds Register   
+    #########################################################
+    - address: 0x074 # address(14 downto 2) = 29
+      name: EvFIFOEvCnt
+      mode: RW
+      description: Event FIFO Event Counter Register   
+    #########################################################
+    - address: 0x078 # address(14 downto 2) = 30
+      name: EvFIFOCode
+      size: 16        
+      mode: RW
+      description: Event FIFO Event Code Register     
+    #########################################################
+    - address: 0x0A0 # address(14 downto 2) = 40
+      name: IntEventEn
+      mode: RW
+      description: Internal Event Enable 
+    #########################################################
+    - address: 0x0A4 # address(14 downto 2) = 41
+      name: IntEventCount
+      size: 1
+      mode: RW
+      description: Internal Event Count
+    #########################################################
+    - address: 0x0A8 # address(14 downto 2) = 42
+      name: IntEventCode
+      size: 8
+      mode: RW
+      description: Internal Event Code      
+    #########################################################
+    - address: 0x0AC # address(14 downto 2) = 43
+      name: ExtEventEn
+      size: 1
+      mode: RW
+      description: External Event Enable 
+    #########################################################
+    - address: 0x0B0 # address(14 downto 2) = 44
+      name: ExtEventCode
+      size: 8
+      mode: RW
+      description: External Event Code 
+    #########################################################
+    - address: 0x200 # address(14 downto 2) = [131:128]
+      name: Pulse00
+      nelms: 4         
+      mode: RW
+      description: Pulse 0 Registers 
+    #########################################################
+    - address: 0x210 # address(14 downto 2) = [135:132]
+      name: Pulse01
+      nelms: 4         
+      mode: RW
+      description: Pulse 1 Registers   
+    #########################################################
+    - address: 0x220 # address(14 downto 2) = [139:136]
+      name: Pulse02
+      nelms: 4         
+      mode: RW
+      description: Pulse 2 Registers  
+    #########################################################
+    - address: 0x230 # address(14 downto 2) = [143:140]
+      name: Pulse03
+      nelms: 4         
+      mode: RW
+      description: Pulse 3 Registers  
+    #########################################################
+    - address: 0x240 # address(14 downto 2) = [147:144]
+      name: Pulse04
+      nelms: 4         
+      mode: RW
+      description: Pulse 4 Registers  
+    #########################################################
+    - address: 0x250 # address(14 downto 2) = [151:148]
+      name: Pulse05
+      nelms: 4         
+      mode: RW
+      description: Pulse 5 Registers 
+    #########################################################
+    - address: 0x260 # address(14 downto 2) = [155:152]
+      name: Pulse06
+      nelms: 4         
+      mode: RW
+      description: Pulse 6 Registers
+    #########################################################
+    - address: 0x270 # address(14 downto 2) = [159:156]
+      name: Pulse07
+      nelms: 4         
+      mode: RW
+      description: Pulse 7 Registers   
+    #########################################################
+    - address: 0x280 # address(14 downto 2) = [163:160]
+      name: Pulse08
+      nelms: 4         
+      mode: RW
+      description: Pulse 8 Registers   
+    #########################################################
+    - address: 0x290 # address(14 downto 2) = [167:164]
+      name: Pulse09
+      nelms: 4         
+      mode: RW
+      description: Pulse 9 Registers     
+    #########################################################
+    - address: 0x2A0 # address(14 downto 2) = [171:168]
+      name: Pulse10
+      nelms: 4         
+      mode: RW
+      description: Pulse 10 Registers   
+    #########################################################
+    - address: 0x2B0 # address(14 downto 2) = [175:172]
+      name: Pulse11
+      nelms: 4         
+      mode: RW
+      description: Pulse 11 Registers  
+    #########################################################  
+    - address: 0x440 # address(14 downto 2) = [277:272]
+      name: OutputMap
+      size: 16        
+      nelms: 12         
+      mode: RW
+      description: Front Panel Output Map Registers [11:0]
+    #########################################################  
+    - address: 0x800 # address(14 downto 2) = [1023:512]
+      name: DataBuf
+      nelms: 512         
+      mode: RO
+      description: Front Panel Output Map Registers [511:0] 
+    #########################################################  
+    - address: 0x4000 # address(14 downto 2) = [5119:4096]
+      name: MapRam1
+      nelms: 1024         
+      mode: RO
+      description: Event Mapping RAM 1 [1023:0]   
+    #########################################################  
+    - address: 0x6000 # address(14 downto 2) = [6143:5120]
+      name: MapRam2
+      nelms: 1024         
+      mode: RO
+      description: Event Mapping RAM 2 [1023:0]         
+    #########################################################
