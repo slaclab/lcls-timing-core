@@ -13,8 +13,11 @@
 --    ==  baseEnable='1':
 --    latch and serialize the outgoing frame;
 --    update pulseId, timestamp, resync, syncStatus, acRates, fixedRates;
---    clear jumps, sequence results;
+--    == baseEnable='1' +1 clks: 
+--    latch new jumps;
 --    == baseEnable='1' +2 clks: 
+--    read next sequence instruction and sequence results;
+--    == baseEnable='1' +5 clks: 
 --    test sequence sync conditions (depends on markers)
 --    == baseEnable='1' +19 clks:
 --    update bsa control words (depends on sequence results)
@@ -46,7 +49,6 @@ use work.AmcCarrierPkg.all;
 entity TPGCore is
   generic (
     ASYNC_REGCLK_G : boolean := false;
-    TPFIFODEPTH  : integer := 10;
     BEAMSEQDEPTH : integer := 2;
     EXPSEQDEPTH  : integer := 1;
     NARRAYSBSA   : integer := 2
@@ -92,7 +94,7 @@ architecture TPGCore of TPGCore is
   signal triggerResyncq          : sl;
   signal triggerIn               : slv(11 downto 0);
   signal triggerInq              : slv(11 downto 0);
-  signal intTrigger              : slv(6 downto 0);
+  signal intTrigger              : slv(6 downto 0) := (others=>'0');
 
   signal baseEnable              : sl;
   signal baseEnabled             : slv(30 downto 0);
@@ -116,18 +118,8 @@ architecture TPGCore of TPGCore is
   signal seqJump      : slv(MAXSEQDEPTH-1 downto 0);
   signal seqJumpAddr  : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
   signal SeqData      : Slv17Array(MAXSEQDEPTH-1 downto 0);
-
-  constant DestnBits : integer := BEAMPRIOBITS;
-
-  signal sof, eof : sl;
-
-  signal txDataB    : slv(15 downto 0);
-  signal txDataKB   : slv(1 downto 0);
-  signal txDataWord : slv(3 downto 0);
-
-  signal rxDataValid : sl;
-  signal rxClkToggle : sl := '0';
-
+  signal seqReset     : slv(MAXSEQDEPTH-1 downto 0);
+  
   signal syncReset : sl;
 
   signal pllChanged : slv(31 downto 0) := (others => '0');
@@ -142,7 +134,8 @@ architecture TPGCore of TPGCore is
   signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
 
   signal rxCounters            : SlVectorArray(13 downto 0, 31 downto 0);
-  signal configTrigger : L1TrigConfigArray(6 downto 0);
+  signal rxClkToggle           : slv(1 downto 0) := "00";
+  signal debug                 : slv(1 downto 0);
 
   -- Delay registers (for closing timing)
   signal status : TPGStatusType;
@@ -155,6 +148,12 @@ architecture TPGCore of TPGCore is
   
   -- Register delay for simulation
   constant tpd : time := 0.5 ns;
+
+  constant TPG_ID : integer := 0;
+  
+  signal streams   : TimingSerialArray(0 downto 0);
+  signal streamIds : Slv4Array(0 downto 0);
+  signal advance   : slv(0 downto 0);
 
 begin
 
@@ -180,7 +179,7 @@ begin
            seqstate0.count(3) &
            seqstate0.count(2) &
            seqstate0.count(1) &
-           seqstate0.count(1);
+           seqstate0.count(0);
   diagMa.tData(63 downto 0)       <= tdata;
   diagMa.tData(127 downto 64)     <= (others=>'0');
   diagMa.tKeep                    <= x"00FF";
@@ -189,6 +188,7 @@ begin
   diagMa.tDest                    <= x"00";
   diagMa.tId                      <= x"00";
   diagMa.tUser                    <= (others=>'0');
+  diagMa.tStrb                    <= (others=>'0');
   
   frame.version <= TIMING_MESSAGE_VERSION_C;
 
@@ -200,8 +200,6 @@ begin
   frame.calibrationGap            <= '0';
   frame.historyActive             <= config.histActive;
 
-  txData  <= txDataB;
-  txDataK <= txDataKB;
   txPolarity <= config.txPolarity;
   
   triggerTS1q <= trigger360q and triggerTS1;
@@ -211,7 +209,7 @@ begin
   status.nexptseq    <= slv(conv_unsigned(EXPSEQDEPTH , 8));
   status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA  , 8));
   status.seqaddrlen  <= slv(conv_unsigned(SEQADDRLEN  , 4));
-  status.fifoaddrlen <= slv(conv_unsigned(TPFIFODEPTH , 4));
+  status.fifoaddrlen <= x"0";
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -219,8 +217,6 @@ begin
   status.pllChanged <= pllChanged;
   status.count186M  <= count186M;
   status.countSyncE <= countSyncE;
-
-  rxDataValid <= not rxDataK(0);
 
   triggerIn      <= intTrigger & extTrigger;
   triggerResyncq <= triggerInq(0);
@@ -241,42 +237,6 @@ begin
                      countTrig(i);
   end generate trigger_edge;
 
-  int_trigger : for i in intTrigger'range generate
-
-    evcode_async : entity work.SynchronizerFifo
-      generic map (
-        TPD_G        => tpd,
-        DATA_WIDTH_G => 8)
-      port map (
-        rst    => sysReset,
-        wr_clk => sysClk,
-        din    => config.IntTrigger(i).evcode,
-        rd_clk => rxClk,
-        valid  => open,
-        dout   => configTrigger(i).evcode);
-
-    delay_async : entity work.SynchronizerFifo
-      generic map (
-        TPD_G        => tpd,
-        DATA_WIDTH_G => 32)
-      port map (
-        rst    => sysReset,
-        wr_clk => sysClk,
-        din    => config.IntTrigger(i).delay,
-        rd_clk => rxClk,
-        valid  => open,
-        dout   => configTrigger(i).delay);
-
-    U_LCLSI_Trig : entity work.LCLSI_Trig
-      port map (
-        rst    => rxRst,
-        clk    => rxClk,
-        config => configTrigger(i),
-        evcode => rxData(7 downto 0),
-        valid  => rxDataValid,
-        trigO  => intTrigger(i));
-  end generate int_trigger;
-
   status.rxClkCnt <= muxSlVectorArray(rxCounters,12);
   status.rxDVCnt  <= muxSlVectorArray(rxCounters,13);
 
@@ -288,9 +248,9 @@ begin
       WIDTH_G       => 14)
     port map (
       statusIn(11 downto 0)   => rxStatus(11 downto 0),
-      statusIn(12)            => rxClkToggle,
-      statusIn(13)            => rxDataValid,
-      statusOut(13 downto 12) => open,
+      statusIn(12)            => rxClkToggle(1),
+      statusIn(13)            => '0',
+      statusOut(13 downto 12) => debug,
       statusOut(11 downto  0) => status.rxStatus,
       cntRstIn     => '0',
       rollOverEnIn => "11111111111111",
@@ -351,18 +311,26 @@ begin
 
   SeqBeam_loop : for i in 0 to BEAMSEQDEPTH-1 generate
 
+    U_SeqRst : entity work.SeqReset
+      port map (
+        clk      => txClk,
+        rst      => txRst,
+        config   => config.seqJumpConfig(i),
+        frame    => frame,
+        strobe   => baseEnabled(0),
+        resetReq => config.SeqRestart(i),
+        resetO   => seqReset(i));
+    
     U_Jump_i : entity work.SeqJump
       port map (
         clk      => txClk,
         rst      => txRst,
         config   => config.seqJumpConfig(i),
-        manReset => config.SeqRestart(i),
-        manAddr  => config.SeqRstAddr(i),
-        triggerI => triggerInq,
-        bcsFault => frame.bcsFault,
+        manReset => seqReset(i),
+        bcsFault => frame.bcsFault(0),
         mpsFault => (others => '0'),
-        jumpRst  => baseEnable,
-        jumpEn   => seqJump(i),
+        jumpEn   => baseEnabled(0),
+        jumpReq  => seqJump(i),
         jumpAddr => seqJumpAddr(i));
 
     U_Seq_i : entity work.Sequence
@@ -375,8 +343,8 @@ begin
         wrStepA      => config.seqWrData,
         clkB         => txClk,
         rstB         => txRst,
-        rdEnB        => baseEnable,
-        waitB        => baseEnabled(2),
+        rdEnB        => baseEnabled(1),
+        waitB        => baseEnabled(4),
         acTS         => frame.acTimeSlot,
         acRate       => frame.acRates,
         fixedRate    => frame.fixedRates,
@@ -394,18 +362,26 @@ begin
 
   SeqExpt_loop : for i in MAXBEAMSEQDEPTH to MAXBEAMSEQDEPTH+EXPSEQDEPTH-1 generate
 
+    U_SeqRst : entity work.SeqReset
+      port map (
+        clk      => txClk,
+        rst      => txRst,
+        config   => config.seqJumpConfig(i),
+        frame    => frame,
+        strobe   => baseEnabled(0),
+        resetReq => config.SeqRestart(i),
+        resetO   => seqReset(i));
+    
     U_Jump_i : entity work.SeqJump
       port map (
         clk      => txClk,
         rst      => txRst,
         config   => config.seqJumpConfig(i),
-        manReset => config.SeqRestart(i),
-        manAddr  => config.SeqRstAddr(i)(10 downto 0),
-        triggerI => triggerInq,
-        bcsFault => frame.bcsFault,
+        manReset => seqReset(i),
+        bcsFault => frame.bcsFault(0),
         mpsFault => (others => '0'),
-        jumpRst  => baseEnable,
-        jumpEn   => seqJump(i),
+        jumpEn   => baseEnabled(0),
+        jumpReq  => seqJump(i),
         jumpAddr => seqJumpAddr(i));
 
     U_Seq_i : entity work.Sequence
@@ -418,8 +394,8 @@ begin
         wrStepA      => config.seqWrData,
         clkB         => txClk,
         rstB         => txRst,
-        rdEnB        => baseEnable,
-        waitB        => baseEnabled(2),
+        rdEnB        => baseEnabled(1),
+        waitB        => baseEnabled(4),
         acTS         => frame.acTimeSlot,
         acRate       => frame.acRates,
         fixedRate    => frame.fixedRates,
@@ -454,14 +430,16 @@ begin
   end generate NoSeqExpt;
 
   GEN_EXPT_DATA: for i in MAXEXPSEQDEPTH-1 downto 0 generate
-    frame.experiment(i) <= SeqData(MAXBEAMSEQDEPTH+i)(15 downto 0);
+    frame.control(i+1) <= SeqData(MAXBEAMSEQDEPTH+i)(15 downto 0);
   end generate GEN_EXPT_DATA;
 
   U_DestnArbiter : entity work.DestnArbiter
-    port map (
-      beamPrio => config.destnPriority,
-      beamSeq  => SeqData(MAXBEAMSEQDEPTH-1 downto 0),
-      beamSeqO => frame.beamRequest);
+    port map ( clk          => txClk,
+               config       => config,
+               configUpdate => config.seqRestart(MAXBEAMSEQDEPTH-1 downto 0),
+               beamSeq      => SeqData(MAXBEAMSEQDEPTH-1 downto 0),
+               beamSeqO     => frame.beamRequest,
+               beamControl  => frame.control(0) );
 
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
     U_BsaControl : entity work.BsaControl
@@ -479,7 +457,7 @@ begin
         acRate     => frame.acRates,
         acTS       => frame.acTimeSlot,
         beamSeq    => frame.beamRequest,
-        expSeq     => frame.experiment,
+        expSeq     => frame.control,
         bsaInit    => frame.bsaInit(i),
         bsaActive  => frame.bsaActive(i),
         bsaAvgDone => frame.bsaAvgDone(i),
@@ -494,37 +472,27 @@ begin
     frame.bsaDone   (63 downto NARRAYSBSA) <= (others => '0');
   end generate GEN_NULL_BSA;
 
+  U_TSerializer : entity work.TimingSerializer
+    generic map ( STREAMS_C => 1 )
+    port map ( clk       => txClk,
+               rst       => txRst,
+               fiducial  => baseEnabled(0),
+               streams   => streams,
+               streamIds => streamIds,
+               advance   => advance,
+               data      => txData,
+               dataK     => txDataK );
+ 
   U_TPSerializer : entity work.TPSerializer
+    generic map ( Id => TPG_ID )
     port map (
       txClk      => txClk,
       txRst      => txRst,
-      baseEnable => baseEnable,
+      fiducial   => baseEnable,
       msg        => frame,
-      sof        => sof,
-      eof        => eof,
-      txData     => txDataB,
-      txDataK    => txDataKB,
-      txDataWord => txDataWord);
-
-  TPFIFO_G: if TPFIFODEPTH>0 generate
-    U_TPFifo : entity work.TPFifo
-      generic map (
-        LOGDEPTH => TPFIFODEPTH)
-      port map (
-        rst        => config.fifoReset,
-        wrClk      => txClk,
-        sof        => sof,
-        eof        => eof,
-        wrData     => txDataB,
-        wrDataWord => txDataWord,
-        trig       => config.fifoTrig,
-        wsel       => config.fifoSel,
-        rdClk      => sysClk,
-        rdEn       => config.fifoRead,
-        rdData     => status.fifoData,
-        full       => status.fifoFull,
-        empty      => status.fifoEmpty);
-  end generate TPFIFO_G;
+      advance    => advance  (0),
+      stream     => streams  (0),
+      streamId   => streamIds(0));
 
   U_IrqSeqFifo : entity work.IrqSeqFifo
     port map (
@@ -558,7 +526,7 @@ begin
   process (rxClk)
   begin
     if rising_edge(rxClk) then
-      rxClkToggle <= not rxClkToggle;
+      rxClkToggle <= rxClkToggle+1;
     end if;
   end process;
 

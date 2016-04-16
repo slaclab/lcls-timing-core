@@ -44,7 +44,7 @@ entity EventSelect is
     fixedRate  : in  slv(FIXEDRATEDEPTH-1 downto 0);
     acRate     : in  slv(ACRATEDEPTH-1 downto 0);
     acTS       : in  slv(2 downto 0);
-    expSeq     : in  Slv16Array(MAXEXPSEQDEPTH-1 downto 0);
+    expSeq     : in  Slv16Array(0 to 17);
     -- result
     rateSel    : out sl
     );
@@ -59,7 +59,7 @@ begin
   begin
     if rising_edge(clk) then
       expI := conv_integer(seqword);
-      if expI<MAXEXPSEQDEPTH then
+      if expI<18 then
         expSeqWord <= expSeq(expI);
       else
         expSeqWord <= (others=>'0');
@@ -68,7 +68,7 @@ begin
   end process;
 
   process (rateType, fxRateSel, acRateSel, acTSmask,
-           fixedRate, acTS, acRate, expSeqWord)
+           fixedRate, acTS, acRate, expSeqWord, seqbit)
   begin 
     case rateType is
       when "00" => rateSel <= fixedRate(conv_integer(fxRateSel));

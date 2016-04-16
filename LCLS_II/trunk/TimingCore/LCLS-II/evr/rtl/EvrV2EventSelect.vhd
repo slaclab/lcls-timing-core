@@ -45,27 +45,27 @@ end EvrV2EventSelect;
 architecture EvrV2EventSelect of EvrV2EventSelect is
 
    signal rateSel, destSel : sl;
-   signal expSeqWord       : slv(15 downto 0) := (others=>'0');
+   signal controlWord      : slv(15 downto 0) := (others=>'0');
 
 begin
 
    process (clk)
-      variable expI : integer;
+      variable controlI : integer;
    begin
       if rising_edge(clk) then
 
         selectOut <= rateSel and destSel and strobeIn and config.enabled;
    
-        expI := conv_integer(config.rateSel(10 downto 5));
-         if expI<MAXEXPSEQDEPTH then
-           expSeqWord <= dataIn.experiment(expI);
+        controlI := conv_integer(config.rateSel(10 downto 5));
+         if controlI<MAXEXPSEQDEPTH then
+           controlWord <= dataIn.control(controlI);
          else
-           expSeqWord <= (others=>'0');
+           controlWord <= (others=>'0');
          end if;
       end if;
    end process;
 
-   process (config, dataIn, expSeqWord)
+   process (config, dataIn, controlWord)
       variable rateType : slv(1 downto 0);
    begin 
       rateType := config.rateSel(15 downto 14);
@@ -78,7 +78,7 @@ begin
             else
                rateSel <= dataIn.acRates(conv_integer(config.rateSel(2 downto 0)));
             end if;
-         when "10"   => rateSel <= expSeqWord(conv_integer(config.rateSel(3 downto 0)));
+         when "10"   => rateSel <= controlWord(conv_integer(config.rateSel(3 downto 0)));
          when others => rateSel <= '0';
       end case;
    end process;

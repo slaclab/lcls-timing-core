@@ -32,35 +32,83 @@ use work.StdRtlPkg.all;
 
 entity DestnArbiter is
    port (
-      beamPrio           : in  std_logic_vector(MAXBEAMSEQDEPTH*BEAMPRIOBITS-1 downto 0);
+      clk                : in  sl;
+      config             : in  TPGConfigType;
+      configUpdate       : in  slv(MAXBEAMSEQDEPTH-1 downto 0);
       beamSeq            : in  Slv17Array(MAXBEAMSEQDEPTH-1 downto 0);
-      beamSeqO           : out std_logic_vector(BEAMSEQWIDTH-1 downto 0)
+      beamSeqO           : out slv(BEAMSEQWIDTH-1 downto 0);
+      beamControl        : out slv(15 downto 0)
      );
 end DestnArbiter;
 
 architecture DestnArbiter of DestnArbiter is
 
-  signal beamPrioI        : IntegerArray(MAXBEAMSEQDEPTH-1 downto 0);
+  type RegType is record
+     seqDstn     : Slv4Array   (MAXBEAMSEQDEPTH-1 downto 0);
+     seqReqd     : Slv16Array  (MAXBEAMSEQDEPTH-1 downto 0);
+     destControl : Slv16Array  (MAXBEAMSEQDEPTH-1 downto 0);
+     beamSeqO    : slv(BEAMSEQWIDTH-1 downto 0);
+     beamControl : slv(15 downto 0);
+  end record;
+  constant REG_INIT_C : RegType := (
+     seqDstn     => (others=>(others=>'0')),
+     seqReqd     => (others=>(others=>'1')),
+     destControl => (others=>(others=>'0')),
+     beamSeqO    => (others=>'0'),
+     beamControl => (others=>'0'));
 
+  signal r   : RegType := REG_INIT_C;
+  signal rin : RegType;
+  
 begin
 
-  process (beamPrio, beamSeq, beamPrioI)
-    variable iseq : integer;
-    variable idst : slv(BEAMPRIOBITS-1 downto 0);
-  begin  -- process
-    
-    beamSeqO <= (others=>'0');
-    beamPrioI_loop: for i in 0 to MAXBEAMSEQDEPTH-1 loop
-      idst := beamPrio((i+1)*BEAMPRIOBITS-1 downto i*BEAMPRIOBITS);
-      iseq := conv_integer(idst);
-      if (iseq>=0 and iseq<beamSeq'length) then
-        if beamSeq(iseq)(16)='1' then
-          beamSeqO(31 downto 16)           <= beamSeq(iseq)(15 downto 0);
-          beamSeqO(BEAMPRIOBITS downto  1) <= idst;
-          beamSeqO(0)                      <= '1';
+  beamSeqO    <= r.beamSeqO;
+  beamControl <= r.beamControl;
+  
+  comb: process ( r, config, beamSeq, configUpdate ) is
+     variable v    : RegType;
+     variable req  : slv(15 downto 0);
+     variable idst : integer;
+  begin
+     v := r;
+
+     v.beamSeqO    := (others=>'0');
+     v.beamControl := (others=>'0');
+
+     for i in 0 to MAXBEAMSEQDEPTH-1 loop
+       if (configUpdate(i)='1') then
+           v.seqDstn(i) := config.seqDestn      (i);
+           v.seqReqd(i) := config.seqRequiredSeq(i);
+           v.seqReqd(i)(i) := '1';  -- always require self
+           idst := conv_integer(config.seqDestn(i));
+           v.destControl(idst) := config.destnControl(idst);
         end if;
-      end if;
-    end loop beamPrioI_loop;
+     end loop;
+
+     req := (others=>'0');
+     for i in 0 to MAXBEAMSEQDEPTH-1 loop
+        if (beamSeq(i)(16)='1') then
+           req(i) := '1';
+        end if;
+     end loop;
+
+     for i in 0 to MAXBEAMSEQDEPTH-1 loop
+        if ((req and r.seqReqd(i))=r.seqReqd(i)) then
+           v.beamSeqO(31 downto 16) := beamSeq(i)(15 downto 0);
+           v.beamSeqO( 4 downto  1) := r.seqDstn(i);
+           v.beamSeqO(0)            := '1';
+           v.beamControl            := r.destControl(conv_integer(r.seqDstn(i)));
+        end if;
+     end loop;
+
+     rin <= v;
   end process;
+
+  seq: process ( clk ) is
+  begin
+     if rising_edge(clk) then
+        r <= rin;
+     end if;
+  end process seq;
   
 end DestnArbiter;

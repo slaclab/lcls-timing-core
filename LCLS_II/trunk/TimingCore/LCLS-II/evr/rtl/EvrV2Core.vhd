@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-04-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -53,6 +53,7 @@ entity EvrV2Core is
     dmaRxIbMaster       : out AxiStreamMasterType;
     dmaRxIbSlave        : in  AxiStreamSlaveType;
     dmaRxTranFromPci    : in  TranFromPcieType;
+    dmaReady            : out sl;
     -- EVR Ports
     evrClk              : in  sl;
     evrRst              : in  sl;
@@ -170,6 +171,7 @@ begin  -- rtl
                   axiWriteMaster   => mAxiWriteMasters(DMA_INDEX_C),
                   axiWriteSlave    => mAxiWriteSlaves (DMA_INDEX_C),
                   irqReq           => irqRequest,
+                  ready            => dmaReady,
                   cntRst           => '0',
                   pciClk           => pciClk,
                   pciRst           => pciRst );

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-03-03
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,13 +33,40 @@ package TimingPkg is
    constant K_EOF_C : slv(7 downto 0) := "11111101";  -- K29.7, 0xFD
    constant K_280_C : slv(7 downto 0) := "00011100";  -- K28.0, 0x1C
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
-   
-   constant TIMING_MESSAGE_BITS_C  : integer := 1264;
+   constant K_EOS_C : slv(7 downto 0) := K_280_C;
+
+   constant TIMING_MESSAGE_BITS_C  : integer := 1232;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
    constant TIMING_MESSAGE_VERSION_C : slv(63 downto 0) := x"0000060504030201";
-
+   constant TIMING_MESSAGE_ADDR_LOC_C : integer := 59;
+   
+   type TimingRxType is record
+      data       : slv(15 downto 0);
+      dataK      : slv( 1 downto 0);
+      decErr     : slv( 1 downto 0);
+      dspErr     : slv( 1 downto 0);
+   end record;
+   constant TIMING_RX_INIT_C : TimingRxType := (
+      data      => x"0000",
+      dataK     => "00",
+      decErr    => "00",
+      dspErr    => "00" );
+   
+   type TimingSerialType is record
+      ready      : sl;                -- tx: new segment ready,
+                                      -- rx: last segment valid
+      data       : slv(15 downto 0);  -- 
+      offset     : slv( 6 downto 0);  -- segment index
+      last       : sl;                -- last segment
+   end record;
+   constant TIMING_SERIAL_INIT_C : TimingSerialType := (
+      ready      => '0',
+      data       => x"0000",
+      offset     => (others=>'0'),
+      last       => '0' );
+   type TimingSerialArray is array (natural range<>) of TimingSerialType;
+   
 --   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-
    type TimingMessageType is record
       version         : slv(63 downto 0);
       pulseId         : slv(63 downto 0);
@@ -60,11 +87,9 @@ package TimingPkg is
       bsaActive       : slv(63 downto 0);
       bsaAvgDone      : slv(63 downto 0);
       bsaDone         : slv(63 downto 0);
---      experiment      : slv32Array(0 to 8);
-      experiment      : slv16Array(0 to 17);
+      control         : slv16Array(0 to 17);
       partitionAddr   : slv(15 downto 0);
       partitionWord   : Slv32Array(0 to 7);
-      crc             : slv(31 downto 0);
    end record;
 
    constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
@@ -87,10 +112,9 @@ package TimingPkg is
       bsaActive       => (others => '0'),
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
-      experiment      => (others => (others => '0')),
-      partitionAddr   => (others => '0'),
-      partitionWord   => (others => (others => '0')),
-      crc             => (others => '0'));
+      control         => (others => (others => '0')),
+      partitionAddr   => (others => '1'),
+      partitionWord   => (others => (others => '0')));
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(message              : TimingMessageType) return Slv32Array;
@@ -154,6 +178,7 @@ package TimingPkg is
 
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
+      valid   : sl;
       message : TimingMessageType;
       stream  : TimingStreamType;
       v1      : LclsV1TimingDataType;
@@ -161,6 +186,7 @@ package TimingPkg is
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
+      valid   => '1',
       message => TIMING_MESSAGE_INIT_C,
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
@@ -214,14 +240,13 @@ package body TimingPkg is
       assignSlv(i, vector, message.bsaActive);
       assignSlv(i, vector, message.bsaAvgDone);
       assignSlv(i, vector, message.bsaDone);
-      for j in message.experiment'range loop
-         assignSlv(i, vector, message.experiment(j));
+      for j in message.control'range loop
+         assignSlv(i, vector, message.control(j));
       end loop;
       assignSlv(i, vector, message.partitionAddr);
       for j in message.partitionWord'range loop
          assignSlv(i, vector, message.partitionWord(j));
       end loop;
-      assignSlv(i, vector, message.crc);
       return vector;
    end function;
 
@@ -275,14 +300,13 @@ package body TimingPkg is
       assignSlv(i, vector, message.calibrationGap);
       assignSlv(i, vector, "00000000000000");  -- 14 unused bits
       assignSlv(i, vector, X"000000000000");   -- 3 unused words
-      for j in message.experiment'range loop
-         assignSlv(i, vector, message.experiment(j));
+      for j in message.control'range loop
+         assignSlv(i, vector, message.control(j));
       end loop;
       assignSlv(i, vector, message.partitionAddr);
       for j in message.partitionWord'range loop
          assignSlv(i, vector, message.partitionWord(j));
       end loop;
-      assignSlv(i, vector, message.crc);
       return vector;
    end function;
 
@@ -318,14 +342,13 @@ package body TimingPkg is
       assignRecord(i, vector, message.bsaActive);
       assignRecord(i, vector, message.bsaAvgDone);
       assignRecord(i, vector, message.bsaDone);
-      for j in message.experiment'range loop
-         assignRecord(i, vector, message.experiment(j));
+      for j in message.control'range loop
+         assignRecord(i, vector, message.control(j));
       end loop;
       assignRecord(i, vector, message.partitionAddr);
       for j in message.partitionWord'range loop
          assignRecord(i, vector, message.partitionWord(j));
       end loop;
-      assignRecord(i, vector, message.crc);
       return message;
    end function;
 

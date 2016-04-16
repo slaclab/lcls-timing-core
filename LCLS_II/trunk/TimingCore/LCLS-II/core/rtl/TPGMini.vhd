@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-12-15
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -87,6 +87,11 @@ architecture TPGMini of TPGMini is
   -- Register delay for simulation
   constant tpd : time := 0.5 ns;
 
+  constant TPG_ID : integer := 0;
+  
+  signal streams   : TimingSerialArray(0 downto 0);
+  signal streamIds : Slv4Array(0 downto 0);
+  signal advance   : slv(0 downto 0);
 begin
 
   frame.version <= TIMING_MESSAGE_VERSION_C;
@@ -104,7 +109,7 @@ begin
   status.nexptseq    <= slv(conv_unsigned(0, status.nexptseq'length));
   status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA, 8));
   status.seqaddrlen  <= slv(conv_unsigned(0, 4));
-  status.fifoaddrlen <= slv(conv_unsigned(0, 4));
+  status.fifoaddrlen <= x"0";
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -155,7 +160,7 @@ begin
     countSeq        (i) <= (others=>'0');
   end generate NoSeqExpt;
 
-  frame.experiment  <= (others=>(others=>'0'));
+  frame.control     <= (others=>(others=>'0'));
   frame.beamRequest <= (others=>'0');
   
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
@@ -174,7 +179,7 @@ begin
         acRate     => frame.acRates,
         acTS       => frame.acTimeSlot,
         beamSeq    => frame.beamRequest,
-        expSeq     => frame.experiment,
+        expSeq     => frame.control,
         bsaInit    => frame.bsaInit(i),
         bsaActive  => frame.bsaActive(i),
         bsaAvgDone => frame.bsaAvgDone(i),
@@ -189,21 +194,26 @@ begin
     frame.bsaDone   (63 downto NARRAYSBSA) <= (others => '0');
   end generate GEN_NULL_BSA;
 
+  U_TSerializer : entity work.TimingSerializer
+    generic map ( STREAMS_C => 1 )
+    port map ( clk       => txClk,
+               rst       => txRst,
+               fiducial  => baseEnabled(0),
+               streams   => streams,
+               streamIds => streamIds,
+               advance   => advance,
+               data      => txData,
+               dataK     => txDataK );
+  
   U_TPSerializer : entity work.TPSerializer
-    port map (
-      txClk      => txClk,
-      txRst      => txRst,
-      baseEnable => baseEnable,
-      msg        => frame,
-      sof        => open,
-      eof        => open,
-      txData     => txData,
-      txDataK    => txDataK,
-      txDataWord => open);
-
-  status.fifoData  <= (others=>'0');
-  status.fifoFull  <= '0';
-  status.fifoEmpty <= '1';
+    generic map ( Id => TPG_ID )
+    port map ( txClk      => txClk,
+               txRst      => txRst,
+               fiducial   => baseEnable,
+               msg        => frame,
+               advance    => advance  (0),
+               stream     => streams  (0),
+               streamId   => streamIds(0) );
 
   status.irqFifoData  <= (others=>'0');
   status.irqFifoFull  <= '0';

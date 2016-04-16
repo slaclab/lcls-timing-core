@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015/09/15
+-- Last update: 2016-04-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -94,9 +94,6 @@ begin
 
          dOut := crossDomainSyncReg(STAGES_G-1);
          -- synchronous fields
-         dOut.fifoData     := dataIn.fifoData;
-         dOut.fifoFull     := dataIn.fifoFull;
-         dOut.fifoEmpty    := dataIn.fifoEmpty;
          dOut.irqFifoData  := dataIn.irqFifoData;
          dOut.irqFifoFull  := dataIn.irqFifoFull;
          dOut.irqFifoEmpty := dataIn.irqFifoEmpty;

@@ -46,7 +46,7 @@ entity BsaControl is
       acRate     : in  slv(ACRATEDEPTH-1 downto 0);
       acTS       : in  slv(2 downto 0);
       beamSeq    : in  slv(31 downto 0);
-      expSeq     : in  Slv16Array(MAXEXPSEQDEPTH-1 downto 0);
+      expSeq     : in  Slv16Array(0 to 17);
       bsaInit    : out sl;
       bsaActive  : out sl;
       bsaAvgDone : out sl;

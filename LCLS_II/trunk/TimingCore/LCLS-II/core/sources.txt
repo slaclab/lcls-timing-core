@@ -9,6 +9,8 @@ vhdl work rtl/EventSelect.vhd
 vhdl work rtl/TPSerializer.vhd
 vhdl work rtl/TPGMini.vhd
 vhdl work rtl/TPGMiniCore.vhd
+vhdl work rtl/TimingSerializer.vhd
+vhdl work rtl/TimingDeserializer.vhd
 vhdl work rtl/TimingFrameRx.vhd
 vhdl work rtl/TimingStreamRx.vhd
 vhdl work rtl/TimingGthCoreWrapper.vhd

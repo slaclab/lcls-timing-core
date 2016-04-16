@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-04-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ use work.TimingPkg.all;
 package EvrV2Pkg is
 
   constant TriggerOutputs  : integer := 12;
-  constant ReadoutChannels : integer := 12;
+  constant ReadoutChannels : integer :=  6;
   
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames

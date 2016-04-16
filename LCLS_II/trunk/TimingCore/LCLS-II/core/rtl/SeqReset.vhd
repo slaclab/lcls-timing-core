@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : SeqJump.vhd
+-- File       : SeqReset.vhd
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
@@ -31,76 +31,70 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
+use work.TimingPkg.all;
 use work.TPGPkg.all;
 use work.StdRtlPkg.all;
 
-entity SeqJump is
-  generic ( MPSCHANS : integer := 5 );
+entity SeqReset is
   port ( 
       -- Clock and reset
       clk                : in  sl;
       rst                : in  sl;
       config             : in  TPGJumpConfigType;
-      manReset           : in  sl;
-      bcsFault           : in  sl;
-      mpsFault           : in  slv(2 downto 0);
-      jumpEn             : in  sl;
-      jumpReq            : out sl;
-      jumpAddr           : out SeqAddrType
+      frame              : in  TimingMessageType;
+      strobe             : in  sl;
+      resetReq           : in  sl;
+      resetO             : out sl
       );
-end SeqJump;
+end SeqReset;
 
 -- Define architecture for top level module
-architecture mapping of SeqJump is 
+architecture mapping of SeqReset is 
 
   type RegType is record
-     config     : TPGJumpConfigType;
-     bcsLatch   : sl;
-     mpsLatch   : slv(2 downto 0);
-     jump       : sl;
-     addr       : SeqAddrType;
+     req     : sl;
+     latch   : sl;
+     resetO  : sl;
   end record;
   constant REG_INIT_C : RegType := (
-     config    => TPG_JUMPCONFIG_INIT_C,
-     bcsLatch  => '0',
-     mpsLatch  => (others=>'0'),
-     jump => '0',
-     addr  => (others=>'0') );
+     req     => '0',
+     latch   => '0',
+     resetO  => '0');
   
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   
 begin
 
-  jumpReq  <= r.jump;
-  jumpAddr <= r.addr;
+  resetO <= rin.resetO;
   
-  comb: process (r, config, manReset, bcsFault, mpsFault, jumpEn)
+  comb: process (r, config, resetReq, strobe, frame)
      variable v : RegType;
+     variable rateSel : sl;
   begin  -- process
-    v      := r;
-    v.jump := '0';
+    v        := r;
+    v.resetO := '0';
+    v.req    := resetReq;
+    
+    --  Check for synchronized jump cycle
+    case (config.syncSel(15 downto 14)) is
+       when "00" => rateSel := frame.fixedRates(conv_integer(config.syncSel(3 downto 0)));
+       when "01" => if (config.syncSel(conv_integer(frame.acTimeSlot)+3-1)='0') then
+                      rateSel := '0';
+                    else
+                      rateSel := frame.acRates(conv_integer(config.syncSel(2 downto 0)));
+                    end if;
+       when others => rateSel := '0';
+    end case;
 
     --  Read in the new configuration on manual reset
-    if (manReset='1') then
-       v.config   := config;
+    if (resetReq='1' and r.req='0') then
+       v.latch := '1';
     end if;
 
-    --  Activate new jump if any state has changed
-    if (jumpEn='1') then
-       --  Highest priority
-       if (manReset='1') then
-          v.jump     := '1';
-          v.addr     := config.syncJump;
-       elsif (bcsFault /= r.bcsLatch) then
-          v.jump     := '1';
-          v.addr     := r.config.bcsJump;
-          v.bcsLatch := bcsFault;
-       elsif (mpsFault /= r.mpsLatch) then
-          v.jump     := '1';
-          v.addr     := r.config.mpsJump(conv_integer(mpsFault));
-          v.mpsLatch := mpsFault;
-       end if;
+    if (r.latch='1' and rateSel='1' and strobe='1') then
+       v.latch  :='0';
+       v.resetO :='1';
     end if;   
       
     rin <= v;

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-03-07
+-- Last update: 2016-04-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,7 +45,8 @@ entity TimingStreamRx is
       rxDecErr   : in  slv(1 downto 0);
       rxPolarity : out sl;
       rxReset    : out sl;
-
+      loopback   : out slv(2 downto 0);
+      
       timingMessage       : out TimingStreamType;
       timingMessageStrobe : out sl;
 
@@ -115,6 +116,7 @@ architecture rtl of TimingStreamRx is
       cntRst         : sl;
       rxPolarity     : sl;
       rxReset        : sl;
+      loopback       : sl;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record AxilRegType;
@@ -123,6 +125,7 @@ architecture rtl of TimingStreamRx is
       cntRst         => '0',
       rxPolarity     => '0',
       rxReset        => '0',
+      loopback       => '0',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -310,6 +313,7 @@ begin
       axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
       axilSlaveRegisterW(X"20", 2, v.rxPolarity);
       axilSlaveRegisterW(X"20", 3, v.rxReset);
+      axilSlaveRegisterW(X"20", 4, v.loopback);
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
 
@@ -324,6 +328,7 @@ begin
 
       rxPolarity     <= axilR.rxPolarity;
       rxReset        <= axilR.rxReset;
+      loopback       <= '0' & axilR.loopback & '0';
       axilReadSlave  <= axilR.axilReadSlave;
       axilWriteSlave <= axilR.axilWriteSlave;
 

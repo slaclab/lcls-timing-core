@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-01-24
+-- Last update: 2016-04-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -49,6 +49,8 @@ entity TPGMiniReg is
       -- EVR Interface      
       status         : in  TPGStatusType;
       config         : out TPGConfigType;
+      txReset        : out sl;
+      txLoopback     : out slv(2 downto 0);
       -- Clock and Reset
       axiClk         : in  sl;
       axiRst         : in  sl);
@@ -88,6 +90,8 @@ architecture rtl of TPGMiniReg is
                      countUpdate       : sl;
                      FixedRateDivisors : Slv20Array(9 downto 0);
                      config            : TPGConfigType;
+                     txReset           : sl;
+                     txLoopback        : slv( 2 downto 0);
                      rdData            : slv(31 downto 0);
                      axiReadSlave      : AxiLiteReadSlaveType;
                      axiWriteSlave     : AxiLiteWriteSlaveType;
@@ -101,6 +105,8 @@ architecture rtl of TPGMiniReg is
      countUpdate       => '0',
      FixedRateDivisors => TPG_CONFIG_INIT_C.FixedRateDivisors,
      config            => TPG_CONFIG_INIT_C,
+     txReset           => '0',
+     txLoopback        => "000",
      rdData            => (others=>'0'),
      axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -138,6 +144,7 @@ begin
       v.config.pulseIdWrEn   := '0';
       v.config.timeStampWrEn := '0';
       v.config.intervalRst   := '0';
+      v.txReset              := '0';
       
       -- Determine the transaction type
 
@@ -155,6 +162,8 @@ begin
 
           case wrPntr is
             when CLKSEL    => v.config.txPolarity              := regWrData(1);
+                              v.txReset                        := regWrData(0);
+                              v.txLoopback                     := regWrData(4 downto 2);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
             when PULSEIDL  => v.config.pulseId(31 downto  0)   := regWrData;
             when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
@@ -214,6 +223,7 @@ begin
           -- Decode the read address
           case rdPntr is
             when CLKSEL     => tmpRdData(1)           := r.config.txPolarity;
+                               tmpRdData(4 downto 2)  := r.txLoopback;
             when BASE_CNTL  => tmpRdData(15 downto 0) := r.config.baseDivisor;
             when PULSEIDU   => tmpRdData              := status.pulseId(63 downto 32);
                                v.pulseId              := status.pulseId(31 downto  0);
@@ -285,7 +295,9 @@ begin
       axiWriteSlave   <= r.axiWriteSlave;
       axiReadSlave    <= r.axiReadSlave;
       config          <= r.config;
-
+      txReset         <= r.txReset;
+      txLoopback      <= r.txLoopback;
+      
       irqEnable       <= '0';
       irqReq          <= '0';
    end process comb;

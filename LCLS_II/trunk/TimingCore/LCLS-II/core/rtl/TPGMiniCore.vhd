@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2015-12-21
+-- Last update: 2016-04-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,8 @@ entity TPGMiniCore is
      txData          : out slv(15 downto 0);
      txDataK         : out slv( 1 downto 0);
      txPolarity      : out sl;
+     txResetO        : out sl;
+     txLoopback      : out slv( 2 downto 0);
      axiClk          : in  sl;
      axiRst          : in  sl;
      axiReadMaster   : in  AxiLiteReadMasterType;
@@ -99,6 +101,8 @@ begin  -- rtl
          axiWriteSlave  => regWriteSlave,
          status         => status,
          config         => config,
+         txReset        => txResetO,
+         txLoopback     => txLoopback,
          irqActive      => '0',
          irqEnable      => open,
          irqReq         => open );

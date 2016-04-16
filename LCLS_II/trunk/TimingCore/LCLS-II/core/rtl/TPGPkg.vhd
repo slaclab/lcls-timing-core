@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-03-09
+-- Last update: 2016-04-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,13 +29,12 @@ package TPGPkg is
 
   constant FIXEDRATEDEPTH : integer := 10;   -- number of fixed rate markers
   constant ACRATEDEPTH    : integer :=  6;   -- number of ac rate markers
-  constant MAXBEAMSEQDEPTH : integer :=  7;   -- max number of beam destination sequences
+  constant MAXBEAMSEQDEPTH : integer :=16;   -- max number of beam sequences
   constant BEAMSEQWIDTH   : integer := 32;   -- number of bits in beam sequence data
-  constant BEAMPRIOBITS   : integer :=  4;   -- number of bits in beam priority word
-  constant MAXEXPSEQDEPTH    : integer :=  18;   -- max number of expt sequences
+  constant MAXEXPSEQDEPTH : integer := 17;   -- max number of expt sequences
   constant EXPSEQWIDTH    : integer := 32;   -- number of bits in expt sequence
   constant EXPPARTITIONS  : integer :=  8;   -- number of expt partitions
-  constant MAXSEQDEPTH       : integer := MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
+  constant MAXSEQDEPTH    : integer := MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
   constant SEQADDRLEN     : integer := 11;  -- sequencer address bus width
   constant SEQCOUNTDEPTH  : integer := 4;   -- counters within a sequencer (depth of nested loops)
   constant BCSWIDTH       : integer := 6;
@@ -109,9 +108,6 @@ package TPGPkg is
                           irqFifoFull   : sl;
                           irqFifoEmpty  : sl;
                           irqFifoData   : slv(31 downto 0);
-                          fifoEmpty     : sl;
-                          fifoFull      : sl;
-                          fifoData      : slv(31 downto 0);
                           pllChanged    : slv(31 downto 0);
                           count186M     : slv(31 downto 0);
                           countSyncE    : slv(31 downto 0);
@@ -146,9 +142,6 @@ package TPGPkg is
     irqFifoFull   => '0',
     irqFifoEmpty  => '0',
     irqFifoData   => (others=>'0'),
-    fifoEmpty     => '0',
-    fifoFull      => '0',
-    fifoData      => (others=>'0'),
     pllChanged    => (others=>'0'),
     count186M     => (others=>'0'),
     countSyncE    => (others=>'0'),
@@ -176,14 +169,16 @@ package TPGPkg is
                           timeStampWrEn : sl;
                           ACRateDivisors    : Slv8Array(5 downto 0);
                           FixedRateDivisors : Slv20Array(9 downto 0);
-                          IntTrigger    : L1TrigConfigArray(6 downto 0);
-                          SeqRestart    : slv(MAXSEQDEPTH-1 downto 0);
-                          SeqRstAddr    : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
-                          SeqSync       : slv(MAXSEQDEPTH-1 downto 0);
-
+                          --
+                          SeqRestart    : slv         (63 downto 0);
+                          --
                           histActive    : sl;
                           forceSync     : sl;
-                          destnPriority : slv(4*MAXBEAMSEQDEPTH-1 downto 0);
+                          --  Arbiter control
+                          seqDestn         : Slv4Array (MAXBEAMSEQDEPTH-1 downto 0);
+                          seqRequiredSeq   : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
+                          destnControl     : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
+                          --
                           irqEnable     : sl;
                           irqFifoEnable : sl;
                           irqIntvEnable : sl;
@@ -221,24 +216,23 @@ package TPGPkg is
     pulseIdWrEn       => '1',
     timeStamp         => (others=>'0'),
     timeStampWrEn     => '0',
-    ACRateDivisors    => (x"00", x"3C", x"0C", x"06", x"02", x"01"),
+    ACRateDivisors    => (x"00", x"3C", x"0C", x"06", x"02", x"01"), -- 60,30,10,5,1Hz
     FixedRateDivisors => (x"00000",
                           x"00000",
-                          x"F4240",
-                          x"186A0",
-                          x"02710",
-                          x"003E8",
-                          x"00064",
-                          x"0000A",
-                          x"00002",
-                          x"00001"),
-    IntTrigger        => (others=>L1TRIGCONFIG_INIT_C),
+                          x"F4240", -- 0.93Hz
+                          x"186A0", -- 9.29Hz
+                          x"02710", -- 92.9Hz
+                          x"003E8", -- 929Hz
+                          x"00064", -- 9.29kHz
+                          x"0000A", -- 92.9kHz
+                          x"00005", -- 186kHz
+                          x"00001"),-- 929kHz
     SeqRestart        => (others=>'0'),
-    SeqRstAddr        => (others=>(others=>'0')),
-    SeqSync           => (others=>'0'),
     histActive        => '1',
     forceSync         => '0',
-    destnPriority     => (others=>'0'),
+    seqDestn          => (others=>x"0"),
+    seqRequiredSeq    => (others=>x"0000"),
+    destnControl      => (others=>x"0000"),
     irqEnable         => '0',
     irqFifoEnable     => '0',
     irqIntvEnable     => '0',
