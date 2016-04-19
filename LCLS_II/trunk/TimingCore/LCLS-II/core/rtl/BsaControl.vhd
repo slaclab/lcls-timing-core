@@ -56,13 +56,16 @@ end BsaControl;
 
 architecture BsaControl of BsaControl is
 
-   signal initq                             : sl := '0';
-   signal initd, initn                      : sl;
-   signal done, donen, doned                : sl;
+   signal initq, initd                      : sl := '0';
+   signal initn                             : sl;
+   signal done, doned                       : sl := '1';
+   signal donen                             : sl;
    signal persist                           : sl := '0';
    signal active, rateSel, destSel, avgDone : sl;
-   signal nToAvg, nToAvgn                   : slv(15 downto 0);
-   signal avgToWr, avgToWrn                 : slv(15 downto 0);
+   signal nToAvg                            : slv(15 downto 0) := (others=>'0');
+   signal nToAvgn                           : slv(15 downto 0);
+   signal avgToWr                           : slv(15 downto 0) := (others=>'0');
+   signal avgToWrn                          : slv(15 downto 0);
    signal fifoRst                           : sl;
    signal control0, control1                : slv(35 downto 0);
 

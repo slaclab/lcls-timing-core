@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2015/09/15
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -55,8 +55,10 @@ architecture rtl of ClockTime is
   signal step32         : slv (31 downto 0);
   signal valid          : sl;
   signal dataSL, dataNL, dataNU : slv(31 downto 0);
-  signal wrDataB, dataB : slv(wrData'range);
-  signal remB , remN  : slv( 4 downto 0);
+  signal wrDataB        : slv(wrData'range);
+  signal dataB          : slv(wrData'range) := (others=>'0');
+  signal remB           : slv( 4 downto 0) := (others=>'0');
+  signal remN           : slv( 4 downto 0);
   
 begin
   step32 <= x"000000" & "000" & step;
@@ -101,7 +103,7 @@ begin
   process (clkB, rst)
   begin
     if rst='1' then
-      dataB <= (others=>'0');
+      null;
     elsif rising_edge(clkB) then
       dataB <= dataNU & dataNL;
       remB  <= remN;

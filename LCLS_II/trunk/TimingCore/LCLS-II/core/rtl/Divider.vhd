@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-01-06
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 -------------------------------------------------------------------------------
 LIBRARY ieee;
 use work.all;
+use work.StdRtlPkg.all;
 
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;
@@ -44,32 +45,54 @@ end Divider;
 -- Define architecture for top level module
 architecture Divider of Divider is 
 
-  signal count : std_logic_vector(Width-1 downto 0) := (others=>'0');
+  type RegType is record
+    count    : slv(Width-1 downto 0);
+    trig     : sl;
+  end record;
+  constant REG_INIT_C : RegType := (
+    count    => (others=>'0'),
+    trig     => '0');
 
+  signal r    : RegType := REG_INIT_C;
+  signal rin  : RegType;
+  
   -- Register delay for simulation
   constant tpd:time := 0.5 ns;
   
 begin
-  process (sysClk, sysReset)
+
+  trigO <= r.trig;
+  
+  comb: process (r, enable, clear, divisor, sysReset) is
+    variable v : RegType;
   begin
-    if sysReset='1' then
-      count(Width-1 downto 1) <= (others=>'0');
-      count(0)  <= '1';
-      trigO     <= '0';
-    elsif rising_edge(sysClk) then
-      if enable='1' then
-        if count=divisor then
-          count(Width-1 downto 1) <= (others=>'0') after tpd; 
-          count(0)  <= '1' after tpd;
-          trigO     <= '1' after tpd;
-        else
-          count     <= count+1 after tpd;
-          trigO     <= '0' after tpd;
-        end if;
-      elsif clear='1' then
-        trigO <= '0' after tpd;
+    v := r;
+
+    if (enable='1') then
+      if (r.count=divisor) then
+        v.count := toSlv(1,Width);
+        v.trig  := '1';
+      else
+        v.count := r.count+1;
+        v.trig  := '0';
       end if;
+    elsif (clear='1') then
+      v.trig    := '0';
     end if;
-  end process;
+
+    if (sysReset='1') then
+      v.count   := toSlv(1,Width);
+      v.trig    := '0';
+    end if;
+    
+    rin <= v;
+  end process comb;
+
+  seq: process (sysClk) is
+  begin
+     if rising_edge(sysClk) then
+       r <= rin after tpd;
+     end if;
+  end process seq;
 
 end Divider;
