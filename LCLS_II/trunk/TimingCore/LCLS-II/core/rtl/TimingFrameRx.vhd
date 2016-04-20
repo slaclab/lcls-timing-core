@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-04-08
+-- Last update: 2016-04-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -149,7 +149,9 @@ begin
       v := r;
       v.advance            := advance(0);
       v.timingMessageShift := streams(0).data & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
-     
+      v.timingMessageStrobe:= '0';
+      v.timingMessageValid := '0';
+      
       if (advance(0)='0' and r.advance='1') then
         v.timingMessage := toTimingMessageType(r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 0));
       end if;
@@ -273,6 +275,7 @@ begin
    begin
       -- Latch the current value
       v := axilR;
+      v.axilReadSlave.rdata := (others=>'0');
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
