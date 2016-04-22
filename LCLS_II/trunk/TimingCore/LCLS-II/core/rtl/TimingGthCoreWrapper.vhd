@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-03-03
+-- Last update: 2016-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -213,8 +213,8 @@ begin
         gtwiz_reset_all_in(0)                 => '0',
         gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
         gtwiz_reset_tx_datapath_in(0)         => txReset,
-        gtwiz_reset_rx_pll_and_datapath_in(0) => rxReset,
-        gtwiz_reset_rx_datapath_in(0)         => '0',
+        gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
+        gtwiz_reset_rx_datapath_in(0)         => rxReset,
         gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
         gtwiz_reset_tx_done_out(0)            => txResetDone,
         gtwiz_reset_rx_done_out(0)            => rxResetDone,
@@ -298,8 +298,8 @@ begin
         gtwiz_reset_all_in(0)                 => '0',
         gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
         gtwiz_reset_tx_datapath_in(0)         => txReset,
-        gtwiz_reset_rx_pll_and_datapath_in(0) => rxReset,
-        gtwiz_reset_rx_datapath_in(0)         => '0',
+        gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
+        gtwiz_reset_rx_datapath_in(0)         => rxReset,
         gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
         gtwiz_reset_tx_done_out(0)            => txResetDone,
         gtwiz_reset_rx_done_out(0)            => rxResetDone,

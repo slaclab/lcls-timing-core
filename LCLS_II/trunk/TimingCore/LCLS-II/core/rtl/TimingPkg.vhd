@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-04-13
+-- Last update: 2016-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ package TimingPkg is
       bsaDone         => (others => '0'),
       control         => (others => (others => '0')),
       partitionAddr   => (others => '1'),
-      partitionWord   => (others => (others => '0')));
+      partitionWord   => (others => x"80008000"));
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(message              : TimingMessageType) return Slv32Array;
