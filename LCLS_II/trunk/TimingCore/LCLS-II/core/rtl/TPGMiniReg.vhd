@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-04-15
+-- Last update: 2016-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ entity TPGMiniReg is
       config         : out TPGConfigType;
       txReset        : out sl;
       txLoopback     : out slv(2 downto 0);
+      txInhibit      : out sl;
       -- Clock and Reset
       axiClk         : in  sl;
       axiRst         : in  sl);
@@ -92,6 +93,7 @@ architecture rtl of TPGMiniReg is
                      config            : TPGConfigType;
                      txReset           : sl;
                      txLoopback        : slv( 2 downto 0);
+                     txInhibit         : sl;
                      rdData            : slv(31 downto 0);
                      axiReadSlave      : AxiLiteReadSlaveType;
                      axiWriteSlave     : AxiLiteWriteSlaveType;
@@ -107,6 +109,7 @@ architecture rtl of TPGMiniReg is
      config            => TPG_CONFIG_INIT_C,
      txReset           => '0',
      txLoopback        => "000",
+     txInhibit         => '0',
      rdData            => (others=>'0'),
      axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -164,6 +167,7 @@ begin
             when CLKSEL    => v.config.txPolarity              := regWrData(1);
                               v.txReset                        := regWrData(0);
                               v.txLoopback                     := regWrData(4 downto 2);
+                              v.txInhibit                      := regWrData(5);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
             when PULSEIDL  => v.config.pulseId(31 downto  0)   := regWrData;
             when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
@@ -224,6 +228,7 @@ begin
           case rdPntr is
             when CLKSEL     => tmpRdData(1)           := r.config.txPolarity;
                                tmpRdData(4 downto 2)  := r.txLoopback;
+                               tmpRdData(5)           := r.txInhibit;
             when BASE_CNTL  => tmpRdData(15 downto 0) := r.config.baseDivisor;
             when PULSEIDU   => tmpRdData              := status.pulseId(63 downto 32);
                                v.pulseId              := status.pulseId(31 downto  0);
@@ -297,6 +302,7 @@ begin
       config          <= r.config;
       txReset         <= r.txReset;
       txLoopback      <= r.txLoopback;
+      txInhibit       <= r.txInhibit;
       
       irqEnable       <= '0';
       irqReq          <= '0';

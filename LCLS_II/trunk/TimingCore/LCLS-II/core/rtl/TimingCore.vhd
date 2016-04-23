@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-04-15
+-- Last update: 2016-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,6 +52,7 @@ entity TimingCore is
       gtRxPolarity  : out sl;
       gtTxReset     : out sl;
       gtLoopback    : out slv(2 downto 0);
+      gtTxInhibit   : out sl;
       timingPhy     : out TimingPhyType;
       -- Decoded timing message interface
       appTimingClk : in  sl;
@@ -245,6 +246,7 @@ begin
          txPolarity      => timingPhy.polarity,
          txResetO        => gtTxReset,
          txLoopback      => gtLoopback,
+         txInhibit       => gtTxInhibit,
          axiClk          => axilClk,
          axiRst          => axilRst,
          axiReadMaster   => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
@@ -257,6 +259,8 @@ begin
      timingPhy.data     <= (others=>'0');
      timingPhy.dataK    <= "00";
      timingPhy.polarity <= '0';
+     gtLoopback         <= "000";
+     gtTxInhibit        <= '0';
      U_AxiLiteEmpty : entity work.AxiLiteEmpty
        generic map (
          TPD_G            => TPD_G )
