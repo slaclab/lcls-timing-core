@@ -12,7 +12,9 @@ Device: &EvrV1Reg
   name: EvrV1Reg
   description: LCLS-I EVR Registers
   size: 0x8000
+  #########
   IntField:
+  #########
     #########################################################
     - offset: 0x00 # address(14 downto 2) = 0
       name: Status
