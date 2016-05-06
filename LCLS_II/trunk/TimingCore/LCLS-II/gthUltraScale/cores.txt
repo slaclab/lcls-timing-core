@@ -1,2 +1,4 @@
 ## By default, using the .DCP file during synthesis to reduce compile time
 # coregen/TimingGth.xci
+# coregen/TimingGth_polarity.xci 
+# coregen/TimingGth_clksel.xci 
