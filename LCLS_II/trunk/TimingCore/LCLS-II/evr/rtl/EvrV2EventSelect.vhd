@@ -39,6 +39,7 @@ entity EvrV2EventSelect is
       config     : in  EvrV2ChannelConfig;
       strobeIn   : in  sl;
       dataIn     : in  TimingMessageType;
+      exptIn     : in  ExptBusType;
       selectOut  : out sl );
 end EvrV2EventSelect;
 
@@ -68,7 +69,7 @@ begin
    process (config, dataIn, controlWord)
       variable rateType : slv(1 downto 0);
    begin 
-      rateType := config.rateSel(15 downto 14);
+      rateType := config.rateSel(12 downto 11);
       case rateType is
          when "00" => rateSel <= dataIn.fixedRates(conv_integer(config.rateSel(3 downto 0)));
          when "01" =>
@@ -79,12 +80,19 @@ begin
                rateSel <= dataIn.acRates(conv_integer(config.rateSel(2 downto 0)));
             end if;
          when "10"   => rateSel <= controlWord(conv_integer(config.rateSel(3 downto 0)));
+         when "11"   =>
+           if exptIn.valid='1' then
+             rateSel <= exptIn.message.partitionWord(conv_integer(config.rateSel(2 downto 0)))(0);
+           else
+             rateSel <= '0';
+           end if;
          when others => rateSel <= '0';
       end case;
    end process;
 
-   destSel <= '1' when (config.destSel(15) = '1' or
-                        config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1') else
+   destSel <= '1' when ((config.destSel(17 downto 16) = "10") or
+                        (config.destSel(17 downto 16) = "01" and dataIn.beamRequest(0)='0') or
+                        (config.destSel(17 downto 16) = "00" and dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
               '0';
 
 end EvrV2EventSelect;

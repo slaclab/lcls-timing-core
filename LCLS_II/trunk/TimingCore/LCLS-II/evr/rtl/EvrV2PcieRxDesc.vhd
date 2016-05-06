@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2016-04-11
+-- Last update: 2016-04-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,8 +45,6 @@ entity EvrV2PcieRxDesc is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- IRQ Request
       irqReq         : out sl;
-      -- Ready status
-      ready          : out sl;
       -- Counter reset
       cntRst         : in  sl;
       -- Global Signals
@@ -112,7 +110,6 @@ architecture rtl of EvrV2PcieRxDesc is
    signal dFifoDout  : AddrVector(DMA_SIZE_G-1 downto 0);
    signal dFifoAFull : slv(DMA_SIZE_G-1 downto 0);
    signal dFifoFull  : slv(DMA_SIZE_G-1 downto 0);
-   signal dFifoEmpty : slv(DMA_SIZE_G-1 downto 0);
    signal dFifoCnt   : CntVector(DMA_SIZE_G-1 downto 0);
 
    -- attribute dont_touch : string;
@@ -123,13 +120,11 @@ begin
   -- Assert IRQ request when there is a entry in the receive queue
    irqReq <= r.reqIrq;
 
-   ready  <= not uOr(dFifoEmpty);
-   
    -------------------------------
    -- Configuration Register
    -------------------------------  
    comb : process (axiReadMaster, axiWriteMaster, cntRst, dFifoCnt, dFifoDout, dFifoFull,
-                   dFifoEmpty, dFifoValid, dmaDescToPci, pciRst, r) is
+                   dFifoValid, dmaDescToPci, pciRst, r) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -205,7 +200,6 @@ begin
             if (axiReadMaster.araddr(9 downto 6) = x"1") and (rdPntr < DMA_SIZE_G) then
                v.axiReadSlave.rdata(31)         := dFifoFull (rdPntr);
                v.axiReadSlave.rdata(30)         := dFifoValid(rdPntr);
-               v.axiReadSlave.rdata(29)         := dFifoEmpty(rdPntr);
                v.axiReadSlave.rdata(9 downto 0) := dFifoCnt(rdPntr);
             else
                case (axiReadMaster.araddr(9 downto 2)) is
@@ -213,7 +207,7 @@ begin
                      v.axiReadSlave.rdata(31)          := r.rxFreeEn;
                      v.axiReadSlave.rdata(23 downto 0) := r.maxFrame;
                   when x"41" =>
-                     v.axiReadSlave.rdata := r.rxSize;
+                     v.axiReadSlave.rdata( 9 downto  0) :=  r.rxSize;
                   when x"42" =>
                      v.axiReadSlave.rdata := r.rxCount;
                   when x"43" =>
@@ -295,8 +289,7 @@ begin
             BRAM_EN_G    => true,
             FWFT_EN_G    => true,
             DATA_WIDTH_G => 30,
-            ADDR_WIDTH_G => 10,
-            EMPTY_THRES_G=> 2)   
+            ADDR_WIDTH_G => 10)
          port map (
             rst        => r.fifoRst,
             clk        => pciClk,
@@ -306,7 +299,6 @@ begin
             dout       => dFifoDout(i)(31 downto 2),
             full       => dFifoFull(i),
             valid      => dFifoValid(i),
-            prog_empty => dFifoEmpty(i),
             data_count => dFifoCnt(i));     
 
       -- New Ack

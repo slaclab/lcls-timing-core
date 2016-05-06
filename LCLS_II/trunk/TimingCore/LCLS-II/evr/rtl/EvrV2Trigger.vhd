@@ -51,16 +51,16 @@ end EvrV2Trigger;
 architecture EvrV2Trigger of EvrV2Trigger is
 
    type RegType is record
-     fifo_delay     : slv(27 downto 0);      -- clks until trigger fifo is empty
+     fifo_delay     : slv(EVRV2_TRIG_WIDTH-1 downto 0);      -- clks until trigger fifo is empty
      armed          : sl;
-     delay          : slv(19 downto 0);
-     width          : slv(19 downto 0);
+     delay          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+     width          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
      fired          : sl;
      state          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
-     fifoDin        : slv(39 downto 0);
+     fifoDin        : slv(EVRV2_TRIG_WIDTH-1 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -79,8 +79,8 @@ architecture EvrV2Trigger of EvrV2Trigger is
    signal rin : RegType;
 
    signal fifoValid : sl;
-   signal fifoDout : slv(39 downto 0);
-   signal fifoCount : slv(6 downto 0);
+   signal fifoDout  : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+   signal fifoCount : slv(8 downto 0);
    signal fifoEmpty : sl;
    signal fifoFull  : sl;
    
@@ -123,21 +123,21 @@ begin
 
    U_Fifo : entity work.FifoSync
      generic map ( TPD_G        => TPD_G,
-                   DATA_WIDTH_G => 40,
-                   ADDR_WIDTH_G =>  7,
+                   DATA_WIDTH_G => EVRV2_TRIG_WIDTH,
+                   ADDR_WIDTH_G =>  9,
                    FWFT_EN_G    => false )
      port map (    rst   => r.fifoReset,
                    clk   => clk,
-                   wr_en => r.fifoWr,
+                   wr_en => rin.fifoWr,
                    rd_en => rin.fifoRd,
-                   din   => r.fifoDin,
+                   din   => rin.fifoDin,
                    dout  => fifoDout,
                    valid => fifoValid,
                    empty => fifoEmpty,
                    full  => fifoFull,
                    data_count => fifoCount );
 
-   process (r, arm, fire, rst, config, fifoValid, fifoDout)
+   process (r, arm, fire, rst, config, fifoValid, fifoDout, fifoEmpty)
       variable v : RegType;
    begin 
       v := r;
@@ -149,8 +149,8 @@ begin
       if allBits(r.delay,'0') then
         if allBits(r.width,'0') then
           if r.fifoRd='1' then
-            v.width  := fifoDout(39 downto 20);
-            v.delay  := fifoDout(19 downto  0);
+            v.width  := config.width;
+            v.delay  := fifoDout;
           elsif fifoEmpty='0' then
             v.fifoRd := '1';
           end if;
@@ -165,7 +165,7 @@ begin
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
          v.fifoWr     := '1';
-         v.fifoDin    := config.width & (config.delay - r.fifo_delay(config.delay'range));
+         v.fifoDin    := config.delay - r.fifo_delay;
          v.fifo_delay := config.delay + config.width + 1;
       else
          v.fifoWr     := '0';

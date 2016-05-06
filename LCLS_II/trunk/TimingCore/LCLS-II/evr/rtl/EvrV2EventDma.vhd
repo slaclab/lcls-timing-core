@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,22 +47,28 @@ end EvrV2EventDma;
 
 architecture mapping of EvrV2EventDma is
 
-  constant VEC_SZ : integer := 32*((TIMING_MESSAGE_BITS_C-257)/32+1);
+--  constant VEC_SZ : integer := 32*((TIMING_MESSAGE_BITS_C-256+31)/32+2);
+  constant VEC_SZ : integer := 32*((TIMING_MESSAGE_BITS_C-256+31)/32+2);
+  constant WORDS : slv(31 downto 0) := toSlv(VEC_SZ/32,32);
   
   type RegType is record
     channels : slv(15 downto 0);
     strobe   : slv(VEC_SZ/32-1 downto 0);
+    last     : sl;
     dataOut  : slv(VEC_SZ-1 downto 0);
   end record;
 
   constant REG_TYPE_INIT_C : RegType := (
     channels => (others=>'0'),
     strobe   => (others=>'0'),
+    last     => '0',
     dataOut  => (others=>'0'));
 
   signal r   : RegType := REG_TYPE_INIT_C;
   signal rin : RegType;
 
+  signal utestData : slv(23 downto 0);
+  
 begin  -- mapping
 
   dmaData.tValid <= r.strobe(0);
@@ -74,16 +80,17 @@ begin  -- mapping
   begin  -- process
     v := r;
 
+    v.last     := '0';
     v.channels(eventSel'range) := r.channels(eventSel'range) or eventSel;
-    v.strobe   := '0' & r.strobe(r.strobe'left downto 1);
     v.dataOut  := x"00000000" & r.dataOut(r.dataOut'left downto 32);
-
+    v.strobe   := '0' & r.strobe(r.strobe'left downto 1);
+    
     if strobe='1' and uOr(r.channels)='1' then
       v.strobe  := (others=>'1');
       v.dataOut := toSlvNoBsa(eventData) &
                    r.channels &
                    EVRV2_EVENT_TAG &
-                   slv(conv_unsigned(r.dataOut'length,32));
+                   toSlv(r.strobe'length,32);
     end if;
 
     if rst='1' then

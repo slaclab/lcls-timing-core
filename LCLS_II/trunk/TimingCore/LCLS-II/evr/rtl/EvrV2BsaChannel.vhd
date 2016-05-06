@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ begin  -- mapping
                                 r.dataBuff.pulseId    &
                                 slv(conv_unsigned(CHAN_C,16)) &
                                 EVRV2_BSA_CHANNEL_TAG &
-                                slv(conv_unsigned(r.dataOut'length,32));
+                                slv(conv_unsigned(r.strobe'length,32));
           v.strobe             := (others=>'1');
           v.state              := IDLE_S;
         end if;

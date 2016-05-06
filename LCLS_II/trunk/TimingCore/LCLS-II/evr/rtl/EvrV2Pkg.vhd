@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-04-15
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,7 +29,8 @@ use work.TimingPkg.all;
 package EvrV2Pkg is
 
   constant TriggerOutputs  : integer := 12;
-  constant ReadoutChannels : integer :=  6;
+--  constant TriggerOutputs  : integer :=  6;
+  constant ReadoutChannels : integer := 10;
   
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames
@@ -40,14 +41,14 @@ package EvrV2Pkg is
   type EvrV2ChannelConfig is record
     enabled          : sl;
     -- EventSelection
-    rateSel          : slv(15 downto 0);
-    -- Bits(15:14)=(fixed,AC,seq,reserved)
+    rateSel          : slv(12 downto 0);
+    -- Bits(12:11)=(fixed,AC,seq,reserved)
     -- fixed:  marker = 3:0
     -- AC   :  marker = 2:0;  TS = 8:3 (mask)
     -- seq  :  bit    = 5:0;  seq = 10:6
-    destSel          : slv(15 downto 0);
-    -- 15:15 = DONT_CARE
-    --  3:0  = Destination
+    destSel : slv(18 downto 0);
+    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
+    -- Bits(15:0)=Mask of Destinations (when Beam)
     -- BSA
     bsaEnabled       : sl;              -- participate in BSA
     bsaActiveSetup   : slv( 6 downto 0);
@@ -68,11 +69,12 @@ package EvrV2Pkg is
 
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
+  constant EVRV2_TRIG_WIDTH : integer := 28;
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
-    delay    : slv(19 downto 0);
-    width    : slv(19 downto 0);
+    delay    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+    width    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     channel  : slv( 3 downto 0);
   end record;
 
@@ -141,10 +143,15 @@ package EvrV2Pkg is
   type EvrV2CacheDataArray is array (natural range<>) of EvrV2CacheDataType;
 
   type EvrV2DmaControlType is record
-    ready : sl;
+    ready    : sl;
+    testData : slv(23 downto 0);
+    fullThr  : slv(23 downto 0);
   end record;
 
-  constant EVRV2_DMA_CONTROL_INIT_C : EvrV2DmaControlType := ( ready => '0' );
+  constant EVRV2_DMA_CONTROL_INIT_C : EvrV2DmaControlType := (
+    ready    => '0',
+    testData => (others=>'0'),
+    fullThr  => (others=>'1'));
 
   type EvrV2DmaControlArray is array (natural range<>) of EvrV2DmaControlType;
 

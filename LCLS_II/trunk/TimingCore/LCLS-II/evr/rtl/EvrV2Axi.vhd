@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,8 +48,10 @@ entity EvrV2Axi is
     channelConfig       : out EvrV2ChannelConfigArray(CHANNELS_C-1 downto 0);
     triggerConfig       : out EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
     trigSel             : out sl;
+    dmaFullThr          : out slv(23 downto 0);
     -- status
     irqReq              : in  sl;
+    partitionAddr       : in  slv(15 downto 0);
     rstCount            : out sl;
     eventCount          : in  SlVectorArray(CHANNELS_C downto 0,31 downto 0);
     gtxDebug            : in  slv(7 downto 0) );
@@ -65,6 +67,7 @@ architecture mapping of EvrV2Axi is
     trigSel        : sl;
     channelConfig  : EvrV2ChannelConfigArray(CHANNELS_C-1 downto 0);
     triggerConfig  : EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
+    dmaFullThr     : slv(23 downto 0);
   end record;
   constant REG_INIT_C : RegType := (
     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -73,8 +76,8 @@ architecture mapping of EvrV2Axi is
     countReset     => '0',
     trigSel        => '0',
     channelConfig  => (others=>EVRV2_CHANNEL_CONFIG_INIT_C),
-    triggerConfig  => (others=>EVRV2_TRIGGER_CONFIG_INIT_C));
-
+    triggerConfig  => (others=>EVRV2_TRIGGER_CONFIG_INIT_C),
+    dmaFullThr     => (others=>'1'));
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
 
@@ -87,6 +90,7 @@ begin  -- mapping
   irqEnable      <= r.irqEnable;
   trigSel        <= r.trigSel;
   rstCount       <= r.countReset;
+  dmaFullThr     <= r.dmaFullThr;
 
   process (axiClk)
   begin  -- process
@@ -132,22 +136,23 @@ begin  -- mapping
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
     axilSlaveRegisterW(X"000", 0, v.irqEnable);
     axilSlaveRegisterR(X"004", sReg);
+    axilSlaveRegisterR(X"008", partitionAddr);
     axilSlaveRegisterR(X"00C", gtxDebug);
     axilSlaveRegisterW(X"010", 0, v.countReset);
     axilSlaveRegisterW(X"014", 0, v.trigSel);
-    for i in 0 to CHANNELS_C loop
-      axilSlaveRegisterR(slv(conv_unsigned(i*32+40,12)), muxSlVectorArray(eventCount, i));
-    end loop;
+    axilSlaveRegisterW(X"018", 0, v.dmaFullThr);
     for i in 0 to CHANNELS_C-1 loop
       axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  0, v.channelConfig(i).enabled);
       axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  1, v.channelConfig(i).bsaEnabled);
       axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  2, v.channelConfig(i).dmaEnabled);
       axilSlaveRegisterW(slv(conv_unsigned(i*32+36,12)),  0, v.channelConfig(i).rateSel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,12)), 16, v.channelConfig(i).destSel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,12)), 13, v.channelConfig(i).destSel);
+      axilSlaveRegisterR(slv(conv_unsigned(i*32+40,12)), muxSlVectorArray(eventCount, i));
       axilSlaveRegisterW(slv(conv_unsigned(i*32+44,12)),  0, v.channelConfig(i).bsaActiveDelay);
       axilSlaveRegisterW(slv(conv_unsigned(i*32+44,12)), 20, v.channelConfig(i).bsaActiveSetup);
       axilSlaveRegisterW(slv(conv_unsigned(i*32+48,12)),  0, v.channelConfig(i).bsaActiveWidth);
     end loop;  -- i
+    axilSlaveRegisterR(slv(conv_unsigned(12*32+40,12)), muxSlVectorArray(eventCount, CHANNELS_C));
     for i in 0 to TRIGGERS_C-1 loop
       axilSlaveRegisterW(slv(conv_unsigned(512+i*16,12)),   0, v.triggerConfig(i).channel);
       axilSlaveRegisterW(slv(conv_unsigned(512+i*16,12)),  16, v.triggerConfig(i).polarity);

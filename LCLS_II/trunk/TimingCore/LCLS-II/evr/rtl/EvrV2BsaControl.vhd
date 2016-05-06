@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-04-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,19 +47,16 @@ architecture mapping of EvrV2BsaControl is
 
   type RegType is record
     strobeOut  : slv(7 downto 0);
-    strobeCount : slv(31 downto 0);
     dataOut    : slv(255 downto 0);
   end record;
 
   constant REG_TYPE_INIT_C : RegType := (
     strobeOut   => (others=>'0'),
-    strobeCount => (others=>'0'),
     dataOut     => (others=>'0') );
   
   signal r    : RegType := REG_TYPE_INIT_C;
   signal r_in : RegType;
 
-  signal countResetS : sl;
   
 begin  -- mapping
 
@@ -67,7 +64,7 @@ begin  -- mapping
   dmaData.tLast  <= r.strobeOut(0) and not r.strobeOut(1);
   dmaData.tData  <= r.dataOut  (31 downto 0);
   
-  process (r, dataIn, strobeIn, evrRst, countResetS)
+  process (r, dataIn, strobeIn, evrRst, enable)
     variable v : RegType;
   begin  -- process
     v := r;
@@ -77,22 +74,17 @@ begin  -- mapping
     if (strobeIn='1' and enable='1' and
         (uOr(dataIn.bsaInit)='1' or uOr(dataIn.bsaDone)='1')) then
       v.strobeOut   := (others=>'1');
-      v.strobeCount := r.strobeCount+1;
       v.dataOut     := dataIn.bsaDone   &
                        dataIn.bsaInit &
                        dataIn.timeStamp &
                        x"0000" & EVRV2_BSA_CONTROL_TAG &
-                       slv(conv_unsigned(r.dataOut'length,32));
+                       slv(conv_unsigned(r.strobeOut'length,32));
     end if;
 
     if evrRst='1' then
       v := REG_TYPE_INIT_C;
     end if;
 
-    if countResetS='1' then
-      v.strobeCount := (others=>'0');
-    end if;
-    
     r_in <= v;
   end process;    
 

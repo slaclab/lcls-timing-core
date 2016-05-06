@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EvrV2Core.vhd
+-- File       : EvrV2_tb.vhd
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-05-01
+-- Last update: 2016-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,181 +27,187 @@ use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPciePkg.all;
+--use work.SsiPciePkg.all;
 use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 --use work.PciPkg.all;
 use work.SsiPkg.all;
+use work.TPGPkg.all;
 
-entity EvrV2Core is
-  generic (
-    TPD_G : time := 1 ns);
-  port (
-    -- AXI-Lite and IRQ Interface
-    axiClk              : in  sl;
-    axiRst              : in  sl;
-    axilWriteMaster     : in  AxiLiteWriteMasterType;
-    axilWriteSlave      : out AxiLiteWriteSlaveType;
-    axilReadMaster      : in  AxiLiteReadMasterType;
-    axilReadSlave       : out AxiLiteReadSlaveType;
-    irqActive           : in  sl;
-    irqEnable           : out sl;
-    irqReq              : out sl;
-    -- DMA
-    dmaRxIbMaster       : out AxiStreamMasterType;
-    dmaRxIbSlave        : in  AxiStreamSlaveType;
-    dmaRxTranFromPci    : in  TranFromPcieType;
-    dmaReady            : out sl;
-    -- EVR Ports
-    evrClk              : in  sl;
-    evrRst              : in  sl;
-    evrBus              : in  TimingBusType;
-    exptBus             : in  ExptBusType;
-    txPhyClk            : in  sl;
-    txPhyRst            : in  sl;
-    gtxDebug            : in  slv(7 downto 0);
-    -- Trigger and Sync Port
-    syncL               : in  sl;
-    trigOut             : out slv(11 downto 0);
-    evrModeSel          : out sl;
-    -- Misc.
-    cardRst             : in  sl;
-    ledRedL             : out sl;
-    ledGreenL           : out sl;
-    ledBlueL            : out sl);  
-end EvrV2Core;
+entity EvrV2_tb is
+end EvrV2_tb;
 
-architecture mapping of EvrV2Core is
+architecture mapping of EvrV2_tb is
 
-  constant NUM_AXI_MASTERS_C : natural := 2;
-  constant CSR_INDEX_C       : natural := 0;
-  constant DMA_INDEX_C       : natural := 1;
-
-  constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
-    CSR_INDEX_C      => (
-      baseAddr      => x"00000000",
-      addrBits      => 10,
-      connectivity  => X"0001"),
-    DMA_INDEX_C => (
-      baseAddr      => x"00000400",
-      addrBits      => 10,
-      connectivity  => X"0001") );
+  constant TPD_G : time := 1 ns;
   
-  signal mAxiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
-  signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
-  signal mAxiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
-  signal mAxiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
+  signal evrClk              : sl;
+  signal evrRst              : sl;
+  signal evrBus              : TimingBusType;
+  signal exptBus             : ExptBusType := EXPT_BUS_INIT_C;
+  signal txPhyClk            : sl;
+  signal txPhyRst            : sl;
+  -- Trigger and Sync Port
+  signal trigOut             : slv(11 downto 0);
+  -- Misc.
+  signal cardRst             : sl;
+  signal ledRedL             : sl;
+  signal ledGreenL           : sl;
+  signal ledBlueL            : sl;
   
   constant STROBE_INTERVAL_C : integer := 10;
-  
-  signal bsaControl       : EvrV2BsaControlType;
-  signal bsaChannel       : EvrV2BsaChannelArray   (ReadoutChannels-1 downto 0);
-  signal channelConfig    : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0);
-  signal channelConfigS   : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>EVRV2_CHANNEL_CONFIG_INIT_C);
-  signal triggerConfig    : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0);
-  signal triggerConfigS   : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>EVRV2_TRIGGER_CONFIG_INIT_C);
-  
-  signal gtxDebugS   : slv(7 downto 0);
 
+  constant MY_CHANNEL_CONFIG_INIT_C : EvrV2ChannelConfig := (
+    enabled => '1', rateSel => "00" & "0000000" & x"0", destSel => "010" & x"0000",
+    bsaEnabled => '0', bsaActiveSetup => (others=>'0'), bsaActiveDelay => (others=>'0'), bsaActiveWidth => (others=>'0'),
+    dmaEnabled => '1' );
+
+  constant MY_TRIGGER_CONFIG_INIT_C : EvrV2TriggerConfigType := (
+    enabled => '1', polarity => '1', delay => x"0007590", width => x"0000080", channel => (others=>'0') );
+  
+  signal channelConfig    : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>MY_CHANNEL_CONFIG_INIT_C);
+  signal channelConfigS   : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>MY_CHANNEL_CONFIG_INIT_C);
+  signal triggerConfig    : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>MY_TRIGGER_CONFIG_INIT_C);
+  signal triggerConfigS   : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>MY_TRIGGER_CONFIG_INIT_C);
+  
   signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
-  signal eventCount     : SlVectorArray(ReadoutChannels downto 0,31 downto 0);
-  signal rstCount : sl;
   
   signal dmaControl : EvrV2DmaControlArray(ReadoutChannels+1 downto 0) := (others=>EVRV2_DMA_CONTROL_INIT_C);
-  signal dmaCtrl    : AxiStreamCtrlType;
   signal dmaData    : EvrV2DmaDataArray(ReadoutChannels+1 downto 0);
 
   constant SAXIS_MASTER_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
   
   signal dmaMaster : AxiStreamMasterType;
-  signal dmaSlave  : AxiStreamSlaveType;
-
-  signal pciClk : sl;
-  signal pciRst : sl;
-
-  signal rxDescToPci   : DescToPcieType;
-  signal rxDescFromPci : DescFromPcieType;
+  signal dmaSlave  : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
 
   signal bsaEnabled : slv(ReadoutChannels-1 downto 0);
   signal anyBsaEnabled : sl;
   
-  signal irqRequest : sl;
+  signal dmaFullThr     : Slv24Array (0 downto 0) := (others=>x"000000");
+  signal dmaFullThrS    : Slv24Array (0 downto 0) := (others=>x"000000");
 
-  signal dmaFullThr     : Slv24Array (0 downto 0);
-  signal dmaFullThrS    : Slv24Array (0 downto 0);
-
-  signal partitionAddr  : slv(15 downto 0);
-  
 begin  -- rtl
 
+  txPhyClk <= evrClk;
+  txPhyRst <= evrRst;
+  cardRst  <= '0';
+  
+  process is
+  begin
+    evrClk <= '1';
+    wait for 2.7 ns;
+    evrClk <= '0';
+    wait for 2.7 ns;
+  end process;
+
+  process is
+  begin
+    evrRst <= '1';
+    wait for 20 ns;
+    evrRst <= '0';
+    wait for 300 us;
+    for i in 0 to ReadoutChannels-1 loop
+      channelConfig(i).enabled <= '0';
+      wait for 3 us;
+    end loop;
+    wait;
+  end process;
+
+  xpm : block
+   type RegType is record
+      advance    : sl;
+      count      : slv( 7 downto 0);
+      addrStrobe : slv( 1 downto 0);
+      partStrobe : slv(15 downto 0);
+      partIndex  : slv( 3 downto 0);
+      tbus       : TimingBusType;
+      shift      : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   end record;
+   constant REG_INIT_C : RegType := (
+     advance    => '0',
+     count      => (others=>'0'),
+     addrStrobe => "00",
+     partStrobe => (others=>'0'),
+     partIndex  => (others=>'0'),
+     tbus       => TIMING_BUS_INIT_C,
+     shift      => (others=>'0') );
+
+   signal recTimingClk : sl;
+   signal recTimingRst : sl;
+
+   signal tpgConfig : TPGConfigType := TPG_CONFIG_INIT_C;
+   signal xData     : TimingRxType := TIMING_RX_INIT_C;
+   signal fiducial  : sl;
+   signal streams   : TimingSerialArray(0 downto 0);
+   signal streamIds : Slv4Array        (0 downto 0) := ( (others=>TIMING_STREAM_ID) );
+   signal advance   : slv              (0 downto 0);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal data : TimingRxType := TIMING_RX_INIT_C;
+  begin
+
+    evrBus       <= r.tbus;
+    
+    recTimingClk <= evrClk;
+    recTimingRst <= evrRst;
+
+   U_TPG : entity work.TPGMini
+      port map ( txClk    => recTimingClk,
+                 txRst    => recTimingRst,
+                 txRdy    => '1',
+                 txData   => data.data,
+                 txDataK  => data.dataK,
+                 statusO  => open,
+                 configI  => tpgConfig );
+    
+    TimingDeserializer_1 : entity work.TimingDeserializer
+    generic map ( STREAMS_C => 1 )
+    port map ( clk        => recTimingClk,
+               rst        => recTimingRst,
+               fiducial   => fiducial,
+               streams    => streams,
+               streamIds  => streamIds,
+               advance    => advance,
+               data       => data );
+
+   --  This is the serial to parallel part
+   comb: process (r, advance, streams, fiducial) is
+      variable v : RegType;
+   begin
+      v := r;
+      v.advance     := advance(0);
+      v.tbus.strobe := '0';
+      if advance(0)='1' then
+        v.shift       := streams(0).data & r.shift(r.shift'left downto 16);
+      end if;
+      
+      if (fiducial='1') then
+        v.tbus.strobe  := '1';
+        v.tbus.valid   := streams(0).ready;
+        v.tbus.message := toTimingMessageType(r.shift(TIMING_MESSAGE_BITS_C-1 downto 0));
+      end if;
+
+      rin <= v;
+   end process comb;
+  
+   seq: process (recTimingClk) is
+   begin
+      if rising_edge(recTimingClk) then
+         r <= rin;
+      end if;
+   end process seq;
+  end block;
+  
   -- Undefined signals
   ledRedL    <= '1';
   ledGreenL  <= '1';
   ledBlueL   <= '1';
   
-  pciClk <= axiClk;
-  pciRst <= axiRst;
-  irqReq <= irqRequest;
-
-  dmaReady <= not dmaCtrl.pause;
-  
-  -------------------------
-  -- AXI-Lite Crossbar Core
-  -------------------------  
-  AxiLiteCrossbar_Inst : entity work.AxiLiteCrossbar
-    generic map (
-      TPD_G              => TPD_G,
-      NUM_SLAVE_SLOTS_G  => 1,
-      NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
-      MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
-    port map (
-      axiClk              => axiClk,
-      axiClkRst           => axiRst,
-      sAxiWriteMasters(0) => axilWriteMaster,
-      sAxiWriteSlaves(0)  => axilWriteSlave,
-      sAxiReadMasters(0)  => axilReadMaster,
-      sAxiReadSlaves(0)   => axilReadSlave,
-      mAxiWriteMasters    => mAxiWriteMasters,
-      mAxiWriteSlaves     => mAxiWriteSlaves,
-      mAxiReadMasters     => mAxiReadMasters,
-      mAxiReadSlaves      => mAxiReadSlaves);   
-  
-  U_PciRxDesc : entity work.EvrV2PcieRxDesc
-    generic map ( DMA_SIZE_G       => 1 )
-    port map (    dmaDescToPci(0)  => rxDescToPci,
-                  dmaDescFromPci(0)=> rxDescFromPci,
-                  axiReadMaster    => mAxiReadMasters (DMA_INDEX_C),
-                  axiReadSlave     => mAxiReadSlaves  (DMA_INDEX_C),
-                  axiWriteMaster   => mAxiWriteMasters(DMA_INDEX_C),
-                  axiWriteSlave    => mAxiWriteSlaves (DMA_INDEX_C),
-                  irqReq           => irqRequest,
-                  cntRst           => '0',
-                  pciClk           => pciClk,
-                  pciRst           => pciRst );
-
-  U_PciRxDma : entity work.EvrV2PcieRxDma
-    generic map ( TPD_G                 => TPD_G,
-                  SAXIS_MASTER_CONFIG_G => SAXIS_MASTER_CONFIG_C,
-                  FIFO_ADDR_WIDTH_G     => 10 )
-    port map (    sAxisClk    => evrClk,
-                  sAxisRst    => evrRst,
-                  sAxisMaster => dmaMaster,
-                  sAxisSlave  => dmaSlave,
-                  sAxisCtrl   => dmaCtrl,
-                  sAxisPauseThr => dmaFullThrS(0)(9 downto 0),
-                  pciClk      => pciClk,
-                  pciRst      => pciRst,
-                  dmaIbMaster => dmaRxIbMaster,
-                  dmaIbSlave  => dmaRxIbSlave,
-                  dmaDescFromPci => rxDescFromPci,
-                  dmaDescToPci   => rxDescToPci,
-                  dmaTranFromPci => dmaRxTranFromPci,
-                  dmaChannel     => x"0" );
-
   U_Dma : entity work.EvrV2Dma
     generic map ( CHANNELS_C    => ReadoutChannels+2,
                   AXIS_CONFIG_C => SAXIS_MASTER_CONFIG_C )
@@ -264,28 +270,6 @@ begin  -- rtl
     end if;
   end process;
 
-  SyncVector_Gtx : entity work.SynchronizerVector
-    generic map (
-      TPD_G          => TPD_G,
-      WIDTH_G        => 8)
-    port map (
-      clk                   => axiClk,
-      dataIn                => gtxDebug,
-      dataOut               => gtxDebugS );
-
-  Sync_EvtCount : entity work.SyncStatusVector
-    generic map ( TPD_G   => TPD_G,
-                  WIDTH_G => ReadoutChannels+1 )
-    port map    ( statusIn(ReadoutChannels) => evrBus.strobe,
-                  statusIn(ReadoutChannels-1 downto 0) => eventSel,
-                  cntRstIn     => rstCount,
-                  rollOverEnIn => (others=>'1'),
-                  cntOut       => eventCount,
-                  wrClk        => evrClk,
-                  wrRst        => '0',
-                  rdClk        => axiClk,
-                  rdRst        => axiRst );
-
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
      U_Trig : entity work.EvrV2Trigger
         generic map ( TPD_G    => TPD_G,
@@ -300,29 +284,6 @@ begin  -- rtl
                       trigstate=> trigOut(i) );
   end generate Out_Trigger;
   
-  U_EvrAxi : entity work.EvrV2Axi
-    generic map ( TPD_G      => TPD_G,
-                  CHANNELS_C => ReadoutChannels,
-                  TRIGGERS_C => TriggerOutputs )
-    port map (    axiClk              => axiClk,
-                  axiRst              => axiRst,
-                  axilWriteMaster     => mAxiWriteMasters (CSR_INDEX_C),
-                  axilWriteSlave      => mAxiWriteSlaves  (CSR_INDEX_C),
-                  axilReadMaster      => mAxiReadMasters  (CSR_INDEX_C),
-                  axilReadSlave       => mAxiReadSlaves   (CSR_INDEX_C),
-                  -- configuration
-                  irqEnable           => irqEnable,
-                  channelConfig       => channelConfig,
-                  triggerConfig       => triggerConfig,
-                  trigSel             => evrModeSel,
-                  dmaFullThr          => dmaFullThr(0),
-                  -- status
-                  irqReq              => irqRequest,
-                  partitionAddr       => partitionAddr,
-                  rstCount            => rstCount,
-                  eventCount          => eventCount,
-                  gtxDebug            => gtxDebugS );
-
   anyBsaEnabled <= uOr(bsaEnabled);
 
   -- Synchronize configurations to evrClk
@@ -442,12 +403,5 @@ begin  -- rtl
                   rst     => evrRst,
                   dataIn  => dmaFullThr (0),
                   dataOut => dmaFullThrS(0) );
-
-  Sync_partAddr : entity work.SynchronizerVector
-    generic map ( TPD_G   => TPD_G,
-                  WIDTH_G => 16 )
-    port map (    clk     => axiClk,
-                  dataIn  => exptBus.message.partitionAddr,
-                  dataOut => partitionAddr );
 
 end mapping;

@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2016-01-24
+-- Last update: 2016-04-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ use work.SsiPciePkg.all;
 entity EvrV2PcieRxDma is
    generic (
       TPD_G                 : time := 1 ns;
-      SAXIS_MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C );
+      SAXIS_MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      FIFO_ADDR_WIDTH_G     : integer range 4 to 48      := 4 );
    port (
       -- PCIe Interface
       dmaDescToPci   : out DescToPcieType;
@@ -51,6 +52,8 @@ entity EvrV2PcieRxDma is
       sAxisRst       : in  sl;
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
+      sAxisPauseThr  : in  slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others=>'1');
+      sAxisCtrl      : out AxiStreamCtrlType;
       -- Clock and Resets
       pciClk         : in  sl;
       pciRst         : in  sl);       
@@ -88,6 +91,7 @@ architecture rtl of EvrV2PcieRxDma is
       txMaster      : AxiStreamMasterType;
       history       : AxiStreamMasterType;
       state         : StateType;
+      pauseEn       : sl;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
@@ -109,7 +113,8 @@ architecture rtl of EvrV2PcieRxDma is
       rxSlave       => AXI_STREAM_SLAVE_INIT_C,
       txMaster      => AXI_STREAM_MASTER_INIT_C,
       history       => AXI_STREAM_MASTER_INIT_C,
-      state         => IDLE_S);
+      state         => IDLE_S,
+      pauseEn       => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -130,7 +135,7 @@ architecture rtl of EvrV2PcieRxDma is
    signal rxSlave  : AxiStreamSlaveType;
 
    signal txSlave : AxiStreamSlaveType;
-   signal sAxisMaster_tValid : sl;
+   --signal sAxisMaster_tValid : sl;
    
    -- attribute dont_touch : string;
    -- attribute dont_touch of r : signal is "true";
@@ -144,10 +149,10 @@ architecture rtl of EvrV2PcieRxDma is
    
 begin
 
-   U_Sync_sAxis : entity work.SynchronizerOneShot
-     port map (clk     => pciClk,
-               dataIn  => sAxisMaster.tValid,
-               dataOut => sAxisMaster_tValid );
+   --U_Sync_sAxis : entity work.SynchronizerOneShot
+   --  port map (clk     => pciClk,
+   --            dataIn  => sAxisMaster.tValid,
+   --            dataOut => sAxisMaster_tValid );
      
    dmaIbMaster <= dmaIbMasterT;
    
@@ -179,8 +184,9 @@ begin
    --             probe0(188 downto 180) => tranCnt,
    --             probe0(189)            => pciRst,
    --             probe0(190)            => ibMaster.tLast,
-   --             probe0(220 downto 191) => r.completeData,
-   --             probe0(255 downto 221) => (others=>'0') );
+   --             probe0(222 downto 191) => r.completeData,
+   --             probe0(246 downto 223) => r.dmaDescToPci.doneLength,
+   --             probe0(255 downto 247) => (others=>'0') );
    
    FIFO_RX : entity work.AxiStreamFifo
       generic map (
@@ -194,7 +200,8 @@ begin
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
+         FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SAXIS_MASTER_CONFIG_G,
          MASTER_AXI_CONFIG_G => PCIE_AXIS_CONFIG_C)            
@@ -204,6 +211,8 @@ begin
          sAxisRst    => sAxisRst,
          sAxisMaster => sAxisMaster,
          sAxisSlave  => sAxisSlave,
+         sAxisCtrl   => sAxisCtrl,
+         fifoPauseThresh => sAxisPauseThr,
          -- Master Port
          mAxisClk    => pciClk,
          mAxisRst    => pciRst,
@@ -268,7 +277,7 @@ begin
                   v.dmaDescToPci.newReq := '1';
                   -- Next state
                   v.state               := ACK_WAIT_S;
-               else
+               elsif (r.pauseEn='0') then
                   -- Next state
                   v.state := DATA_DUMP_S;
                   v.dump  := '1';
@@ -343,9 +352,9 @@ begin
                -- Setup completion transaction
                if r.complete='0' then
                   if r.dump = '1' then
-                     v.completeData := rxMaster.tData(31 downto 0) or x"000000C0";
+                     v.completeData := rxMaster.tdata(31 downto 8) & x"C0";
                   else
-                     v.completeData := rxMaster.tData(31 downto 0) or x"00000080";
+                     v.completeData := rxMaster.tdata(31 downto 8) & x"80";
                   end if;
                   v.dump         := '0';
                end if;
@@ -361,7 +370,8 @@ begin
                -- data(095:64) = H2  
                -- data(063:32) = H1
                -- data(031:00) = H0                 
-               ------------------------------------------------------                                      
+               ------------------------------------------------------                            
+          
                if r.complete = '0' then
                   -- Ready for data
                   v.rxSlave.tReady                := '1';
@@ -535,6 +545,12 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      if (allBits(sAxisPauseThr,'1')) then
+        v.pauseEn := '0';
+      else
+        v.pauseEn := '1';
+      end if;
+      
       -- Reset
       if (pciRst = '1') then
          v := REG_INIT_C;
