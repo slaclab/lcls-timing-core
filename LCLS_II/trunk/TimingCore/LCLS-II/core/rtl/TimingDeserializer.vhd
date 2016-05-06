@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-13
+-- Last update: 2016-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,9 +115,9 @@ begin
       v.eof      := '0';
       v.crcErr   := '0';
       v.advance  := (others=>'0');
-      for i in 0 to STREAMS_C-1 loop
-        v.streams(i).ready := '0';
-      end loop;
+      --for i in 0 to STREAMS_C-1 loop
+      --  v.streams(i).ready := '0';
+      --end loop;
       
       case (r.state) is
         when IDLE_S => 

@@ -76,7 +76,7 @@ begin
 
    U_Select : entity work.EventSelect
      port map ( clk       => txclk,
-                rateType  => bsadef.rateSel(15 downto 14),
+                rateType  => bsadef.rateSel(12 downto 11),
                 fxRateSel => bsadef.rateSel( 3 downto 0),
                 acRateSel => bsadef.rateSel( 2 downto 0),
                 acTSmask  => bsadef.rateSel( 8 downto 3),
@@ -105,8 +105,9 @@ begin
 
    initn <= initq and not initd;
 
-   destSel <= '1' when (bsadef.destSel(15) = '1' or
-                        bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1') else
+   destSel <= '1' when ((bsadef.destSel(17 downto 16)="10") or
+                        (bsadef.destSel(17 downto 16)="01" and beamSeq(0)='0') or
+                        (bsadef.destSel(17 downto 16)="00" and beamSeq(0)='1' and bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1')) else
               '0';
    active <= rateSel and destSel and not done;
    donen  <= '0' when (initn = '1') else

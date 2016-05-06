@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-04-19
+-- Last update: 2016-05-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ entity TimingFrameRx is
    generic (
       TPD_G             : time            := 1 ns;
       AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
-
    port (
       rxClk      : in  sl;
       rxRstDone  : in  sl;
@@ -47,6 +46,9 @@ entity TimingFrameRx is
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
 
+      exptMessage         : out ExptMessageType;
+      exptMessageValid    : out sl;
+      
       txClk      : in  sl;
 
       axilClk         : in  sl;
@@ -67,27 +69,32 @@ architecture rtl of TimingFrameRx is
    type StateType is (IDLE_S, FRAME_S);
 
    type RegType is record
-      advance             : sl;
       timingMessage       : TimingMessageType;
       timingMessageShift  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
       timingMessageStrobe : sl;
       timingMessageValid  : sl;
+      exptMessage         : ExptMessageType;
+      exptMessageShift    : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
+      exptMessageValid    : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      advance             => '0',
       timingMessage       => TIMING_MESSAGE_INIT_C,
       timingMessageShift  => (others => '0'),
       timingMessageStrobe => '0',
-      timingMessageValid  => '0');
+      timingMessageValid  => '0',
+      exptMessage         => EXPT_MESSAGE_INIT_C,
+      exptMessageShift    => (others => '0'),
+      exptMessageValid    => '0'
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal fiducial  : sl;
-   signal streams   : TimingSerialArray(0 downto 0);
-   signal streamIds : Slv4Array(0 downto 0) := ( (others=>x"0") );
-   signal advance   : slv(0 downto 0);
+   signal streams   : TimingSerialArray(1 downto 0);
+   signal streamIds : Slv4Array        (1 downto 0) := ( x"1", x"0" );
+   signal advance   : slv              (1 downto 0);
    signal sof, eof, crcErr : sl;
 
    signal rxDecErrSum        : sl;
@@ -131,7 +138,7 @@ architecture rtl of TimingFrameRx is
 begin
 
    U_Deserializer : entity work.TimingDeserializer
-      generic map ( STREAMS_C => 1 )
+      generic map ( STREAMS_C => 2 )
       port map ( clk       => rxClk,
                  rst       => axilR.rxReset,
                  fiducial  => fiducial,
@@ -147,18 +154,21 @@ begin
       variable v : RegType;
    begin
       v := r;
-      v.advance            := advance(0);
-      v.timingMessageShift := streams(0).data & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
       v.timingMessageStrobe:= '0';
-      v.timingMessageValid := '0';
-      
-      if (advance(0)='0' and r.advance='1') then
-        v.timingMessage := toTimingMessageType(r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 0));
+
+      if advance(0)='1' then
+        v.timingMessageShift := streams(0).data & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
+      end if;
+      if advance(1)='1' then
+        v.exptMessageShift   := streams(1).data & r.exptMessageShift(EXPT_MESSAGE_BITS_C-1 downto 16);
       end if;
 
       if (fiducial='1') then
         v.timingMessageStrobe := '1';
+        v.timingMessage       := toTimingMessageType(r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 0));
         v.timingMessageValid  := streams(0).ready;
+        v.exptMessageValid    := streams(1).ready;
+        v.exptMessage         := toExptMessageType(r.exptMessageShift(EXPT_MESSAGE_BITS_C-1 downto 0));
       end if;
 
       rin <= v;
@@ -174,20 +184,8 @@ begin
    timingMessage       <= r.timingMessage;
    timingMessageStrobe <= r.timingMessageStrobe;
    timingMessageValid  <= r.timingMessageValid;
-
-   -------------------------------------------------------------------------------------------------
-   -- Synchronize message delay to timing domain
-   -------------------------------------------------------------------------------------------------
-   --SynchronizerFifo_1 : entity work.SynchronizerFifo
-   --   generic map (
-   --      TPD_G        => TPD_G,
-   --      DATA_WIDTH_G => 16)
-   --   port map (
-   --      rst    => axilRst,
-   --      wr_clk => axilClk,
-   --      din    => axilR.messageDelay,
-   --      rd_clk => rxClk,
-   --      dout   => timingMessageDelay);
+   exptMessage         <= r.exptMessage;
+   exptMessageValid    <= r.exptMessageValid;
 
    -------------------------------------------------------------------------------------------------
    -- AXI-LITE Logic

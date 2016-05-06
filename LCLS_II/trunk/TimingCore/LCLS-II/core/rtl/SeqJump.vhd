@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-13
+-- Last update: 2016-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -43,10 +43,14 @@ entity SeqJump is
       config             : in  TPGJumpConfigType;
       manReset           : in  sl;
       bcsFault           : in  sl;
-      mpsFault           : in  slv(2 downto 0);
+      mpsFault           : in  sl;
+      mpsClass           : in  slv(3 downto 0);
       jumpEn             : in  sl;
       jumpReq            : out sl;
-      jumpAddr           : out SeqAddrType
+      jumpAddr           : out SeqAddrType;
+      bcsLatch           : out sl;
+      mpsLimit           : out sl;
+      outClass           : out slv(3 downto 0)
       );
 end SeqJump;
 
@@ -55,17 +59,23 @@ architecture mapping of SeqJump is
 
   type RegType is record
      config     : TPGJumpConfigType;
+     manLatch   : sl;
      bcsLatch   : sl;
-     mpsLatch   : slv(2 downto 0);
+     mpsLatch   : slv(3 downto 0);
+     limit      : sl;
      jump       : sl;
      addr       : SeqAddrType;
+     class      : slv(3 downto 0);
   end record;
   constant REG_INIT_C : RegType := (
      config    => TPG_JUMPCONFIG_INIT_C,
+     manLatch  => '0',
      bcsLatch  => '0',
-     mpsLatch  => (others=>'0'),
-     jump => '0',
-     addr  => (others=>'0') );
+     mpsLatch  => (others=>'1'),
+     limit     => '0',
+     jump      => '0',
+     addr      => (others=>'0'),
+     class     => (others=>'0'));
   
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
@@ -74,6 +84,9 @@ begin
 
   jumpReq  <= r.jump;
   jumpAddr <= r.addr;
+  bcsLatch <= r.bcsLatch;
+  mpsLimit <= r.limit;
+  outClass <= r.class;
   
   comb: process (r, config, manReset, bcsFault, mpsFault, jumpEn)
      variable v : RegType;
@@ -81,28 +94,50 @@ begin
     v      := r;
     v.jump := '0';
 
-    --  Read in the new configuration on manual reset
-    if (manReset='1') then
-       v.config   := config;
+    if (manReset='1' and r.manLatch='0') then
+      v.manLatch := '1';
     end if;
 
     --  Activate new jump if any state has changed
     if (jumpEn='1') then
        --  Highest priority
-       if (manReset='1') then
+       if ((r.manLatch='1' or manReset='1') and not (r.mpsLatch<config.syncClass) ) then
           v.jump     := '1';
           v.addr     := config.syncJump;
-       elsif (bcsFault /= r.bcsLatch) then
+          v.class    := config.syncClass;
+          v.limit    := '0';
+       elsif (r.bcsLatch='1') then
           v.jump     := '1';
           v.addr     := r.config.bcsJump;
-          v.bcsLatch := bcsFault;
-       elsif (mpsFault /= r.mpsLatch) then
+          v.class    := r.config.bcsClass;
+       elsif (r.mpsLatch<r.class) then
           v.jump     := '1';
-          v.addr     := r.config.mpsJump(conv_integer(mpsFault));
-          v.mpsLatch := mpsFault;
+          v.addr     := r.config.mpsJump (conv_integer(r.mpsLatch));
+          v.class    := r.config.mpsClass(conv_integer(r.mpsLatch));
+          v.limit    := '1';
+       end if;
+       --  Always clear the latches
+       if (r.manLatch='1' or manReset='1') then
+          v.manLatch := '0';
+       end if;
+       if (r.bcsLatch='1') then
+         v.bcsLatch := '0';
        end if;
     end if;   
       
+    if (mpsFault='1') then
+      v.mpsLatch := mpsClass;
+    end if;
+
+    if (bcsFault='1' and r.bcsLatch='0') then
+      v.bcsLatch := '1';
+    end if;
+    
+    --  Read in the new configuration on manual reset
+    if (manReset='1') then
+       v.config   := config;
+    end if;
+
     rin <= v;
   end process comb;
 

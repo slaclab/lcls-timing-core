@@ -35,6 +35,7 @@ entity DestnArbiter is
       clk                : in  sl;
       config             : in  TPGConfigType;
       configUpdate       : in  slv(MAXBEAMSEQDEPTH-1 downto 0);
+      allowSeq           : in  Slv17Array(MAXALLOWSEQDEPTH-1 downto 0);
       beamSeq            : in  Slv17Array(MAXBEAMSEQDEPTH-1 downto 0);
       beamSeqO           : out slv(BEAMSEQWIDTH-1 downto 0);
       beamControl        : out slv(15 downto 0)
@@ -45,14 +46,14 @@ architecture DestnArbiter of DestnArbiter is
 
   type RegType is record
      seqDstn     : Slv4Array   (MAXBEAMSEQDEPTH-1 downto 0);
-     seqReqd     : Slv16Array  (MAXBEAMSEQDEPTH-1 downto 0);
+     allowReqd   : Slv16Array  (MAXALLOWSEQDEPTH-1 downto 0);
      destControl : Slv16Array  (MAXBEAMSEQDEPTH-1 downto 0);
      beamSeqO    : slv(BEAMSEQWIDTH-1 downto 0);
      beamControl : slv(15 downto 0);
   end record;
   constant REG_INIT_C : RegType := (
      seqDstn     => (others=>(others=>'0')),
-     seqReqd     => (others=>(others=>'1')),
+     allowReqd   => (others=>(others=>'1')),
      destControl => (others=>(others=>'0')),
      beamSeqO    => (others=>'0'),
      beamControl => (others=>'0'));
@@ -65,9 +66,9 @@ begin
   beamSeqO    <= r.beamSeqO;
   beamControl <= r.beamControl;
   
-  comb: process ( r, config, beamSeq, configUpdate ) is
+  comb: process ( r, config, allowSeq, beamSeq, configUpdate ) is
      variable v    : RegType;
-     variable req  : slv(15 downto 0);
+     variable allow: slv(MAXALLOWSEQDEPTH-1 downto 0);
      variable idst : integer;
   begin
      v := r;
@@ -77,27 +78,25 @@ begin
 
      for i in 0 to MAXBEAMSEQDEPTH-1 loop
        if (configUpdate(i)='1') then
-           v.seqDstn(i) := config.seqDestn      (i);
-           v.seqReqd(i) := config.seqRequiredSeq(i);
-           v.seqReqd(i)(i) := '1';  -- always require self
-           idst := conv_integer(config.seqDestn(i));
-           v.destControl(idst) := config.destnControl(idst);
+           -- Sequence
+           v.seqDstn  (i) := config.seqDestn      (i);
+           v.allowReqd(i) := config.allowRequired (i);
         end if;
      end loop;
 
-     req := (others=>'0');
-     for i in 0 to MAXBEAMSEQDEPTH-1 loop
-        if (beamSeq(i)(16)='1') then
-           req(i) := '1';
+     allow := (others=>'0');
+     for i in 0 to MAXALLOWSEQDEPTH-1 loop
+        if (allowSeq(i)(16)='1') then
+           allow(i) := '1';
         end if;
      end loop;
 
      for i in 0 to MAXBEAMSEQDEPTH-1 loop
-        if ((req and r.seqReqd(i))=r.seqReqd(i)) then
+        if (beamSeq(i)(16)='1' and ((allow and r.allowReqd(i))=r.allowReqd(i))) then
            v.beamSeqO(31 downto 16) := beamSeq(i)(15 downto 0);
            v.beamSeqO( 4 downto  1) := r.seqDstn(i);
            v.beamSeqO(0)            := '1';
-           v.beamControl            := r.destControl(conv_integer(r.seqDstn(i)));
+           v.beamControl            := config.destnControl(conv_integer(r.seqDstn(i)));
         end if;
      end loop;
 

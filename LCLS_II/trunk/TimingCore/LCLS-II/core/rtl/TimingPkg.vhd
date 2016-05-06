@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-04-21
+-- Last update: 2016-04-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,10 +35,10 @@ package TimingPkg is
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 1232;
+   constant TIMING_MESSAGE_BITS_C  : integer := 896;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
    constant TIMING_MESSAGE_VERSION_C : slv(63 downto 0) := x"0000060504030201";
-   constant TIMING_MESSAGE_ADDR_LOC_C : integer := 59;
+   constant TIMING_STREAM_ID : slv(3 downto 0) := x"0";
    
    type TimingRxType is record
       data       : slv(15 downto 0);
@@ -78,18 +78,15 @@ package TimingPkg is
       resync          : sl;
       beamRequest     : slv(31 downto 0);
       syncStatus      : sl;
-      bcsFault        : slv(5 downto 0);
-      mpsValid        : sl;
-      mpsLimits       : slv16Array(0 to 4);
-      historyActive   : sl;
       calibrationGap  : sl;
+      bcsFault        : slv(0 downto 0);
+      mpsLimit        : slv(15 downto 0);
+      mpsClass        : slv4Array(0 to 15);
       bsaInit         : slv(63 downto 0);
       bsaActive       : slv(63 downto 0);
       bsaAvgDone      : slv(63 downto 0);
       bsaDone         : slv(63 downto 0);
       control         : slv16Array(0 to 17);
-      partitionAddr   : slv(15 downto 0);
-      partitionWord   : Slv32Array(0 to 7);
    end record;
 
    constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
@@ -103,18 +100,15 @@ package TimingPkg is
       resync          => '0',
       beamRequest     => (others => '0'),
       syncStatus      => '0',
-      bcsFault        => (others => '0'),
-      mpsValid        => '0',
-      mpsLimits       => (others => (others => '0')),
-      historyActive   => '0',
       calibrationGap  => '0',
+      bcsFault        => (others => '0'),
+      mpsLimit        => (others => '0'),
+      mpsClass        => (others => (others => '1')),
       bsaInit         => (others => '0'),
       bsaActive       => (others => '0'),
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
-      control         => (others => (others => '0')),
-      partitionAddr   => (others => '1'),
-      partitionWord   => (others => x"80008000"));
+      control         => (others => (others => '0')) );
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(message              : TimingMessageType) return Slv32Array;
@@ -186,12 +180,11 @@ package TimingPkg is
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
-      valid   => '1',
+      valid   => '0',
       message => TIMING_MESSAGE_INIT_C,
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C);
-
 
    type TimingPhyType is record
       dataK      : slv(1 downto 0);
@@ -203,6 +196,29 @@ package TimingPkg is
       data       => x"0000",
       polarity   => '0' );
 
+   --
+   --  Experiment timing information (appended by downstream masters)
+   --
+   constant EXPT_MESSAGE_BITS_C : integer := 272;
+   constant EXPT_STREAM_ID    : slv(3 downto 0) := x"1";
+   type ExptMessageType is record
+     partitionAddr   : slv(15 downto 0);
+     partitionWord   : Slv32Array(0 to 7);
+   end record;
+   constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
+     partitionAddr  => (others=>'1'),
+     partitionWord  => (others=>x"80008000") );
+
+   type ExptBusType is record
+     message : ExptMessageType;
+     valid   : sl;
+   end record ExptBusType;
+   constant EXPT_BUS_INIT_C : ExptBusType := (
+     message => EXPT_MESSAGE_INIT_C,
+     valid   => '0' );
+   
+   function toExptMessageType (vector : slv) return ExptMessageType;
+   
 end package TimingPkg;
 
 package body TimingPkg is
@@ -216,37 +232,30 @@ package body TimingPkg is
       variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
       variable i      : integer                               := 0;
    begin
-      assignSlv(i, vector, message.version);
-      assignSlv(i, vector, message.pulseId);
-      assignSlv(i, vector, message.timeStamp);
-      assignSlv(i, vector, message.fixedRates);
-      assignSlv(i, vector, message.acRates);
+      assignSlv(i, vector, message.version);           -- 4 words
+      assignSlv(i, vector, message.pulseId);           -- 4 words
+      assignSlv(i, vector, message.timeStamp);         -- 4 words
+      assignSlv(i, vector, message.fixedRates);        
+      assignSlv(i, vector, message.acRates);           -- 1 word
       assignSlv(i, vector, message.acTimeSlot);
       assignSlv(i, vector, message.acTimeSlotPhase);
-      assignSlv(i, vector, message.resync);
-      assignSlv(i, vector, message.beamRequest);
+      assignSlv(i, vector, message.resync);            -- 1 word
+      assignSlv(i, vector, message.beamRequest);       -- 2 words
+      assignSlv(i, vector, "0000000000000");           -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.bcsFault);
-      assignSlv(i, vector, message.mpsValid);
-      assignSlv(i, vector, "00000000");        -- 8 unused bits
-      for j in message.mpsLimits'range loop
-         assignSlv(i, vector, message.mpsLimits(j));
-      end loop;
-      assignSlv(i, vector, message.historyActive);
       assignSlv(i, vector, message.calibrationGap);
-      assignSlv(i, vector, "00000000000000");  -- 14 unused bits
-      assignSlv(i, vector, X"000000000000");   -- 3 unused words
-      assignSlv(i, vector, message.bsaInit);
-      assignSlv(i, vector, message.bsaActive);
-      assignSlv(i, vector, message.bsaAvgDone);
-      assignSlv(i, vector, message.bsaDone);
+      assignSlv(i, vector, message.bcsFault);          -- 1 word
+      assignSlv(i, vector, message.mpsLimit);          -- 1 word
+      for j in message.mpsClass'range loop
+         assignSlv(i, vector, message.mpsClass(j));
+      end loop;                                        -- 4 words
+      assignSlv(i, vector, message.bsaInit);           -- 4 words
+      assignSlv(i, vector, message.bsaActive);         -- 4 words
+      assignSlv(i, vector, message.bsaAvgDone);        -- 4 words
+      assignSlv(i, vector, message.bsaDone);           -- 4 words
       for j in message.control'range loop
          assignSlv(i, vector, message.control(j));
-      end loop;
-      assignSlv(i, vector, message.partitionAddr);
-      for j in message.partitionWord'range loop
-         assignSlv(i, vector, message.partitionWord(j));
-      end loop;
+      end loop;                                        -- 18 words
       return vector;
    end function;
 
@@ -289,23 +298,16 @@ package body TimingPkg is
       assignSlv(i, vector, message.acTimeSlotPhase);
       assignSlv(i, vector, message.resync);
       assignSlv(i, vector, message.beamRequest);
+      assignSlv(i, vector, "0000000000000");        -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.bcsFault);
-      assignSlv(i, vector, message.mpsValid);
-      assignSlv(i, vector, "00000000");        -- 8 unused bits
-      for j in message.mpsLimits'range loop
-         assignSlv(i, vector, message.mpsLimits(j));
-      end loop;
-      assignSlv(i, vector, message.historyActive);
       assignSlv(i, vector, message.calibrationGap);
-      assignSlv(i, vector, "00000000000000");  -- 14 unused bits
-      assignSlv(i, vector, X"000000000000");   -- 3 unused words
+      assignSlv(i, vector, message.bcsFault);
+      assignSlv(i, vector, message.mpsLimit);
+      for j in message.mpsClass'range loop
+         assignSlv(i, vector, message.mpsClass(j));
+      end loop;
       for j in message.control'range loop
          assignSlv(i, vector, message.control(j));
-      end loop;
-      assignSlv(i, vector, message.partitionAddr);
-      for j in message.partitionWord'range loop
-         assignSlv(i, vector, message.partitionWord(j));
       end loop;
       return vector;
    end function;
@@ -327,27 +329,20 @@ package body TimingPkg is
       assignRecord(i, vector, message.acTimeSlotPhase);
       assignRecord(i, vector, message.resync);
       assignRecord(i, vector, message.beamRequest);
+      i := i+ 13;                        -- 3 unused bits
       assignRecord(i, vector, message.syncStatus);
-      assignRecord(i, vector, message.bcsFault);
-      assignRecord(i, vector, message.mpsValid);
-      i := i+ 8;                        -- 8 unused bits
-      for j in message.mpsLimits'range loop
-         assignRecord(i, vector, message.mpsLimits(j));
-      end loop;
-      assignRecord(i, vector, message.historyActive);
       assignRecord(i, vector, message.calibrationGap);
-      i := i+ 14;                       -- 14 unused bits of word
-      i := i+ (16*3);                   -- 3 unused words
+      assignRecord(i, vector, message.bcsFault);
+      assignRecord(i, vector, message.mpsLimit);
+      for j in message.mpsClass'range loop
+         assignRecord(i, vector, message.mpsClass(j));
+      end loop;
       assignRecord(i, vector, message.bsaInit);
       assignRecord(i, vector, message.bsaActive);
       assignRecord(i, vector, message.bsaAvgDone);
       assignRecord(i, vector, message.bsaDone);
       for j in message.control'range loop
          assignRecord(i, vector, message.control(j));
-      end loop;
-      assignRecord(i, vector, message.partitionAddr);
-      for j in message.partitionWord'range loop
-         assignRecord(i, vector, message.partitionWord(j));
       end loop;
       return message;
    end function;
@@ -403,5 +398,30 @@ package body TimingPkg is
       assignSlv(i, vector, stream.dbuff.edefInit);
       return vector;
    end function;
+
+   function toExptMessageType (vector : slv) return ExptMessageType
+   is
+      variable message : ExptMessageType;
+      variable i       : integer := 0;
+   begin
+      assignRecord(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignRecord(i, vector, message.partitionWord(j));
+      end loop;
+      return message;
+   end function;
+   
+   --function toSlv (msg : ExptMessageType) return slv
+   --is
+   --   variable vector : slv(EXPT_MESSAGE_BITS_C-1 downto 0) := (others => '0');
+   --   variable i      : integer                             := 0;
+   --begin
+   --   assignSlv(i, vector, msg.partitionAddr);
+   --   for j in msg.partitionWord'range loop
+   --      assignSlv(i, vector, msg.partitionWord(j));
+   --   end loop;
+   --   return vector;
+   --end function;
+   
    
 end package body TimingPkg;

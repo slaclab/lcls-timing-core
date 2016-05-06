@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-04-22
+-- Last update: 2016-05-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -192,8 +192,8 @@ begin
             when BSADEF to BSADEF_END =>
               iseq               := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
-                v.config.bsadefv(iseq).rateSel  := regWrData(15 downto  0);
-                v.config.bsadefv(iseq).destSel  := regWrData(31 downto 16);
+                v.config.bsadefv(iseq).rateSel  := regWrData(12 downto  0);
+                v.config.bsadefv(iseq).destSel  := regWrData(31 downto 13);
                 v.config.bsadefv(iseq).init     := '0';
               else
                 v.config.bsadefv(iseq).nToAvg   := regWrData(15 downto  0);
@@ -248,7 +248,7 @@ begin
             when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
             when HIST_CNTL  => tmpRdData(0)                   := r.config.histActive;
             when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
-            when RESOURCES  => tmpRdData              := status.fifoaddrlen &
+            when RESOURCES  => tmpRdData              := status.nallowseq &
                                                          status.seqaddrlen &
                                                          status.narraysbsa &
                                                          status.nexptseq &

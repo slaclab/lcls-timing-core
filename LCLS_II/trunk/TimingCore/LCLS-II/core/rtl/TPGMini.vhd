@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-04-13
+-- Last update: 2016-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -99,17 +99,16 @@ begin
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');
 
-  frame.mpsValid       <= '0';
-  frame.mpsLimits      <= (others => (others => '0'));
+  frame.mpsLimit       <= (others => '0');
+  frame.mpsClass       <= (others => (others => '0'));
   frame.calibrationGap <= '0';
-  frame.historyActive  <= config.histActive;
 
   -- resources
   status.nbeamseq    <= slv(conv_unsigned(0, status.nbeamseq'length));
   status.nexptseq    <= slv(conv_unsigned(0, status.nexptseq'length));
   status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA, 8));
   status.seqaddrlen  <= slv(conv_unsigned(0, 4));
-  status.fifoaddrlen <= x"0";
+  status.nallowseq   <= x"0";
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;

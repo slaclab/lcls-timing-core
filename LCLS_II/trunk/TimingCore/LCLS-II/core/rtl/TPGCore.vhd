@@ -49,6 +49,7 @@ use work.AmcCarrierPkg.all;
 entity TPGCore is
   generic (
     ASYNC_REGCLK_G : boolean := false;
+    ALLOWSEQDEPTH: integer := 2;
     BEAMSEQDEPTH : integer := 2;
     EXPSEQDEPTH  : integer := 1;
     NARRAYSBSA   : integer := 2
@@ -69,6 +70,9 @@ entity TPGCore is
     txPolarity : out sl;
     extTrigger : in  slv(4 downto 0);
 
+    mps        : in  MpsMessageType := MPS_MESSAGE_INIT_C;
+    bcs        : in  sl := '0';
+    
     rxClk   : in sl;
     rxRst   : in sl;
     rxData  : in slv(15 downto 0);
@@ -112,20 +116,21 @@ architecture TPGCore of TPGCore is
   constant FixedRateWidth        : integer := 20;
   constant FixedRateDepth        : integer := FIXEDRATEDEPTH;
 
-  signal SeqNotify    : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
-  signal SeqNotifyWr  : slv(MAXSEQDEPTH-1 downto 0);
-  signal SeqNotifyAck : slv(MAXSEQDEPTH-1 downto 0);
-  signal seqJump      : slv(MAXSEQDEPTH-1 downto 0);
-  signal seqJumpAddr  : SeqAddrArray(MAXSEQDEPTH-1 downto 0);
-  signal SeqData      : Slv17Array(MAXSEQDEPTH-1 downto 0);
-  signal seqReset     : slv(MAXSEQDEPTH-1 downto 0);
-  
+  signal SeqNotify    : SeqAddrArray(Seq'range);
+  signal SeqNotifyWr  : slv(Seq'range);
+  signal SeqNotifyAck : slv(Seq'range);
+  signal seqJump      : slv(Seq'range);
+  signal seqJumpAddr  : SeqAddrArray(Seq'range);
+  signal SeqData      : Slv17Array(Seq'range);
+  signal seqReset     : slv(Seq'range);
+  signal bcsLatch     : slv(Allow'range);
+
   signal syncReset : sl;
 
   signal pllChanged : slv(31 downto 0) := (others => '0');
   signal count186M  : slv(31 downto 0);
   signal countSyncE : slv(31 downto 0);
-
+  
   -- Interval counters
   signal countRst              : sl;
   signal intervalCnt           : slv(31 downto 0);
@@ -192,13 +197,10 @@ begin
   
   frame.version <= TIMING_MESSAGE_VERSION_C;
 
-  -- Dont know about these inputs yet
-  frame.bcsFault                  <= (others => '0');
+  frame.bcsFault(0)               <= bcsLatch(0);
 
-  frame.mpsValid                  <= '0';
-  frame.mpsLimits                 <= (others => (others => '0'));
+  -- Dont know about these inputs yet
   frame.calibrationGap            <= '0';
-  frame.historyActive             <= config.histActive;
 
   txPolarity <= config.txPolarity;
   
@@ -209,7 +211,7 @@ begin
   status.nexptseq    <= slv(conv_unsigned(EXPSEQDEPTH , 8));
   status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA  , 8));
   status.seqaddrlen  <= slv(conv_unsigned(SEQADDRLEN  , 4));
-  status.fifoaddrlen <= x"0";
+  status.nallowseq   <= slv(conv_unsigned(ALLOWSEQDEPTH,4));
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -309,135 +311,112 @@ begin
         trigO    => frame.fixedRates(i));
   end generate FixedDivider_loop;
 
-  SeqBeam_loop : for i in 0 to BEAMSEQDEPTH-1 generate
+  Seq_loop : for i in Seq'range generate
 
-    U_SeqRst : entity work.SeqReset
-      port map (
-        clk      => txClk,
-        rst      => txRst,
-        config   => config.seqJumpConfig(i),
-        frame    => frame,
-        strobe   => baseEnabled(0),
-        resetReq => config.SeqRestart(i),
-        resetO   => seqReset(i));
+    --  all jumps
+    Seq_Allow: if ((i>=Allow'right and i<Allow'right+ALLOWSEQDEPTH)) generate
+      U_Jump_i : entity work.SeqJump
+        port map (
+          clk      => txClk,
+          rst      => txRst,
+          config   => config.seqJumpConfig(i),
+          manReset => seqReset(i),
+          bcsFault => bcs,
+          mpsFault => mps.strobe,
+          mpsClass => mps.class(i),
+          jumpEn   => baseEnabled(0),
+          jumpReq  => seqJump(i),
+          jumpAddr => seqJumpAddr(i),
+          bcsLatch => bcsLatch(i),
+          mpsLimit => frame.mpsLimit(i),
+          outClass => frame.mpsClass(i));
+    end generate Seq_Allow;
+
+    --  manual jump only
+    Seq_Others: if ((i>=Beam 'right and i<Beam 'right+BEAMSEQDEPTH) or
+                    (i>=Expt 'right and i<Expt 'right+EXPSEQDEPTH)) generate
+      U_Jump_i : entity work.SeqJump
+        port map (
+          clk      => txClk,
+          rst      => txRst,
+          config   => config.seqJumpConfig(i),
+          manReset => seqReset(i),
+          bcsFault => '0',
+          mpsFault => '0',
+          mpsClass => (others=>'0'),
+          jumpEn   => baseEnabled(0),
+          jumpReq  => seqJump(i),
+          jumpAddr => seqJumpAddr(i));
+    end generate Seq_Others;
     
-    U_Jump_i : entity work.SeqJump
-      port map (
-        clk      => txClk,
-        rst      => txRst,
-        config   => config.seqJumpConfig(i),
-        manReset => seqReset(i),
-        bcsFault => frame.bcsFault(0),
-        mpsFault => (others => '0'),
-        jumpEn   => baseEnabled(0),
-        jumpReq  => seqJump(i),
-        jumpAddr => seqJumpAddr(i));
+    Seq_Gen: if ((i>=Allow'right and i<Allow'right+ALLOWSEQDEPTH) or
+                 (i>=Beam 'right and i<Beam 'right+BEAMSEQDEPTH) or
+                 (i>=Expt 'right and i<Expt 'right+EXPSEQDEPTH)) generate
+      --  Latch and synchronously assert the manual reset
+      U_SeqRst : entity work.SeqReset
+        port map (
+          clk      => txClk,
+          rst      => txRst,
+          config   => config.seqJumpConfig(i),
+          frame    => frame,
+          strobe   => baseEnabled(0),
+          resetReq => config.SeqRestart(i),
+          resetO   => seqReset(i));
+      
+      U_Seq_i : entity work.Sequence
+        port map (
+          clkA         => txClk,
+          rstA         => txRst,
+          wrEnA        => config.seqWrEn(i),
+          indexA       => config.seqAddr,
+          rdStepA      => status.seqRdData(i),
+          wrStepA      => config.seqWrData,
+          clkB         => txClk,
+          rstB         => txRst,
+          rdEnB        => baseEnabled(1),
+          waitB        => baseEnabled(4),
+          acTS         => frame.acTimeSlot,
+          acRate       => frame.acRates,
+          fixedRate    => frame.fixedRates,
+          seqReset     => seqJump(i),
+          startAddr    => seqJumpAddr(i),
+          seqState     => status.seqState(i),
+          seqNotify    => SeqNotify(i),
+          seqNotifyWr  => SeqNotifyWr(i),
+          seqNotifyAck => SeqNotifyAck(i),
+          dataO        => SeqData(i),
+          monReset     => countRst,
+          monCount     => countSeq(i));
+    end generate;
 
-    U_Seq_i : entity work.Sequence
-      port map (
-        clkA         => txClk,
-        rstA         => txRst,
-        wrEnA        => config.seqWrEn(i),
-        indexA       => config.seqAddr,
-        rdStepA      => status.seqRdData(i),
-        wrStepA      => config.seqWrData,
-        clkB         => txClk,
-        rstB         => txRst,
-        rdEnB        => baseEnabled(1),
-        waitB        => baseEnabled(4),
-        acTS         => frame.acTimeSlot,
-        acRate       => frame.acRates,
-        fixedRate    => frame.fixedRates,
-        seqReset     => seqJump(i),
-        startAddr    => seqJumpAddr(i),
-        seqState     => status.seqState(i),
-        seqNotify    => SeqNotify(i),
-        seqNotifyWr  => SeqNotifyWr(i),
-        seqNotifyAck => SeqNotifyAck(i),
-        dataO        => SeqData(i),
-        monReset     => countRst,
-        monCount     => countSeq(i));
+    NoSeq_Gen: if not ((i>=Allow'right and i<Allow'right+ALLOWSEQDEPTH) or
+                 (i>=Beam 'right and i<Beam 'right+BEAMSEQDEPTH) or
+                 (i>=Expt 'right and i<Expt 'right+EXPSEQDEPTH)) generate
+      status.seqRdData(i) <= (others=>'0');
+      status.seqState (i) <= SEQUENCER_STATE_INIT_C;
+      SeqNotify       (i) <= (others=>'0');
+      SeqNotifyWr     (i) <= '0';
+      countSeq        (i) <= (others=>'0');
+      SeqData         (i) <= (others=>'0');
+    end generate;
 
-  end generate SeqBeam_loop;
-
-  SeqExpt_loop : for i in MAXBEAMSEQDEPTH to MAXBEAMSEQDEPTH+EXPSEQDEPTH-1 generate
-
-    U_SeqRst : entity work.SeqReset
-      port map (
-        clk      => txClk,
-        rst      => txRst,
-        config   => config.seqJumpConfig(i),
-        frame    => frame,
-        strobe   => baseEnabled(0),
-        resetReq => config.SeqRestart(i),
-        resetO   => seqReset(i));
-    
-    U_Jump_i : entity work.SeqJump
-      port map (
-        clk      => txClk,
-        rst      => txRst,
-        config   => config.seqJumpConfig(i),
-        manReset => seqReset(i),
-        bcsFault => frame.bcsFault(0),
-        mpsFault => (others => '0'),
-        jumpEn   => baseEnabled(0),
-        jumpReq  => seqJump(i),
-        jumpAddr => seqJumpAddr(i));
-
-    U_Seq_i : entity work.Sequence
-      port map (
-        clkA         => txClk,
-        rstA         => txRst,
-        wrEnA        => config.seqWrEn(i),
-        indexA       => config.seqAddr,
-        rdStepA      => status.seqRdData(i),
-        wrStepA      => config.seqWrData,
-        clkB         => txClk,
-        rstB         => txRst,
-        rdEnB        => baseEnabled(1),
-        waitB        => baseEnabled(4),
-        acTS         => frame.acTimeSlot,
-        acRate       => frame.acRates,
-        fixedRate    => frame.fixedRates,
-        seqReset     => seqJump(i),
-        startAddr    => seqJumpAddr(i),
-        seqState     => status.seqState(i),
-        seqNotify    => SeqNotify(i),
-        seqNotifyWr  => SeqNotifyWr(i),
-        seqNotifyAck => SeqNotifyAck(i),
-        dataO        => SeqData(i),
-        monReset     => countRst,
-        monCount     => countSeq(i));
-
-  end generate SeqExpt_loop;
-
-  NoSeqBeam: for i in BEAMSEQDEPTH to MAXBEAMSEQDEPTH-1 generate
-    status.seqRdData(i) <= (others=>'0');
-    status.seqState (i) <= SEQUENCER_STATE_INIT_C;
-    SeqNotify       (i) <= (others=>'0');
-    SeqNotifyWr     (i) <= '0';
-    countSeq        (i) <= (others=>'0');
-    SeqData         (i) <= (others=>'0');
-  end generate NoSeqBeam;
-
-  NoSeqExpt: for i in MAXBEAMSEQDEPTH+EXPSEQDEPTH to MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH-1 generate
-    status.seqRdData(i) <= (others=>'0');
-    status.seqState (i) <= SEQUENCER_STATE_INIT_C;
-    SeqNotify       (i) <= (others=>'0');
-    SeqNotifyWr     (i) <= '0';
-    countSeq        (i) <= (others=>'0');
-    SeqData         (i) <= (others=>'0');
-  end generate NoSeqExpt;
+    NoMps_Gen: if (i>=ALLOWSEQDEPTH and i<=Allow'left) generate
+      bcsLatch(i) <= '0';
+      frame.mpsLimit(i) <= '0';
+      frame.mpsClass(i) <= (others=>'0');
+    end generate;
+  end generate Seq_loop;
 
   GEN_EXPT_DATA: for i in MAXEXPSEQDEPTH-1 downto 0 generate
-    frame.control(i+1) <= SeqData(MAXBEAMSEQDEPTH+i)(15 downto 0);
+    frame.control(i+1) <= SeqData(Expt'right+i)(15 downto 0);
   end generate GEN_EXPT_DATA;
 
   U_DestnArbiter : entity work.DestnArbiter
     port map ( clk          => txClk,
                config       => config,
-               configUpdate => config.seqRestart(MAXBEAMSEQDEPTH-1 downto 0),
-               beamSeq      => SeqData(MAXBEAMSEQDEPTH-1 downto 0),
+               configUpdate => config.seqRestart(Beam'range),
+               allowSeq     => SeqData(Allow'range),
+               beamSeq      => SeqData(Beam'range),
                beamSeqO     => frame.beamRequest,
                beamControl  => frame.control(0) );
 
@@ -464,14 +443,26 @@ begin
         bsaDone    => frame.bsaDone(i));
   end generate BsaLoop;
 
-  GEN_NULL_BSA: if NARRAYSBSA<64 generate
-    status.bsaStatus(63 downto NARRAYSBSA) <= (others => (others => '0'));
-    frame.bsaInit   (63 downto NARRAYSBSA) <= (others => '0');
-    frame.bsaActive (63 downto NARRAYSBSA) <= (others => '0');
-    frame.bsaAvgDone(63 downto NARRAYSBSA) <= (others => '0');
-    frame.bsaDone   (63 downto NARRAYSBSA) <= (others => '0');
-  end generate GEN_NULL_BSA;
+  status.bsaStatus(63 downto NARRAYSBSA) <= (others => (others => '0'));
+  frame.bsaInit   (59 downto NARRAYSBSA) <= (others => '0');
+  frame.bsaActive (59 downto NARRAYSBSA) <= (others => '0');
+  frame.bsaAvgDone(59 downto NARRAYSBSA) <= (others => '0');
+  frame.bsaDone   (59 downto NARRAYSBSA) <= (others => '0');
 
+  U_BeamDiag : entity work.BeamDiagControl
+    generic map ( NBUFFERS => 4 )
+    port map ( clk       => txClk,
+               rst       => txRst,
+               strobe    => baseEnabled(0),
+               config    => config.beamDiag,
+               mpsfault  => mps,
+               bcsfault  => bcs,
+               status    => status.beamDiag,
+               bsaInit   => frame.bsaInit   (63 downto 60),
+               bsaActive => frame.bsaActive (63 downto 60),
+               bsaAvgDone=> frame.bsaAvgDone(63 downto 60),
+               bsaDone   => frame.bsaDone   (63 downto 60) );
+  
   U_TSerializer : entity work.TimingSerializer
     generic map ( STREAMS_C => 1 )
     port map ( clk       => txClk,
