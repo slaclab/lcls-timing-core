@@ -94,11 +94,11 @@ TimingFrameRx: &TimingFrameRx
       description: Reset receive link
     #########################################################
     - address: 0x0020
-      name: Loopback
+      name: ClkSel
       sizeBits: 1
       lsBit: 4
       mode: RW
-      description: Set timing link nearend loopback
+      description: Select LCLS-I/LCLS-II Timing
     #########################################################
     - address: 0x0028
       name: TxClkCount
