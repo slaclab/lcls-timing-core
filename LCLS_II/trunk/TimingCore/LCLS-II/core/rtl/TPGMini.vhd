@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-04-27
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,8 +93,6 @@ architecture TPGMini of TPGMini is
   signal streamIds : Slv4Array(0 downto 0);
   signal advance   : slv(0 downto 0);
 begin
-
-  frame.version <= TIMING_MESSAGE_VERSION_C;
 
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');

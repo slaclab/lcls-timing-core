@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-05-01
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ package TPGPkg is
   constant MAXALLOWSEQDEPTH: natural :=16;   -- max number of allow sequences
   constant MAXBEAMSEQDEPTH : natural :=16;   -- max number of beam sequences
   constant BEAMSEQWIDTH   : natural := 32;   -- number of bits in beam sequence data
-  constant MAXEXPSEQDEPTH : natural := 17;   -- max number of expt sequences
+  constant MAXEXPSEQDEPTH : natural := 18;   -- max number of expt sequences
   constant EXPSEQWIDTH    : natural := 32;   -- number of bits in expt sequence
   constant EXPPARTITIONS  : integer :=  8;   -- number of expt partitions
   constant MAXSEQDEPTH    : integer := MAXALLOWSEQDEPTH+MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
@@ -212,13 +212,13 @@ package TPGPkg is
                           --
                           SeqRestart    : slv         (63 downto 0);
                           --
-                          histActive    : sl;
                           forceSync     : sl;
                           --  Arbiter control
                           seqDestn         : Slv4Array (MAXBEAMSEQDEPTH-1 downto 0);
                           allowRequired    : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           destnControl     : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           --
+                          beamEnergy    : Slv16Array(3 downto 0);
                           irqEnable     : sl;
                           irqFifoEnable : sl;
                           irqIntvEnable : sl;
@@ -256,11 +256,11 @@ package TPGPkg is
                           x"00005", -- 186kHz
                           x"00001"),-- 929kHz
     SeqRestart        => (others=>'0'),
-    histActive        => '1',
     forceSync         => '0',
     seqDestn          => (others=>x"0"),
     allowRequired     => (others=>x"0000"),
     destnControl      => (others=>x"0000"),
+    beamEnergy        => (others=>(others=>'0')),
     irqEnable         => '0',
     irqFifoEnable     => '0',
     irqIntvEnable     => '0',
@@ -278,18 +278,6 @@ package TPGPkg is
 
   type TPGConfigArray is array(natural range<>) of TPGConfigType;
 
-  type MpsMessageType is record
-    strobe    : sl;
-    latchDiag : sl;
-    class     : Slv4Array(15 downto 0);
-    tag       : slv(15 downto 0);
-  end record;
-  constant MPS_MESSAGE_INIT_C : MpsMessageType := (
-    strobe    => '0',
-    latchDiag => '0',
-    class     => (others=>(others=>'0')),
-    tag       => (others=>'0'));
-    
 end TPGPkg;
 
 package body TPGPkg is

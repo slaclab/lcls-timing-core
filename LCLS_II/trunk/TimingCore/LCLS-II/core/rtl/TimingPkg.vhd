@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-04-28
+-- Last update: 2016-06-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,10 +35,12 @@ package TimingPkg is
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 896;
+   constant TIMING_MESSAGE_BITS_C  : integer := 848;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
-   constant TIMING_MESSAGE_VERSION_C : slv(63 downto 0) := x"0000060504030201";
-   constant TIMING_STREAM_ID : slv(3 downto 0) := x"0";
+   constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
+
+   constant TIMING_STREAM_ID  : slv(3 downto 0) := x"0";
+   constant EXPT_STREAM_ID    : slv(3 downto 0) := x"1";
    
    type TimingRxType is record
       data       : slv(15 downto 0);
@@ -68,7 +70,7 @@ package TimingPkg is
    
 --   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
    type TimingMessageType is record
-      version         : slv(63 downto 0);
+      version         : slv(15 downto 0);
       pulseId         : slv(63 downto 0);
       timeStamp       : slv(63 downto 0);
       fixedRates      : slv(9 downto 0);
@@ -77,6 +79,7 @@ package TimingPkg is
       acTimeSlotPhase : slv(11 downto 0);
       resync          : sl;
       beamRequest     : slv(31 downto 0);
+      beamEnergy      : Slv16Array(3 downto 0);
       syncStatus      : sl;
       calibrationGap  : sl;
       bcsFault        : slv(0 downto 0);
@@ -90,7 +93,7 @@ package TimingPkg is
    end record;
 
    constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
-      version         => (others => '0'),
+      version         => TIMING_MESSAGE_VERSION_C,
       pulseId         => (others => '0'),
       timeStamp       => (others => '0'),
       fixedRates      => (others => '0'),
@@ -99,6 +102,7 @@ package TimingPkg is
       acTimeSlotPhase => (others => '0'),
       resync          => '0',
       beamRequest     => (others => '0'),
+      beamEnergy      => (others => (others => '0')),
       syncStatus      => '0',
       calibrationGap  => '0',
       bcsFault        => (others => '0'),
@@ -200,7 +204,6 @@ package TimingPkg is
    --  Experiment timing information (appended by downstream masters)
    --
    constant EXPT_MESSAGE_BITS_C : integer := 272;
-   constant EXPT_STREAM_ID    : slv(3 downto 0) := x"1";
    type ExptMessageType is record
      partitionAddr   : slv(15 downto 0);
      partitionWord   : Slv32Array(0 to 7);
@@ -244,7 +247,7 @@ package body TimingPkg is
       assignSlv(i, vector, "0000000000000");           -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
       assignSlv(i, vector, message.calibrationGap);
-      assignSlv(i, vector, message.bcsFault);          -- 1 word
+      assignSlv(i, vector, message.bcsFault);          -- 1 bit
       assignSlv(i, vector, message.mpsLimit);          -- 1 word
       for j in message.mpsClass'range loop
          assignSlv(i, vector, message.mpsClass(j));

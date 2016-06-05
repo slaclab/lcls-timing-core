@@ -23,6 +23,7 @@
 library ieee;
 use work.all;
 use work.TPGPkg.all;
+use work.AmcCarrierPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -37,7 +38,7 @@ entity BeamDiagControl is
       rst        : in  sl;
       strobe     : in  sl;
       config     : in  BeamDiagControlType;
-      mpsfault   : in  MpsMessageType;
+      mpsfault   : in  MpsMitigationMsgType;
       bcsfault   : in  sl;
       status     : out BeamDiagStatusType;
       bsaInit    : out slv(NBUFFERS-1 downto 0);

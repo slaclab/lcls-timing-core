@@ -1,0 +1,91 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+TPGStatus: &TPGStatus
+  name: TPGStatus
+  description: Timing pattern generator status
+  size: 0x400
+  registers:
+    #########################################################
+    - address: 0x0000
+      name: BsaStatNToAvg
+      sizeBits: 16
+      lsbit: 0
+      stride: 32
+      nelms: 64
+      mode: RO
+      description: BSA status num to average
+    #########################################################
+    - address: 0x0000
+      name: BsaStatAvgToWr
+      sizeBits: 16
+      lsbit: 16
+      stride: 32
+      nelms: 64
+      mode: RO
+      description: BSA status num to write
+    #########################################################
+    - address: 0x0100
+      name: CountPLL
+      sizeBits: 32
+      mode: RO
+      description: PLL Status changes
+    #########################################################
+    - address: 0x0104
+      name: Count186M
+      sizeBits: 32
+      mode: RO
+      description: 186MHz clock counts / 16
+    #########################################################
+    - address: 0x0108
+      name: CountSyncE
+      sizeBits: 32
+      mode: RO
+      description: Sync error counts
+    #########################################################
+    - address: 0x010C
+      name: CountIntv
+      sizeBits: 32
+      mode: RW
+      description: Interval timer
+    #########################################################
+    - address: 0x0110
+      name: CountBRT
+      sizeBits: 32
+      mode: RO
+      description: Base rate trigger count in interval
+    #########################################################
+    - address: 0x0114
+      name: CountTrig
+      sizeBits: 32
+      stribe: 32
+      nelms: 12
+      mode: RO
+      description: External trigger count in interval
+    #########################################################
+    - address: 0x0144
+      name: CountSeq
+      sizeBits: 32
+      stride: 32
+      nelms: 64
+      mode: RO
+      description: Sequence requests in interval
+    #########################################################
+    - address: 0x0248
+      name: CountRxClks
+      sizeBits: 32
+      mode: RW
+      description: Recovered clock count / 16
+    #########################################################
+    - address: 0x024C
+      name: CountRxDV
+      sizeBits: 32
+      mode: RW
+      description: Received data valid count

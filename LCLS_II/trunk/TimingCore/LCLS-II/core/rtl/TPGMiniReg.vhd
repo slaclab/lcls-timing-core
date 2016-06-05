@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-05-01
+-- Last update: 2016-05-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -186,7 +186,6 @@ begin
             when FIXEDRATE0+8 => v.FixedRateDivisors(8)        := regWrData(19 downto 0);
             when FIXEDRATE0+9 => v.FixedRateDivisors(9)        := regWrData(19 downto 0);
             when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
-            when HIST_CNTL  => v.config.histActive             := regWrData(0);
             when BSACMPLL   => v.bsaComplete(31 downto  0)     := v.bsaComplete(31 downto  0) and not regWrData;
             when BSACMPLU   => v.bsaComplete(63 downto 32)     := v.bsaComplete(63 downto 32) and not regWrData;
             when BSADEF to BSADEF_END =>
@@ -246,7 +245,6 @@ begin
             when FIXEDRATE0+7 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(7);
             when FIXEDRATE0+8 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(8);
             when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
-            when HIST_CNTL  => tmpRdData(0)                   := r.config.histActive;
             when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
             when RESOURCES  => tmpRdData              := status.nallowseq &
                                                          status.seqaddrlen &
@@ -278,9 +276,6 @@ begin
       end if;
       
       -- Misc. Mapping and Logic
-      if allBits(status.bcsFault,'0') then
-        v.config.histActive := '0';
-      end if;
       v.bsaComplete := v.bsaComplete or (status.bsaComplete and not r.bsaComplete);
       if allBits(r.bsaComplete,'0') then
         v.bsaCompleteQ := '0';

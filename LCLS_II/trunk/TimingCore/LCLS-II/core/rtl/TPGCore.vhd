@@ -70,7 +70,7 @@ entity TPGCore is
     txPolarity : out sl;
     extTrigger : in  slv(4 downto 0);
 
-    mps        : in  MpsMessageType := MPS_MESSAGE_INIT_C;
+    mps        : in  MpsMitigationMsgType := MPS_MITIGATION_MSG_INIT_C;
     bcs        : in  sl := '0';
     
     rxClk   : in sl;
@@ -82,8 +82,7 @@ entity TPGCore is
     diagClk : out sl;
     diagRst : out sl;
     diagBus : out DiagnosticBusType;
-    diagMa  : out AxiStreamMasterType
-    );
+    diagMa  : out AxiStreamMasterType );
 end TPGCore;
 
 
@@ -150,7 +149,10 @@ architecture TPGCore of TPGCore is
   signal seqstate0 : SequencerState := SEQUENCER_STATE_INIT_C;
   signal tvalid, tlast    : sl;
   signal tdata : slv(63 downto 0);
-  
+
+  -- Async messaging
+  signal obDebugMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;     
+
   -- Register delay for simulation
   constant tpd : time := 0.5 ns;
 
@@ -195,10 +197,9 @@ begin
   diagMa.tUser                    <= (others=>'0');
   diagMa.tStrb                    <= (others=>'0');
   
-  frame.version <= TIMING_MESSAGE_VERSION_C;
-
   frame.bcsFault(0)               <= bcsLatch(0);
-
+  frame.beamEnergy                <= config.beamEnergy;
+  
   -- Dont know about these inputs yet
   frame.calibrationGap            <= '0';
 
@@ -408,7 +409,7 @@ begin
   end generate Seq_loop;
 
   GEN_EXPT_DATA: for i in MAXEXPSEQDEPTH-1 downto 0 generate
-    frame.control(i+1) <= SeqData(Expt'right+i)(15 downto 0);
+    frame.control(i) <= SeqData(Expt'right+i)(15 downto 0);
   end generate GEN_EXPT_DATA;
 
   U_DestnArbiter : entity work.DestnArbiter
@@ -418,7 +419,7 @@ begin
                allowSeq     => SeqData(Allow'range),
                beamSeq      => SeqData(Beam'range),
                beamSeqO     => frame.beamRequest,
-               beamControl  => frame.control(0) );
+               beamControl  => open );
 
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
     U_BsaControl : entity work.BsaControl
