@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-06-05
+-- Last update: 2016-06-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,8 @@ entity TimingCore is
       ASYNC_G           : boolean          := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       AXIL_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_OK_C;
-      LCLSV1_G          : boolean          := false);
+      TIMING_MODE_G     : boolean          := true; -- true=LCLS-II
+      USE_TPGMINI_G     : boolean          := true );
    port (
 
       -- Interface to GT
@@ -78,8 +79,7 @@ end entity TimingCore;
 
 architecture rtl of TimingCore is
 
---   constant USE_TPGMINI_C      : boolean := TPGMINI_G and not TPGEN_G and not LCLSV1_G;
-   constant USE_TPGMINI_C      : boolean := true;
+   constant USE_TPGMINI_C      : boolean := USE_TPGMINI_G;
    constant FRAME_RX_AXIL_INDEX_C       : natural := 0;
    constant RAW_BUFFER_AXIL_INDEX_C     : natural := 1;
    constant MESSAGE_BUFFER_AXIL_INDEX_C : natural := 2;
@@ -182,7 +182,8 @@ begin
    U_TimingRx : entity work.TimingRx
      generic map (
        TPD_G             => TPD_G,
-       AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
+       AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C,
+       TIMING_MODE_G     => TIMING_MODE_G )
      port map (
        txClk               => gtTxUsrClk,
        rxClk               => gtRxRecClk,
@@ -301,18 +302,12 @@ begin
    -- Synchronize timing message to appTimingClk
    -------------------------------------------------------------------------------------------------
 
-   process (timingClkSelR, timingStream, timingMessage) is
-   begin
-     if timingClkSelR='0' then
-       timingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0) <= toSlv(timingStream);
-       timingStrobe  <= timingStreamStrobe;
-       timingValid   <= timingStreamValid;
-     else
-       timingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0) <= toSlv(timingMessage);
-       timingStrobe  <= timingMessageStrobe;
-       timingValid   <= timingMessageValid;
-     end if;
-   end process;
+   timingFrameSlv <= toSlv(timingMessage) when timingClkSelR='1' else
+                     (slvZero(TIMING_FRAME_LEN-TIMING_STREAM_BITS_C) & toSlv(timingStream));
+   timingStrobe   <= timingMessageStrobe  when timingClkSelR='1' else
+                     timingStreamStrobe;
+   timingValid    <= timingMessageValid   when timingClkSelR='1' else
+                     timingStreamValid;
    
    GEN_ASYNC: if ASYNC_G generate
      process (timingClkSelR, timingFrameSlv) is
