@@ -12,7 +12,9 @@ TPGControl: &TPGControl
   name: TPGControl
   description: Timing pattern generator control
   size: 0x400
-  registers:
+  #########
+  IntField:
+  #########
     #########################################################
     - address: 0x0000
       name: NAllowSeq

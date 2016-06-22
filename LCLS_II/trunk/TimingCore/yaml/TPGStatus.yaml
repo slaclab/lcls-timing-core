@@ -12,7 +12,9 @@ TPGStatus: &TPGStatus
   name: TPGStatus
   description: Timing pattern generator status
   size: 0x400
-  registers:
+  #########
+  IntField:
+  #########
     #########################################################
     - address: 0x0000
       name: BsaStatNToAvg

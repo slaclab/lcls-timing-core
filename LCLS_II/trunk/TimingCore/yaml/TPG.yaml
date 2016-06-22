@@ -8,29 +8,31 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-#include: TPGControl.yaml
-#include: TPGStatus.yaml
-#include: TPGSeqState.yaml
+include: TPGControl.yaml
+include: TPGStatus.yaml
+include: TPGSeqState.yaml
+include: TPGSeqJump.yaml
+include: TPGSeqMem.yaml
 
 Device: &TPG 
   name: TPG
   description: Timing generator module for AMC Carrier
-  size: 0x80000000
-  ############
-  peripherals:
-  ############
+  size: 0x40000
+  ########
+  MMIODev:
+  ########
     - <<: *TPGControl
-      address: 0x00000000
+      offset: 0x00000000 (is this correct?)
     ##################################################
     - <<: *TPGStatus
-      address: 0x00000400
+      offset: 0x00000400 (is this correct?)
     ##################################################
     - <<: *TPGSeqState
-      address: 0x00000800
+      offset: 0x00000800 (is this correct?)
     ##################################################
     - <<: *TPGSeqJump
-      address: 0x00000400
+      offset: 0x00000400 (is this correct?)
     ##################################################
     - <<: *TPGSeqMem
-      address: 0x00000400
+      offset: 0x00000400 (is this correct?)
     ##################################################

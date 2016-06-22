@@ -12,7 +12,9 @@ TimingFrameRx: &TimingFrameRx
   name: TimingFrameRx
   description: Status of timing frame reception
   size: 0x10000
-  registers:
+  #########
+  IntField:
+  #########
     #########################################################
     - address: 0x0000
       name: sofCount

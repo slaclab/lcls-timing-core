@@ -12,7 +12,9 @@ TPGSeqState: &TPGSeqState
   name: TPGSeqState
   description: Timing pattern sequencer state
   size: 0x400
-  registers:
+  #########
+  IntField:
+  #########
     #########################################################
     - address: 0x0000
       name: SeqIndex

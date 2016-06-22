@@ -12,7 +12,9 @@ TPGMiniCore: &TPGMiniCore
   name: TPGMiniCore
   description: Embedded timing pattern generator
   size: 0x10000
-  registers:
+  #########
+  IntField:
+  #########
     #########################################################
     - address: 0x0000
       name: TxReset
