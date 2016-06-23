@@ -17,22 +17,13 @@ TPGStatus: &TPGStatus
   #########
     #########################################################
     - address: 0x0000
-      name: BsaStatNToAvg
-      sizeBits: 16
+      name: BsaStat
+      sizeBits: 32
       lsbit: 0
       stride: 32
       nelms: 64
       mode: RO
-      description: BSA status num to average
-    #########################################################
-    - address: 0x0000
-      name: BsaStatAvgToWr
-      sizeBits: 16
-      lsbit: 16
-      stride: 32
-      nelms: 64
-      mode: RO
-      description: BSA status num to write
+      description: BSA status num averaged/written
     #########################################################
     - address: 0x0100
       name: CountPLL

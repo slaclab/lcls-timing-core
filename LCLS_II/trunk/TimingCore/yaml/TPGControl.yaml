@@ -17,39 +17,39 @@ TPGControl: &TPGControl
   #########
     #########################################################
     - address: 0x0000
-      name: NAllowSeq
-      sizeBits: 4
+      name: NBeamSeq
+      sizeBits: 8
       lsBit: 0
       mode: RO
-      description: Number of allow table sequences
+      description: Number of beam control sequences
     #########################################################
-    - address: 0x0000
-      name: SeqAddrLen
-      sizeBits: 4
-      lsBit: 4
-      mode: RO
-      description: Sequence instruction address bus width
-    #########################################################
-    - address: 0x0000
-      name: NArraysBSA
+    - address: 0x0001
+      name: NControlSeq
       sizeBits: 8
-      lsBit: 8
-      mode: RO
-      description: Number of BSA arrays
-    #########################################################
-    - address: 0x0000
-      name: NExptSeq
-      sizeBits: 8
-      lsBit: 16
+      lsBit: 0
       mode: RO
       description: Number of experiment control sequences
     #########################################################
-    - address: 0x0000
-      name: NBeamSeq
+    - address: 0x0002
+      name: NArraysBSA
       sizeBits: 8
-      lsBit: 24
+      lsBit: 0
       mode: RO
-      description: Number of beam control sequences
+      description: Number of BSA arrays
+    #########################################################
+    - address: 0x0003
+      name: SeqAddrLen
+      sizeBits: 4
+      lsBit: 0
+      mode: RO
+      description: Sequence instruction address bus width
+    #########################################################
+    - address: 0x0003
+      name: NAllowSeq
+      sizeBits: 4
+      lsBit: 4
+      mode: RO
+      description: Number of allow table sequences
     #########################################################
     - address: 0x0004
       name: ClockPeriod
@@ -231,40 +231,22 @@ TPGControl: &TPGControl
       description: Bsa buffers complete upper word
     #########################################################
     - address: 0x0200
-      name: BsaDefRateSel
-      sizeBits: 18
+      name: BsaEventSel
+      sizeBits: 32
       lsbit: 0
       stride: 64
       nelms: 64
       mode: RW
-      description: Bsa definition rate selection
-    #########################################################
-    - address: 0x0200
-      name: BsaDefDestSel
-      sizeBits: 14
-      lsbit: 18
-      stride: 64
-      nelms: 64
-      mode: RW
-      description: Bsa definition destination selection
+      description: Bsa definition rate/destination selection
     #########################################################
     - address: 0x0204
-      name: BsaDefNToAvg
-      sizeBits: 16
+      name: BsaStatSel
+      sizeBits: 32
       lsbit: 0
       stride: 64
       nelms: 64
       mode: RW
-      description: Bsa definition samples to average
-    #########################################################
-    - address: 0x0204
-      name: BsaDefAvgToWr
-      sizeBits: 16
-      lsbit: 16
-      stride: 64
-      nelms: 64
-      mode: RW
-      description: Bsa definition acquisitions to record
+      description: Bsa definition samples to average/acquire
 
 
 

@@ -96,31 +96,31 @@ TPGMiniCore: &TPGMiniCore
       mode: RO
       description: Number of beam request engines
     #########################################################
-    - address: 0x004C
+    - address: 0x004D
       name: NControlSeq
       sizeBits: 8
-      lsBit: 8
+      lsBit: 0
       mode: RO
       description: Number of control sequence engines
     #########################################################
-    - address: 0x004C
+    - address: 0x004E
       name: NArraysBsa
       sizeBits: 8
-      lsBit: 16
+      lsBit: 0
       mode: RO
       description: Number of BSA arrays
     #########################################################
-    - address: 0x004C
+    - address: 0x004F
       name: SeqAddrLen
       sizeBits: 4
-      lsBit: 24
+      lsBit: 0
       mode: RO
       description: Number of beam sequence engines
     #########################################################
-    - address: 0x004C
+    - address: 0x004F
       name: NAllowSeq
       sizeBits: 4
-      lsBit: 28
+      lsBit: 4
       mode: RO
       description: Number of beam allow engines
     #########################################################
