@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-05-26
+-- Last update: 2016-06-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,6 +50,17 @@ end TPGMini;
 -- Define architecture for top level module
 architecture TPGMini of TPGMini is
 
+  type RegType is record
+    bsaComplete : slv(63 downto 0);
+    countUpdate : slv( 1 downto 0);
+  end record;
+  constant REG_INIT_C : RegType := (
+    bsaComplete => (others=>'0'),
+    countUpdate => (others=>'0'));
+
+  signal r   : RegType := REG_INIT_C;
+  signal rin : RegType;
+  
   signal frame : TimingMessageType := TIMING_MESSAGE_INIT_C;
 
   signal baseEnable  : sl;
@@ -145,17 +156,9 @@ begin
         trigO    => frame.fixedRates(i));
   end generate FixedDivider_loop;
 
-  NoSeqBeam: for i in 0 to MAXBEAMSEQDEPTH-1 generate
-    status.seqRdData(i) <= (others=>'0');
-    status.seqState (i) <= SEQUENCER_STATE_INIT_C;
-    countSeq        (i) <= (others=>'0');
-  end generate NoSeqBeam;
-
-  NoSeqExpt: for i in MAXBEAMSEQDEPTH to MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH-1 generate
-    status.seqRdData(i) <= (others=>'0');
-    status.seqState (i) <= SEQUENCER_STATE_INIT_C;
-    countSeq        (i) <= (others=>'0');
-  end generate NoSeqExpt;
+  status.seqRdData <= (others=>(others=>'0'));
+  status.seqState  <= (others=>SEQUENCER_STATE_INIT_C);
+  countSeq         <= (others=>(others=>'0'));
 
   frame.control     <= (others=>(others=>'0'));
   frame.beamRequest <= (others=>'0');
@@ -278,29 +281,37 @@ begin
     end if;
   end process;
 
-  process (txClk, txRst, countRst, frame)
-    variable countUpdate : slv(1 downto 0);
-    variable bsaComplete : Slv64Array(1 downto 0);
-    variable bsaDoneQ    : slv(63 downto 0);
-  begin  -- process
-    bsaDoneQ                      := (others => '0');
-    bsaDoneQ(frame.bsaDone'range) := frame.bsaDone;
+  comb: process(r, txRst, countRst, frame, baseEnable) is
+    variable v : RegType;
+  begin
+    v := r;
 
+    v.bsaComplete := (others=>'0');
+    v.countUpdate := v.countUpdate(0) & '0';
+
+    if baseEnable='1' then
+      v.bsaComplete(frame.bsaDone'range) := frame.bsaDone;
+    end if;
+
+    if countRst='1' then
+      v.countUpdate := "01";
+    end if;
+
+    if txRst='1' then
+      v := REG_INIT_C;
+    end if;
+    
+    rin <= v;
+
+    status.bsaComplete <= r.bsaComplete;
+    status.countUpdate <= r.countUpdate(1);
+  end process;
+
+  seq: process (txClk) is
+  begin
     if rising_edge(txClk) then
-      status.countUpdate <= countUpdate(1);
-      countUpdate        := countUpdate(0) & '0';
-      status.bsaComplete <= bsaComplete(1);
-      bsaComplete        := (bsaComplete(0), (others => '0'));
+      r <= rin after tpd;
     end if;
-    if txRst = '1' then
-      status.countUpdate <= '0';
-      status.bsaComplete <= (others => '0');
-    end if;
-    if countRst = '1' then
-      countUpdate := "01";
-    end if;
-    bsaComplete(1) := bsaComplete(1) and not bsaDoneQ;
-    bsaComplete(0) := bsaComplete(0) or bsaDoneQ;
   end process;
 
   U_ClockTime : entity work.ClockTime

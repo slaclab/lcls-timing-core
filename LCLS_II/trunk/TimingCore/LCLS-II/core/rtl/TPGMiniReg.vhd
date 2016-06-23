@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-05-26
+-- Last update: 2016-06-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -134,6 +134,7 @@ begin
       variable regWrData    : slv(31 downto 0);
       variable tmpRdData    : slv(31 downto 0);
       variable regAddr      : slv(31 downto 2);
+      variable bsaClear     : slv(63 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -148,6 +149,7 @@ begin
       v.config.timeStampWrEn := '0';
       v.config.intervalRst   := '0';
       v.txReset              := '0';
+      bsaClear               := (others=>'0');
       
       -- Determine the transaction type
 
@@ -186,8 +188,8 @@ begin
             when FIXEDRATE0+8 => v.FixedRateDivisors(8)        := regWrData(19 downto 0);
             when FIXEDRATE0+9 => v.FixedRateDivisors(9)        := regWrData(19 downto 0);
             when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
-            when BSACMPLL   => v.bsaComplete(31 downto  0)     := v.bsaComplete(31 downto  0) and not regWrData;
-            when BSACMPLU   => v.bsaComplete(63 downto 32)     := v.bsaComplete(63 downto 32) and not regWrData;
+            when BSACMPLL   => bsaClear(31 downto  0)          := regWrData;
+            when BSACMPLU   => bsaClear(63 downto 32)          := regWrData;
             when BSADEF to BSADEF_END =>
               iseq               := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
@@ -229,12 +231,12 @@ begin
                                tmpRdData(4 downto 2)  := r.txLoopback;
                                tmpRdData(5)           := r.txInhibit;
             when BASE_CNTL  => tmpRdData(15 downto 0) := r.config.baseDivisor;
-            when PULSEIDU   => tmpRdData              := status.pulseId(63 downto 32);
-                               v.pulseId              := status.pulseId(31 downto  0);
-            when PULSEIDL   => tmpRdData              := r.pulseId;
-            when TSTAMPU    => tmpRdData              := status.timeStamp(63 downto 32);
-                               v.timeStamp            := status.timeStamp(31 downto  0);
-            when TSTAMPL    => tmpRdData              := r.timeStamp;
+            when PULSEIDL   => tmpRdData              := status.pulseId(31 downto  0);
+                               v.pulseId              := status.pulseId(63 downto 32);
+            when PULSEIDU   => tmpRdData              := r.pulseId;
+            when TSTAMPL    => tmpRdData              := status.timeStamp(31 downto  0);
+                               v.timeStamp            := status.timeStamp(63 downto 32);
+            when TSTAMPU    => tmpRdData              := r.timeStamp;
             when FIXEDRATE0+0 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(0);
             when FIXEDRATE0+1 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(1);
             when FIXEDRATE0+2 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(2);
@@ -260,6 +262,9 @@ begin
               else
                 tmpRdData := r.config.bsadefv(iseq).avgToWr & r.config.bsadefv(iseq).nToAvg;
               end if;
+            when BSASTATUS to BSASTATUS_END =>
+              iseq      := conv_integer(regAddr(7 downto 2));
+              tmpRdData := status.bsastatus(iseq);
             when CNTPLL     => tmpRdData := status.pllChanged;
             when CNT186M    => tmpRdData := status.count186M;
             when CNTSYNCE   => tmpRdData := status.countSyncE;
@@ -276,7 +281,7 @@ begin
       end if;
       
       -- Misc. Mapping and Logic
-      v.bsaComplete := v.bsaComplete or (status.bsaComplete and not r.bsaComplete);
+      v.bsaComplete := (r.bsaComplete and not bsaClear) or status.bsaComplete;
       if allBits(r.bsaComplete,'0') then
         v.bsaCompleteQ := '0';
       else

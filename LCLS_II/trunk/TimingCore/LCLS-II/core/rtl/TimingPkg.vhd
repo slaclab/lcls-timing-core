@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-06-03
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,9 +115,9 @@ package TimingPkg is
       control         => (others => (others => '0')) );
 
    function toSlv  (message              : TimingMessageType) return slv;
-   function toSlv32(message              : TimingMessageType) return Slv32Array;
+   function toSlv32(vector               : slv)               return Slv32Array;
    function toSlvNoBsa(message           : TimingMessageType) return slv;
-   function toTimingMessageType(vector : slv) return TimingMessageType;
+   function toTimingMessageType(vector : slv)                 return TimingMessageType;
 
    constant TIMING_DATABUFF_BITS_C  : integer := 416;
    constant TIMING_STREAM_BITS_C  : integer := 704;
@@ -235,7 +235,7 @@ package body TimingPkg is
       variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
       variable i      : integer                               := 0;
    begin
-      assignSlv(i, vector, message.version);           -- 4 words
+      assignSlv(i, vector, message.version);           -- 1 word
       assignSlv(i, vector, message.pulseId);           -- 4 words
       assignSlv(i, vector, message.timeStamp);         -- 4 words
       assignSlv(i, vector, message.fixedRates);        
@@ -265,22 +265,15 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    -- Convert a timing message record into a big long SLV
    -------------------------------------------------------------------------------------------------
-   function toSlv32 (message : TimingMessageType) return Slv32Array
+   function toSlv32 (vector : slv) return Slv32Array
    is
-      variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
-      variable vec32  : Slv32Array(31 downto 0) := (others => x"00000000");
-      variable i      : integer                 := 0;
+      variable vec32  : Slv32Array(vector'length/32-1 downto 0) := (others => x"00000000");
+      variable i      : integer := vector'right;
    begin
-     vector := toSlv(message);
-     if TIMING_MESSAGE_BITS_C > 32*32 then
-       for j in 0 to 31 loop
-         vec32(j) := vector(j*32+31 downto j*32);
-       end loop;  -- j
-     else
-       for j in 0 to TIMING_MESSAGE_BITS_C/32-1 loop
-         vec32(j) := vector(j*32+31 downto j*32);
-       end loop;  -- j
-     end if;
+     for j in 0 to vector'length/32-1 loop
+       vec32(j) := vector(i+31 downto i);
+       i        := i+32;
+     end loop;  -- j
      return vec32;
    end function;
 
@@ -292,7 +285,7 @@ package body TimingPkg is
       variable vector : slv(TIMING_MESSAGE_BITS_C-257 downto 0) := (others => '0');
       variable i      : integer                               := 0;
    begin
-      assignSlv(i, vector, message.version);
+--      assignSlv(i, vector, message.version);
       assignSlv(i, vector, message.pulseId);
       assignSlv(i, vector, message.timeStamp);
       assignSlv(i, vector, message.fixedRates);

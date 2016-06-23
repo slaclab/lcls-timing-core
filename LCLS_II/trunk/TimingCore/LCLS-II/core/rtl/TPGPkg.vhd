@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-05-26
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -224,6 +224,7 @@ package TPGPkg is
                           irqIntvEnable : sl;
                           irqBsaEnable  : sl;
                           irqFifoRd     : sl;
+                          diagSeq       : slv( 6 downto 0);
                           beamDiag      : BeamDiagControlType;
                           bsadefv       : BsaDefArray(MAXARRAYSBSA-1 downto 0);
                           interval      : slv(31 downto 0);
@@ -245,16 +246,26 @@ package TPGPkg is
     timeStamp         => (others=>'0'),
     timeStampWrEn     => '0',
     ACRateDivisors    => (x"00", x"3C", x"0C", x"06", x"02", x"01"), -- 60,30,10,5,1Hz
+    --FixedRateDivisors => (x"00000",
+    --                      x"00000",
+    --                      x"F4240", -- 0.93Hz
+    --                      x"186A0", -- 9.29Hz
+    --                      x"02710", -- 92.9Hz
+    --                      x"003E8", -- 929Hz
+    --                      x"00064", -- 9.29kHz
+    --                      x"0000A", -- 92.9kHz
+    --                      x"00005", -- 186kHz
+    --                      x"00001"),-- 929kHz
     FixedRateDivisors => (x"00000",
                           x"00000",
-                          x"F4240", -- 0.93Hz
-                          x"186A0", -- 9.29Hz
-                          x"02710", -- 92.9Hz
-                          x"003E8", -- 929Hz
-                          x"00064", -- 9.29kHz
-                          x"0000A", -- 92.9kHz
-                          x"00005", -- 186kHz
-                          x"00001"),-- 929kHz
+                          x"00000",
+                          x"DE2B0", -- 1.02Hz
+                          x"16378", -- 10.2Hz
+                          x"0238C", -- 102 Hz
+                          x"0038E", -- 1.02kHz
+                          x"0005B", -- 10.2kHz
+                          x"0000D", -- 71.4kHz
+                          x"00001"),-- 929 kHz
     SeqRestart        => (others=>'0'),
     forceSync         => '0',
     seqDestn          => (others=>x"0"),
@@ -266,6 +277,7 @@ package TPGPkg is
     irqIntvEnable     => '0',
     irqBsaEnable      => '0',
     irqFifoRd         => '0',
+    diagSeq           => (others=>'0'),
     beamDiag          => BEAM_DIAG_CONTROL_INIT_C,
     bsadefv           => (others=>BSADEF_INIT_C),
     interval          => x"0000488b",   -- 100 us

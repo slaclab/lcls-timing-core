@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-06-06
+-- Last update: 2016-06-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -324,17 +324,17 @@ begin
      SynchronizerFifo_1 : entity work.SynchronizerFifo
        generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => TIMING_FRAME_LEN+2)
+         DATA_WIDTH_G => TIMING_FRAME_LEN+1)
        port map (
          rst                                  => appTimingRst,
          wr_clk                               => gtRxRecClk,
-         din(0)                               => timingStrobe,
-         din(1)                               => timingValid,
-         din(TIMING_FRAME_LEN+1 downto 2)     => timingFrameSlv,
+         wr_en                                => timingStrobe,
+         din(0)                               => timingValid,
+         din(TIMING_FRAME_LEN downto 1)       => timingFrameSlv,
          rd_clk                               => appTimingClk,
-         dout(0)                              => appTimingBus.strobe,
-         dout(1)                              => appTimingBus.valid,
-         dout(TIMING_FRAME_LEN+1 downto 2)    => appTimingFrameSlv);
+         dout(0)                              => appTimingBus.valid,
+         dout(TIMING_FRAME_LEN downto 1)      => appTimingFrameSlv,
+         valid                                => appTimingBus.strobe );
    end generate;
 
    NO_GEN_ASYNC: if not ASYNC_G generate

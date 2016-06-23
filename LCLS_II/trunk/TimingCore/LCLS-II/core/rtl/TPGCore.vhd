@@ -169,13 +169,10 @@ begin
   diagRst                         <= txRst;
   -- synchronize BSA where it is stable
   diagBus.strobe                  <= baseEnabled(21);
-  diagBus.data(31 downto 28)      <= (others=>x"00000000");
+  diagBus.data(31 downto 27)      <= (others=>x"00000000");
   -- test if BSA is latching data on a different clk
-  diagBus.data(27)                <= baseEnabled & baseEnable;
-  diagBus.data(26 downto  0)      <= toSlv32(frame)(28 downto 2);
-  --diagBus_G: for i in 0 to 31 generate
-  --  diagBus.data(i)               <= slv(conv_unsigned(i,5)) & frame.timeStamp(26 downto 0);
-  --end generate diagBus_G;
+  diagBus.data(26)                <= baseEnabled & baseEnable;
+  diagBus.data(25 downto  0)      <= toSlv32(toSlv(frame)(26*32+15 downto 16));
   diagBus.timingMessage           <= diagFrame;
 
   tvalid <= '1' when seqstate0.index /= status.seqState(0).index else
@@ -531,7 +528,7 @@ begin
       tlast <= '0';
       end if;
     if rising_edge(txClk) then
-      seqstate0 <= status.seqState(0);
+      seqstate0 <= status.seqState(conv_integer(config.diagSeq));
       if (tvalid='1') then
         cnt := cnt+1;
       end if;
