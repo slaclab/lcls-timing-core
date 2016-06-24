@@ -1,0 +1,6 @@
+manual yaml/TPG.yaml
+manual yaml/TPGControl.yaml
+manual yaml/TPGMiniCore.yaml
+manual yaml/TPGSeqState.yaml
+manual yaml/TPGStatus.yaml
+manual yaml/TimingFrameRx.yaml
