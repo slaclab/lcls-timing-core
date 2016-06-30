@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-06-06
+-- Last update: 2016-06-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ begin
    SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
      generic map (
        TPD_G          => TPD_G,
-       CNT_RST_EDGE_G => false,
+       CNT_RST_EDGE_G => true,
        CNT_WIDTH_G    => 32 )
      port map (
        dataIn       => txClkCnt(txClkCnt'left),
@@ -258,7 +258,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
          USE_DSP48_G    => "no",
-         CNT_RST_EDGE_G => false,
+         CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
@@ -276,7 +276,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
          USE_DSP48_G    => "no",
-         CNT_RST_EDGE_G => false,
+         CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
@@ -294,7 +294,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
          USE_DSP48_G    => "no",
-         CNT_RST_EDGE_G => false,
+         CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
