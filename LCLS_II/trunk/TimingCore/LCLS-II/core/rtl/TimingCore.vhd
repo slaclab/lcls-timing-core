@@ -334,28 +334,16 @@ begin
        end if;
      end process;
 
-   -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
-   -- it to switch between stream and message in appTimingClk domain
-   U_Synchronizer_1 : entity work.Synchronizer
-      generic map (
+     -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
+     -- it to switch between stream and message in appTimingClk domain
+     U_Synchronizer_1 : entity work.Synchronizer
+       generic map (
          TPD_G => TPD_G)
-      port map (
+       port map (
          clk     => appTimingClk,       -- [in]
          rst     => appTimingRst,       -- [in]
          dataIn  => timingClkSelR,      -- [in]
          dataOut => timingClkSelApp);   -- [out]
-
-   GEN_ASYNC : if ASYNC_G generate
-      process (timingClkSelR, timingFrameSlv) is
-      begin
-         if timingClkSelApp = '0' then
-            appTimingBus.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
-            appTimingBus.message <= TIMING_MESSAGE_INIT_C;
-         else
-            appTimingBus.message <= toTimingMessageType(appTimingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0));
-            appTimingBus.stream  <= TIMING_STREAM_INIT_C;
-         end if;
-      end process;
 
       SynchronizerFifo_1 : entity work.SynchronizerFifo
          generic map (
@@ -381,4 +369,4 @@ begin
    appTimingBus.v1.linkUp <= not timingClkSelR;
    appTimingBus.v2.linkUp <= timingClkSelR;
 
-end architecture rtl;
+end rtl;
