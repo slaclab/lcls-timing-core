@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-06-23
+-- Last update: 2016-06-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ package TimingPkg is
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 848;
+   constant TIMING_MESSAGE_BITS_C  : integer := 912;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
 
@@ -79,7 +79,7 @@ package TimingPkg is
       acTimeSlotPhase : slv(11 downto 0);
       resync          : sl;
       beamRequest     : slv(31 downto 0);
-      beamEnergy      : Slv16Array(3 downto 0);
+      beamEnergy      : Slv16Array(0 to 3);
       syncStatus      : sl;
       calibrationGap  : sl;
       bcsFault        : slv(0 downto 0);
@@ -244,6 +244,9 @@ package body TimingPkg is
       assignSlv(i, vector, message.acTimeSlotPhase);
       assignSlv(i, vector, message.resync);            -- 1 word
       assignSlv(i, vector, message.beamRequest);       -- 2 words
+      for j in message.beamEnergy'range loop
+        assignSlv(i, vector, message.beamEnergy(j));
+      end loop;                                        -- 4 words
       assignSlv(i, vector, "0000000000000");           -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
       assignSlv(i, vector, message.calibrationGap);
@@ -325,6 +328,9 @@ package body TimingPkg is
       assignRecord(i, vector, message.acTimeSlotPhase);
       assignRecord(i, vector, message.resync);
       assignRecord(i, vector, message.beamRequest);
+      for j in message.beamEnergy'range loop
+        assignRecord(i, vector, message.beamEnergy(j));
+      end loop;                                        -- 4 words
       i := i+ 13;                        -- 3 unused bits
       assignRecord(i, vector, message.syncStatus);
       assignRecord(i, vector, message.calibrationGap);

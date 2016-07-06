@@ -169,13 +169,12 @@ begin
   diagRst                         <= txRst;
   -- synchronize BSA where it is stable
   diagBus.strobe                  <= baseEnabled(21);
-  diagBus.data(31 downto 27)      <= (others=>x"00000000");
+  diagBus.data(31 downto 28)      <= (others=>x"00000000");
   -- test if BSA is latching data on a different clk
-  diagBus.data(26)                <= baseEnabled & baseEnable;
-  diagBus.data(25 downto  0)      <= toSlv32(toSlv(frame)(26*32+15 downto 16));
+  diagBus.data(27 downto  0)      <= toSlv32(toSlv(frame)(28*32+15 downto 16));
   diagBus.timingMessage           <= diagFrame;
 
-  tvalid <= '1' when seqstate0.index /= status.seqState(0).index else
+  tvalid <= '1' when seqstate0.index /= status.seqState(conv_integer(config.diagSeq)).index else
             '0';
   
   tdata <= status.count186M(19 downto 0) &
@@ -205,11 +204,11 @@ begin
   triggerTS1q <= trigger360q and triggerTS1;
 
   -- resources
-  status.nbeamseq    <= slv(conv_unsigned(BEAMSEQDEPTH, 8));
-  status.nexptseq    <= slv(conv_unsigned(EXPSEQDEPTH , 8));
-  status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA  , 8));
-  status.seqaddrlen  <= slv(conv_unsigned(SEQADDRLEN  , 4));
-  status.nallowseq   <= slv(conv_unsigned(ALLOWSEQDEPTH,4));
+  status.nbeamseq    <= toSlv(BEAMSEQDEPTH, 8);
+  status.nexptseq    <= toSlv(EXPSEQDEPTH , 8);
+  status.narraysbsa  <= toSlv(NARRAYSBSA  , 8);
+  status.seqaddrlen  <= toSlv(SEQADDRLEN  , 4);
+  status.nallowseq   <= toSlv(ALLOWSEQDEPTH,4);
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -520,13 +519,13 @@ begin
   end process;
 
   process (txClk,tvalid)
-    variable cnt : slv(2 downto 0) := (others=>'0');
+    variable cnt : slv(8 downto 0) := (others=>'0');
   begin
-    if cnt="111" then
+    if allBits(cnt,'1') then
       tlast <= tvalid;
     else
       tlast <= '0';
-      end if;
+    end if;
     if rising_edge(txClk) then
       seqstate0 <= status.seqState(conv_integer(config.diagSeq));
       if (tvalid='1') then

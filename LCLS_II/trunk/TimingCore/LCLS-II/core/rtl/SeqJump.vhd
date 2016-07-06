@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-27
+-- Last update: 2016-06-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ begin
   mpsLimit <= r.limit;
   outClass <= r.class;
   
-  comb: process (r, config, manReset, bcsFault, mpsFault, jumpEn)
+  comb: process (r, config, manReset, bcsFault, mpsFault, mpsClass, jumpEn)
      variable v : RegType;
   begin  -- process
     v      := r;

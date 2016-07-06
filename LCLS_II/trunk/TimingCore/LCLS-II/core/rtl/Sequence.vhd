@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-03-16
+-- Last update: 2016-07-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ begin
          when SEQ_LOAD =>
             v.counterI := conv_integer(rdStepB(28 downto 27));
             v.counter  := r.count(v.counterI);
-            if (v.counterI = rdStepB(23 downto 16)) then
+            if (v.counter = rdStepB(23 downto 16)) then
                v.jump := '1';
             end if;
             v.state := SEQ_TEST_BRANCH;

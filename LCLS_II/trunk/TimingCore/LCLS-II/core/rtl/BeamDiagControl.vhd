@@ -62,6 +62,9 @@ architecture BeamDiagControl of BeamDiagControl is
      mpstag       : slv(15 downto 0);
      latchtag     : slv(11 downto 0);
      bufferUsed   : slv(NBUFFERS-1 downto 0);
+     statusL      : sl;
+     statusB      : sl;
+     statusI      : slv(1 downto 0);
      bufferStatus : Slv32Array(NBUFFERS-1 downto 0);
    end record;
    constant REG_INIT_C : RegType := (
@@ -76,7 +79,10 @@ architecture BeamDiagControl of BeamDiagControl is
      mpstag       => (others=>'0'),
      latchtag     => (others=>'0'),
      bufferUsed   => toSlv(1,NBUFFERS),
-     bufferStatus  => (others=>(others=>'0')));
+     statusL      => '0',
+     statusB      => '0',
+     statusI      => "00",
+     bufferStatus => (others=>(others=>'0')));
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -88,6 +94,9 @@ begin
   bsaAvgDone  <= r.active;
   bsaDone     <= r.done;
 
+  status.latch    <= r.statusL;
+  status.buffered <= r.statusB;
+  status.index    <= r.statusI;
   status.buffers(NBUFFERS-1 downto 0) <= r.bufferStatus;
   
   comb: process (r, rst, strobe, config, mpsfault, bcsfault ) is
@@ -95,7 +104,8 @@ begin
     variable nindex : integer;
   begin
     v := r;
-    v.manfault   := config.manfault;
+    v.manfault    := config.manfault;
+    v.statusL     := '0';
 
     for i in 0 to NBUFFERS-1 loop
       if (config.clear(i)='1' and i/=r.index) then
@@ -110,6 +120,9 @@ begin
       v.init            := (others=>'0');
       v.done            := (others=>'0');
       if (r.mpslatch='1' or r.bcslatch='1' or r.manlatch='1') then
+
+        v.statusL := '1';
+
         if not allBits(r.bufferUsed,'1') then
           nindex := 0;
           for i in NBUFFERS-1 downto 0 loop
@@ -126,6 +139,8 @@ begin
           v.latchtag        := r.latchtag+1;
           v.done(r.index)   := '1';
           v.init(nindex)    := '1';
+          v.statusB         := '1';
+          v.statusI         := toSlv(r.index,2);
         end if;
 
         v.manlatch := '0';

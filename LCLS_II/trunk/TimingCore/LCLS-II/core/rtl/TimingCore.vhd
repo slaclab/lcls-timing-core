@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-06-30
+-- Last update: 2016-07-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -144,12 +144,12 @@ architecture rtl of TimingCore is
    signal timingStream        : TimingStreamType;
    signal timingFrameSlv      : slv(TIMING_FRAME_LEN-1 downto 0);
    signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
-   signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others => '0');
-   signal timingFrameSlvValid : slv((TIMING_FRAME_LEN+31)/32 downto 0) := (others => '0');
-
-   signal timingClkSelR   : sl;
-   signal timingClkSelApp : sl;
-
+   signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others=>'0');
+   signal timingFrameSlvValid : slv((TIMING_FRAME_LEN+31)/32 downto 0) := (others=>'0');
+   
+   signal timingClkSelR       : sl;
+   signal timingClkSelApp     : sl;
+   
 begin
 
    AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
@@ -306,10 +306,33 @@ begin
 
    timingFrameSlv <= toSlv(timingMessage) when timingClkSelR = '1' else
                      (slvZero(TIMING_FRAME_LEN-TIMING_STREAM_BITS_C) & toSlv(timingStream));
-   timingStrobe <= timingMessageStrobe when timingClkSelR = '1' else
-                   timingStreamStrobe;
-   timingValid <= timingMessageValid when timingClkSelR = '1' else
-                  timingStreamValid;
+   timingStrobe   <= timingMessageStrobe  when timingClkSelR='1' else
+                     timingStreamStrobe;
+   timingValid    <= timingMessageValid   when timingClkSelR='1' else
+                     timingStreamValid;
+   
+   -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
+   -- it to switch between stream and message in appTimingClk domain
+   U_Synchronizer_1 : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appTimingClk,       -- [in]
+         rst     => appTimingRst,       -- [in]
+         dataIn  => timingClkSelR,      -- [in]
+         dataOut => timingClkSelApp);   -- [out]
+   
+   GEN_ASYNC: if ASYNC_G generate
+     process (timingClkSelApp, appTimingFrameSlv) is
+     begin
+       if timingClkSelApp='0' then
+         appTimingBus.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
+         appTimingBus.message <= TIMING_MESSAGE_INIT_C;
+       else
+         appTimingBus.message <= toTimingMessageType(appTimingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0));
+         appTimingBus.stream  <= TIMING_STREAM_INIT_C;
+       end if;
+     end process;
 
    -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
    -- it to switch between stream and message in appTimingClk domain

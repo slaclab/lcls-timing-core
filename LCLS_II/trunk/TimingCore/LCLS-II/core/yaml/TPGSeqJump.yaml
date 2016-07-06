@@ -1,0 +1,44 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+TPGSeqJump: &TPGSeqJump
+  name: TPGSeqJump
+  description: Timing pattern sequencer jump programming
+  size: 0x400
+  #########
+  IntField:
+  #########
+    #########################################################
+    - address: 0x0000
+      name: StartAddr
+      sizeBits: 12
+      lsbit: 0
+      stride: 32
+      nelms: 1024
+      mode: RW
+      description: Sequence start address
+    #########################################################
+    - address: 0x0001
+      name: Class
+      sizeBits: 4
+      lsbit: 4
+      stride: 32
+      nelms: 1024
+      mode: RW
+      description: Sequence power class
+    #########################################################
+    - address: 0x0002
+      name: StartSync
+      sizeBits: 16
+      lsbit: 0
+      stride: 32
+      nelms: 1024
+      mode: RW
+      description: Start synchronization condition

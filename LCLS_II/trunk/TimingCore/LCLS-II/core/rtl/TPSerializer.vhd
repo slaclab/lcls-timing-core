@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-13
+-- Last update: 2016-06-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ architecture TPSerializer of TPSerializer is
   
 begin
 
-  streamId      <= slv(conv_unsigned(Id,streamId'length));
+  streamId      <= toSlv(Id,streamId'length);
   stream.ready  <= r.ready;
   stream.data   <= r.word_stream(15 downto 0);
   stream.offset <= (others=>'0');

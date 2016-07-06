@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-06-22
+-- Last update: 2016-06-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -113,10 +113,10 @@ begin
   frame.calibrationGap <= '0';
 
   -- resources
-  status.nbeamseq    <= slv(conv_unsigned(0, status.nbeamseq'length));
-  status.nexptseq    <= slv(conv_unsigned(0, status.nexptseq'length));
-  status.narraysbsa  <= slv(conv_unsigned(NARRAYSBSA, 8));
-  status.seqaddrlen  <= slv(conv_unsigned(0, 4));
+  status.nbeamseq    <= toSlv(0, status.nbeamseq'length);
+  status.nexptseq    <= toSlv(0, status.nexptseq'length);
+  status.narraysbsa  <= toSlv(NARRAYSBSA, 8);
+  status.seqaddrlen  <= toSlv(0, 4);
   status.nallowseq   <= x"0";
 
   status.pulseId    <= frame.pulseId;

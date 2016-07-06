@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-06-23
+-- Last update: 2016-06-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -118,10 +118,16 @@ package TPGPkg is
   type SequencerStateArray  is array (natural range <>) of SequencerState;
 
   type BeamDiagStatusType is record
-    buffers : Slv32Array(3 downto 0);
+    latch    : sl;
+    buffered : sl;
+    index    : slv(1 downto 0);
+    buffers  : Slv32Array(3 downto 0);
   end record;
   constant BEAM_DIAG_STATUS_INIT_C : BeamDiagStatusType := (
-    buffers => (others=>(others=>'0')) );
+    latch    => '0',
+    buffered => '0',
+    index    => (others=>'0'),
+    buffers  => (others=>(others=>'0')) );
   
   type TPGStatusType is record
                           -- implemented resources
@@ -223,6 +229,7 @@ package TPGPkg is
                           irqFifoEnable : sl;
                           irqIntvEnable : sl;
                           irqBsaEnable  : sl;
+                          irqFaultEnable: sl;
                           irqFifoRd     : sl;
                           diagSeq       : slv( 6 downto 0);
                           beamDiag      : BeamDiagControlType;
@@ -276,6 +283,7 @@ package TPGPkg is
     irqFifoEnable     => '0',
     irqIntvEnable     => '0',
     irqBsaEnable      => '0',
+    irqFaultEnable    => '0',
     irqFifoRd         => '0',
     diagSeq           => (others=>'0'),
     beamDiag          => BEAM_DIAG_CONTROL_INIT_C,

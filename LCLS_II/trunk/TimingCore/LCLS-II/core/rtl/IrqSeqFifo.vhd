@@ -54,49 +54,61 @@ architecture behavior of IrqSeqFifo is
 
   signal fullb   : sl;
   signal wrEnQ   : sl;
-  signal wrDataQ : slv(SEQADDRLEN+4 downto 0);
+  signal wrDataQ : slv(31 downto 0);
+  signal emptyb  : sl;
+  signal wrAckb  : slv(MAXSEQDEPTH-1 downto 0);
+
+   component ila_0
+     port ( clk    : in sl;
+            probe0 : in slv(255 downto 0) );
+     end component;
 
 begin
 
-  full <= fullb;
-  rdData(31 downto SEQADDRLEN+5) <= (others=>'0');
+  U_ILA : ila_0
+    port map ( clk                    => wrClk,
+               probe0(0)              => '0',
+               probe0(1)              => wrEnQ,
+               probe0(2)              => fullb,
+               probe0(3)              => emptyb,
+               probe0(35 downto  4)   => wrDataQ,
+               probe0(MAXSEQDEPTH+35 downto 36) => wrEn,
+               probe0(2*MAXSEQDEPTH+35 downto MAXSEQDEPTH+36) => wrAckb,
+               probe0(255 downto 2*MAXSEQDEPTH+36) => (others=>'0') );
+
+  full  <= fullb;
+  empty <= emptyb;
+  wrAck <= wrAckb;
   
   U_FIFO : entity work.FifoAsync
-    generic map ( DATA_WIDTH_G => SEQADDRLEN+5 )
+    generic map ( DATA_WIDTH_G => 32 )
     port map ( rst    => rst,
                wr_clk => wrClk,
                wr_en  => wrEnQ,
                din    => wrDataQ,
-               wr_data_count => open,
-               wr_ack        => open,
-               overflow      => open,
-               prog_full     => open,
-               full          => fullb,
-               not_full      => open,
+               full   => fullb,
                rd_clk => rdClk,
                rd_en  => rdEn,
-               dout   => rdData(SEQADDRLEN+4 downto 0),
-               rd_data_count => open,
-               valid         => open,
-               underflow     => open,
-               prog_empty    => open,
-               almost_empty  => open,
-               empty         => empty );
+               dout   => rdData,
+               empty  => emptyb );
 
   process (wrEn,wrData,fullb)
+    variable q : integer;
   begin  -- process
-    wrEnQ   <= '0';
-    wrAck   <= (others=>'0');
-    wrDataQ <= "00000" & slv(wrData(0));
+    q := 0;
     Seq_loop: for i in 0 to MAXSEQDEPTH-1 loop
       if wrEn(i)='1' then
-        wrDataQ  <= slv(conv_unsigned(i,5)) &
-                    slv(wrData(i));
-        wrAck    <= (others=>'0');
-        wrAck(i) <= not fullb;
-        wrEnQ    <= not fullb;
+        q := i;
       end if;
     end loop Seq_loop;
+
+    wrEnQ   <= wrEn(q) and not fullb;
+    wrAckb  <= (others=>'0');
+    wrDataQ  <= slv(conv_unsigned(q,32-SEQADDRLEN)) &
+                slv(wrData(q));
+    if wrEn(q)='1' then
+      wrAckb(q) <= not fullb;
+    end if;
   end process;
   
 end behavior;
