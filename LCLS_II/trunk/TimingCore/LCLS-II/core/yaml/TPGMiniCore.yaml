@@ -145,10 +145,10 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def rate selection
     #########################################################
-    - offset: 0x0200
+    - offset: 0x0201
       name: BsaDestSel
       sizeBits: 19
-      lsBit: 13
+      lsBit: 5
       stride: 64
       nelms: 64
       mode: RW
@@ -163,10 +163,10 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def num acquisitions to average
     #########################################################
-    - offset: 0x0204
+    - offset: 0x0208
       name: BsaAvgToWr
       sizeBits: 16
-      lsBit: 16
+      lsBit: 0
       stride: 64
       nelms: 64
       mode: RW

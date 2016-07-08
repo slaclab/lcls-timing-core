@@ -151,10 +151,10 @@ TPGControl: &TPGControl
       mode: RW
       description: Enable BSA complete interrupt
     #########################################################
-    - offset: 0x0074
+    - offset: 0x0077
       name: IrqEnable
       sizeBits: 1
-      lsBit: 31
+      lsBit: 7
       mode: RW
       description: Enable interrupts
     #########################################################
