@@ -16,66 +16,66 @@ TPGMiniCore: &TPGMiniCore
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: TxReset
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Reset transmit link
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: TxPolarity
       sizeBits: 1
       lsBit: 1
       mode: RW
       description: Invert transmit link polarity
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: TxLoopback
       sizeBits: 3
       lsBit: 2
       mode: RW
       description: Set transmit link loopback
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: TxInhibit
       sizeBits: 1
       lsBit: 5
       mode: RW
       description: Set transmit link inhibit
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: BaseControl
       sizeBits: 16
       lsBit: 0
       mode: RW
       description: Base rate trigger divisor
     #########################################################
-    - address: 0x0008
+    - offset: 0x0008
       name: PulseIdL
       sizeBits: 32
       mode: RW
       description: Pulse ID lower word
     #########################################################
-    - address: 0x000C
+    - offset: 0x000C
       name: PulseIdU
       sizeBits: 32
       mode: RW
       description: Pulse ID upper word
     #########################################################
-    - address: 0x0010
+    - offset: 0x0010
       name: TStampL
       sizeBits: 32
       mode: RW
       description: Time stamp lower word
     #########################################################
-    - address: 0x0014
+    - offset: 0x0014
       name: TStampU
       sizeBits: 32
       mode: RW
       description: Time stamp upper word
     #########################################################
-    - address: 0x0018
+    - offset: 0x0018
       name: FixedRateDiv
       sizeBits: 32
       stride: 32
@@ -83,60 +83,60 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: Fixed rate marker divisors
     #########################################################
-    - address: 0x0040
+    - offset: 0x0040
       name: RateReload
       sizeBits: 1
       mode: WO
       description: Loads cached fixed rate marker divisors
     #########################################################
-    - address: 0x004C
+    - offset: 0x004C
       name: NBeamSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of beam request engines
     #########################################################
-    - address: 0x004D
+    - offset: 0x004D
       name: NControlSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of control sequence engines
     #########################################################
-    - address: 0x004E
+    - offset: 0x004E
       name: NArraysBsa
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of BSA arrays
     #########################################################
-    - address: 0x004F
+    - offset: 0x004F
       name: SeqAddrLen
       sizeBits: 4
       lsBit: 0
       mode: RO
       description: Number of beam sequence engines
     #########################################################
-    - address: 0x004F
+    - offset: 0x004F
       name: NAllowSeq
       sizeBits: 4
       lsBit: 4
       mode: RO
       description: Number of beam allow engines
     #########################################################
-    - address: 0x0050
+    - offset: 0x0050
       name: BsaCompleteL
       sizeBits: 32
       mode: RW
       description: BSA complete lower word
     #########################################################
-    - address: 0x0054
+    - offset: 0x0054
       name: BsaCompleteU
       sizeBits: 32
       mode: RW
       description: BSA complete upper word
     #########################################################
-    - address: 0x0200
+    - offset: 0x0200
       name: BsaRateSel
       sizeBits: 13
       lsBit: 0
@@ -145,7 +145,7 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def rate selection
     #########################################################
-    - address: 0x0200
+    - offset: 0x0200
       name: BsaDestSel
       sizeBits: 19
       lsBit: 13
@@ -154,7 +154,7 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def destination selection
     #########################################################
-    - address: 0x0204
+    - offset: 0x0204
       name: BsaNtoAvg
       sizeBits: 16
       lsBit: 0
@@ -163,7 +163,7 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def num acquisitions to average
     #########################################################
-    - address: 0x0204
+    - offset: 0x0204
       name: BsaAvgToWr
       sizeBits: 16
       lsBit: 16
@@ -172,31 +172,31 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: BSA def num averages to record
     #########################################################
-    - address: 0x0500
+    - offset: 0x0500
       name: PllCnt
       sizeBits: 32
       mode: RO
       description: Count of PLL status changes 
     #########################################################
-    - address: 0x0504
+    - offset: 0x0504
       name: ClkCnt
       sizeBits: 32
       mode: RO
       description: Count of local 186M clock
     #########################################################
-    - address: 0x0508
+    - offset: 0x0508
       name: SyncErrCnt
       sizeBits: 32
       mode: RO
       description: Count of 71k sync errors
     #########################################################
-    - address: 0x050C
+    - offset: 0x050C
       name: CountInterval
       sizeBits: 32
       mode: RW
       description: Interval counters update period
     #########################################################
-    - address: 0x0510
+    - offset: 0x0510
       name: BaseRateCount
       sizeBits: 32
       mode: RO

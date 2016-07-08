@@ -16,16 +16,16 @@ TPGSeqJump: &TPGSeqJump
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: StartAddr
       sizeBits: 12
       lsbit: 0
       stride: 32
       nelms: 1024
       mode: RW
-      description: Sequence start address
+      description: Sequence start offset
     #########################################################
-    - address: 0x0001
+    - offset: 0x0001
       name: Class
       sizeBits: 4
       lsbit: 4
@@ -34,7 +34,7 @@ TPGSeqJump: &TPGSeqJump
       mode: RW
       description: Sequence power class
     #########################################################
-    - address: 0x0002
+    - offset: 0x0002
       name: StartSync
       sizeBits: 16
       lsbit: 0

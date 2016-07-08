@@ -16,93 +16,93 @@ TimingFrameRx: &TimingFrameRx
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: sofCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: Start of frame count
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: eofCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: End of frame count
     #########################################################
-    - address: 0x0008
+    - offset: 0x0008
       name: FidCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: Valid frame count
     #########################################################
-    - address: 0x000C
+    - offset: 0x000C
       name: CrcErrCount
       sizeBits: 32
       mode: RO
       description: CRC error count
     #########################################################
-    - address: 0x0010
+    - offset: 0x0010
       name: RxClkCount
       sizeBits: 32
       mode: RO
       description: Recovered clock count div 16
     #########################################################
-    - address: 0x0014
+    - offset: 0x0014
       name: RxRstCount
       sizeBits: 32
       mode: RO
       description: Receive link reset count
     #########################################################
-    - address: 0x0018
+    - offset: 0x0018
       name: RxDecErrCount
       sizeBits: 32
       mode: RO
       description: Receive 8b/10b decode error count
     #########################################################
-    - address: 0x001C
+    - offset: 0x001C
       name: RxDspErrCount
       sizeBits: 32
       mode: RO
       description: Receive disparity error count
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: RxCountReset
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Reset receive counters
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: RxLinkUp
       sizeBits: 1
       lsBit: 1
       mode: RO
       description: Receive link status
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: RxPolarity
       sizeBits: 1
       lsBit: 2
       mode: RW
       description: Invert receive link polarity 
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: RxReset
       sizeBits: 1
       lsBit: 3
       mode: RW
       description: Reset receive link
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: ClkSel
       sizeBits: 1
       lsBit: 4
       mode: RW
       description: Select LCLS-I/LCLS-II Timing
     #########################################################
-    - address: 0x0028
+    - offset: 0x0028
       name: TxClkCount
       sizeBits: 32
       lsBit: 0

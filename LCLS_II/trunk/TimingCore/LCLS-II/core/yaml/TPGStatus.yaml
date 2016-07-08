@@ -16,7 +16,7 @@ TPGStatus: &TPGStatus
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: BsaStat
       sizeBits: 32
       lsbit: 0
@@ -25,37 +25,37 @@ TPGStatus: &TPGStatus
       mode: RO
       description: BSA status num averaged/written
     #########################################################
-    - address: 0x0100
+    - offset: 0x0100
       name: CountPLL
       sizeBits: 32
       mode: RO
       description: PLL Status changes
     #########################################################
-    - address: 0x0104
+    - offset: 0x0104
       name: Count186M
       sizeBits: 32
       mode: RO
       description: 186MHz clock counts / 16
     #########################################################
-    - address: 0x0108
+    - offset: 0x0108
       name: CountSyncE
       sizeBits: 32
       mode: RO
       description: Sync error counts
     #########################################################
-    - address: 0x010C
+    - offset: 0x010C
       name: CountIntv
       sizeBits: 32
       mode: RW
       description: Interval timer
     #########################################################
-    - address: 0x0110
+    - offset: 0x0110
       name: CountBRT
       sizeBits: 32
       mode: RO
       description: Base rate trigger count in interval
     #########################################################
-    - address: 0x0114
+    - offset: 0x0114
       name: CountTrig
       sizeBits: 32
       stribe: 32
@@ -63,7 +63,7 @@ TPGStatus: &TPGStatus
       mode: RO
       description: External trigger count in interval
     #########################################################
-    - address: 0x0144
+    - offset: 0x0144
       name: CountSeq
       sizeBits: 32
       stride: 32
@@ -71,13 +71,13 @@ TPGStatus: &TPGStatus
       mode: RO
       description: Sequence requests in interval
     #########################################################
-    - address: 0x0248
+    - offset: 0x0248
       name: CountRxClks
       sizeBits: 32
       mode: RW
       description: Recovered clock count / 16
     #########################################################
-    - address: 0x024C
+    - offset: 0x024C
       name: CountRxDV
       sizeBits: 32
       mode: RW

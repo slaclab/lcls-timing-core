@@ -16,16 +16,16 @@ TPGSeqState: &TPGSeqState
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: SeqIndex
       sizeBits: 32
       lsbit: 0
       stride: 64
       nelms: 50
       mode: RO
-      description: Sequencer instruction address
+      description: Sequencer instruction offset
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: SeqCondACount
       sizeBits: 8
       lsbit: 0
@@ -34,7 +34,7 @@ TPGSeqState: &TPGSeqState
       mode: RO
       description: BSA condition A counter
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: SeqCondBCount
       sizeBits: 8
       lsbit: 8
@@ -43,7 +43,7 @@ TPGSeqState: &TPGSeqState
       mode: RO
       description: BSA condition B counter
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: SeqCondCCount
       sizeBits: 8
       lsbit: 16
@@ -52,7 +52,7 @@ TPGSeqState: &TPGSeqState
       mode: RO
       description: BSA condition C counter
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: SeqCondDCount
       sizeBits: 8
       lsbit: 24

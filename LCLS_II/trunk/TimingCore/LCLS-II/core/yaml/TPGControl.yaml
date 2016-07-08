@@ -16,85 +16,85 @@ TPGControl: &TPGControl
   IntField:
   #########
     #########################################################
-    - address: 0x0000
+    - offset: 0x0000
       name: NBeamSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of beam control sequences
     #########################################################
-    - address: 0x0001
+    - offset: 0x0001
       name: NControlSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of experiment control sequences
     #########################################################
-    - address: 0x0002
+    - offset: 0x0002
       name: NArraysBSA
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of BSA arrays
     #########################################################
-    - address: 0x0003
+    - offset: 0x0003
       name: SeqAddrLen
       sizeBits: 4
       lsBit: 0
       mode: RO
-      description: Sequence instruction address bus width
+      description: Sequence instruction offset bus width
     #########################################################
-    - address: 0x0003
+    - offset: 0x0003
       name: NAllowSeq
       sizeBits: 4
       lsBit: 4
       mode: RO
       description: Number of allow table sequences
     #########################################################
-    - address: 0x0004
+    - offset: 0x0004
       name: ClockPeriod
       sizeBits: 32
       lsBit: 0
       mode: RW
       description: Period of beam synchronous clock (ns/cycle)
     #########################################################
-    - address: 0x0008
+    - offset: 0x0008
       name: BaseControl
       sizeBits: 16
       mode: RW
       description: Base rate control divisor
     #########################################################
-    - address: 0x000C
+    - offset: 0x000C
       name: ACDelay
       sizeBits: 32
       mode: RW
       description: Adjustable delay for power line crossing measurement
     #########################################################
-    - address: 0x0010
+    - offset: 0x0010
       name: PulseIdL
       sizeBits: 32
       mode: RW
       description: Pulse ID lower word
     #########################################################
-    - address: 0x0014
+    - offset: 0x0014
       name: PulseIdU
       sizeBits: 32
       mode: RW
       description: Pulse ID upper word
     #########################################################
-    - address: 0x0018
+    - offset: 0x0018
       name: TStampL
       sizeBits: 32
       mode: RW
       description: Time stamp lower word
     #########################################################
-    - address: 0x001C
+    - offset: 0x001C
       name: TStampU
       sizeBits: 32
       mode: RW
       description: Time stamp upper word
     #########################################################
-    - address: 0x0020
+    - offset: 0x0020
       name: ACRateDiv
       sizeBits: 8
       stride: 8
@@ -102,7 +102,7 @@ TPGControl: &TPGControl
       mode: RW
       description: Power line synch rate marker divisors
     #########################################################
-    - address: 0x0040
+    - offset: 0x0040
       name: FixedRateDiv
       sizeBits: 32
       stride: 32
@@ -110,107 +110,107 @@ TPGControl: &TPGControl
       mode: RW
       description: Fixed rate marker divisors
     #########################################################
-    - address: 0x0068
+    - offset: 0x0068
       name: RateReload
       sizeBits: 1
       mode: WO
       description: Loads cached ac/fixed rate marker divisors
     #########################################################
-    - address: 0x0070
+    - offset: 0x0070
       name: Sync
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Sync status with 71kHz
     #########################################################
-    - address: 0x0074
+    - offset: 0x0074
       name: IrqFifoEnable
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Enable sequence checkpoint interrupt
     #########################################################
-    - address: 0x0074
+    - offset: 0x0074
       name: IrqFifoEnable
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Enable sequence checkpoint interrupt
     #########################################################
-    - address: 0x0074
+    - offset: 0x0074
       name: IrqIntvEnable
       sizeBits: 1
       lsBit: 1
       mode: RW
       description: Enable interval counter interrupt
     #########################################################
-    - address: 0x0074
+    - offset: 0x0074
       name: IrqBsaEnable
       sizeBits: 1
       lsBit: 2
       mode: RW
       description: Enable BSA complete interrupt
     #########################################################
-    - address: 0x0074
+    - offset: 0x0074
       name: IrqEnable
       sizeBits: 1
       lsBit: 31
       mode: RW
       description: Enable interrupts
     #########################################################
-    - address: 0x0078
+    - offset: 0x0078
       name: IrqIntvStatus
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Interval counters updated
     #########################################################
-    - address: 0x0078
+    - offset: 0x0078
       name: IrqBsaStatus
       sizeBits: 1
       lsBit: 1
       mode: RO
       description: BSA complete updated
     #########################################################
-    - address: 0x007C
+    - offset: 0x007C
       name: SeqFifoData
       sizeBits: 32
       mode: RO
       description: Sequence checkpoint data
     #########################################################
-    - address: 0x0080
+    - offset: 0x0080
       name: BeamSeqCntl
       sizeBits: 32
       nelms: 16
       mode: RW
       description: Beam sequence arbitration control
     #########################################################
-    - address: 0x0100
+    - offset: 0x0100
       name: SeqResetL
       sizeBits: 32
       mode: WO
       description: Sequence restart lower word
     #########################################################
-    - address: 0x0104
+    - offset: 0x0104
       name: SeqResetU
       sizeBits: 32
       mode: WO
       description: Sequence restart upper word
     #########################################################
-    - address: 0x0120
+    - offset: 0x0120
       name: BeamEnergy
       sizeBits: 32
       nelms: 4
       mode: RW
       description: Beam energy meta data
     #########################################################
-    - address: 0x01E4
+    - offset: 0x01E4
       name: BeamDiagCntl
       sizeBits: 32
       mode: WO
       description: Beam diagnostic buffer control
     #########################################################
-    - address: 0x01E8
+    - offset: 0x01E8
       name: BeamDiagStat
       sizeBits: 32
       stride: 32
@@ -218,19 +218,19 @@ TPGControl: &TPGControl
       mode: RO
       description: Beam diagnostic latched status
     #########################################################
-    - address: 0x01F8
+    - offset: 0x01F8
       name: BsaCompleteL
       sizeBits: 32
       mode: RW
       description: Bsa buffers complete lower word
     #########################################################
-    - address: 0x01FC
+    - offset: 0x01FC
       name: BsaCompleteU
       sizeBits: 32
       mode: RW
       description: Bsa buffers complete upper word
     #########################################################
-    - address: 0x0200
+    - offset: 0x0200
       name: BsaEventSel
       sizeBits: 32
       lsbit: 0
@@ -239,7 +239,7 @@ TPGControl: &TPGControl
       mode: RW
       description: Bsa definition rate/destination selection
     #########################################################
-    - address: 0x0204
+    - offset: 0x0204
       name: BsaStatSel
       sizeBits: 32
       lsbit: 0
