@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-06-30
+-- Last update: 2016-07-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
@@ -78,7 +79,8 @@ architecture rtl of TimingRx is
       cntRst         : sl;
       rxPolarity     : sl;
       rxReset        : sl;
-      messageDelay   : slv(15 downto 0);
+      messageDelay   : slv(19 downto 0);
+      messageDelayRst: sl;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record AxilRegType;
@@ -88,7 +90,8 @@ architecture rtl of TimingRx is
       cntRst         => '0',
       rxPolarity     => '0',
       rxReset        => '0',
-      messageDelay   => toSlv(20000, 16),
+      messageDelay   => (others=>'0'),
+      messageDelayRst=> '1',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -111,6 +114,8 @@ architecture rtl of TimingRx is
    signal txClkCntS           : slv(31 downto 0);
    signal rxRst               : slv( 1 downto 0);
    signal clkSelR             : sl;
+   signal messageDelayR       : slv(19 downto 0);
+   signal messageDelayRst     : sl;
 begin
 
    U_RxLcls1 : entity work.TimingStreamRx
@@ -134,6 +139,8 @@ begin
          rxClk               => rxClk,
          rxRst               => rxRst(1),
          rxData              => rxData,
+         messageDelay        => messageDelayR,
+         messageDelayRst     => messageDelayRst,
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          exptMessage         => exptMessage,
@@ -203,6 +210,12 @@ begin
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
+
+      v.messageDelayRst := '0';
+      if (axilStatus.writeEnable='1' and
+          std_match(axilWriteMaster.awaddr(7 downto 0),x"24")) then
+        v.messageDelayRst := '1';
+      end if;
 
       --if (axilRst = '1') then
       --   v := AXIL_REG_INIT_C;
@@ -323,6 +336,17 @@ begin
                 dataIn  => axilR.clkSel,
                 dataOut => clkSelR );
 
+   SyncDelayRst : entity work.Synchronizer
+     port map ( clk     => rxClk,
+                dataIn  => axilR.messageDelayRst,
+                dataOut => messageDelayRst );
+
+   SyncDelay : entity work.SynchronizerVector
+     generic map ( WIDTH_G => axilR.messageDelay'length )
+     port map ( clk     => rxClk,
+                dataIn  => axilR.messageDelay,
+                dataOut => messageDelayR );
+   
    rxRst(0)      <= '1' when (rxRstDone='0' or clkSelR='1') else '0';
    rxRst(1)      <= '1' when (rxRstDone='0' or clkSelR='0') else '0';
    timingClkSel  <= axilR.clkSel;

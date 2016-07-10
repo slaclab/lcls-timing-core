@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-07-06
+-- Last update: 2016-07-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -149,7 +149,9 @@ architecture rtl of TimingCore is
    
    signal timingClkSelR       : sl;
    signal timingClkSelApp     : sl;
-   
+
+   signal itxData             : Slv16Array(1 downto 0);
+   signal itxDataK            : Slv2Array (1 downto 0);
 begin
 
    AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
@@ -277,8 +279,8 @@ begin
             txClk          => gtTxUsrClk,
             txRst          => gtTxUsrRst,
             txRdy          => '1',
-            txData         => timingPhy.data,
-            txDataK        => timingPhy.dataK,
+            txData         => itxData,
+            txDataK        => itxDataK,
             txPolarity     => timingPhy.polarity,
             txResetO       => gtTxReset,
             txLoopback     => gtLoopback,
@@ -289,6 +291,12 @@ begin
             axiReadSlave   => locAxilReadSlaves (FRAME_TX_AXIL_INDEX_C),
             axiWriteMaster => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
+
+      timingPhy.data  <= itxData(0) when timingClkSelR='0' else
+                         itxData(1);
+      timingPhy.dataK <= itxDataK(0) when timingClkSelR='0' else
+                         itxDataK(1);
+                        
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate

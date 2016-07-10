@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-06-29
+-- Last update: 2016-07-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -159,6 +159,7 @@ package TimingPkg is
    function toTimingDataBuffType(vector : slv) return TimingDataBuffType;
    function toTimingStreamType(vector : slv) return TimingStreamType;
    function toSlv(stream : TimingStreamType) return slv;
+   function toSlv(dbuff  : TimingDataBuffType) return slv;
 
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
@@ -398,6 +399,22 @@ package body TimingPkg is
       assignSlv(i, vector, stream.dbuff.edefMinor);
       assignSlv(i, vector, stream.dbuff.edefMajor);
       assignSlv(i, vector, stream.dbuff.edefInit);
+      return vector;
+   end function;
+
+   function toSlv (dbuff : TimingDataBuffType) return slv
+   is
+      variable vector : slv(TIMING_DATABUFF_BITS_C-1 downto 0) := (others => '0');
+      variable i      : integer                              := 0;
+   begin
+      assignSlv(i, vector, dbuff.dtype);
+      assignSlv(i, vector, dbuff.version);
+      assignSlv(i, vector, dbuff.dmod);
+      assignSlv(i, vector, dbuff.epicsTime);
+      assignSlv(i, vector, dbuff.edefAvgDn);
+      assignSlv(i, vector, dbuff.edefMinor);
+      assignSlv(i, vector, dbuff.edefMajor);
+      assignSlv(i, vector, dbuff.edefInit);
       return vector;
    end function;
 

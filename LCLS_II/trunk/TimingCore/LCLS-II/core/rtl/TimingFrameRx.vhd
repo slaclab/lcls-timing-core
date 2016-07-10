@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-06-28
+-- Last update: 2016-07-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,6 +39,9 @@ entity TimingFrameRx is
       rxRst               : in  sl;
       rxData              : in  TimingRxType;
 
+      messageDelay        : in  slv(19 downto 0);
+      messageDelayRst     : in  sl;
+      
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
@@ -85,9 +88,17 @@ architecture rtl of TimingFrameRx is
    signal streamIds          : Slv4Array        (1 downto 0) := ( x"1", x"0" );
    signal advance            : slv              (1 downto 0);
    signal sof, eof, crcErr   : sl;
-
+   signal dframe0            : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal dvalid0            : sl;
+   signal doverflow0         : sl;
+   signal dframe1            : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
+   signal dvalid1            : sl;
+   signal dstrobe            : sl;
+   signal delayRst           : sl;
 begin
 
+   delayRst <= rxRst or messageDelayRst;
+   
    U_Deserializer : entity work.TimingDeserializer
       generic map ( STREAMS_C => 2 )
       port map ( clk       => rxClk,
@@ -101,48 +112,40 @@ begin
                  eof       => eof,
                  crcErr    => crcErr );
 
-   comb: process (r, rxRst, advance, streams, fiducial) is
-      variable v : RegType;
-   begin
-      v := r;
-      v.timingMessageStrobe:= '0';
+   U_Delay0 : entity work.TimingSerialDelay
+     generic map ( NWORDS_G => TIMING_MESSAGE_WORDS_C,
+                   FDEPTH_G => 100 )
+     port map ( clk        => rxClk,
+                rst        => delayRst,
+                delay      => messageDelay,
+                fiducial_i => fiducial,
+                advance_i  => advance(0),
+                stream_i   => streams(0),
+                frame_o    => dframe0,
+                strobe_o   => dstrobe,
+                valid_o    => dvalid0,
+                overflow_o => doverflow0);
 
-      if advance(0)='1' then
-        v.timingMessageShift := streams(0).data & r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 16);
-      end if;
-      if advance(1)='1' then
-        v.exptMessageShift   := streams(1).data & r.exptMessageShift(EXPT_MESSAGE_BITS_C-1 downto 16);
-      end if;
+   U_Delay1 : entity work.TimingSerialDelay
+     generic map ( NWORDS_G => EXPT_MESSAGE_BITS_C/16,
+                   FDEPTH_G => 100 )
+     port map ( clk        => rxClk,
+                rst        => delayRst,
+                delay      => messageDelay,
+                fiducial_i => fiducial,
+                advance_i  => advance(1),
+                stream_i   => streams(1),
+                frame_o    => dframe1,
+                strobe_o   => open,
+                valid_o    => dvalid1 );
 
-      if (fiducial='1') then
-        v.timingMessageStrobe := '1';
-        v.timingMessage       := toTimingMessageType(r.timingMessageShift(TIMING_MESSAGE_BITS_C-1 downto 0));
-        v.timingMessageValid  := streams(0).ready;
-        v.exptMessageValid    := streams(1).ready;
-        v.exptMessage         := toExptMessageType(r.exptMessageShift(EXPT_MESSAGE_BITS_C-1 downto 0));
-      end if;
+   timingMessage       <= toTimingMessageType(dframe0);
+   timingMessageStrobe <= dstrobe;
+   timingMessageValid  <= dvalid0;
+   exptMessage         <= toExptMessageType(dframe1);
+   exptMessageValid    <= dvalid1;
 
-      if (rxRst='1') then
-        v := REG_INIT_C;
-      end if;
-      
-      rin <= v;
-   end process comb;
-   
-   seq : process (rxClk) is
-   begin
-      if (rising_edge(rxClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-   timingMessage       <= r.timingMessage;
-   timingMessageStrobe <= r.timingMessageStrobe;
-   timingMessageValid  <= r.timingMessageValid;
-   exptMessage         <= r.exptMessage;
-   exptMessageValid    <= r.exptMessageValid;
-
-   staData             <= crcErr & fiducial & eof & sof;
+   staData             <= (crcErr or doverflow0) & fiducial & eof & sof;
    
 end architecture rtl;
 

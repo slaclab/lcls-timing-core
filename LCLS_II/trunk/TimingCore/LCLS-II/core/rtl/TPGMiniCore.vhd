@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-04-28
+-- Last update: 2016-07-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ entity TPGMiniCore is
      txClk           : in  sl;
      txRst           : in  sl;
      txRdy           : in  sl;
-     txData          : out slv(15 downto 0);
-     txDataK         : out slv( 1 downto 0);
+     txData          : out Slv16Array(1 downto 0);
+     txDataK         : out Slv2Array (1 downto 0);
      txPolarity      : out sl;
      txResetO        : out sl;
      txLoopback      : out slv( 2 downto 0);
@@ -119,7 +119,18 @@ begin  -- rtl
          txClk    => txClk,
          txRst    => txRst,
          txRdy    => txRdy,
-         txData   => txData,
-         txDataK  => txDataK );
+         txData   => txData (1),
+         txDataK  => txDataK(1) );
+
+   TPGMiniStream_Inst : entity work.TPGMiniStream
+      port map (
+         -- Register Interface
+         config   => config,
+         -- TPG Interface
+         txClk    => txClk,
+         txRst    => txRst,
+         txRdy    => txRdy,
+         txData   => txData (0),
+         txDataK  => txDataK(0) );
 
 end rtl;
