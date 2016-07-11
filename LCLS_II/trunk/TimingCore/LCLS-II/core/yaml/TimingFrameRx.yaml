@@ -102,6 +102,13 @@ TimingFrameRx: &TimingFrameRx
       mode: RW
       description: Select LCLS-I/LCLS-II Timing
     #########################################################
+    - offset: 0x0024
+      name: MsgDelay
+      sizeBits: 20
+      lsBit: 0
+      mode: RW
+      description: LCLS-II timing frame pipeline delay (186MHz clks)
+    #########################################################
     - offset: 0x0028
       name: TxClkCount
       sizeBits: 32
