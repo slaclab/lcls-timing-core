@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-02-28
+-- Last update: 2016-03-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ begin
          v.ssiMaster.data(SHIFT_SIZE_G-1 downto 0) := r.message(SHIFT_SIZE_G-1 downto 0);
 
          v.ssiMaster.valid := '1';
-         v.active          := ite(v.ssiMaster.eof = '1', '0', '1');
+         v.active          := not v.ssiMaster.eof;
          v.message             := slvZero(SHIFT_SIZE_G) & r.message(VECTOR_SIZE_G-1 downto SHIFT_SIZE_G);
       end if;
 
