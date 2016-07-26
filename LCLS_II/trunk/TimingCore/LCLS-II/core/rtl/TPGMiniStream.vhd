@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-07-09
+-- Last update: 2016-07-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,9 @@ use work.StdRtlPkg.all;
 use work.TimingPkg.all;
 
 entity TPGMiniStream is
+  generic (
+    AC_PERIOD : integer := 119000000/360
+    );
   port (
     config     : in  TPGConfigType;
 
@@ -55,7 +58,8 @@ architecture TPGMiniStream of TPGMiniStream is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
 
-  constant SbaseDivisor : slv(18 downto 0) := toSlv(119000000/360,19);
+  constant SbaseDivisor : slv(18 downto 0) := toSlv(AC_PERIOD,19);
+--  constant SbaseDivisor : slv(18 downto 0) := toSlv(119000000/360,19);
 --  constant SbaseDivisor : slv(18 downto 0) := toSlv(1190000/360,19); -- for simulation
 
   constant FixedRateDiv : IntegerArray(0 to 6) := ( 3, 6, 12, 36, 72, 360, 720 );

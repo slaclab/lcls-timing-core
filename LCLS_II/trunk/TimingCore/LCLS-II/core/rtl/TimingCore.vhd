@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-07-09
+-- Last update: 2016-07-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -361,6 +361,7 @@ begin
    NO_GEN_ASYNC : if not ASYNC_G generate
       appTimingBus.stream  <= timingStream;
       appTimingBus.message <= timingMessage;
+      appTimingBus.strobe  <= timingStrobe;
    end generate;
 
    appTimingBus.v1.linkUp <= not timingClkSelR;

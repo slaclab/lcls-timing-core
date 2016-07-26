@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-07
+-- Last update: 2016-07-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -164,11 +164,7 @@ begin
     end case;
 
     
-    if (rxData.decErr /= "00" or rxData.dspErr /= X"00") then
-      v.dstate := IDLE_S;
-    end if;
-
-    if (rxRst='1') then
+    if (rxData.decErr /= "00" or rxData.dspErr /= X"00" or rxRst='1') then
       v := REG_INIT_C;
     end if;
 

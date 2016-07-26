@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-07
--- Last update: 2016-07-09
+-- Last update: 2016-07-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ begin
                 valid             => valid_msg,
                 overflow          => full_msg );
 
-   process (r, rst, delay, valid_cnt, dout_cnt, valid_msg, dout_msg, dout_rdy, firstW ) is
+   process (r, rst, delay, valid_cnt, dout_cnt, valid_msg, dout_msg, dout_rdy, firstW, fiducial_i, advance_i ) is
      variable v : RegType;
    begin
      v := r;

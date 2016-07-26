@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-07-08
+-- Last update: 2016-07-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -79,6 +79,7 @@ architecture rtl of TimingRx is
       cntRst         : sl;
       rxPolarity     : sl;
       rxReset        : sl;
+      rxDown         : sl;
       messageDelay   : slv(19 downto 0);
       messageDelayRst: sl;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -90,6 +91,7 @@ architecture rtl of TimingRx is
       cntRst         => '0',
       rxPolarity     => '0',
       rxReset        => '0',
+      rxDown         => '0',
       messageDelay   => (others=>'0'),
       messageDelayRst=> '1',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -132,9 +134,6 @@ begin
          staData             => staData(0) );
 
    U_RxLcls2 : entity work.TimingFrameRx
-       generic map (
-         TPD_G             => TPD_G,
-         AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C )
        port map (
          rxClk               => rxClk,
          rxRst               => rxRst(1),
@@ -205,6 +204,7 @@ begin
       axilSlaveRegisterW(X"20", 2, v.rxPolarity);
       axilSlaveRegisterW(X"20", 3, v.rxReset);
       axilSlaveRegisterW(X"20", 4, v.clkSel);
+      axilSlaveRegisterW(X"20", 5, v.rxDown);
 
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
       axilSlaveRegisterR(X"28", 0, txClkCntS);
@@ -217,6 +217,10 @@ begin
         v.messageDelayRst := '1';
       end if;
 
+      if axilRxLinkUp='0' then
+        v.rxDown := '1';
+      end if;
+      
       --if (axilRst = '1') then
       --   v := AXIL_REG_INIT_C;
       --end if;
@@ -224,7 +228,8 @@ begin
       axilRin <= v;
 
       rxPolarity     <= axilR.rxPolarity;
-      rxReset        <= axilR.rxReset;
+      --rxReset        <= axilR.rxReset;
+      rxReset        <= axilR.rxReset or (axilRxLinkUp and (stv(2) or stv(3)));
       axilReadSlave  <= axilR.axilReadSlave;
       axilWriteSlave <= axilR.axilWriteSlave;
 

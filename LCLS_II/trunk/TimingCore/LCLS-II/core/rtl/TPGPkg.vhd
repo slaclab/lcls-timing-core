@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-06-29
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -205,8 +205,8 @@ package TPGPkg is
   
   type TPGConfigType is record
                           clock_step      : slv( 4 downto 0);
-                          clock_remainder : slv( 4 downto 0);
-                          clock_divisor   : slv( 4 downto 0);
+                          clock_remainder : slv( 7 downto 0);
+                          clock_divisor   : slv( 7 downto 0);
                           txPolarity    : sl;
                           baseDivisor   : slv(15 downto 0);
                           pulseId       : slv(63 downto 0);
@@ -243,9 +243,9 @@ package TPGPkg is
                         end record;
 
   constant TPG_CONFIG_INIT_C : TPGConfigType := (
-    clock_step        => "00101",
-    clock_remainder   => "00101",
-    clock_divisor     => "01101",
+    clock_step        => toSlv( 5,5),
+    clock_remainder   => toSlv( 5,8),
+    clock_divisor     => toSlv(13,8),
     txPolarity        => '0',
     baseDivisor       => x"00C8",
     pulseId           => (others=>'0'),

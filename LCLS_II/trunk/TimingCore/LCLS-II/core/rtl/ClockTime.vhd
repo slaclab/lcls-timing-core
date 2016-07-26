@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-19
+-- Last update: 2016-07-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,11 +30,14 @@ use UNISIM.VCOMPONENTS.ALL;
 use work.StdRtlPkg.all;
 
 entity ClockTime is
+   generic (
+      FRACTION_DEPTH_G : integer := 5
+      );
    port (
       -- Defaults to a step duration of 5-5/13 nanoseconds (1300/7 MHz)
       step               : in slv( 4 downto 0) := slv(conv_unsigned( 5,5));
-      remainder          : in slv( 4 downto 0) := slv(conv_unsigned( 5,5));
-      divisor            : in slv( 4 downto 0) := slv(conv_unsigned(13,5));
+      remainder          : in slv( FRACTION_DEPTH_G-1 downto 0) := slv(conv_unsigned( 5,FRACTION_DEPTH_G));
+      divisor            : in slv( FRACTION_DEPTH_G-1 downto 0) := slv(conv_unsigned(13,FRACTION_DEPTH_G));
       -- Clock and reset
       rst                : in  sl;
       clkA               : in  sl;
@@ -57,11 +60,14 @@ architecture rtl of ClockTime is
   signal dataSL, dataNL, dataNU : slv(31 downto 0);
   signal wrDataB        : slv(wrData'range);
   signal dataB          : slv(wrData'range) := (others=>'0');
-  signal remB           : slv( 4 downto 0) := (others=>'0');
-  signal remN           : slv( 4 downto 0);
-  
+  signal remB           : slv( FRACTION_DEPTH_G downto 0) := (others=>'0');
+  signal remN           : slv( FRACTION_DEPTH_G downto 0);
+  signal urem           : slv( FRACTION_DEPTH_G downto 0);
+  signal udiv           : slv( FRACTION_DEPTH_G downto 0);
 begin
   step32 <= x"000000" & "000" & step;
+  urem   <= '0' & remainder;
+  udiv   <= '0' & divisor;
   
   U_WrFifo : entity work.SynchronizerFifo
     generic map ( DATA_WIDTH_G => 64 )
@@ -86,7 +92,7 @@ begin
                dout   => rdData );
 
   dataSL <= (wrDataB(31 downto 0))      when (valid='1' and wrEnB='1')  else
-            (dataB(31 downto 0)+step32) when (remB+remainder < divisor) else
+            (dataB(31 downto 0)+step32) when (remB+urem < udiv) else
             (dataB(31 downto 0)+step32+1);
 
   dataNL <= (dataSL) when (dataSL<one_sec) else
@@ -97,8 +103,8 @@ begin
             (dataB(63 downto 32)+1);
 
   remN  <= (others=>'0')    when (valid='1' and wrEnB='1') else
-           (remB+remainder) when (remB+remainder < divisor) else
-           (remB+remainder-divisor);
+           (remB+urem) when (remB+urem < udiv) else
+           (remB+urem-udiv);
   
   process (clkB, rst)
   begin

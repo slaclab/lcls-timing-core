@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-09
+-- Last update: 2016-07-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,14 +26,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
 use work.TimingPkg.all;
 
 entity TimingFrameRx is
-
-   generic (
-      TPD_G             : time            := 1 ns;
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
       rxRst               : in  sl;

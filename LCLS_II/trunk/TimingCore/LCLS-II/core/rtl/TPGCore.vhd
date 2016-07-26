@@ -620,6 +620,8 @@ begin
 
   
   U_ClockTime : entity work.ClockTime
+    generic map (
+      FRACTION_DEPTH_G => config.clock_remainder'length )
     port map (
       step      => config.clock_step,
       remainder => config.clock_remainder,
