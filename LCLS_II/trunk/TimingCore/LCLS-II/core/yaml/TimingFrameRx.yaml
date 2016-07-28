@@ -123,4 +123,15 @@ TimingFrameRx: &TimingFrameRx
       mode: RO
       description: Transmit clock counter div 16
     #########################################################
-
+  #########
+  Commands:
+  #########
+    #########################################################
+    - name: ClearRxCounters
+      description: "Clear the Rx status counters."
+      sequence:
+        - entry: RxCountReset
+          value: 0x1
+        - entry: RxCountReset
+          value: 0x0               
+    #########################################################
