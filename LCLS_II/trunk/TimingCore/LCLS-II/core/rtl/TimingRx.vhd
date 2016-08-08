@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-07-26
+-- Last update: 2016-07-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ use work.TimingPkg.all;
 entity TimingRx is
    generic (
       TPD_G               : time            := 1 ns;
-      TIMING_MODE_G       : boolean         := true;
       AXIL_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
@@ -87,7 +86,7 @@ architecture rtl of TimingRx is
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      clkSel         => ite(TIMING_MODE_G,'1','0'),
+      clkSel         => '1',
       cntRst         => '0',
       rxPolarity     => '0',
       rxReset        => '0',
