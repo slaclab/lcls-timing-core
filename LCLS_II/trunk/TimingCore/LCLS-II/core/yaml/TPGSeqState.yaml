@@ -20,7 +20,7 @@ TPGSeqState: &TPGSeqState
       name: SeqIndex
       sizeBits: 32
       lsbit: 0
-      stride: 64
+      stride: 8
       nelms: 50
       mode: RO
       description: Sequencer instruction offset
@@ -29,7 +29,7 @@ TPGSeqState: &TPGSeqState
       name: SeqCondACount
       sizeBits: 8
       lsbit: 0
-      stride: 64
+      stride: 8
       nelms: 50
       mode: RO
       description: BSA condition A counter
@@ -38,7 +38,7 @@ TPGSeqState: &TPGSeqState
       name: SeqCondBCount
       sizeBits: 8
       lsbit: 8
-      stride: 64
+      stride: 8
       nelms: 50
       mode: RO
       description: BSA condition B counter
@@ -47,7 +47,7 @@ TPGSeqState: &TPGSeqState
       name: SeqCondCCount
       sizeBits: 8
       lsbit: 16
-      stride: 64
+      stride: 8
       nelms: 50
       mode: RO
       description: BSA condition C counter
@@ -56,7 +56,7 @@ TPGSeqState: &TPGSeqState
       name: SeqCondDCount
       sizeBits: 8
       lsbit: 24
-      stride: 64
+      stride: 8
       nelms: 50
       mode: RO
       description: BSA condition D counter

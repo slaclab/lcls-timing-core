@@ -78,7 +78,7 @@ TPGMiniCore: &TPGMiniCore
     - offset: 0x0018
       name: FixedRateDiv
       sizeBits: 32
-      stride: 32
+      stride: 4
       nelms: 10
       mode: RW
       description: Fixed rate marker divisors
@@ -140,7 +140,7 @@ TPGMiniCore: &TPGMiniCore
       name: BsaRateSel
       sizeBits: 13
       lsBit: 0
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: BSA def rate selection
@@ -149,7 +149,7 @@ TPGMiniCore: &TPGMiniCore
       name: BsaDestSel
       sizeBits: 19
       lsBit: 5
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: BSA def destination selection
@@ -158,7 +158,7 @@ TPGMiniCore: &TPGMiniCore
       name: BsaNtoAvg
       sizeBits: 16
       lsBit: 0
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: BSA def num acquisitions to average
@@ -167,7 +167,7 @@ TPGMiniCore: &TPGMiniCore
       name: BsaAvgToWr
       sizeBits: 16
       lsBit: 0
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: BSA def num averages to record

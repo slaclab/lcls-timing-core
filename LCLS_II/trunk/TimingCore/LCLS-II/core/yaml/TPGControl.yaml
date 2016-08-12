@@ -97,7 +97,7 @@ TPGControl: &TPGControl
     - offset: 0x0020
       name: ACRateDiv
       sizeBits: 8
-      stride: 8
+      stride: 1
       nelms: 6
       mode: RW
       description: Power line synch rate marker divisors
@@ -105,7 +105,7 @@ TPGControl: &TPGControl
     - offset: 0x0040
       name: FixedRateDiv
       sizeBits: 32
-      stride: 32
+      stride: 4
       nelms: 10
       mode: RW
       description: Fixed rate marker divisors
@@ -213,7 +213,7 @@ TPGControl: &TPGControl
     - offset: 0x01E8
       name: BeamDiagStat
       sizeBits: 32
-      stride: 32
+      stride: 4
       nelms: 4
       mode: RO
       description: Beam diagnostic latched status
@@ -234,7 +234,7 @@ TPGControl: &TPGControl
       name: BsaEventSel
       sizeBits: 32
       lsbit: 0
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: Bsa definition rate/destination selection
@@ -243,7 +243,7 @@ TPGControl: &TPGControl
       name: BsaStatSel
       sizeBits: 32
       lsbit: 0
-      stride: 64
+      stride: 8
       nelms: 64
       mode: RW
       description: Bsa definition samples to average/acquire

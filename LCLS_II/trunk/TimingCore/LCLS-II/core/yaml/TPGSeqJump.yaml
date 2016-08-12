@@ -20,7 +20,7 @@ TPGSeqJump: &TPGSeqJump
       name: StartAddr
       sizeBits: 12
       lsbit: 0
-      stride: 32
+      stride: 4
       nelms: 1024
       mode: RW
       description: Sequence start offset
@@ -29,7 +29,7 @@ TPGSeqJump: &TPGSeqJump
       name: Class
       sizeBits: 4
       lsbit: 4
-      stride: 32
+      stride: 4
       nelms: 1024
       mode: RW
       description: Sequence power class
@@ -38,7 +38,7 @@ TPGSeqJump: &TPGSeqJump
       name: StartSync
       sizeBits: 16
       lsbit: 0
-      stride: 32
+      stride: 4
       nelms: 1024
       mode: RW
       description: Start synchronization condition

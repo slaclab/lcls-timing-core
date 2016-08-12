@@ -20,7 +20,7 @@ TPGStatus: &TPGStatus
       name: BsaStat
       sizeBits: 32
       lsbit: 0
-      stride: 32
+      stride: 4
       nelms: 64
       mode: RO
       description: BSA status num averaged/written
@@ -66,7 +66,7 @@ TPGStatus: &TPGStatus
     - offset: 0x0144
       name: CountSeq
       sizeBits: 32
-      stride: 32
+      stride: 4
       nelms: 64
       mode: RO
       description: Sequence requests in interval
