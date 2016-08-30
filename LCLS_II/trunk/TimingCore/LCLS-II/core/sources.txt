@@ -18,6 +18,7 @@ vhdl work rtl/TimingFrameRx.vhd
 vhdl work rtl/TimingStreamRx.vhd
 vhdl work rtl/TimingStreamTx.vhd
 vhdl work rtl/TimingGthCoreWrapper.vhd
+vhdl work rtl/GthRxAlignCheck.vhd
 ## This one for local oscillator reference
 #vhdl work rtl/TimingGthCoreWrapper_polarity.vhd
 ## This one for external timing reference

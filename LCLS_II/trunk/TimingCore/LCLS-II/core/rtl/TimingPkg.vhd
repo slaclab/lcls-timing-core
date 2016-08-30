@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-08
+-- Last update: 2016-08-26
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -53,6 +53,28 @@ package TimingPkg is
       dataK     => "00",
       decErr    => "00",
       dspErr    => "00" );
+
+   type TimingPhyControlType is record
+      reset        : sl;
+      inhibit      : sl;
+      polarity     : sl;
+      bufferByRst  : sl;
+   end record;
+   constant TIMING_PHY_CONTROL_INIT_C : TimingPhyControlType := (
+      reset       => '0',
+      inhibit     => '0',
+      polarity    => '0',
+      bufferByRst => '0' );
+
+   type TimingPhyStatusType is record
+      resetDone    : sl;
+      bufferByDone : sl;
+      bufferByErr  : sl;
+   end record;
+   constant TIMING_PHY_STATUS_INIT_C : TimingPhyStatusType := (
+      resetDone    => '0',
+      bufferByDone => '0',
+      bufferByErr  => '0' );
    
    type TimingSerialType is record
       ready      : sl;                -- tx: new segment ready,
@@ -194,12 +216,12 @@ package TimingPkg is
    type TimingPhyType is record
       dataK      : slv(1 downto 0);
       data       : slv(15 downto 0);
-      polarity   : sl;
+      control    : TimingPhyControlType;
    end record;
    constant TIMING_PHY_INIT_C : TimingPhyType := (
       dataK      => "00",
       data       => x"0000",
-      polarity   => '0' );
+      control    => TIMING_PHY_CONTROL_INIT_C );
 
    --
    --  Experiment timing information (appended by downstream masters)

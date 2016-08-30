@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-05-06
+-- Last update: 2016-08-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.TimingPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -53,12 +54,11 @@ entity TimingGthCoreWrapper is
       gtTxN     : out sl;
 
       -- Rx ports
-      rxReset        : in  sl;
+      rxControl      : in  TimingPhyControlType;
+      rxStatus       : out TimingPhyStatusType;
       rxUsrClkActive : in  sl;
       rxCdrStable    : out sl;
-      rxResetDone    : out sl;
       rxUsrClk       : in  sl;
-      rxPolarity     : in  sl := '0';
       rxData         : out slv(15 downto 0);
       rxDataK        : out slv(1 downto 0);
       rxDispErr      : out slv(1 downto 0);
@@ -66,12 +66,10 @@ entity TimingGthCoreWrapper is
       rxOutClk       : out sl;
 
       -- Tx Ports
-      txInhibit      : in  sl;
-      txPolarity     : in  sl;
-      txReset        : in  sl;
+      txControl      : in  TimingPhyControlType;
+      txStatus       : out TimingPhyStatusType;
       txUsrClk       : in  sl;
       txUsrClkActive : in  sl;
-      txResetDone    : out sl;
       txData         : in  slv(15 downto 0);
       txDataK        : in  slv(1 downto 0);
       txOutClk       : out sl;
@@ -209,12 +207,14 @@ architecture rtl of TimingGthCoreWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
          );
    end component;
-
+   
    signal rxCtrl0Out   : slv(15 downto 0);
    signal rxCtrl1Out   : slv(15 downto 0);
    signal rxCtrl3Out   : slv(7 downto 0);
    signal txoutclk_out : sl;
+   signal txoutclkb    : sl;
    signal rxoutclk_out : sl;
+   signal rxoutclkb    : sl;
 
    signal drpAddr : slv(8 downto 0);
    signal drpDi   : slv(15 downto 0);
@@ -222,27 +222,33 @@ architecture rtl of TimingGthCoreWrapper is
    signal drpWe   : sl;
    signal drpDO   : slv(15 downto 0);
    signal drpRdy  : sl;
+   signal txbypassrst  : sl;
+   signal rxbypassrst  : sl;
+   signal rxRst         : sl;
+   signal bypassdone    : sl;
+   signal bypasserr     : sl;
    
-begin
+ begin
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLite : entity work.AxiLiteEmpty
+     port map ( axiClk    => axilClk,
+                axiClkRst => axilRst,
+                axiReadMaster  => axilReadMaster,
+                axiReadSlave   => axilReadSlave,
+                axiWriteMaster => axilWriteMaster,
+                axiWriteSlave  => axilWriteSlave );
+
+   rxStatus.bufferByDone <= bypassdone;
+   rxStatus.bufferByErr  <= bypasserr;
+   
+   U_AlignCheck : entity work.GthRxAlignCheck
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_RESP_DECERR_C,
-         COMMON_CLK_G     => true,
-         EN_ARBITRATION_G => false,
-         TIMEOUT_G        => 4096,
-         ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)      
+        ADDR_WIDTH_G => 9 )
       port map (
-         -- AXI-Lite Port
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         -- DRP Interface
+         resetIn         => rxControl.reset,
+         resetDone       => bypassdone,
+         resetErr        => bypasserr,
+         resetOut        => rxRst,
          drpClk          => axilClk,
          drpRst          => axilRst,
          drpRdy          => drpRdy,
@@ -252,28 +258,29 @@ begin
          drpDi           => drpDi,
          drpDo           => drpDo);
 
+
    GEN_EXTREF : if EXTREF_G generate
       U_TimingGthCore : TimingGth_clksel
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
             gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
-            gtwiz_buffbypass_tx_reset_in(0)       => '0',
+            gtwiz_buffbypass_tx_reset_in(0)       => txbypassrst,
             gtwiz_buffbypass_tx_start_user_in(0)  => '0',
             gtwiz_buffbypass_tx_done_out          => open,
             gtwiz_buffbypass_tx_error_out         => open,
-            gtwiz_buffbypass_rx_reset_in(0)       => '0',
+            gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_rx_done_out          => open,  -- Might need this
-            gtwiz_buffbypass_rx_error_out         => open,  -- Might need this
+            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
+            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
-            gtwiz_reset_tx_datapath_in(0)         => txReset,
+            gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
-            gtwiz_reset_rx_datapath_in(0)         => rxReset,
+            gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
-            gtwiz_reset_tx_done_out(0)            => txResetDone,
-            gtwiz_reset_rx_done_out(0)            => rxResetDone,
+            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
+            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
@@ -289,7 +296,7 @@ begin
             rxcommadeten_in(0)                    => '1',
             rxmcommaalignen_in(0)                 => '1',
             rxpcommaalignen_in(0)                 => '1',
-            rxpolarity_in(0)                      => rxPolarity,
+            rxpolarity_in(0)                      => rxControl.polarity,
             rxusrclk_in(0)                        => rxUsrClk,
             rxusrclk2_in(0)                       => rxUsrClk,
             tx8b10ben_in(0)                       => '1',
@@ -297,8 +304,8 @@ begin
             txctrl1_in                            => X"0000",
             txctrl2_in(1 downto 0)                => txDataK,
             txctrl2_in(7 downto 2)                => (others => '0'),
-            txinhibit_in(0)                       => txInhibit,
-            txpolarity_in(0)                      => txPolarity,
+            txinhibit_in(0)                       => txControl.inhibit,
+            txpolarity_in(0)                      => txControl.polarity,
             txusrclk_in(0)                        => txUsrClk,
             txusrclk2_in(0)                       => txUsrClk,
             drpdo_out                             => drpDo,
@@ -313,9 +320,9 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out(0)                 => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open);
+            txpmaresetdone_out(0)                 => open );
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -329,7 +336,7 @@ begin
             CLR     => '0',
             CLRMASK => '1',
             DIV     => "000",           -- Divide-by-1
-            O       => txOutClk);
+            O       => txoutclkb);
 
       TIMING_RECCLK_BUFG_GT : BUFG_GT
          port map (
@@ -339,7 +346,7 @@ begin
             CLR     => '0',
             CLRMASK => '1',
             DIV     => "000",           -- Divide-by-1
-            O       => rxOutClk);
+            O       => rxoutclkb);
    end generate;
 
    LOCREF_G : if not EXTREF_G generate
@@ -347,23 +354,23 @@ begin
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
             gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
-            gtwiz_buffbypass_tx_reset_in(0)       => '0',
+            gtwiz_buffbypass_tx_reset_in(0)       => txbypassrst,
             gtwiz_buffbypass_tx_start_user_in(0)  => '0',
             gtwiz_buffbypass_tx_done_out          => open,
             gtwiz_buffbypass_tx_error_out         => open,
-            gtwiz_buffbypass_rx_reset_in(0)       => '0',
+            gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_rx_done_out          => open,  -- Might need this
-            gtwiz_buffbypass_rx_error_out         => open,  -- Might need this
+            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
+            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
-            gtwiz_reset_tx_datapath_in(0)         => txReset,
+            gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
-            gtwiz_reset_rx_datapath_in(0)         => rxReset,
+            gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
-            gtwiz_reset_tx_done_out(0)            => txResetDone,
-            gtwiz_reset_rx_done_out(0)            => rxResetDone,
+            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
+            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
@@ -379,7 +386,7 @@ begin
             rxcommadeten_in(0)                    => '1',
             rxmcommaalignen_in(0)                 => '1',
             rxpcommaalignen_in(0)                 => '1',
-            rxpolarity_in(0)                      => rxPolarity,
+            rxpolarity_in(0)                      => rxControl.polarity,
             rxusrclk_in(0)                        => rxUsrClk,
             rxusrclk2_in(0)                       => rxUsrClk,
             tx8b10ben_in(0)                       => '1',
@@ -387,8 +394,8 @@ begin
             txctrl1_in                            => X"0000",
             txctrl2_in(1 downto 0)                => txDataK,
             txctrl2_in(7 downto 2)                => (others => '0'),
-            txinhibit_in(0)                       => txInhibit,
-            txpolarity_in(0)                      => txPolarity,
+            txinhibit_in(0)                       => txControl.inhibit,
+            txpolarity_in(0)                      => txControl.polarity,
             txusrclk_in(0)                        => txUsrClk,
             txusrclk2_in(0)                       => txUsrClk,
             drpdo_out                             => drpDo,
@@ -403,9 +410,9 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out(0)                 => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open);
+            txpmaresetdone_out(0)                 => open );
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -419,7 +426,7 @@ begin
             CLR     => '0',
             CLRMASK => '1',
             DIV     => "001",           -- Divide-by-2
-            O       => txOutClk);
+            O       => txoutclkb);
 
       TIMING_RECCLK_BUFG_GT : BUFG_GT
          port map (
@@ -429,6 +436,23 @@ begin
             CLR     => '0',
             CLRMASK => '1',
             DIV     => "000",           -- Divide-by-1
-            O       => rxOutClk);
+            O       => rxoutclkb);
    end generate;
+
+   U_RstSyncTx : entity work.RstSync
+      port map ( clk      => txoutclkb,
+                 asyncRst => txControl.reset,
+                 syncRst  => txbypassrst );
+
+   U_RstSyncRx : entity work.RstSync
+      port map ( clk      => rxoutclkb,
+                 asyncRst => rxRst,
+                 syncRst  => rxbypassrst );
+
+--   txRst    <= txControl.reset;
+--   rxRst    <= rxControl.reset;
+   
+   txOutClk <= txoutclkb;
+   rxOutClk <= rxoutclkb;
+   
 end architecture rtl;
