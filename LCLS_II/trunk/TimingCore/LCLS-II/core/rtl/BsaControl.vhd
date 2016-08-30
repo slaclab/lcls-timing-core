@@ -106,7 +106,7 @@ begin
    initn <= initq and not initd;
 
    destSel <= '1' when ((bsadef.destSel(17 downto 16)="10") or
-                        (bsadef.destSel(17 downto 16)="01" and beamSeq(0)='0') or
+                        (bsadef.destSel(17 downto 16)="01" and not (beamSeq(0)='1' and bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1')) or
                         (bsadef.destSel(17 downto 16)="00" and beamSeq(0)='1' and bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1')) else
               '0';
    active <= rateSel and destSel and not done;
