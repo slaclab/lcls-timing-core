@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-07-18
+-- Last update: 2016-08-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,11 +37,11 @@ entity TimingRx is
       AXIL_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
-      rxRstDone           : in  sl;
       rxData              : in  TimingRxType;
 
-      rxPolarity          : out sl;
-      rxReset             : out sl;
+      rxControl           : out TimingPhyControlType;
+      rxStatus            : in  TimingPhyStatusType;
+      
       timingClkSel        : out sl; -- '0'=LCLS1, '1'=LCLS2
       timingClkSelR       : out sl; 
       
@@ -76,8 +76,8 @@ architecture rtl of TimingRx is
    type AxilRegType is record
       clkSel         : sl;
       cntRst         : sl;
-      rxPolarity     : sl;
-      rxReset        : sl;
+      rxControl      : TimingPhyControlType;
+      rxDown         : sl;
       rxDown         : sl;
       messageDelay   : slv(19 downto 0);
       messageDelayRst: sl;
@@ -88,8 +88,8 @@ architecture rtl of TimingRx is
    constant AXIL_REG_INIT_C : AxilRegType := (
       clkSel         => '1',
       cntRst         => '0',
-      rxPolarity     => '0',
-      rxReset        => '0',
+      rxControl      => TIMING_PHY_CONTROL_INIT_C,
+      rxDown         => '0',
       rxDown         => '0',
       messageDelay   => (others=>'0'),
       messageDelayRst=> '1',
@@ -117,6 +117,7 @@ architecture rtl of TimingRx is
    signal clkSelR             : sl;
    signal messageDelayR       : slv(19 downto 0);
    signal messageDelayRst     : sl;
+   signal rxStatusCount       : SlVectorArray(1 downto 0, 15 downto 0);
 begin
 
    U_RxLcls1 : entity work.TimingStreamRx
@@ -200,13 +201,17 @@ begin
 
       axilSlaveRegisterW(X"20", 0, v.cntRst);
       axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
-      axilSlaveRegisterW(X"20", 2, v.rxPolarity);
-      axilSlaveRegisterW(X"20", 3, v.rxReset);
+      axilSlaveRegisterW(X"20", 2, v.rxControl.polarity);
+      axilSlaveRegisterW(X"20", 3, v.rxControl.reset);
       axilSlaveRegisterW(X"20", 4, v.clkSel);
       axilSlaveRegisterW(X"20", 5, v.rxDown);
+      axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
 
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
       axilSlaveRegisterR(X"28", 0, txClkCntS);
+
+      axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
+      axilSlaveRegisterR(X"2C",16, muxSlVectorArray(rxStatusCount,1));
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
 
@@ -226,9 +231,6 @@ begin
 
       axilRin <= v;
 
-      rxPolarity     <= axilR.rxPolarity;
-      --rxReset        <= axilR.rxReset;
-      rxReset        <= axilR.rxReset or (axilRxLinkUp and (stv(2) or stv(3)));
       axilReadSlave  <= axilR.axilReadSlave;
       axilWriteSlave <= axilR.axilWriteSlave;
 
@@ -316,7 +318,7 @@ begin
          WIDTH_G        => 4 )
       port map (
          statusIn(0)  => rxClkCnt(rxClkCnt'left),
-         statusIn(1)  => rxRstDone,
+         statusIn(1)  => rxStatus.resetDone,
          statusIn(2)  => rxDecErrSum,
          statusIn(3)  => rxDspErrSum,
          statusOut    => stv,
@@ -350,9 +352,34 @@ begin
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelay,
                 dataOut => messageDelayR );
+
+   SyncRxStatus : entity work.SyncStatusVector
+      generic map (
+         IN_POLARITY_G  => "11",
+         CNT_WIDTH_G    => 16,
+         WIDTH_G        => 2 )
+      port map (
+         statusIn(0)  => rxStatus.bufferByDone,
+         statusIn(1)  => rxStatus.bufferByErr,
+         cntRstIn     => '0',
+         rollOverEnIn => "11",
+         cntOut       => rxStatusCount,
+         wrClk        => rxClk,
+         wrRst        => '0',
+         rdClk        => axilClk,
+         rdRst        => '0');
+     
+   SyncBypassRst : entity work.Synchronizer
+     port map ( clk     => rxClk,
+                dataIn  => axilR.rxControl.bufferByRst,
+                dataOut => rxControl.bufferByRst );
+
+   rxControl.reset    <= axilR.rxControl.reset or (axilRxLinkUp and (stv(2) or stv(3)));
+   rxControl.inhibit  <= '0';
+   rxControl.polarity <= axilR.rxControl.polarity;
    
-   rxRst(0)      <= '1' when (rxRstDone='0' or clkSelR='1') else '0';
-   rxRst(1)      <= '1' when (rxRstDone='0' or clkSelR='0') else '0';
+   rxRst(0)      <= '1' when (rxStatus.resetDone='0' or clkSelR='1') else '0';
+   rxRst(1)      <= '1' when (rxStatus.resetDone='0' or clkSelR='0') else '0';
    timingClkSel  <= axilR.clkSel;
    timingClkSelR <= clkSelR;
    

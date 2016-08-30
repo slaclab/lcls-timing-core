@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-07-18
+-- Last update: 2016-08-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,12 +50,10 @@ entity TimingCore is
       gtRxDataK     : in  slv(1 downto 0);
       gtRxDispErr   : in  slv(1 downto 0);
       gtRxDecErr    : in  slv(1 downto 0);
-      gtRxReset     : out sl;
-      gtRxResetDone : in  sl;
-      gtRxPolarity  : out sl;
+      gtRxControl   : out TimingPhyControlType;
+      gtRxStatus    : in  TimingPhyStatusType;
       gtTxReset     : out sl;
       gtLoopback    : out slv(2 downto 0);
-      gtTxInhibit   : out sl;
       timingPhy     : out TimingPhyType;
       timingClkSel  : out sl;
       -- Decoded timing message interface
@@ -188,10 +186,9 @@ begin
       port map (
          txClk               => gtTxUsrClk,
          rxClk               => gtRxRecClk,
-         rxRstDone           => gtRxResetDone,
+         rxStatus            => gtRxStatus,
+         rxControl           => gtRxControl,
          rxData              => timingRx,
-         rxPolarity          => gtRxPolarity,
-         rxReset             => gtRxReset,
          timingClkSel        => timingClkSel,
          timingClkSelR       => timingClkSelR,
          timingStream        => timingStream,
@@ -279,10 +276,10 @@ begin
             txRdy          => '1',
             txData         => itxData,
             txDataK        => itxDataK,
-            txPolarity     => timingPhy.polarity,
+            txPolarity     => timingPhy.control.polarity,
             txResetO       => gtTxReset,
             txLoopback     => gtLoopback,
-            txInhibit      => gtTxInhibit,
+            txInhibit      => timingPhy.control.inhibit,
             axiClk         => axilClk,
             axiRst         => axilRst,
             axiReadMaster  => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
@@ -300,9 +297,9 @@ begin
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
       timingPhy.data     <= (others => '0');
       timingPhy.dataK    <= "00";
-      timingPhy.polarity <= '0';
+      timingPhy.control.polarity <= '0';
+      timingPhy.control.inhibit  <= '0';
       gtLoopback         <= "000";
-      gtTxInhibit        <= '0';
    end generate NOGEN_MINICORE;
 
    -------------------------------------------------------------------------------------------------
