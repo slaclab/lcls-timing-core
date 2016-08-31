@@ -78,7 +78,6 @@ architecture rtl of TimingRx is
       cntRst         : sl;
       rxControl      : TimingPhyControlType;
       rxDown         : sl;
-      rxDown         : sl;
       messageDelay   : slv(19 downto 0);
       messageDelayRst: sl;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -89,7 +88,6 @@ architecture rtl of TimingRx is
       clkSel         => '1',
       cntRst         => '0',
       rxControl      => TIMING_PHY_CONTROL_INIT_C,
-      rxDown         => '0',
       rxDown         => '0',
       messageDelay   => (others=>'0'),
       messageDelayRst=> '1',
