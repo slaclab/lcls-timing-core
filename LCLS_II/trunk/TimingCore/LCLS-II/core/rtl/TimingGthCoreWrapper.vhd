@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-08-30
+-- Last update: 2016-09-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ architecture rtl of TimingGthCoreWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
          );
    end component;
-   component TimingGth_polarity
+   component TimingGth_fixedlat
       port (
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
@@ -201,10 +201,17 @@ architecture rtl of TimingGthCoreWrapper is
          rxctrl1_out                        : out std_logic_vector(15 downto 0);
          rxctrl2_out                        : out std_logic_vector(7 downto 0);
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
-         rxoutclk_out                       : out std_logic_vector(0 downto 0);
-         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txoutclk_out                       : out std_logic_vector(0 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
+         rxdlysresetdone_out                : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxphaligndone_out                  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxphalignerr_out                   : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxsyncdone_out                     : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxsyncout_out                      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
          );
    end component;
    
@@ -350,7 +357,7 @@ architecture rtl of TimingGthCoreWrapper is
    end generate;
 
    LOCREF_G : if not EXTREF_G generate
-      U_TimingGthCore : TimingGth_polarity
+      U_TimingGthCore : TimingGth_fixedlat
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
             gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
