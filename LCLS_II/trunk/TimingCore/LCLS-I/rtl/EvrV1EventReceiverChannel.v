@@ -8,25 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    15:00:41 03/12/2010 
-// Design Name: 
-// Module Name:    EventReceiverChannel 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module EvrV1EventReceiverChannel(Clock, Reset, myEvent, myDelay, myWidth, myPolarity,
                             trigger, myPreScale, setPulse, resetPulse, channelDebug);
    input          Clock;

@@ -8,25 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 			SLAC
-// Engineer: 			M. Weaver
-// 
-// Create Date:    	09:49:15 03/04/2015
-// Design Name: 
-// Module Name:    	timeStampGenerator 
-// Project Name: 		embedded event receiver
-// Target Devices: 	FX70T
-// Tool versions: 	ISE 12.1
-// Description: 		This subdesign generates time stamps at a programmable rate
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module EvrV1TimeStampGenerator(Clock, Reset, TimeStamp);
     input 		Clock;
     input 		Reset;

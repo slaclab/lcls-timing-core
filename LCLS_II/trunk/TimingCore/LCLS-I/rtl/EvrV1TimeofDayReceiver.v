@@ -8,27 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company:          BNL
-// Engineer:          J. DeLong
-// 
-// Create Date:       09:49:15 03/16/2010 
-// Design Name: 
-// Module Name:       timeofDayReceiver 
-// Project Name:       embedded event receiver
-// Target Devices:    FX70T
-// Tool versions:    ISE 12.1
-// Description:       This subdesign receives time stamp control events to set the
-//                     time of day from the GPS locked NTP server. The offset to the
-//                     time of day is incremented at the system clock rate.
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module EvrV1TimeofDayReceiver(Clock, Reset, EventStream, TimeStamp, timeDebug, secondsShift);
    input Clock;
    input Reset;

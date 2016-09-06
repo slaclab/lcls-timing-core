@@ -8,26 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    09/06/2011
-// Design Name: 
-// Module Name:    dbusDecode
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: This is dbusdecode.vhd converted to verilog
-//     
-//
-//////////////////////////////////////////////////////////////////////////////////
 module EvrV1DbusDecode(Clock, EventClock, Reset, dbus, isK, dbRdAddr, dbena, dbdis, dben,
                   rxSize, dbrx, dbrdy, dbcs, disBus, dataBuffOut, dbDebug);
    input	 Clock;
