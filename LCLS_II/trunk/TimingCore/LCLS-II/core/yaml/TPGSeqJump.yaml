@@ -7,38 +7,47 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
 TPGSeqJump: &TPGSeqJump
-  name: TPGSeqJump
+  class: MMIODev
+  configPrio: 1
   description: Timing pattern sequencer jump programming
   size: 0x400
   #########
-  IntField:
+  children:
   #########
     #########################################################
-    - offset: 0x0000
-      name: StartAddr
+    StartAddr:
+      class: IntField
+      at:
+        offset: 0x0000
+        stride: 4
+        nelms: 1024
       sizeBits: 12
       lsbit: 0
-      stride: 4
-      nelms: 1024
       mode: RW
       description: Sequence start offset
     #########################################################
-    - offset: 0x0001
-      name: Class
+    Class:
+      class: IntField
+      at:
+        offset: 0x0001
+        stride: 4
+        nelms: 1024
       sizeBits: 4
       lsbit: 4
-      stride: 4
-      nelms: 1024
       mode: RW
       description: Sequence power class
     #########################################################
-    - offset: 0x0002
-      name: StartSync
+    StartSync:
+      class: IntField
+      at:
+        offset: 0x0002
+        stride: 4
+        nelms: 1024
       sizeBits: 16
       lsbit: 0
-      stride: 4
-      nelms: 1024
       mode: RW
       description: Start synchronization condition

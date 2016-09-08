@@ -1,137 +1,190 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the
-## top-level directory of this distribution and at:
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-## No part of 'SLAC Firmware Standard Library', including this file,
-## may be copied, modified, propagated, or distributed except according to
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
 TimingFrameRx: &TimingFrameRx
-  name: TimingFrameRx
+  class: MMIODev
+  configPrio: 1
   description: Status of timing frame reception
   size: 0x10000
-  #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x0000
+    sofCount:
+      at:
+        offset: 0x0000
+      class: IntField
       name: sofCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: Start of frame count
     #########################################################
-    - offset: 0x0004
+    eofCount:
+      at:
+        offset: 0x0004
+      class: IntField
       name: eofCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: End of frame count
     #########################################################
-    - offset: 0x0008
+    FidCount:
+      at:
+        offset: 0x0008
+      class: IntField
       name: FidCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: Valid frame count
     #########################################################
-    - offset: 0x000C
+    CrcErrCount:
+      at:
+        offset: 0x000C
+      class: IntField
       name: CrcErrCount
       sizeBits: 32
       mode: RO
       description: CRC error count
     #########################################################
-    - offset: 0x0010
+    RxClkCount:
+      at:
+        offset: 0x0010
+      class: IntField
       name: RxClkCount
       sizeBits: 32
       mode: RO
       description: Recovered clock count div 16
     #########################################################
-    - offset: 0x0014
+    RxRstCount:
+      at:
+        offset: 0x0014
+      class: IntField
       name: RxRstCount
       sizeBits: 32
       mode: RO
       description: Receive link reset count
     #########################################################
-    - offset: 0x0018
+    RxDecErrCount:
+      at:
+        offset: 0x0018
+      class: IntField
       name: RxDecErrCount
       sizeBits: 32
       mode: RO
       description: Receive 8b/10b decode error count
     #########################################################
-    - offset: 0x001C
+    RxDspErrCount:
+      at:
+        offset: 0x001C
+      class: IntField
       name: RxDspErrCount
       sizeBits: 32
       mode: RO
       description: Receive disparity error count
     #########################################################
-    - offset: 0x0020
+    RxCountReset:
+      at:
+        offset: 0x0020
+      class: IntField
       name: RxCountReset
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Reset receive counters
     #########################################################
-    - offset: 0x0020
+    RxLinkUp:
+      at:
+        offset: 0x0020
+      class: IntField
       name: RxLinkUp
       sizeBits: 1
       lsBit: 1
       mode: RO
       description: Receive link status
     #########################################################
-    - offset: 0x0020
+    RxPolarity:
+      at:
+        offset: 0x0020
+      class: IntField
       name: RxPolarity
       sizeBits: 1
       lsBit: 2
       mode: RW
-      description: Invert receive link polarity 
+      description: Invert receive link polarity
     #########################################################
-    - offset: 0x0020
+    RxReset:
+      at:
+        offset: 0x0020
+      class: IntField
       name: RxReset
       sizeBits: 1
       lsBit: 3
       mode: RW
       description: Reset receive link
     #########################################################
-    - offset: 0x0020
+    ClkSel:
+      at:
+        offset: 0x0020
+      class: IntField
       name: ClkSel
       sizeBits: 1
       lsBit: 4
       mode: RW
       description: Select LCLS-I/LCLS-II Timing
     #########################################################
-    - offset: 0x0020
-      name: RxDown
-      sizeBits: 1
-      lsBit: 5
-      mode: RW
-      description: Latched link down transition
-    #########################################################
-    - offset: 0x0024
+    MsgDelay:
+      at:
+        offset: 0x0024
+      class: IntField
       name: MsgDelay
       sizeBits: 20
       lsBit: 0
       mode: RW
       description: LCLS-II timing frame pipeline delay (186MHz clks)
     #########################################################
-    - offset: 0x0028
+    TxClkCount:
+      at:
+        offset: 0x0028
+      class: IntField
       name: TxClkCount
       sizeBits: 32
       lsBit: 0
       mode: RO
       description: Transmit clock counter div 16
     #########################################################
-  #########
-  Commands:
-  #########
+    C_RxReset:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: Reset Rx Link
+      sequence:
+      - entry: RxReset
+        value: 1
+      - entry: usleep
+        value: 1000
+      - entry: RxReset
+        value: 0 
     #########################################################
-    - name: ClearRxCounters
+    ClearRxCounters:
+      class: SequenceCommand
+      at:
+        offset: 0x0
       description: "Clear the Rx status counters."
       sequence:
-        - entry: RxCountReset
-          value: 0x1
-        - entry: RxCountReset
-          value: 0x0               
-    #########################################################
+      - entry: RxCountReset
+        value: 1
+      - entry: usleep
+        value: 1000
+      - entry: RxCountReset
+        value: 0 
+

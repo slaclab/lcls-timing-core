@@ -1,62 +1,79 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the
-## top-level directory of this distribution and at:
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-## No part of 'SLAC Firmware Standard Library', including this file,
-## may be copied, modified, propagated, or distributed except according to
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
 TPGSeqState: &TPGSeqState
-  name: TPGSeqState
+  class: MMIODev
+  configPrio: 1
   description: Timing pattern sequencer state
   size: 0x400
-  #########
-  IntField:
-  #########
+  children:
     #########################################################
-    - offset: 0x0000
+    SeqIndex:
+      at:
+        offset: 0x0000
+      class: IntField
       name: SeqIndex
       sizeBits: 32
       lsbit: 0
-      stride: 8
-      nelms: 50
+        stride: 8
+        nelms: 50
       mode: RO
-      description: Sequencer instruction offset
+      description: Sequencer instruction at:
+        offset
     #########################################################
-    - offset: 0x0004
+    SeqCondACount:
+      at:
+        offset: 0x0004
+        stride: 8
+        nelms: 50
+      class: IntField
       name: SeqCondACount
       sizeBits: 8
       lsbit: 0
-      stride: 8
-      nelms: 50
       mode: RO
       description: BSA condition A counter
     #########################################################
-    - offset: 0x0004
+    SeqCondBCount:
+      at:
+        offset: 0x0004
+        stride: 64
+        nelms: 50
+      class: IntField
       name: SeqCondBCount
       sizeBits: 8
       lsbit: 8
-      stride: 8
-      nelms: 50
       mode: RO
       description: BSA condition B counter
     #########################################################
-    - offset: 0x0004
+    SeqCondCCount:
+      at:
+        offset: 0x0004
+        stride: 8
+        nelms: 50
+      class: IntField
       name: SeqCondCCount
       sizeBits: 8
       lsbit: 16
-      stride: 8
-      nelms: 50
       mode: RO
       description: BSA condition C counter
     #########################################################
-    - offset: 0x0004
+    SeqCondDCount:
+      at:
+        offset: 0x0004
+        stride: 8
+        nelms: 50
+      class: IntField
       name: SeqCondDCount
       sizeBits: 8
       lsbit: 24
-      stride: 8
-      nelms: 50
       mode: RO
       description: BSA condition D counter

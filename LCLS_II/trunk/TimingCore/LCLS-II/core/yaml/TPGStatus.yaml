@@ -1,83 +1,115 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the
-## top-level directory of this distribution and at:
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-## No part of 'SLAC Firmware Standard Library', including this file,
-## may be copied, modified, propagated, or distributed except according to
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
 TPGStatus: &TPGStatus
   name: TPGStatus
+  class: MMIODev
+  configPrio: 1
   description: Timing pattern generator status
   size: 0x400
-  #########
-  IntField:
-  #########
-    #########################################################
-    - offset: 0x0000
+  children:
+    #########################################################  
+    BsaStat:
+      at:
+        offset: 0x0000
+        stride: 4
+        nelms: 64
+      class: IntField
       name: BsaStat
       sizeBits: 32
       lsbit: 0
-      stride: 4
-      nelms: 64
       mode: RO
       description: BSA status num averaged/written
-    #########################################################
-    - offset: 0x0100
+    #########################################################  
+    CountPLL:
+      at:
+        offset: 0x0100
+      class: IntField
       name: CountPLL
       sizeBits: 32
       mode: RO
       description: PLL Status changes
     #########################################################
-    - offset: 0x0104
+    Count186M:
+      at:
+        offset: 0x0104
+      class: IntField
       name: Count186M
       sizeBits: 32
       mode: RO
       description: 186MHz clock counts / 16
     #########################################################
-    - offset: 0x0108
+    CountSyncE:
+      at:
+        offset: 0x0108
+      class: IntField
       name: CountSyncE
       sizeBits: 32
       mode: RO
       description: Sync error counts
     #########################################################
-    - offset: 0x010C
+    CountIntv:
+      at:
+        offset: 0x010C
+      class: IntField
       name: CountIntv
       sizeBits: 32
       mode: RW
       description: Interval timer
     #########################################################
-    - offset: 0x0110
+    CountBRT:
+      at:
+        offset: 0x0110
+      class: IntField
       name: CountBRT
       sizeBits: 32
       mode: RO
       description: Base rate trigger count in interval
     #########################################################
-    - offset: 0x0114
+    CountTrig:
+      at:
+        offset: 0x0114
+        nelms: 12
+      class: IntField
       name: CountTrig
       sizeBits: 32
       stribe: 32
-      nelms: 12
       mode: RO
       description: External trigger count in interval
     #########################################################
-    - offset: 0x0144
+    CountSeq:
+      at:
+        offset: 0x0144
+        stride: 2
+        nelms: 64
+      class: IntField
       name: CountSeq
       sizeBits: 32
-      stride: 4
-      nelms: 64
       mode: RO
       description: Sequence requests in interval
     #########################################################
-    - offset: 0x0248
+    CountRxClks:
+      at:
+        offset: 0x0248
+      class: IntField
       name: CountRxClks
       sizeBits: 32
       mode: RW
       description: Recovered clock count / 16
     #########################################################
-    - offset: 0x024C
+    CountRxDV:
+      at:
+        offset: 0x024C
+      class: IntField
       name: CountRxDV
       sizeBits: 32
       mode: RW

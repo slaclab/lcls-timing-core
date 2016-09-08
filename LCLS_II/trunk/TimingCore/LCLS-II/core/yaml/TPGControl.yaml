@@ -1,250 +1,343 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the
-## top-level directory of this distribution and at:
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-## No part of 'SLAC Firmware Standard Library', including this file,
-## may be copied, modified, propagated, or distributed except according to
+## It is subject to the license terms in the LICENSE.txt file found in the 
+## top-level directory of this distribution and at: 
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+## No part of 'SLAC Firmware Standard Library', including this file, 
+## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+#schemaversion 3.0.0
+#once
 
 TPGControl: &TPGControl
-  name: TPGControl
+  class: MMIODev
+  configPrio: 1
   description: Timing pattern generator control
   size: 0x400
-  #########
-  IntField:
-  #########
-    #########################################################
-    - offset: 0x0000
+  children:
+    NBeamSeq:
+      at:
+        offset: 0x0000
+      class: IntField
       name: NBeamSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of beam control sequences
+    NControlSeq:
     #########################################################
-    - offset: 0x0001
+      at:
+        offset: 0x0001
+      class: IntField
       name: NControlSeq
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of experiment control sequences
+    NArraysBSA:
     #########################################################
-    - offset: 0x0002
+      at:
+        offset: 0x0002
+      class: IntField
       name: NArraysBSA
       sizeBits: 8
       lsBit: 0
       mode: RO
       description: Number of BSA arrays
+    SeqAddrLen:
     #########################################################
-    - offset: 0x0003
+      at:
+        offset: 0x0003
+      class: IntField
       name: SeqAddrLen
       sizeBits: 4
       lsBit: 0
       mode: RO
-      description: Sequence instruction offset bus width
+      description: Sequence instruction at:
+        offset bus width
+    NAllowSeq:
     #########################################################
-    - offset: 0x0003
+      at:
+        offset: 0x0003
+      class: IntField
       name: NAllowSeq
       sizeBits: 4
       lsBit: 4
       mode: RO
       description: Number of allow table sequences
+    ClockPeriod:
     #########################################################
-    - offset: 0x0004
+      at:
+        offset: 0x0004
+      class: IntField
       name: ClockPeriod
       sizeBits: 32
       lsBit: 0
       mode: RW
       description: Period of beam synchronous clock (ns/cycle)
+    BaseControl:
     #########################################################
-    - offset: 0x0008
+      at:
+        offset: 0x0008
+      class: IntField
       name: BaseControl
       sizeBits: 16
       mode: RW
       description: Base rate control divisor
+    ACDelay:
     #########################################################
-    - offset: 0x000C
+      at:
+        offset: 0x000C
+      class: IntField
       name: ACDelay
       sizeBits: 32
       mode: RW
       description: Adjustable delay for power line crossing measurement
+    PulseIdL:
     #########################################################
-    - offset: 0x0010
+      at:
+        offset: 0x0010
+      class: IntField
       name: PulseIdL
       sizeBits: 32
       mode: RW
       description: Pulse ID lower word
+    PulseIdU:
     #########################################################
-    - offset: 0x0014
+      at:
+        offset: 0x0014
+      class: IntField
       name: PulseIdU
       sizeBits: 32
       mode: RW
       description: Pulse ID upper word
+    TStampL:
     #########################################################
-    - offset: 0x0018
+      at:
+        offset: 0x0018
+      class: IntField
       name: TStampL
       sizeBits: 32
       mode: RW
       description: Time stamp lower word
+    TStampU:
     #########################################################
-    - offset: 0x001C
+      at:
+        offset: 0x001C
+      class: IntField
       name: TStampU
       sizeBits: 32
       mode: RW
       description: Time stamp upper word
+    ACRateDiv:
     #########################################################
-    - offset: 0x0020
+      at:
+        offset: 0x0020
+        stride: 1
+        nelms: 6
+      class: IntField
       name: ACRateDiv
       sizeBits: 8
-      stride: 1
-      nelms: 6
       mode: RW
       description: Power line synch rate marker divisors
+    FixedRateDiv:
     #########################################################
-    - offset: 0x0040
+      at:
+        offset: 0x0040
+        stride: 4
+        nelms: 10
+      class: IntField
       name: FixedRateDiv
       sizeBits: 32
-      stride: 4
-      nelms: 10
       mode: RW
       description: Fixed rate marker divisors
+    RateReload:
     #########################################################
-    - offset: 0x0068
+      at:
+        offset: 0x0068
+      class: IntField
       name: RateReload
       sizeBits: 1
       mode: WO
       description: Loads cached ac/fixed rate marker divisors
+    Sync:
     #########################################################
-    - offset: 0x0070
+      at:
+        offset: 0x0070
+      class: IntField
       name: Sync
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Sync status with 71kHz
+    IrqFifoEnable:
     #########################################################
-    - offset: 0x0074
+      at:
+        offset: 0x0074
+      class: IntField
       name: IrqFifoEnable
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Enable sequence checkpoint interrupt
+    IrqIntvEnable:
     #########################################################
-    - offset: 0x0074
-      name: IrqFifoEnable
-      sizeBits: 1
-      lsBit: 0
-      mode: RW
-      description: Enable sequence checkpoint interrupt
-    #########################################################
-    - offset: 0x0074
+      at:
+        offset: 0x0074
+      class: IntField
       name: IrqIntvEnable
       sizeBits: 1
       lsBit: 1
       mode: RW
       description: Enable interval counter interrupt
+    IrqBsaEnable:
     #########################################################
-    - offset: 0x0074
+      at:
+        offset: 0x0074
+      class: IntField
       name: IrqBsaEnable
       sizeBits: 1
       lsBit: 2
       mode: RW
       description: Enable BSA complete interrupt
+    IrqEnable:
     #########################################################
-    - offset: 0x0077
+      at:
+        offset: 0x0077
+      class: IntField
       name: IrqEnable
       sizeBits: 1
       lsBit: 7
       mode: RW
       description: Enable interrupts
+    IrqIntvStatus:
     #########################################################
-    - offset: 0x0078
+      at:
+        offset: 0x0078
+      class: IntField
       name: IrqIntvStatus
       sizeBits: 1
       lsBit: 0
       mode: RW
       description: Interval counters updated
+    IrqBsaStatus:
     #########################################################
-    - offset: 0x0078
+      at:
+        offset: 0x0078
+      class: IntField
       name: IrqBsaStatus
       sizeBits: 1
       lsBit: 1
       mode: RO
       description: BSA complete updated
+    SeqFifoData:
     #########################################################
-    - offset: 0x007C
+      at:
+        offset: 0x007C
+      class: IntField
       name: SeqFifoData
       sizeBits: 32
       mode: RO
       description: Sequence checkpoint data
+    BeamSeqCntl:
     #########################################################
-    - offset: 0x0080
+      at:
+        offset: 0x0080
+        nelms: 16
+      class: IntField
       name: BeamSeqCntl
       sizeBits: 32
-      nelms: 16
       mode: RW
       description: Beam sequence arbitration control
+    SeqResetL:
     #########################################################
-    - offset: 0x0100
+      at:
+        offset: 0x0100
+      class: IntField
       name: SeqResetL
       sizeBits: 32
       mode: WO
       description: Sequence restart lower word
+    SeqResetU:
     #########################################################
-    - offset: 0x0104
+      at:
+        offset: 0x0104
+      class: IntField
       name: SeqResetU
       sizeBits: 32
       mode: WO
       description: Sequence restart upper word
+    BeamEnergy:
     #########################################################
-    - offset: 0x0120
+      at:
+        offset: 0x0120
+      class: IntField
       name: BeamEnergy
       sizeBits: 32
-      nelms: 4
+        nelms: 4
       mode: RW
       description: Beam energy meta data
+    BeamDiagCntl:
     #########################################################
-    - offset: 0x01E4
+      at:
+        offset: 0x01E4
+      class: IntField
       name: BeamDiagCntl
       sizeBits: 32
       mode: WO
       description: Beam diagnostic buffer control
+    BeamDiagStat:
     #########################################################
-    - offset: 0x01E8
+      at:
+        offset: 0x01E8
+        stride: 4
+        nelms: 4
+      class: IntField
       name: BeamDiagStat
       sizeBits: 32
-      stride: 4
-      nelms: 4
       mode: RO
       description: Beam diagnostic latched status
+    BsaCompleteL:
     #########################################################
-    - offset: 0x01F8
+      at:
+        offset: 0x01F8
+      class: IntField
       name: BsaCompleteL
       sizeBits: 32
       mode: RW
       description: Bsa buffers complete lower word
+    BsaCompleteU:
     #########################################################
-    - offset: 0x01FC
+      at:
+        offset: 0x01FC
+      class: IntField
       name: BsaCompleteU
       sizeBits: 32
       mode: RW
       description: Bsa buffers complete upper word
+    BsaEventSel:
     #########################################################
-    - offset: 0x0200
+      at:
+        offset: 0x0200
+        stride: 8
+        nelms: 64
+      class: IntField
       name: BsaEventSel
       sizeBits: 32
       lsbit: 0
-      stride: 8
-      nelms: 64
       mode: RW
       description: Bsa definition rate/destination selection
+    BsaStatSel:
     #########################################################
-    - offset: 0x0204
+      at:
+        offset: 0x0204
+        stride: 8
+        nelms: 64
+      class: IntField
       name: BsaStatSel
       sizeBits: 32
       lsbit: 0
-      stride: 8
-      nelms: 64
       mode: RW
       description: Bsa definition samples to average/acquire
 
