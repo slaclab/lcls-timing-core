@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-05-01
+-- Last update: 2016-08-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,6 +66,9 @@ entity EvrV2Core is
     syncL               : in  sl;
     trigOut             : out slv(11 downto 0);
     evrModeSel          : out sl;
+    delay_ld            : out slv      (11 downto 0);
+    delay_wr            : out Slv6Array(11 downto 0);
+    delay_rd            : in  Slv6Array(11 downto 0);
     -- Misc.
     cardRst             : in  sl;
     ledRedL             : out sl;
@@ -135,6 +138,9 @@ architecture mapping of EvrV2Core is
   signal dmaFullThrS    : Slv24Array (0 downto 0);
 
   signal partitionAddr  : slv(15 downto 0);
+  signal modeSel        : sl;
+  signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
+  signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
   
 begin  -- rtl
 
@@ -147,8 +153,12 @@ begin  -- rtl
   pciRst <= axiRst;
   irqReq <= irqRequest;
 
+  evrModeSel <= modeSel;
+  delay_ld   <= delay_ldb;
+  delay_wr   <= delay_wrb;
+
   dmaReady <= not dmaCtrl.pause;
-  
+
   -------------------------
   -- AXI-Lite Crossbar Core
   -------------------------  
@@ -314,13 +324,14 @@ begin  -- rtl
                   irqEnable           => irqEnable,
                   channelConfig       => channelConfig,
                   triggerConfig       => triggerConfig,
-                  trigSel             => evrModeSel,
+                  trigSel             => modeSel,
                   dmaFullThr          => dmaFullThr(0),
                   -- status
                   irqReq              => irqRequest,
                   partitionAddr       => partitionAddr,
                   rstCount            => rstCount,
                   eventCount          => eventCount,
+                  delay_rd            => delay_rd(TriggerOutputs-1 downto 0),
                   gtxDebug            => gtxDebugS );
 
   anyBsaEnabled <= uOr(bsaEnabled);
@@ -432,7 +443,27 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).width,
                     dataOut => triggerConfigS(i).width );
-     
+
+    U_SyncTap : entity work.SynchronizerVector
+      generic map ( TPD_G   => TPD_G,
+                    WIDTH_G => triggerConfig (i).delayTap'length)
+      port map (    clk     => evrClk,
+                    rst     => evrRst,
+                    dataIn  => triggerConfig (i).delayTap,
+                    dataOut => triggerConfigS(i).delayTap );
+
+    U_SyncTapLd : entity work.SynchronizerOneShot
+      generic map ( TPD_G   => TPD_G )
+      port map (    clk     => evrClk,
+                    rst     => evrRst,
+                    dataIn  => triggerConfig (i).loadTap,
+                    dataOut => triggerConfigS(i).loadTap );
+
+    delay_wrb(i) <= (others=>'0') when modeSel='0' else
+                    triggerConfig(i).delayTap;
+    delay_ldb(i) <= '1' when modeSel='0' else
+                    triggerConfig(i).loadTap;
+
   end generate Sync_Trigger;
 
   Sync_dmaFullThr : entity work.SynchronizerVector

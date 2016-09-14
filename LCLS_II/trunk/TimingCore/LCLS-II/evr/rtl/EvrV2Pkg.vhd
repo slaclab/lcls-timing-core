@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-05-05
+-- Last update: 2016-08-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,7 +30,8 @@ package EvrV2Pkg is
 
   constant TriggerOutputs  : integer := 12;
 --  constant TriggerOutputs  : integer :=  6;
-  constant ReadoutChannels : integer := 10;
+--  constant ReadoutChannels : integer := 10;
+  constant ReadoutChannels : integer := 6;
   
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames
@@ -76,6 +77,8 @@ package EvrV2Pkg is
     delay    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     channel  : slv( 3 downto 0);
+    delayTap : slv( 6 downto 0);
+    loadTap  : sl;
   end record;
 
   constant EVRV2_TRIGGER_CONFIG_INIT_C : EvrV2TriggerConfigType := (
@@ -83,7 +86,9 @@ package EvrV2Pkg is
     polarity  => '1',
     delay     => (others=>'0'),
     width     => (others=>'0'),
-    channel   => (others=>'0') );
+    channel   => (others=>'0'),
+    delayTap  => (others=>'0'),
+    loadTap   => '0' );
 
   type EvrV2TriggerConfigArray is array (natural range<>) of EvrV2TriggerConfigType;
 
