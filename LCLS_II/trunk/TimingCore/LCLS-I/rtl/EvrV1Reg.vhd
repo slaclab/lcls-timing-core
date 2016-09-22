@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-13
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -89,6 +89,7 @@ architecture rtl of EvrV1Reg is
       dbena         : slv(3 downto 0);
       dbdis         : slv(3 downto 0);
       axiRdEn       : slv(1 downto 0);
+      tsFifoRdEna   : sl;
       rdDone        : sl;
       wrDone        : sl;
       rdEn          : sl;
@@ -109,6 +110,7 @@ architecture rtl of EvrV1Reg is
       dbena         => (others => '0'),
       dbdis         => (others => '0'),
       axiRdEn       => (others => '0'),
+      tsFifoRdEna   => '0',
       rdDone        => '0',
       wrDone        => '0',
       rdEn          => '0',
@@ -156,6 +158,7 @@ begin
       v.rdEn := axiStatus.readEnable;
 
       -- Reset strobing signals
+      v.tsFifoRdEna        := '0';
       v.config.tsFifoRdEna := '0';
       v.controlReg(10)     := '0';
       v.irqClr1            := (others => '0');
@@ -465,7 +468,7 @@ begin
                   when 28 =>
                      v.axiReadSlave.rdata := status.tsFifoTsLow;
                   when 29 =>
-                     v.config.tsFifoRdEna := '1';
+                     v.tsFifoRdEna        := '1';
                      v.axiReadSlave.rdata := status.tsFifoTsHigh;
                   when 30 =>
                      v.axiReadSlave.rdata(7 downto 0) := status.tsFifoEventCode;
@@ -638,6 +641,11 @@ begin
       if (axiStatus.readEnable = '0') then
          -- Reset
          v.axiRdEn := (others => '0');
+      end if;
+
+      -- Check for FIFO read completion via AXI-Lite
+      if (v.tsFifoRdEna = '0') and (r.tsFifoRdEna = '1') then
+         v.config.tsFifoRdEna := '1';
       end if;
 
       -- Misc. Mapping and Logic

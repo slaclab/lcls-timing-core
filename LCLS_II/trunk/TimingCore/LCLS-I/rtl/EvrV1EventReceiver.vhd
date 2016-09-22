@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-12
+-- Last update: 2016-09-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -119,18 +119,16 @@ architecture rtl of EvrV1EventReceiver is
    signal preScaleRst : sl;
    signal uSecDivider : slv(31 downto 0);
 
-   signal fifoRst          : sl;
-   signal fifoWrEn         : sl;
-   signal tsFIFOempty      : sl;
-   signal tsFIFOfull       : sl;
-   signal tsFIFOfullPulse  : sl;
-   signal tsFifoWrCnt      : slv(8 downto 0);
-   signal tsFifoWrCntInt   : slv(8 downto 0);
-   signal tsFifoTsLowLast  : slv(31 downto 0);
-   signal tsFifoTsHighLast : slv(31 downto 0);
-   signal tsLatch          : slv(63 downto 0);
-   signal latchTs          : sl;
-   signal secondsShift     : slv(31 downto 0);
+   signal fifoRst         : sl;
+   signal fifoWrEn        : sl;
+   signal tsFIFOempty     : sl;
+   signal tsFIFOfull      : sl;
+   signal tsFIFOfullPulse : sl;
+   signal tsFifoWrCnt     : slv(8 downto 0);
+   signal tsFifoWrCntInt  : slv(8 downto 0);
+   signal tsLatch         : slv(63 downto 0);
+   signal latchTs         : sl;
+   signal secondsShift    : slv(31 downto 0);
 
    signal irqClr  : slv(31 downto 0);
    signal intFlag : slv(31 downto 0) := (others => '0');
@@ -436,8 +434,8 @@ begin
          -- Read Ports (rd_clk domain)
          rd_clk             => axiClk,
          rd_en              => config.tsFifoRdEna,
-         dout(71 downto 40) => tsFifoTsLowLast,
-         dout(39 downto 8)  => tsFifoTsHighLast,
+         dout(71 downto 40) => status.tsFifoTsLow,
+         dout(39 downto 8)  => status.tsFifoTsHigh,
          dout(7 downto 0)   => status.tsFifoEventCode,
          rd_data_count      => open,
          empty              => tsFIFOempty);         
@@ -448,20 +446,6 @@ begin
    -----------------------         
    -- FIFO Readout Control
    -----------------------     
-   process(axiClk)
-      variable i : natural;
-   begin
-      if rising_edge(axiClk) then
-         if axiRst = '1' then
-            status.tsFifoTsLow  <= (others => '0')after TPD_G;
-            status.tsFifoTsHigh <= (others => '0')after TPD_G;
-         elsif config.tsFifoRdEna = '1' then
-            status.tsFifoTsLow  <= tsFifoTsLowLast  after TPD_G;
-            status.tsFifoTsHigh <= tsFifoTsHighLast after TPD_G;
-         end if;
-      end if;
-   end process;
-
    Sync_WrCnt : entity work.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
