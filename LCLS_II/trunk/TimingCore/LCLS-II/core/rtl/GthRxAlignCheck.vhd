@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2016-08-30
+-- Last update: 2016-09-30
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,8 +24,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
+use work.AxiLitePkg.all;
 
 entity GthRxAlignCheck is
   generic (
@@ -37,20 +39,26 @@ entity GthRxAlignCheck is
     resetOut        : out sl;
     resetDone       : in  sl;
     resetErr        : in  sl;
-    drpClk          : in  sl;
-    drpRst          : in  sl;
+    drpClk          : out sl;
+    drpRst          : out sl;
     drpRdy          : in  sl;
     drpEn           : out sl;
     drpWe           : out sl;
     drpUsrRst       : out sl;
     drpAddr         : out slv(ADDR_WIDTH_G-1 downto 0);
     drpDi           : out slv(DATA_WIDTH_G-1 downto 0);
-    drpDo           : in  slv(DATA_WIDTH_G-1 downto 0));      
+    drpDo           : in  slv(DATA_WIDTH_G-1 downto 0);
+    axiClk          : in  sl;
+    axiRst          : in  sl;
+    axiReadMaster   : in  AxiLiteReadMasterType;
+    axiReadSlave    : out AxiLiteReadSlaveType;
+    axiWriteMaster  : in  AxiLiteWriteMasterType;
+    axiWriteSlave   : out AxiLiteWriteSlaveType );
 end entity GthRxAlignCheck;
 
 architecture rtl of GthRxAlignCheck is
 
-  constant LOCK_VALUE : integer := 0;
+  constant LOCK_VALUE : integer := 16;
   
   type StateType is (
     RESET_S,
@@ -62,17 +70,29 @@ architecture rtl of GthRxAlignCheck is
     state : StateType;
     drpEn : sl;
     rst   : sl;
+    tgt   : slv(6 downto 0);
+    sample: Slv16Array(19 downto 0);
+    axiWriteSlave : AxiLiteWriteSlaveType;
+    axiReadSlave  : AxiLiteReadSlaveType;
   end record;
   constant REG_INIT_C : RegType := (
     state => READ_S,
     drpEn => '0',
-    rst   => '1' );
+    rst   => '1',
+    tgt   => toSlv(LOCK_VALUE,7),
+    sample=> (others=>(others=>'0')),
+    axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+    axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C );
 
   signal r    : RegType := REG_INIT_C;
   signal r_in : RegType;
 
 begin
 
+  axiReadSlave  <= r.axiReadSlave;
+  axiWriteSlave <= r.axiWriteSlave;
+  
+  drpClk    <= axiClk;
   drpAddr   <= toSlv(336,drpAddr'length); -- COMMA_ALIGN_LATENCY
   drpDi     <= (others=>'0');
   drpWe     <= '0';
@@ -82,11 +102,23 @@ begin
   
   process( r, resetIn, resetDone, resetErr, drpRdy, drpDo ) is
     variable v : RegType;
+    variable axiStatus : AxiLiteStatusType;
+    variable i : integer;
   begin
     v := r;
     v.rst     := '0';
     v.drpEn   := '0';
 
+    -- Determine the transaction type
+    axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+
+    for i in 0 to 19 loop
+      axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(4*(i/2),8), 16*(i mod 2), r.sample(i));
+    end loop;
+    axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(40,8), 0, v.tgt);
+
+    axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, AXI_RESP_OK_C);
+    
     case r.state is
       when RESET_S =>
         if resetDone='0' then
@@ -99,7 +131,9 @@ begin
         end if;
       when ACK_S =>
         if drpRdy='1' then
-          if drpDo(6 downto 0)=toSlv(LOCK_VALUE,7) then
+          i := conv_integer(drpDo(4 downto 0));
+          v.sample(i) := r.sample(i)+1;
+          if drpDo(6 downto 0)=r.tgt then
             v.state := LOCKED_S;
           else
             v.rst   := '1';
@@ -109,17 +143,21 @@ begin
       when LOCKED_S => null;
     end case;
 
-    if drpRst='1' or resetIn='1' or resetErr='1' then
+    if axiRst='1' or resetIn='1' or resetErr='1' then
       v.rst   := '1';
       v.state := RESET_S;
+    end if;
+
+    if (axiStatus.readEnable='1' and std_match(axiReadMaster.araddr(7 downto 0),toSlv(40,8))) then
+      v.sample:= (others=>(others=>'0'));
     end if;
     
     r_in <= v;
   end process;
 
-  process (drpClk) is
+  process (axiClk) is
   begin
-    if rising_edge(drpClk) then
+    if rising_edge(axiClk) then
       r <= r_in;
     end if;
   end process;
