@@ -142,6 +142,26 @@ TimingFrameRx: &TimingFrameRx
       mode: RW
       description: Select LCLS-I/LCLS-II Timing
     #########################################################
+    RxDown:
+      at:
+        offset: 0x0020
+      class: IntField
+      name: RxDown
+      sizeBits: 1
+      lsBit: 5
+      mode: RW
+      description: Rx down latch status
+    #########################################################
+    BypassRst:
+      at:
+        offset: 0x0020
+      class: IntField
+      name: BypassRst
+      sizeBits: 1
+      lsBit: 6
+      mode: RW
+      description: Buffer bypass reset status
+    #########################################################
     MsgDelay:
       at:
         offset: 0x0024
@@ -161,6 +181,26 @@ TimingFrameRx: &TimingFrameRx
       lsBit: 0
       mode: RO
       description: Transmit clock counter div 16
+    #########################################################
+    BypassDoneCount:
+      at:
+        offset: 0x002C
+      class: IntField
+      name: BypassDoneCount
+      sizeBits: 16
+      lsBit: 0
+      mode: RO
+      description: Buffer bypass done count
+    #########################################################
+    BypassResetCount:
+      at:
+        offset: 0x002E
+      class: IntField
+      name: BypassResetCount
+      sizeBits: 16
+      lsBit: 16
+      mode: RO
+      description: Buffer bypass reset count
     #########################################################
     C_RxReset:
       class: SequenceCommand
