@@ -198,7 +198,7 @@ TimingFrameRx: &TimingFrameRx
       class: IntField
       name: BypassResetCount
       sizeBits: 16
-      lsBit: 16
+      lsBit: 0
       mode: RO
       description: Buffer bypass reset count
     #########################################################
