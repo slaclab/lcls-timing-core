@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-09-01
+-- Last update: 2016-09-29
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -223,6 +223,8 @@ architecture rtl of TimingGthCoreWrapper is
    signal rxoutclk_out : sl;
    signal rxoutclkb    : sl;
 
+   signal drpClk  : sl;
+   signal drpRst  : sl;
    signal drpAddr : slv(8 downto 0);
    signal drpDi   : slv(15 downto 0);
    signal drpEn   : sl;
@@ -237,13 +239,13 @@ architecture rtl of TimingGthCoreWrapper is
    
  begin
 
-   U_AxiLite : entity work.AxiLiteEmpty
-     port map ( axiClk    => axilClk,
-                axiClkRst => axilRst,
-                axiReadMaster  => axilReadMaster,
-                axiReadSlave   => axilReadSlave,
-                axiWriteMaster => axilWriteMaster,
-                axiWriteSlave  => axilWriteSlave );
+   --U_AxiLite : entity work.AxiLiteEmpty
+   --  port map ( axiClk    => axilClk,
+   --             axiClkRst => axilRst,
+   --             axiReadMaster  => axilReadMaster,
+   --             axiReadSlave   => axilReadSlave,
+   --             axiWriteMaster => axilWriteMaster,
+   --             axiWriteSlave  => axilWriteSlave );
 
    rxStatus.bufferByDone <= bypassdone;
    rxStatus.bufferByErr  <= bypasserr;
@@ -256,14 +258,20 @@ architecture rtl of TimingGthCoreWrapper is
          resetDone       => bypassdone,
          resetErr        => bypasserr,
          resetOut        => rxRst,
-         drpClk          => axilClk,
-         drpRst          => axilRst,
+         drpClk          => drpClk,
+         drpRst          => drpRst,
          drpRdy          => drpRdy,
          drpEn           => drpEn,
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo);
+         drpDo           => drpDo,
+         axiClk          => axilClk,
+         axiRst          => axilRst,
+         axiReadMaster   => axilReadMaster,
+         axiReadSlave    => axilReadSlave,
+         axiWriteMaster  => axilWriteMaster,
+         axiWriteSlave   => axilWriteSlave );
 
 
    GEN_EXTREF : if EXTREF_G generate
@@ -291,7 +299,7 @@ architecture rtl of TimingGthCoreWrapper is
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => axilClk,
+            drpclk_in(0)                          => drpClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
@@ -381,7 +389,7 @@ architecture rtl of TimingGthCoreWrapper is
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => axilClk,
+            drpclk_in(0)                          => drpClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
