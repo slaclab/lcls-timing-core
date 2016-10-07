@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2016-09-30
+-- Last update: 2016-10-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,6 +93,7 @@ begin
   axiWriteSlave <= r.axiWriteSlave;
   
   drpClk    <= axiClk;
+  drpRst    <= axiRst;
   drpAddr   <= toSlv(336,drpAddr'length); -- COMMA_ALIGN_LATENCY
   drpDi     <= (others=>'0');
   drpWe     <= '0';
@@ -100,7 +101,7 @@ begin
   drpEn     <= r.drpEn;
   resetOut  <= r.rst;
   
-  process( r, resetIn, resetDone, resetErr, drpRdy, drpDo ) is
+  process( r, resetIn, resetDone, resetErr, drpRdy, drpDo, axiWriteMaster, axiReadMaster, axiRst ) is
     variable v : RegType;
     variable axiStatus : AxiLiteStatusType;
     variable i : integer;
@@ -148,7 +149,7 @@ begin
       v.state := RESET_S;
     end if;
 
-    if (axiStatus.readEnable='1' and std_match(axiReadMaster.araddr(7 downto 0),toSlv(40,8))) then
+    if (axiStatus.writeEnable='1' and std_match(axiReadMaster.araddr(7 downto 0),toSlv(40,8))) then
       v.sample:= (others=>(others=>'0'));
     end if;
     
