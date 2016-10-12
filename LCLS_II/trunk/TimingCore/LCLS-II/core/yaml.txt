@@ -4,3 +4,4 @@ manual yaml/TPGMiniCore.yaml
 manual yaml/TPGSeqState.yaml
 manual yaml/TPGStatus.yaml
 manual yaml/TimingFrameRx.yaml
+manual yaml/GthRxAlignCheck.yaml 
