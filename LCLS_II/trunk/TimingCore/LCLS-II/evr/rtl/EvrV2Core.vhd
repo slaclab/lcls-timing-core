@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-08-03
+-- Last update: 2016-11-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,14 +78,19 @@ end EvrV2Core;
 
 architecture mapping of EvrV2Core is
 
-  constant NUM_AXI_MASTERS_C : natural := 2;
+  constant NUM_AXI_MASTERS_C : natural := 3;
   constant CSR_INDEX_C       : natural := 0;
-  constant DMA_INDEX_C       : natural := 1;
+  constant TRG_INDEX_C       : natural := 1;
+  constant DMA_INDEX_C       : natural := 2;
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CSR_INDEX_C      => (
       baseAddr      => x"00000000",
-      addrBits      => 10,
+      addrBits      => 9,
+      connectivity  => X"0001"),
+    TRG_INDEX_C => (
+      baseAddr      => x"00000200",
+      addrBits      => 9,
       connectivity  => X"0001"),
     DMA_INDEX_C => (
       baseAddr      => x"00000400",
@@ -242,7 +247,8 @@ begin  -- rtl
                     exptIn        => exptBus,
                     selectOut     => eventSel(i) );
     U_BsaChannel : entity work.EvrV2BsaChannel
-      generic map ( TPD_G         => TPD_G )
+      generic map ( TPD_G         => TPD_G,
+                    CHAN_C        => i )
       port map    ( evrClk        => evrClk,
                     evrRst        => evrRst,
                     channelConfig => channelConfigS(i),
@@ -312,8 +318,7 @@ begin  -- rtl
   
   U_EvrAxi : entity work.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
-                  CHANNELS_C => ReadoutChannels,
-                  TRIGGERS_C => TriggerOutputs )
+                  CHANNELS_C => ReadoutChannels )
     port map (    axiClk              => axiClk,
                   axiRst              => axiRst,
                   axilWriteMaster     => mAxiWriteMasters (CSR_INDEX_C),
@@ -323,7 +328,6 @@ begin  -- rtl
                   -- configuration
                   irqEnable           => irqEnable,
                   channelConfig       => channelConfig,
-                  triggerConfig       => triggerConfig,
                   trigSel             => modeSel,
                   dmaFullThr          => dmaFullThr(0),
                   -- status
@@ -331,8 +335,21 @@ begin  -- rtl
                   partitionAddr       => partitionAddr,
                   rstCount            => rstCount,
                   eventCount          => eventCount,
-                  delay_rd            => delay_rd(TriggerOutputs-1 downto 0),
                   gtxDebug            => gtxDebugS );
+
+  U_EvrTrigReg : entity work.EvrV2TrigReg
+    generic map ( TPD_G      => TPD_G,
+                  TRIGGERS_C => TriggerOutputs )
+    port map (    axiClk              => axiClk,
+                  axiRst              => axiRst,
+                  axilWriteMaster     => mAxiWriteMasters (TRG_INDEX_C),
+                  axilWriteSlave      => mAxiWriteSlaves  (TRG_INDEX_C),
+                  axilReadMaster      => mAxiReadMasters  (TRG_INDEX_C),
+                  axilReadSlave       => mAxiReadSlaves   (TRG_INDEX_C),
+                  -- configuration
+                  triggerConfig       => triggerConfig,
+                  -- status
+                  delay_rd            => delay_rd(TriggerOutputs-1 downto 0) );
 
   anyBsaEnabled <= uOr(bsaEnabled);
 

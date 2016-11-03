@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-08-03
+-- Last update: 2016-11-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,8 +30,8 @@ package EvrV2Pkg is
 
   constant TriggerOutputs  : integer := 12;
 --  constant TriggerOutputs  : integer :=  6;
---  constant ReadoutChannels : integer := 10;
-  constant ReadoutChannels : integer := 6;
+  constant ReadoutChannels : integer := 10;
+--  constant ReadoutChannels : integer := 6;
   
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames

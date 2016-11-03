@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2016-04-25
+-- Last update: 2016-10-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -251,7 +251,6 @@ begin
       -- Reset signals
       v.tranRd         := '0';
       v.rxSlave.tReady := '0';
-      increment        := 0;
 
       -- Update tValid register
       if txSlave.tReady = '1' then
@@ -485,10 +484,20 @@ begin
                   v.history        := rxMaster;
                end if;
                -- Count the tKeeps
+               --increment := 0;
+               --for i in 0 to 3 loop
+               --   if v.txMaster.tKeep((i*4)+3 downto (i*4)) = x"F" then
+               --      increment := increment+1;
+               --   end if;
+               --end loop;
+               --
+               --  Assumes tKeep is densely packed and transfer is 32-bit units
+               --
+               increment := 0;
                for i in 0 to 3 loop
-                  if v.txMaster.tKeep((i*4)+3 downto (i*4)) = x"F" then
-                     increment := increment+1;
-                  end if;
+                 if v.txMaster.tKeep(i*4)='1' then
+                   increment := i+1;
+                 end if;
                end loop;
                -- Increment the counters
                v.dmaDescToPci.doneLength := r.dmaDescToPci.doneLength + toSlv(increment, 24);
