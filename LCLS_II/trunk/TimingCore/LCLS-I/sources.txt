@@ -10,3 +10,8 @@ vhdl     work rtl/EvrV1Reg.vhd
 verilog  work rtl/EvrV1TimeofDayReceiver.v
 verilog  work rtl/EvrV1TimeStampGenerator.v
 vhdl     work rtl/EvrV1TimeStampFIFO.vhd  
+
+vhdl     work rtl/LclsMrTimingCore.vhd  
+vhdl     work rtl/LclsMrTimingRegisterStrobe.vhd  
+vhdl     work rtl/LclsMrTimingTriggerPulse.vhd  
+vhdl     work rtl/LclsMrTimingTriggerPulseReg.vhd  
