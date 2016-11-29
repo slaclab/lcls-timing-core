@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-08-30
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -147,6 +147,9 @@ architecture rtl of TimingCore is
    signal timingClkSelR       : sl;
    signal timingClkSelApp     : sl;
 
+   signal linkUpV1            : sl;
+   signal linkUpV2            : sl;
+   
    signal itxData             : Slv16Array(1 downto 0);
    signal itxDataK            : Slv2Array (1 downto 0);
 begin
@@ -359,7 +362,17 @@ begin
       appTimingBus.strobe  <= timingStrobe;
    end generate;
 
-   appTimingBus.v1.linkUp <= not timingClkSelR;
-   appTimingBus.v2.linkUp <= timingClkSelR;
+   U_SYNC_LinkV1 : entity work.Synchronizer
+     port map ( clk     => appTimingClk,
+                dataIn  => linkUpV1,
+                dataOut => appTimingBus.v1.linkUp );
+
+   U_SYNC_LinkV2 : entity work.Synchronizer
+     port map ( clk     => appTimingClk,
+                dataIn  => linkUpV2,
+                dataOut => appTimingBus.v2.linkUp );
+   
+   linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
+   linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
 end rtl;

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-08-26
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,19 +59,23 @@ package TimingPkg is
       inhibit      : sl;
       polarity     : sl;
       bufferByRst  : sl;
+      pllReset     : sl;
    end record;
    constant TIMING_PHY_CONTROL_INIT_C : TimingPhyControlType := (
       reset       => '0',
       inhibit     => '0',
       polarity    => '0',
-      bufferByRst => '0' );
+      bufferByRst => '0',
+      pllReset    => '0' );
 
    type TimingPhyStatusType is record
+      locked       : sl;
       resetDone    : sl;
       bufferByDone : sl;
       bufferByErr  : sl;
    end record;
    constant TIMING_PHY_STATUS_INIT_C : TimingPhyStatusType := (
+      locked       => '0',
       resetDone    => '0',
       bufferByDone => '0',
       bufferByErr  => '0' );
@@ -226,14 +230,26 @@ package TimingPkg is
    --
    --  Experiment timing information (appended by downstream masters)
    --
-   constant EXPT_MESSAGE_BITS_C : integer := 272;
+   constant PADDR_LEN : integer := 16;
+   constant PWORD_LEN : integer := 32;
+   --constant PADDR_LEN : integer := 32;
+   --constant PWORD_LEN : integer := 48;
+   constant EXPT_MESSAGE_BITS_C : integer := PADDR_LEN+8*PWORD_LEN;
+
    type ExptMessageType is record
-     partitionAddr   : slv(15 downto 0);
+     partitionAddr   : slv(PADDR_LEN-1 downto 0);
      partitionWord   : Slv32Array(0 to 7);
    end record;
    constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
      partitionAddr  => (others=>'1'),
      partitionWord  => (others=>x"80008000") );
+   --type ExptMessageType is record
+   --  partitionAddr   : slv(31 downto 0);
+   --  partitionWord   : Slv48Array(0 to 7);
+   --end record;
+   --constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
+   --  partitionAddr  => (others=>'1'),
+   --  partitionWord  => (others=>x"800080008000") );
 
    type ExptBusType is record
      message : ExptMessageType;

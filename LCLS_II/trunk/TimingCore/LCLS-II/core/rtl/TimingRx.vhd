@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-08-31
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -140,6 +140,7 @@ begin
          messageDelayRst     => messageDelayRst,
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
+         timingMessageValid  => timingMessageValid,
          exptMessage         => exptMessage,
          exptMessageValid    => exptMessageValid,
          staData             => staData(1) );

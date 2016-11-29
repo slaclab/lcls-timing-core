@@ -1,3 +1,4 @@
 #vhdl work coregen/TimingGth.dcp 
 vhdl work coregen/TimingGth_fixedlat.dcp 
-vhdl work coregen/TimingGth_clksel.dcp 
+#vhdl work coregen/TimingGth_clksel.dcp 
+vhdl work coregen/TimingGth_extref.dcp 

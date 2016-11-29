@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-09-29
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -214,7 +214,78 @@ architecture rtl of TimingGthCoreWrapper is
          txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
          );
    end component;
-   
+   component TimingGth_extref
+      port (
+         gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
+         drpaddr_in                         : in  std_logic_vector(8 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
+         rxmcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxusrclk_in                        : in  std_logic_vector(0 downto 0);
+         rxusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         tx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         txctrl0_in                         : in  std_logic_vector(15 downto 0);
+         txctrl1_in                         : in  std_logic_vector(15 downto 0);
+         txctrl2_in                         : in  std_logic_vector(7 downto 0);
+         txinhibit_in                       : in  std_logic_vector(0 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txusrclk_in                        : in  std_logic_vector(0 downto 0);
+         txusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
+         rxbyterealign_out                  : out std_logic_vector(0 downto 0);
+         rxcommadet_out                     : out std_logic_vector(0 downto 0);
+         rxctrl0_out                        : out std_logic_vector(15 downto 0);
+         rxctrl1_out                        : out std_logic_vector(15 downto 0);
+         rxctrl2_out                        : out std_logic_vector(7 downto 0);
+         rxctrl3_out                        : out std_logic_vector(7 downto 0);
+         rxdlysresetdone_out                : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxphaligndone_out                  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxphalignerr_out                   : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxsyncdone_out                     : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxsyncout_out                      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+         );
+   end component;
+
    signal rxCtrl0Out   : slv(15 downto 0);
    signal rxCtrl1Out   : slv(15 downto 0);
    signal rxCtrl3Out   : slv(7 downto 0);
@@ -258,6 +329,7 @@ architecture rtl of TimingGthCoreWrapper is
          resetDone       => bypassdone,
          resetErr        => bypasserr,
          resetOut        => rxRst,
+         locked          => rxStatus.locked,
          drpClk          => drpClk,
          drpRst          => drpRst,
          drpRdy          => drpRdy,
@@ -275,7 +347,7 @@ architecture rtl of TimingGthCoreWrapper is
 
 
    GEN_EXTREF : if EXTREF_G generate
-      U_TimingGthCore : TimingGth_clksel
+      U_TimingGthCore : TimingGth_extref
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
             gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
@@ -289,9 +361,9 @@ architecture rtl of TimingGthCoreWrapper is
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => '0',
-            gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
+            gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
-            gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
+            gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
             gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
             gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
@@ -379,9 +451,9 @@ architecture rtl of TimingGthCoreWrapper is
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => '0',
-            gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
+            gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
-            gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
+            gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
             gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
             gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
