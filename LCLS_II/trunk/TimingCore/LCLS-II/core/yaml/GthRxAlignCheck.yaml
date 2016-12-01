@@ -21,7 +21,7 @@ GthRxAlignCheck: &GthRxAlignCheck
       at:
         offset: 0x0000
         stride: 16
-        nelms: 20
+        nelms: 128
       class: IntField
       name: PhaseCount
       sizeBits: 16
@@ -31,10 +31,30 @@ GthRxAlignCheck: &GthRxAlignCheck
     #########################################################
     PhaseTarget:
       at:
-        offset: 0x0028
+        offset: 0x0100
       class: IntField
       name: PhaseTarget
       sizeBits: 7
       lsBit: 0
       mode: RW
       description: Timing frame phase lock target
+    #########################################################
+    ResetLen:
+      at:
+        offset: 0x0100
+      class: IntField
+      name: ResetLen
+      sizeBits: 4
+      lsBit: 7
+      mode: RW
+      description: Reset length
+    #########################################################
+    LastPhase:
+      at:
+        offset: 0x0104
+      class: IntField
+      name: LastPhase
+      sizeBits: 7
+      lsBit: 0
+      mode: RO
+      description: Last timing frame phase seen
