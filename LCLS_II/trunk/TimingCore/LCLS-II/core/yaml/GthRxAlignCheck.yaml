@@ -20,7 +20,7 @@ GthRxAlignCheck: &GthRxAlignCheck
     PhaseCount:
       at:
         offset: 0x0000
-        stride: 16
+        stride: 2
         nelms: 128
       class: IntField
       name: PhaseCount

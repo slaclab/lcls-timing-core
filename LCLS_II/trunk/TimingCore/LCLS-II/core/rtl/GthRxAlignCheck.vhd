@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2016-11-28
+-- Last update: 2016-12-01
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -176,6 +176,10 @@ begin
       v.rst   := '1';
       v.rstcnt:= (others=>'0');
       v.state := RESET_S;
+    end if;
+
+    if axiRst='1' then
+      v := REG_INIT_C;
     end if;
 
     if (axiStatus.writeEnable='1' and std_match(axiWriteMaster.awaddr(8 downto 0),toSlv(256,9))) then
