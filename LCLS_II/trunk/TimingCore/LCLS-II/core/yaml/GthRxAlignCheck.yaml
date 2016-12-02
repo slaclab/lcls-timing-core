@@ -41,11 +41,11 @@ GthRxAlignCheck: &GthRxAlignCheck
     #########################################################
     ResetLen:
       at:
-        offset: 0x0100
+        offset: 0x0102
       class: IntField
       name: ResetLen
       sizeBits: 4
-      lsBit: 7
+      lsBit: 0
       mode: RW
       description: Reset length
     #########################################################
