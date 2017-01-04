@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-01-24
+-- Last update: 2016-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,14 +29,14 @@ use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.SsiPciePkg.all;
+--use work.SsiPciePkg.all;
 use work.EvrV2Pkg.all;
 
 entity EvrV2Dma is
   generic (
     TPD_G         : time    := 1 ns;
     CHANNELS_C    : integer := 1;
-    AXIS_CONFIG_C : AxiStreamConfigType := PCIE_AXIS_CONFIG_C );
+    AXIS_CONFIG_C : AxiStreamConfigType );
   port (
     clk        :  in sl;
     dmaCntl    : out EvrV2DmaControlArray(CHANNELS_C-1 downto 0);
@@ -76,10 +76,10 @@ begin  -- mapping
         v.smaster.tLast  := dmaData(i).tLast;
         v.smaster.tData(dmaData(i).tData'range) := dmaData(i).tData;
         if r.smaster.tValid='0' then
-          ssiSetUserSof(PCIE_AXIS_CONFIG_C, v.smaster, '1');
+          ssiSetUserSof(AXIS_CONFIG_C, v.smaster, '1');
         end if;
         if dmaData(i).tLast='1' then
-          ssiSetUserEofe(PCIE_AXIS_CONFIG_C, v.smaster, '1');
+          ssiSetUserEofe(AXIS_CONFIG_C, v.smaster, '1');
         end if;
       end if;
     end loop;  -- i

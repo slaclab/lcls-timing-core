@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-11-02
+-- Last update: 2017-01-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,6 +115,7 @@ architecture mapping of EvrV2Core is
 
   signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
+  signal dmaSel         : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(ReadoutChannels downto 0,31 downto 0);
   signal rstCount : sl;
@@ -245,14 +246,15 @@ begin  -- rtl
                     strobeIn      => rStrobe(i*STROBE_INTERVAL_C),
                     dataIn        => timingMsg,
                     exptIn        => exptBus,
-                    selectOut     => eventSel(i) );
+                    selectOut     => eventSel(i),
+                    dmaOut        => dmaSel(i) );
     U_BsaChannel : entity work.EvrV2BsaChannel
       generic map ( TPD_G         => TPD_G,
                     CHAN_C        => i )
       port map    ( evrClk        => evrClk,
                     evrRst        => evrRst,
                     channelConfig => channelConfigS(i),
-                    evtSelect     => eventSel(i),
+                    evtSelect     => dmaSel(i),
                     strobeIn      => rStrobe(i*STROBE_INTERVAL_C+1),
                     dataIn        => timingMsg,
                     dmaCntl       => dmaControl(i),
@@ -265,7 +267,7 @@ begin  -- rtl
     port map (    clk        => evrClk,
                   rst        => evrBus.strobe,
                   strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C),
-                  eventSel   => eventSel,
+                  eventSel   => dmaSel,
                   eventData  => timingMsg,
                   dmaCntl    => dmaControl(ReadoutChannels+1),
                   dmaData    => dmaData   (ReadoutChannels+1) );

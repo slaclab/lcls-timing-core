@@ -40,7 +40,8 @@ entity EvrV2EventSelect is
       strobeIn   : in  sl;
       dataIn     : in  TimingMessageType;
       exptIn     : in  ExptBusType;
-      selectOut  : out sl );
+      selectOut  : out sl;
+      dmaOut     : out sl );
 end EvrV2EventSelect;
 
 architecture EvrV2EventSelect of EvrV2EventSelect is
@@ -56,7 +57,8 @@ begin
       if rising_edge(clk) then
 
         selectOut <= rateSel and destSel and strobeIn and config.enabled;
-   
+        dmaOut    <= rateSel and destSel and strobeIn and config.enabled and config.dmaEnabled;
+
         controlI := conv_integer(config.rateSel(10 downto 5));
          if controlI<MAXEXPSEQDEPTH then
            controlWord <= dataIn.control(controlI);
@@ -66,7 +68,7 @@ begin
       end if;
    end process;
 
-   process (config, dataIn, controlWord)
+   process (config, dataIn, controlWord, exptIn)
       variable rateType : slv(1 downto 0);
    begin 
       rateType := config.rateSel(12 downto 11);
