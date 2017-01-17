@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2016-11-28
+-- Last update: 2017-01-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -360,6 +360,7 @@ begin
       appTimingBus.stream  <= timingStream;
       appTimingBus.message <= timingMessage;
       appTimingBus.strobe  <= timingStrobe;
+      appTimingBus.valid   <= timingValid;
    end generate;
 
    U_SYNC_LinkV1 : entity work.Synchronizer
