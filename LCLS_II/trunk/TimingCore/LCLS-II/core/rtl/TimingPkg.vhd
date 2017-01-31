@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-01-17
+-- Last update: 2017-01-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -230,8 +230,8 @@ package TimingPkg is
    --
    --  Experiment timing information (appended by downstream masters)
    --
-   --constant PADDR_LEN : integer := 16;
-   --constant PWORD_LEN : integer := 32;
+--   constant PADDR_LEN : integer := 16;
+--   constant PWORD_LEN : integer := 32;
    constant PADDR_LEN : integer := 32;
    constant PWORD_LEN : integer := 48;
    constant EXPT_MESSAGE_BITS_C : integer := PADDR_LEN+8*PWORD_LEN;
