@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-06-28
+-- Last update: 2016-10-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -115,9 +115,9 @@ begin
   -- resources
   status.nbeamseq    <= toSlv(0, status.nbeamseq'length);
   status.nexptseq    <= toSlv(0, status.nexptseq'length);
-  status.narraysbsa  <= toSlv(NARRAYSBSA, 8);
-  status.seqaddrlen  <= toSlv(0, 4);
-  status.nallowseq   <= x"0";
+  status.narraysbsa  <= toSlv(NARRAYSBSA, status.narraysbsa'length);
+  status.seqaddrlen  <= toSlv(0, status.seqaddrlen'length);
+  status.nallowseq   <= toSlv(0, status.nallowseq'length);
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
