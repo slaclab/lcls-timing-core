@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-07-12
+-- Last update: 2017-01-31
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ package TPGPkg is
   constant BCSWIDTH       : integer := 1;
   constant MPSDEPTH       : integer := 5;
 --  constant MPSWIDTH       : integer := 6;
+  constant MAXCOUNTERS    : integer := 24;
   constant MAXARRAYSBSA   : integer := 50;
   constant NTRIGGERSIN    : integer := 12;
   constant MPSCHAN        : integer := 14;
@@ -50,9 +51,26 @@ package TPGPkg is
   constant Beam  : slv(Allow'left+MAXBEAMSEQDEPTH downto Allow'left+1) := (others=>'0');
   constant Expt  : slv(Beam'left+MAXEXPSEQDEPTH downto Beam'left+1)    := (others=>'0');
   constant Seq   : slv(Expt'left downto Allow'right)                   := (others=>'0');
+
+  type CtrDefType is record
+                   rateSel : slv(12 downto 0);
+                   -- Bits(12:11)=(fixed,AC,seq,reserved)
+                   -- fixed:  marker = 3:0
+                   -- AC   :  marker = 2:0;  TS = 8:3 (mask)
+                   -- seq  :  bit    = 5:0;  seq = 10:6
+                   destSel : slv(18 downto 0);
+                   -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
+                   -- Bits(15:0)=Mask of Destinations (when Beam)
+  end record;
+  constant CTRDEF_INIT_C : CtrDefType := (
+    rateSel  => (others=>'0'),
+    destSel  => (others=>'0') );
+
+  type CtrDefArray is array(natural range<>) of CtrDefType;
+
   
   type BsaDefType is record
-                   nToAvg  : slv(15 downto 0);
+                   nToAvg  : slv(12 downto 0);
                    avgToWr : slv(15 downto 0);
                    rateSel : slv(12 downto 0);
                    -- Bits(12:11)=(fixed,AC,seq,reserved)
@@ -62,6 +80,7 @@ package TPGPkg is
                    destSel : slv(18 downto 0);
                    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
                    -- Bits(15:0)=Mask of Destinations (when Beam)
+                   maxSevr : slv(1 downto 0); -- max alarm severity
                    init    : sl;
                  end record;
   constant BSADEF_INIT_C : BsaDefType := (
@@ -69,6 +88,7 @@ package TPGPkg is
     avgToWr  => (others=>'0'),
     rateSel  => (others=>'0'),
     destSel  => (others=>'0'),
+    maxSevr  => (others=>'0'),
     init     => '0');
   
   type BsaDefArray is array(natural range<>) of BsaDefType;
@@ -131,11 +151,11 @@ package TPGPkg is
   
   type TPGStatusType is record
                           -- implemented resources
-                          nbeamseq      : slv (7 downto 0);
+                          nbeamseq      : slv (5 downto 0);
                           nexptseq      : slv (7 downto 0);
                           narraysbsa    : slv (7 downto 0);
                           seqaddrlen    : slv (3 downto 0);
-                          nallowseq     : slv (3 downto 0);
+                          nallowseq     : slv (5 downto 0);
                           --
                           pulseId       : slv(63 downto 0);
                           timeStamp     : slv(63 downto 0);
@@ -156,6 +176,7 @@ package TPGPkg is
                           rxClkCnt      : slv(31 downto 0);
                           rxDVCnt       : slv(31 downto 0);
                           seqRdData     : Slv32Array(MAXSEQDEPTH-1 downto 0);
+                          ctrvalv       : Slv32Array(MAXCOUNTERS-1 downto 0);
                           bsaStatus     : Slv32Array(63 downto 0);
                           seqState      : SequencerStateArray(MAXSEQDEPTH-1 downto 0);
                           bcsFault      : slv(BCSWIDTH-1 downto 0);
@@ -191,6 +212,7 @@ package TPGPkg is
     rxClkCnt      => (others=>'0'),
     rxDVCnt       => (others=>'0'),
     seqRdData     => (others=>(others=>'0')),
+    ctrvalv       => (others=>(others=>'0')),
     bsaStatus     => (others=>(others=>'0')),
     seqState      => (others=>SEQUENCER_STATE_INIT_C),
     bcsFault      => (others=>'0') );
@@ -208,6 +230,8 @@ package TPGPkg is
                           clock_remainder : slv( 7 downto 0);
                           clock_divisor   : slv( 7 downto 0);
                           txPolarity    : sl;
+                          acDelay       : slv(15 downto 0);
+                          frameDelay    : slv(15 downto 0);
                           baseDivisor   : slv(15 downto 0);
                           pulseId       : slv(63 downto 0);
                           pulseIdWrEn   : sl;
@@ -233,6 +257,8 @@ package TPGPkg is
                           irqFifoRd     : sl;
                           diagSeq       : slv( 6 downto 0);
                           beamDiag      : BeamDiagControlType;
+                          ctrlock       : sl;
+                          ctrdefv       : CtrDefArray(MAXCOUNTERS-1 downto 0);
                           bsadefv       : BsaDefArray(MAXARRAYSBSA-1 downto 0);
                           interval      : slv(31 downto 0);
                           intervalRst   : sl;
@@ -248,6 +274,8 @@ package TPGPkg is
     clock_divisor     => toSlv(13,8),
     txPolarity        => '0',
     baseDivisor       => x"00C8",
+    acDelay           => x"02DD",
+    frameDelay        => x"0000",
     pulseId           => (others=>'0'),
     pulseIdWrEn       => '1',
     timeStamp         => (others=>'0'),
@@ -287,6 +315,8 @@ package TPGPkg is
     irqFifoRd         => '0',
     diagSeq           => (others=>'0'),
     beamDiag          => BEAM_DIAG_CONTROL_INIT_C,
+    ctrlock           => '0',
+    ctrdefv           => (others=>CTRDEF_INIT_C),
     bsadefv           => (others=>BSADEF_INIT_C),
     interval          => x"0000488b",   -- 100 us
     intervalRst       => '1',
@@ -298,6 +328,20 @@ package TPGPkg is
 
   type TPGConfigArray is array(natural range<>) of TPGConfigType;
 
+  type ExternalTrigType is record
+    strobe71k : sl;
+    strobe360 : sl;
+    strobe60  : sl;
+    strobe1Hz : sl;
+    strobe    : sl;
+  end record;
+  constant EXTERNAL_TRIG_INIT_C : ExternalTrigType := (
+    strobe71k => '0',
+    strobe360 => '0',
+    strobe60  => '0',
+    strobe1Hz => '0',
+    strobe    => '0' );
+  
 end TPGPkg;
 
 package body TPGPkg is

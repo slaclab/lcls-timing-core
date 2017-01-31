@@ -192,14 +192,13 @@ begin
        
        if v.bsaInit='1' then
          v.done    := '0';
-         v.bsaDone := bsadef.short;
        else
          if (r.persist='0' and r.lastWr='1' and v.bsaAvgDone='1') then
            v.done  := '1';
          end if;
-         v.bsaDone := (v.done and not r.done);
        end if;
 
+       v.bsaDone := (v.done and not r.done);
        
        if (v.bsaInit='1' or v.bsaAvgDone='1') then
          v.nToAvg  := (others=>'0');
