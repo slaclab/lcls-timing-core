@@ -139,6 +139,7 @@ begin
           v.latchtag        := r.latchtag+1;
           v.done(r.index)   := '1';
           v.init(nindex)    := '1';
+          v.active(nindex)  := '1'; -- sets sevr level 3
           v.statusB         := '1';
           v.statusI         := toSlv(r.index,2);
         end if;

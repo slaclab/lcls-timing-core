@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-07-01
+-- Last update: 2017-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ begin
          when SEQ_TEST_BRANCH =>
             case rdStepB(31 downto 29) is
                when "000" =>                                     -- Branch
-                  if rdStepB(24) = '0' then
+                  if rdStepB(24) = '0' then                      -- unconditional
                      v.index := rdStepB(v.index'range);
                   elsif (r.jump = '1') then
                      v.index             := r.index+1;

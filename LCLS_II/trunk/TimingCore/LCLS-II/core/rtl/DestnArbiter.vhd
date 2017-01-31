@@ -94,7 +94,7 @@ begin
      for i in 0 to MAXBEAMSEQDEPTH-1 loop
         if (beamSeq(i)(16)='1' and ((allow and r.allowReqd(i))=r.allowReqd(i))) then
            v.beamSeqO(31 downto 16) := beamSeq(i)(15 downto 0);
-           v.beamSeqO( 4 downto  1) := r.seqDstn(i);
+           v.beamSeqO( 7 downto  4) := r.seqDstn(i);
            v.beamSeqO(0)            := '1';
            v.beamControl            := config.destnControl(conv_integer(r.seqDstn(i)));
         end if;
