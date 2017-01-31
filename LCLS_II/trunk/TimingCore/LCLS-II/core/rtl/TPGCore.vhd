@@ -68,7 +68,7 @@ entity TPGCore is
     txData     : out slv(15 downto 0);
     txDataK    : out slv(1 downto 0);
     txPolarity : out sl;
-    extTrigger : in  slv(4 downto 0);
+    extTrigger : in  ExternalTrigType;
 
     mps        : in  MpsMitigationMsgType := MPS_MITIGATION_MSG_INIT_C;
     bcs        : in  sl := '0';
@@ -93,13 +93,14 @@ architecture TPGCore of TPGCore is
   signal diagframe               : TimingMessageType := TIMING_MESSAGE_INIT_C;
 
   signal trigger360q             : sl;
-  signal triggerTS1, triggerTS1q : sl;
+  signal triggerTS1q             : sl;
   signal triggerResyncq          : sl;
   signal triggerIn               : slv(11 downto 0);
   signal triggerInq              : slv(11 downto 0);
   signal intTrigger              : slv(6 downto 0) := (others=>'0');
 
   signal baseEnable              : sl;
+  signal baseEnableu             : sl;
   signal baseEnabled             : slv(30 downto 0);
 
   signal pulseIdn                : slv(63 downto 0);
@@ -136,7 +137,8 @@ architecture TPGCore of TPGCore is
   signal countTrig, countTrign : Slv32Array(11 downto 0);
   signal countBRT, countBRTn   : slv(31 downto 0);
   signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
-
+  signal ctrvalv               : Slv32Array(MAXCOUNTERS-1 downto 0);
+  
   signal rxCounters            : SlVectorArray(13 downto 0, 31 downto 0);
   signal rxClkToggle           : slv(1 downto 0) := "00";
   signal debug                 : slv(1 downto 0);
@@ -147,9 +149,10 @@ architecture TPGCore of TPGCore is
 
   -- Raw diagnostics
   signal seqstate0 : SequencerState := SEQUENCER_STATE_INIT_C;
-  signal tvalid, tlast    : sl;
+  signal tvalid    : sl;
   signal tdata : slv(63 downto 0);
-
+  signal dmaCnt : slv(8 downto 0) := (others=>'0');
+  
   -- Async messaging
   signal obDebugMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;     
 
@@ -169,9 +172,9 @@ begin
   diagRst                         <= txRst;
   -- synchronize BSA where it is stable
   diagBus.strobe                  <= baseEnabled(21);
-  diagBus.data(31 downto 28)      <= (others=>x"00000000");
-  -- test if BSA is latching data on a different clk
-  diagBus.data(27 downto  0)      <= toSlv32(toSlv(frame)(28*32+15 downto 16));
+  diagBus.data                    <= toSlv32(resize(toSlv(frame),32*diagBus.data'length));
+  diagBus.sevr                    <= (others=>"00");
+  diagBus.fixed                   <= (others=>'1');
   diagBus.timingMessage           <= diagFrame;
 
   tvalid <= '1' when seqstate0.index /= status.seqState(conv_integer(config.diagSeq)).index else
@@ -187,7 +190,7 @@ begin
   diagMa.tData(127 downto 64)     <= (others=>'0');
   diagMa.tKeep                    <= x"00FF";
   diagMa.tValid                   <= tvalid;
-  diagMa.tLast                    <= tlast;
+  diagMa.tLast                    <= '1' when (tvalid='1' and dmaCnt=toSlv(511,9)) else '0';
   diagMa.tDest                    <= x"00";
   diagMa.tId                      <= x"00";
   diagMa.tUser                    <= (others=>'0');
@@ -201,14 +204,12 @@ begin
 
   txPolarity <= config.txPolarity;
   
-  triggerTS1q <= trigger360q and triggerTS1;
-
   -- resources
-  status.nbeamseq    <= toSlv(BEAMSEQDEPTH, 8);
+  status.nbeamseq    <= toSlv(BEAMSEQDEPTH, 6);
   status.nexptseq    <= toSlv(EXPSEQDEPTH , 8);
   status.narraysbsa  <= toSlv(NARRAYSBSA  , 8);
   status.seqaddrlen  <= toSlv(SEQADDRLEN  , 4);
-  status.nallowseq   <= toSlv(ALLOWSEQDEPTH,4);
+  status.nallowseq   <= toSlv(ALLOWSEQDEPTH,6);
 
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
@@ -217,18 +218,33 @@ begin
   status.count186M  <= count186M;
   status.countSyncE <= countSyncE;
 
-  triggerIn      <= intTrigger & extTrigger;
+  U_ACDelay : entity work.SyncDelay
+    port map ( clk        => txClk,
+               rst        => txRst,
+               enable     => baseEnable,
+               delay      => config.acDelay,
+               ivalid     => extTrigger.strobe60,
+               istrobe    => triggerInq(1),
+               ovalid     => triggerTS1q,
+               ostrobe    => trigger360q );
+               
+  triggerIn      <= intTrigger &
+                    extTrigger.strobe &
+                    extTrigger.strobe1Hz &
+                    extTrigger.strobe60  &
+                    extTrigger.strobe360 &
+                    extTrigger.strobe71k;
   triggerResyncq <= triggerInq(0);
-  trigger360q    <= triggerInq(1);
-  triggerTS1     <= triggerIn (2);
-  triggerTS1q    <= triggerTS1 and trigger360q;
+  --trigger360q    <= triggerInq(1);
+  --triggerTS1     <= triggerIn (2);
+  --triggerTS1q    <= triggerTS1 and trigger360q;
 
   trigger_edge : for i in triggerIn'range generate
     U_edge : entity work.SynchronizerOneShot
       port map (
         clk     => txClk,
         rst     => txRst,
-        dataIn  => triggerIn (i),
+        dataIn  => triggerIn(i),
         dataOut => triggerInq(i));
 
     countTrign(i) <= (others => '0') when countRst = '1' else
@@ -279,8 +295,17 @@ begin
       enable   => '1',
       clear    => '0',
       divisor  => config.baseDivisor,
-      trigO    => baseEnable);
+      trigO    => baseEnableu);
 
+  BaseEnableDelay : entity work.SyncDelay
+    port map ( clk        => txClk,
+               rst        => txRst,
+               enable     => '1',
+               delay      => config.frameDelay,
+               ivalid     => '0',
+               istrobe    => baseEnableu,
+               ostrobe    => baseEnable );
+  
   ACDivider_loop : for i in 0 to ACRateDepth-1 generate
     U_ACDivider_1 : entity work.ACDivider
       generic map (
@@ -417,6 +442,25 @@ begin
                beamSeqO     => frame.beamRequest,
                beamControl  => open );
 
+  CtrLoop : for i in 0 to MAXCOUNTERS-1 generate
+    U_CtrControl : entity work.CtrControl
+      generic map (ASYNC_REGCLK_G => ASYNC_REGCLK_G)
+      port map (
+        sysclk     => txClk,
+        sysrst     => txRst,
+        ctrdef     => config.ctrdefv(i),
+        ctrrst     => countRst,
+        txclk      => txClk,
+        txrst      => txRst,
+        enable     => baseEnabled(19),
+        fixedRate  => frame.fixedRates,
+        acRate     => frame.acRates,
+        acTS       => frame.acTimeSlot,
+        beamSeq    => frame.beamRequest,
+        expSeq     => frame.control,
+        count      => ctrvalv(i) );
+  end generate CtrLoop;
+
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
     U_BsaControl : entity work.BsaControl
       generic map (ASYNC_REGCLK_G => ASYNC_REGCLK_G)
@@ -439,7 +483,7 @@ begin
         bsaAvgDone => frame.bsaAvgDone(i),
         bsaDone    => frame.bsaDone(i));
   end generate BsaLoop;
-
+  
   status.bsaStatus(63 downto NARRAYSBSA) <= (others => (others => '0'));
   frame.bsaInit   (59 downto NARRAYSBSA) <= (others => '0');
   frame.bsaActive (59 downto NARRAYSBSA) <= (others => '0');
@@ -518,18 +562,12 @@ begin
     end if;
   end process;
 
-  process (txClk,tvalid)
-    variable cnt : slv(8 downto 0) := (others=>'0');
+  process (txClk)
   begin
-    if allBits(cnt,'1') then
-      tlast <= tvalid;
-    else
-      tlast <= '0';
-    end if;
     if rising_edge(txClk) then
       seqstate0 <= status.seqState(conv_integer(config.diagSeq));
       if (tvalid='1') then
-        cnt := cnt+1;
+        dmaCnt <= dmaCnt+1;
       end if;
     end if;
   end process;
@@ -566,6 +604,9 @@ begin
         countRst    <= '0';
         intervalCnt <= intervalCnt-1;
       end if;
+      if config.ctrlock='0' then
+        status.ctrvalv   <= ctrvalv;
+      end if;
     end if;
     if txRst = '1' then
       frame.acTimeSlot      <= "001";
@@ -578,6 +619,7 @@ begin
       status.countTrig      <= (others => (others => '0'));
       status.countBRT       <= (others => '0');
       status.countSeq       <= (others => (others => '0'));
+      status.ctrvalv        <= (others => (others => '0'));
     end if;
     if config.intervalRst = '1' then
       intervalCnt <= (others => '0');
