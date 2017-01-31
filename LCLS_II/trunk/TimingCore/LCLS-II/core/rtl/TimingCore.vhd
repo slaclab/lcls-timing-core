@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2017-01-17
+-- Last update: 2017-01-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -143,7 +143,9 @@ architecture rtl of TimingCore is
    signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
    signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others=>'0');
    signal timingFrameSlvValid : slv((TIMING_FRAME_LEN+31)/32 downto 0) := (others=>'0');
-   
+
+   signal clkSel              : sl;
+   signal clkSelTx            : sl;
    signal timingClkSelR       : sl;
    signal timingClkSelApp     : sl;
 
@@ -181,7 +183,8 @@ begin
    timingRx.dataK  <= gtRxDataK;
    timingRx.decErr <= gtRxDecErr;
    timingRx.dspErr <= gtRxDispErr;
-
+   timingClkSel    <= clkSel;
+   
    U_TimingRx : entity work.TimingRx
       generic map (
          TPD_G             => TPD_G,
@@ -192,7 +195,7 @@ begin
          rxStatus            => gtRxStatus,
          rxControl           => gtRxControl,
          rxData              => timingRx,
-         timingClkSel        => timingClkSel,
+         timingClkSel        => clkSel,
          timingClkSelR       => timingClkSelR,
          timingStream        => timingStream,
          timingStreamStrobe  => timingStreamStrobe,
@@ -269,6 +272,9 @@ begin
             axilWriteSlave  => locAxilWriteSlaves (MESSAGE_BUFFER_AXIL_INDEX_C));
    end generate;
 
+   timingPhy.control.reset       <= '0';
+   timingPhy.control.bufferByRst <= '0';
+   
    GEN_MINICORE : if USE_TPGMINI_C generate
       TPGMiniCore_1 : entity work.TPGMiniCore
          generic map (
@@ -290,9 +296,14 @@ begin
             axiWriteMaster => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
-      timingPhy.data  <= itxData(0) when timingClkSelR='0' else
+      U_SyncClkSel : entity work.Synchronizer
+        port map ( clk     => gtTxUsrClk,
+                   dataIn  => clkSel,
+                   dataOut => clkSelTx );
+
+      timingPhy.data  <= itxData(0) when clkSelTx='0' else
                          itxData(1);
-      timingPhy.dataK <= itxDataK(0) when timingClkSelR='0' else
+      timingPhy.dataK <= itxDataK(0) when clkSelTx='0' else
                          itxDataK(1);
                         
    end generate GEN_MINICORE;
