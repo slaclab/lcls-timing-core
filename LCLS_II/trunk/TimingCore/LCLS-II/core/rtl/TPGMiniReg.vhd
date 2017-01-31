@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-06-22
+-- Last update: 2017-01-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -197,8 +197,9 @@ begin
                 v.config.bsadefv(iseq).destSel  := regWrData(31 downto 13);
                 v.config.bsadefv(iseq).init     := '0';
               else
-                v.config.bsadefv(iseq).nToAvg   := regWrData(15 downto  0);
+                v.config.bsadefv(iseq).nToAvg   := regWrData(12 downto  0);
                 v.config.bsadefv(iseq).avgToWr  := regWrData(31 downto 16);
+                v.config.bsadefv(iseq).maxSevr  := regWrData(15 downto 14);
                 v.config.bsadefv(iseq).init     := '1';
               end if;
             when CNTINTVL   => v.config.interval    := regWrData;
@@ -260,7 +261,9 @@ begin
               if regAddr(2)='0' then
                 tmpRdData := r.config.bsadefv(iseq).destSel & r.config.bsadefv(iseq).rateSel;
               else
-                tmpRdData := r.config.bsadefv(iseq).avgToWr & r.config.bsadefv(iseq).nToAvg;
+                tmpRdData := r.config.bsadefv(iseq).avgToWr &
+                             r.config.bsadefv(iseq).maxSevr & '0' & 
+                             r.config.bsadefv(iseq).nToAvg;
               end if;
             when BSASTATUS to BSASTATUS_END =>
               iseq      := conv_integer(regAddr(7 downto 2));
