@@ -58,12 +58,13 @@ architecture BsaControl of BsaControl is
 
    signal initq, initd                      : sl := '0';
    signal initn                             : sl;
-   signal done, doned                       : sl := '1';
+   signal done                              : sl := '1';
    signal donen                             : sl;
    signal persist                           : sl := '0';
+   signal restart                           : sl := '0';
    signal active, rateSel, destSel, avgDone : sl;
-   signal nToAvg                            : slv(15 downto 0) := (others=>'0');
-   signal nToAvgn                           : slv(15 downto 0);
+   signal nToAvg                            : slv(14 downto 0) := (others=>'0');
+   signal nToAvgn                           : slv(14 downto 0);
    signal avgToWr                           : slv(15 downto 0) := (others=>'0');
    signal avgToWrn                          : slv(15 downto 0);
    signal fifoRst                           : sl;
@@ -94,11 +95,13 @@ begin
          if bsadef.init = '0' then
            initq      <= '0';
            persist    <= '0';
+           restart    <= '0';
          elsif enable = '1' and initq = '0' then
             initq <= '1';
             if bsadef.avgToWr = x"0000" then
                persist <= '1';
             end if;
+            restart <= bsadef.restart;
          end if;
       end if;
    end process;
@@ -109,14 +112,14 @@ begin
                         (bsadef.destSel(17 downto 16)="01" and not (beamSeq(0)='1' and bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1')) or
                         (bsadef.destSel(17 downto 16)="00" and beamSeq(0)='1' and bsadef.destSel(conv_integer(beamSeq(7 downto 4))) = '1')) else
               '0';
-   active <= rateSel and destSel and not done;
+   active <= rateSel and destSel and ((restart and initd) or not done);
    donen  <= '0' when (initn = '1') else
-            '1' when (persist = '0' and avgToWr = x"0001" and avgDone = '1') else
-
-            done;
+             '1' when (persist = '0' and avgToWr = x"0001" and avgDone = '1') else
+             '0' when (restart = '1') else
+             done;
    avgDone <= '1' when (nToAvg = x"0001" and active = '1') else
               '0';
-   avgToWrn <= bsadef.avgToWr when (initn = '1') else
+   avgToWrn <= bsadef.avgToWr when (initn = '1' or donen = '1' ) else
                avgToWr-1 when (avgDone = '1') else
                avgToWr;
    nToAvgn <= bsadef.nToAvg when (initn = '1' or avgDone = '1') else
@@ -131,7 +134,8 @@ begin
        port map (rst                => fifoRst,
                  wr_clk             => txclk,
                  wr_en              => '1',
-                 din(15 downto 0)   => nToAvg,
+                 din(14 downto 0)   => nToAvg,
+                 din(15)            => '0',
                  din(31 downto 16)  => avgToWr,
                  rd_clk             => sysclk,
                  rd_en              => '1',
@@ -141,7 +145,7 @@ begin
    end generate GEN_ASYNC;
 
    GEN_SYNC: if ASYNC_REGCLK_G=false generate
-     nToAvgOut  <= nToAvg;
+     nToAvgOut  <= '0' & nToAvg;
      avgToWrOUt <= avgToWr;
    end generate GEN_SYNC;
    
@@ -154,19 +158,16 @@ begin
          bsaDone    <= '0';
          initd      <= '0';
          done       <= '1';
-         doned      <= '1';
-         nToAvg     <= x"0000";
+         nToAvg     <= (others=>'0');
          avgToWr    <= x"0000";
       elsif rising_edge(txclk) then
          if enable = '1' then
-            bsaInit    <= initq and not initd;
+            bsaInit    <= initn;
             bsaActive  <= active;
             bsaAvgDone <= avgDone;
-            --bsaDone    <= done and not doned;
             bsaDone    <= donen and not done;  -- must overlap with bsaAvgDone
             initd      <= initq;
             done       <= donen;
-            doned      <= done;
             nToAvg     <= nToAvgn;
             avgToWr    <= avgToWrn;
          end if;
