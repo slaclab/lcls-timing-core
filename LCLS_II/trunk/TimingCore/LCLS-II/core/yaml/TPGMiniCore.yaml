@@ -228,7 +228,7 @@ TPGMiniCore: &TPGMiniCore
     BsaAvgToWr:
     #########################################################
       at:
-        offset: 0x0208
+        offset: 0x0206
         stride: 8
         nelms: 64
       class: IntField
