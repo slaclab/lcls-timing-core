@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-11-28
+-- Last update: 2016-10-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -97,12 +97,24 @@ architecture rtl of TimingRx is
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
+   type RxRegType is record
+     clkCnt : slv(3 downto 0);
+     decErr : sl;
+     dspErr : sl;
+   end record;
+   constant RX_REG_INIT_C : RxRegType := (
+     clkCnt => (others=>'0'),
+     decErr => '0',
+     dspErr => '0' );
+
+   signal rxR   : RxRegType := RX_REG_INIT_C;
+   signal rxRin : RxRegType;
+   
    signal staData            : Slv4Array(1 downto 0);
    
    signal rxDecErrSum        : sl;
    signal rxDspErrSum        : sl;
 
-   signal rxClkCnt           : slv(3 downto 0) := (others=>'0');
    signal stv                : slv(3 downto 0);
    signal axilRxLinkUp       : sl;
    signal axilStatusCounters1,
@@ -149,6 +161,7 @@ begin
                        axilRxLinkUp,
                        axilStatusCounters12,
                        axilStatusCounters3,
+                       rxStatusCount,
                        axilWriteMaster, txClkCntS) is
       variable v          : AxilRegType;
       variable axilStatus : AxiLiteStatusType;
@@ -205,6 +218,7 @@ begin
       axilSlaveRegisterW(X"20", 4, v.clkSel);
       axilSlaveRegisterW(X"20", 5, v.rxDown);
       axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
+      axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);
 
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
       axilSlaveRegisterR(X"28", 0, txClkCntS);
@@ -268,8 +282,16 @@ begin
    axilRxLinkUp <= stv(1);
    axilStatusCounters12 <= axilStatusCounters1 when axilR.clkSel='0' else
                            axilStatusCounters2;
-   rxDecErrSum  <= rxData.decErr(0) or rxData.decErr(1);
-   rxDspErrSum  <= rxData.dspErr(0) or rxData.dspErr(1);
+
+   rxcomb : process(rxR, rxData) is
+     variable v : RxRegType;
+   begin
+     v := rxR;
+     v.clkCnt := rxR.clkCnt+1;
+     v.decErr := rxData.decErr(0) or rxData.decErr(1);
+     v.dspErr := rxData.dspErr(0) or rxData.dspErr(1);
+     rxRin <= v;
+   end process;
 
    SyncStatusVector_1 : entity work.SyncStatusVector
       generic map (
@@ -316,10 +338,10 @@ begin
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
-         statusIn(0)  => rxClkCnt(rxClkCnt'left),
+         statusIn(0)  => rxR.clkCnt(rxR.clkCnt'left),
          statusIn(1)  => rxStatus.resetDone,
-         statusIn(2)  => rxDecErrSum,
-         statusIn(3)  => rxDspErrSum,
+         statusIn(2)  => rxR.decErr,
+         statusIn(3)  => rxR.dspErr,
          statusOut    => stv,
          cntRstIn     => axilR.cntRst,
          rollOverEnIn => "0001",
@@ -332,7 +354,7 @@ begin
    rxClkCnt_seq : process (rxClk) is
    begin
       if (rising_edge(rxClk)) then
-         rxClkCnt <= rxClkCnt+1;
+         rxR <= rxRin;
       end if;
    end process rxClkCnt_seq;
 
@@ -376,6 +398,7 @@ begin
    rxControl.reset    <= axilR.rxControl.reset or (axilRxLinkUp and (stv(2) or stv(3)));
    rxControl.inhibit  <= '0';
    rxControl.polarity <= axilR.rxControl.polarity;
+   rxControl.pllReset <= axilR.rxControl.pllReset;
    
    rxRst(0)      <= '1' when (rxStatus.resetDone='0' or clkSelR='1') else '0';
    rxRst(1)      <= '1' when (rxStatus.resetDone='0' or clkSelR='0') else '0';
