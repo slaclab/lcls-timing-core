@@ -2,7 +2,9 @@ vhdl work rtl/TimingPkg.vhd
 vhdl work rtl/TPGPkg.vhd
 vhdl work rtl/TPGMiniReg.vhd
 vhdl work rtl/Divider.vhd
-vhdl work rtl/BsaControl.vhd
+#vhdl work rtl/BsaControl.vhd
+vhdl work rtl/BsaControlv2.vhd
+vhdl work rtl/CtrControl.vhd
 vhdl work rtl/ClockTime.vhd
 vhdl work rtl/EventSelect.vhd
 vhdl work rtl/TPSerializer.vhd
