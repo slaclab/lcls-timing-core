@@ -37,6 +37,7 @@ entity BsaControl is
       sysclk     : in  sl;
       sysrst     : in  sl;
       bsadef     : in  BsaDefType;
+      tmocnt     : in  slv( 3 downto 0) := x"F";
       nToAvgOut  : out slv(15 downto 0);
       avgToWrOut : out slv(15 downto 0);
 
@@ -71,6 +72,8 @@ architecture BsaControl of BsaControl is
      fifoRst    : sl;
      nToAvg     : slv(12 downto 0);
      avgToWr    : slv(15 downto 0);
+     tmoactive  : sl;
+     tmocnt     : slv( 3 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -86,11 +89,15 @@ architecture BsaControl of BsaControl is
      lastWr     => '0',
      fifoRst    => '0',
      nToAvg     => (others=>'0'),
-     avgToWr    => (others=>'0') );
+     avgToWr    => (others=>'0'),
+     tmoactive  => '0',
+     tmocnt     => (others=>'0') );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   constant TMO_CNT_C : integer := 4; -- 40 ms
+   
    signal rateSel : sl;
    
    -- Register delay for simulation
@@ -140,7 +147,7 @@ begin
      avgToWrOUt <= r.avgToWr;
    end generate GEN_SYNC;
    
-   comb: process (r, txrst, enable, bsadef, beamSeq, rateSel) is
+   comb: process (r, txrst, enable, bsadef, beamSeq, rateSel, fixedRate, tmocnt) is
      variable v : RegType;
      variable destSel : sl;
      variable avgDone : sl;
@@ -211,7 +218,25 @@ begin
        elsif v.bsaAvgDone='1' then
          v.avgToWr   := r.avgToWr+1;
        end if;
-       
+
+       -- count off the tmo in 10 ms steps
+       if r.tmoactive = '1' and fixedRate(4)='1' then
+         if r.tmocnt = tmocnt then
+           --  assert done
+           v.bsaDone   := '1';
+           v.tmoactive := '0';
+           v.tmocnt    := (others=>'0');
+         else
+           v.tmocnt    := r.tmocnt+1;
+         end if;
+       end if;
+
+       if r.bsaDone = '1' then
+         v.tmoactive := '0';
+       elsif r.bsaInit = '0' and r.bsaAvgDone = '1' then
+         v.tmoactive := '1';
+       end if;
+
      end if;
 
      if bsadef.init='0' then

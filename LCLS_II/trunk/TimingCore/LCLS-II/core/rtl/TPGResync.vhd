@@ -7,7 +7,9 @@
 -- Created       : 05/29/2015
 -------------------------------------------------------------------------------
 -- Description:
--- TPG resynchronization validation and status
+-- TPG resynchronization validation and status.
+-- This module tests that the 71kHz 'resyncI' strobe occurs at regular intervals
+-- of the 929kHz 'baseI' strobe.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -33,92 +35,99 @@ entity TPGResync is
    port (
      clk       : in  sl;
      rst       : in  sl;
-     forceI    : in  sl;
-     resyncI   : in  sl;
-     baseI     : in  sl;
+     forceI    : in  sl;  -- force output good
+     resyncI   : in  sl;  -- 71kHz strobe (test)
+     baseI     : in  sl;  -- 929kHz strobe (fiducial), clears resyncO
 
-     syncReset : out sl;
-     resyncO   : out sl;
-     outOfSync : out sl
+     syncReset : out sl;  -- level reset until sync confirmed
+     resyncO   : out sl;  -- reset strobe (on sync) all counters / subharmonics
+     outOfSync : out sl   -- status of test
      );
 end TPGResync;
 
 architecture TPGResync of TPGResync is
 
-   component Divider
-     generic ( Width    : integer := 4 );
-     port ( 
-       -- Clock and reset
-       sysClk             : in  sl;
-       sysReset           : in  sl;
-       enable             : in  sl;
-       clear              : in  sl;
-       divisor            : in  slv(Width-1 downto 0);
-       trigO              : out sl
-       );
-   end component;
+   type RegType is record
+     syncReset : sl;  -- level reset until sync confirmed
+     outOfSync : sl;  -- status of test
+     resync    : sl;  -- level from resyncI or forceI
+     resyncQ   : sl;  -- edge pulse from resyncI or forceI
+     resyncO   : sl;  -- pulse from resyncQ until baseI
+     resyncD   : sl;  -- expected cycle for resyncQ (edge)
+   end record;
 
-   signal resync            : sl;
-   signal resyncQ           : sl;
-   signal resyncOn          : sl;
-   signal resyncOb          : sl;
+   constant REG_INIT_C : RegType := (
+     syncReset => '1',
+     outOfSync => '1',
+     resync    => '0',
+     resyncQ   => '0',
+     resyncO   => '0',
+     resyncD   => '0' );
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+     
    signal baseResync        : sl;
-   signal baseResync_d      : sl;
-   signal syncResetb        : sl;
-   signal syncResetNext     : sl;
-   signal outOfSyncb        : sl;
-   signal outOfSyncNext     : sl;
-
+   
    -- Register delay for simulation
    constant tpd:time := 0.5 ns;
 
 begin  -- TPGResync
 
-   syncReset     <= syncResetb;
-   resyncO       <= resyncOb;
-   outOfSync     <= outOfSyncb;
-   
-   resyncOn      <= '1' when resyncQ='1' else
-                    '0' when baseI='1' else
-                    resyncOb;
-   
-   syncResetNext <= '0'        when (forceI='1') else
-                    '0'        when (resyncQ='1' and syncResetb='1') else
-                    '0'        when (resyncQ='1' and baseResync_d='1') else
-                    syncResetb when (resyncQ='0' and baseResync_d='0') else
-                    '1';
-   outOfSyncNext <= '0' when (resyncQ='1' and baseResync_d='1') else
-                    '1' when (resyncQ='1' or  baseResync_d='1') else
-                    outOfSyncb;
-   
-   ResyncCheck : Divider
+   ResyncCheck : entity work.Divider
      generic map ( Width => 12 )
      port map ( sysClk   => clk,
-                sysReset => resyncQ,
+                sysReset => r.resyncQ,
                 enable   => '1',
                 clear    => '0',
-                divisor  => x"A26",
+                divisor  => x"A26",  -- 2598 cycles (nominal 2600)
                 trigO    => baseResync );
+
+   comb : process ( r, rst, forceI, resyncI, baseI, baseResync ) is
+     variable v : RegType;
+   begin
+     v := r;
+
+     if r.resyncQ = '1' then
+       v.resyncO := '1';
+     elsif baseI = '1' then
+       v.resyncO := '0';
+     end if;
      
-   process (clk, rst)
+     if forceI = '1' or (r.resyncQ = '1' and (r.syncReset = '1' or r.resyncD = '1'))  then
+       v.syncReset := '0';
+     elsif r.resyncQ = '1' or r.resyncD = '1' then
+       v.syncReset := '1';
+     end if;
+
+     v.resyncQ := (resyncI or forceI) and not r.resync;
+     v.resync  := (resyncI or forceI);
+
+     v.resyncD := baseResync;
+     
+     if r.resyncQ = '1' and r.resyncD = '1' then
+       v.outOfSync := '0';
+     elsif r.resyncQ = '1' or r.resyncD = '1' then
+       v.outOfSync := '1';
+     end if;
+
+     if rst = '1' then
+       v := REG_INIT_C;
+     end if;
+
+     rin <= v;
+
+     syncReset <= r.syncReset;
+     resyncO   <= r.resyncO;
+     outOfSync <= r.outOfSync;
+   end process comb;
+   
+   seq: process (clk)
    begin  -- process
      if rising_edge(clk) then
-       syncResetb   <= syncResetNext after tpd;
-       outOfSyncb   <= outOfSyncNext after tpd;
-       resyncOb     <= resyncOn after tpd;
-       resyncQ      <= (resyncI or forceI) and not resync after tpd;
-       resync       <= (resyncI or forceI) after tpd;
-       baseResync_d <= baseResync after tpd;
+       r <= rin;
      end if;
-     if rst = '1' then
-       syncResetb   <= '1';
-       outOfSyncb   <= '1';
-       resync       <= '0';
-       resyncQ      <= '0';
-       resyncOb     <= '0';
-       baseResync_d <= '0';
-     end if;
-   end process;
+   end process seq;
    
 end TPGResync;
      
