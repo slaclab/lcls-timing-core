@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-07-09
+-- Last update: 2017-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ architecture TimingStreamTx of TimingStreamTx is
       dataBuffEn    : sl;
       dataBuff      : slv(TIMING_DATABUFF_BITS_C-1 downto 0);
       pulseId       : slv(31 downto 0);
+      eventCodes    : slv(255 downto 0);
       wordCount     : slv( 7 downto 0);
       dbufData      : slv( 7 downto 0);
       ecodData      : slv( 7 downto 0);
@@ -62,6 +63,7 @@ architecture TimingStreamTx of TimingStreamTx is
       dataBuffEn    => '0',
       dataBuff      => (others=>'0'),
       pulseId       => (others=>'0'),
+      eventCodes    => (others=>'0'),
       wordCount     => (others=>'0'),
       dbufData      => K_COM_C,
       ecodData      => x"00",
@@ -97,6 +99,7 @@ begin
             v.dataBuff   := toSlv(dataBuff);
             v.dataBuffEn := '0';
             v.pulseId    := pulseId;
+            v.eventCodes := eventCodes;
             v.dataK      := "11";
             v.dbufData   := K_280_C;
           end if;
@@ -131,7 +134,7 @@ begin
             v.state := IDLE_S;
           else
             v.wordCount := r.wordCount+1;
-            if eventCodes(conv_integer(r.wordCount))='1' then
+            if r.eventCodes(conv_integer(r.wordCount))='1' then
               v.dataK    := "00";
               v.ecodData := r.wordCount;
             end if;

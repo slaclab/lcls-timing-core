@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : TimingFrameRx.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
+-- File       : TimingStreamRx.vhd
+-- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-25
+-- Last update: 2017-02-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,10 +42,13 @@ entity TimingStreamRx is
       rxClk               : in  sl;
       rxRst               : in  sl;
       rxData              : in  TimingRxType;
+
+      timingMessageNoDely : in  sl := '0';
       
       timingMessage       : out TimingStreamType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
+      timingTSEventCounter: out slv(31 downto 0);
 
       staData             : out slv(3 downto 0)
       );
@@ -72,6 +75,7 @@ architecture rtl of TimingStreamRx is
       timingStream        : TimingStreamType;
       dataBuffCache       : TimingDataBuffArray(2 downto 0);
       timingMessageStrobe : sl;
+      timingTSEventCounter: slv(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -86,7 +90,8 @@ architecture rtl of TimingStreamRx is
       eventCodes          => (others => '0'),
       timingStream        => TIMING_STREAM_INIT_C,
       dataBuffCache       => (others=>TIMING_DATA_BUFF_INIT_C),
-      timingMessageStrobe => '0');
+      timingMessageStrobe => '0',
+      timingTSEventCounter=> (others=>'0') );
 
    constant FRAME_LEN : slv(19 downto 0) := x"036b0";  -- end of EVG stream
    
@@ -102,7 +107,7 @@ begin
   rxDbuf <= rxData.data(15 downto 8);
   rxEcod <= rxData.data( 7 downto 0);
 
-  comb : process (r, rxRst, rxDbuf, rxEcod, rxData) is
+  comb : process (r, rxRst, rxDbuf, rxEcod, rxData, timingMessageNoDely) is
     variable v : RegType;
   begin
     v := r;
@@ -111,6 +116,8 @@ begin
     v.sofStrobe           := '0';
     v.eofStrobe           := '0';
     v.timingMessageStrobe := '0';
+
+    v.timingTSEventCounter:= r.timingTSEventCounter+1;
 
     case (r.dstate) is
       when IDLE_S =>
@@ -137,6 +144,7 @@ begin
         if (rxData.dataK(0)='0') then
           if (rxEcod=x"7D") then
             v.ecount := (others=>'0');
+            v.timingTSEventCounter := (others=>'0');
             v.estate := FRAME_S;
           elsif rxEcod=x"70" then
             v.pulseIdShift := r.pulseIdShift(30 downto 0) & '0';
@@ -152,7 +160,11 @@ begin
           v.eventCodes := (others=>'0');
           v.timingStream.pulseId := r.pulseIdShift;
           v.timingStream.eventCodes  := r.eventCodes;
-          v.timingStream.dbuff   := r.dataBuffCache(2);
+          if timingMessageNoDely = '1' then
+            v.timingStream.dbuff   := r.dataBuffCache(0);
+          else
+            v.timingStream.dbuff   := r.dataBuffCache(2);
+          end if;
           v.timingMessageStrobe  := '1';
         else
           v.ecount := r.ecount+1;
@@ -174,6 +186,8 @@ begin
   timingMessage       <= r.timingStream;
   timingMessageStrobe <= r.timingMessageStrobe;
   staData             <= '0' & r.timingMessageStrobe & r.eofStrobe & r.sofStrobe;
+
+  timingTSEventCounter<= r.timingTSEventCounter;
 
    seq : process (rxClk) is
    begin
