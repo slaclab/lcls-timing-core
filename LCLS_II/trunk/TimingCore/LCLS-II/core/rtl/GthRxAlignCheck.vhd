@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2016-11-12
+-- Last update: 2017-02-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -97,11 +97,6 @@ architecture rtl of GthRxAlignCheck is
   signal r    : RegType := REG_INIT_C;
   signal r_in : RegType;
 
-  component ila_0
-    port ( clk : in sl;
-           probe0 : in slv(255 downto 0) );
-  end component;
-  
 begin
 
   locked        <= r.locked;
