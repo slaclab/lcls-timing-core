@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2016-10-25
+-- Last update: 2017-02-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -78,6 +78,7 @@ architecture rtl of TimingRx is
       cntRst         : sl;
       rxControl      : TimingPhyControlType;
       rxDown         : sl;
+      streamNoDelay  : sl;
       messageDelay   : slv(19 downto 0);
       messageDelayRst: sl;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -89,6 +90,7 @@ architecture rtl of TimingRx is
       cntRst         => '0',
       rxControl      => TIMING_PHY_CONTROL_INIT_C,
       rxDown         => '0',
+      streamNoDelay  => '0',
       messageDelay   => (others=>'0'),
       messageDelayRst=> '1',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -127,7 +129,12 @@ architecture rtl of TimingRx is
    signal clkSelR             : sl;
    signal messageDelayR       : slv(19 downto 0);
    signal messageDelayRst     : sl;
+   signal timingStreamNoDelayR: sl;
    signal rxStatusCount       : SlVectorArray(1 downto 0, 15 downto 0);
+   signal timingTSEventCounter: slv(31 downto 0);
+   signal timingTSEvCntGray_i : slv(31 downto 0);
+   signal timingTSEvCntGray_o : Slv32Array(5 downto 0);
+ 
 begin
 
    U_RxLcls1 : entity work.TimingStreamRx
@@ -138,9 +145,11 @@ begin
          rxClk               => rxClk,
          rxRst               => rxRst(0),
          rxData              => rxData,
+         timingMessageNoDely => timingStreamNoDelayR,
          timingMessage       => timingStream,
          timingMessageStrobe => timingStreamStrobe,
          timingMessageValid  => timingStreamValid,
+         timingTSEventCounter=> timingTSEventCounter,
          staData             => staData(0) );
 
    U_RxLcls2 : entity work.TimingFrameRx
@@ -162,7 +171,10 @@ begin
                        axilStatusCounters12,
                        axilStatusCounters3,
                        rxStatusCount,
-                       axilWriteMaster, txClkCntS) is
+                       axilWriteMaster, txClkCntS,
+                       rxStatusCount,
+                       timingTSEvCntGray_o(0)) is
+                 
       variable v          : AxilRegType;
       variable axilStatus : AxiLiteStatusType;
 
@@ -219,12 +231,15 @@ begin
       axilSlaveRegisterW(X"20", 5, v.rxDown);
       axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
       axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);
+      axilSlaveRegisterW(X"20",24, v.streamNoDelay);
 
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
       axilSlaveRegisterR(X"2C",16, muxSlVectorArray(rxStatusCount,1));
+
+      axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
 
@@ -374,6 +389,11 @@ begin
                 dataIn  => axilR.messageDelay,
                 dataOut => messageDelayR );
 
+   SyncStreamNoDelay : entity work.Synchronizer
+     port map ( clk     => rxClk,
+                dataIn  => axilR.streamNoDelay,
+                dataOut => timingStreamNoDelayR );
+
    SyncRxStatus : entity work.SyncStatusVector
       generic map (
          IN_POLARITY_G  => "11",
@@ -394,6 +414,25 @@ begin
      port map ( clk     => rxClk,
                 dataIn  => axilR.rxControl.bufferByRst,
                 dataOut => rxControl.bufferByRst );
+   
+   -- gray encode event timestamp counter to bring into AXIL domain
+   timingTSEvCntGray_i <= timingTSEventCounter xor '0' & timingTSEventCounter(31 downto 1);
+
+   SyncTSEvCnt : entity work.SynchronizerVector
+     generic map (
+        TPD_G   => TPD_G,
+        WIDTH_G => timingTSEvCntGray_i'length)
+     port map (
+        clk     => axilClk,
+        dataIn  => timingTSEvCntGray_i,
+        dataOut => timingTSEvCntGray_o(5));
+
+   -- decode back to binary -- hope it's fast enough w/o pipelining
+   timingTSEvCntGray_o(4) <= timingTSEvCntGray_o(5) xor x"0000" & timingTSEvCntGray_o(5)(31 downto 16);
+   timingTSEvCntGray_o(3) <= timingTSEvCntGray_o(4) xor   x"00" & timingTSEvCntGray_o(4)(31 downto  8);
+   timingTSEvCntGray_o(2) <= timingTSEvCntGray_o(3) xor    x"0" & timingTSEvCntGray_o(3)(31 downto  4);
+   timingTSEvCntGray_o(1) <= timingTSEvCntGray_o(2) xor    "00" & timingTSEvCntGray_o(2)(31 downto  2);
+   timingTSEvCntGray_o(0) <= timingTSEvCntGray_o(1) xor     '0' & timingTSEvCntGray_o(1)(31 downto  1);
 
    rxControl.reset    <= axilR.rxControl.reset or (axilRxLinkUp and (stv(2) or stv(3)));
    rxControl.inhibit  <= '0';

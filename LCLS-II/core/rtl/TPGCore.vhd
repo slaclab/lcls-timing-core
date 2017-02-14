@@ -69,7 +69,10 @@ entity TPGCore is
     txDataK    : out slv(1 downto 0);
     txPolarity : out sl;
     extTrigger : in  ExternalTrigType;
-
+    
+    adcData    : in  Slv32Array(2 downto 0) := (others=>x"00000000");
+    adcValid   : in  slv       (2 downto 0) := "000";
+    
     mps        : in  MpsMitigationMsgType := MPS_MITIGATION_MSG_INIT_C;
     bcs        : in  sl := '0';
     
@@ -89,26 +92,66 @@ end TPGCore;
 -- Define architecture for top level module
 architecture TPGCore of TPGCore is
 
+  type RegType is record
+    extTrigger  : ExternalTrigType;
+    seqstate    : SequencerState;
+    index       : SeqAddrType;
+    master      : AxiStreamMasterType;
+    txRdy       : sl;
+    count       : slv( 8 downto 0);
+    pulseId     : slv(63 downto 0);
+    acTS        : slv( 2 downto 0);
+    acTSPhase   : slv(11 downto 0);
+    baseEnable  : slv(30 downto 0);
+    count186M   : slv(31 downto 0);
+    countSyncE  : slv(31 downto 0);
+    pllChanged  : slv(31 downto 0);
+    countTrig   : Slv32Array(11 downto 0);
+    countBRT    : slv(31 downto 0);
+    intervalCnt : slv(31 downto 0);
+    countTrigL  : Slv32Array(11 downto 0);
+    countBRTL   : slv(31 downto 0);
+    countSeqL   : Slv32Array(MAXSEQDEPTH-1 downto 0);
+    ctrvalv     : Slv32Array(MAXCOUNTERS-1 downto 0);
+    countRst    : sl;
+    outofSync   : sl;
+  end record;
+
+  constant REG_INIT_C : RegType := (
+    extTrigger  => EXTERNAL_TRIG_INIT_C,
+    seqstate    => SEQUENCER_STATE_INIT_C,
+    index       => (others=>'0'),
+    master      => AXI_STREAM_MASTER_INIT_C,
+    txRdy       => '0',
+    count       => (others=>'0'),
+    pulseId     => (others=>'0'),
+    acTS        => "001",
+    acTSPhase   => (others=>'0'),
+    baseEnable  => (others=>'0'),
+    count186M   => (others=>'0'),
+    countSyncE  => (others=>'0'),
+    pllChanged  => (others=>'0'),
+    countTrig   => (others=>(others=>'0')),
+    countBRT    => (others=>'0'),
+    intervalCnt => (others=>'0'),
+    countTrigL  => (others=>(others=>'0')),
+    countBRTL   => (others=>'0'),
+    countSeqL   => (others=>(others=>'0')),
+    ctrvalv     => (others=>(others=>'0')),
+    countRst    => '0',
+    outofSync   => '0' );
+
+  signal r                       : RegType := REG_INIT_C;
+  signal rin                     : RegType;
+  
   signal frame                   : TimingMessageType := TIMING_MESSAGE_INIT_C;
-  signal diagframe               : TimingMessageType := TIMING_MESSAGE_INIT_C;
 
-  signal trigger360q             : sl;
-  signal triggerTS1q             : sl;
-  signal triggerResyncq          : sl;
-  signal triggerIn               : slv(11 downto 0);
-  signal triggerInq              : slv(11 downto 0);
-  signal intTrigger              : slv(6 downto 0) := (others=>'0');
-
+  signal trigger360              : sl;  -- 360Hz strobe synced to tx clk
+  signal triggerTS1              : sl;  --  60Hz strobe synced to tx clk
+  signal extTriggerSync          : ExternalTrigType;
+  
   signal baseEnable              : sl;
   signal baseEnableu             : sl;
-  signal baseEnabled             : slv(30 downto 0);
-
-  signal pulseIdn                : slv(63 downto 0);
-
-  signal pulseIdWr               : sl;
-
-  signal acTSn                   : slv(2 downto 0);
-  signal acTSPhasen              : slv(11 downto 0);
 
   constant ACRateWidth           : integer := 8;
   constant ACRateDepth           : integer := ACRATEDEPTH;
@@ -127,17 +170,9 @@ architecture TPGCore of TPGCore is
 
   signal syncReset : sl;
 
-  signal pllChanged : slv(31 downto 0) := (others => '0');
-  signal count186M  : slv(31 downto 0);
-  signal countSyncE : slv(31 downto 0);
-  
   -- Interval counters
-  signal countRst              : sl;
-  signal intervalCnt           : slv(31 downto 0);
-  signal countTrig, countTrign : Slv32Array(11 downto 0);
-  signal countBRT, countBRTn   : slv(31 downto 0);
-  signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
   signal ctrvalv               : Slv32Array(MAXCOUNTERS-1 downto 0);
+  signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
   
   signal rxCounters            : SlVectorArray(13 downto 0, 31 downto 0);
   signal rxClkToggle           : slv(1 downto 0) := "00";
@@ -147,12 +182,6 @@ architecture TPGCore of TPGCore is
   signal status : TPGStatusType;
   signal config : TPGConfigType;
 
-  -- Raw diagnostics
-  signal seqstate0 : SequencerState := SEQUENCER_STATE_INIT_C;
-  signal tvalid    : sl;
-  signal tdata : slv(63 downto 0);
-  signal dmaCnt : slv(8 downto 0) := (others=>'0');
-  
   -- Async messaging
   signal obDebugMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;     
 
@@ -165,44 +194,46 @@ architecture TPGCore of TPGCore is
   signal streamIds : Slv4Array(0 downto 0);
   signal advance   : slv(0 downto 0);
 
+  signal acDelay   : slv(15 downto 0);
+
+  signal adcDataS  : Slv32Array(2 downto 0);
+  signal adcValdS  : slv       (2 downto 0);
+  
 begin
 
   --  Diagnostic and BSA data
   diagClk                         <= txClk;
   diagRst                         <= txRst;
   -- synchronize BSA where it is stable
-  diagBus.strobe                  <= baseEnabled(21);
-  diagBus.data                    <= toSlv32(resize(toSlv(frame),32*diagBus.data'length));
-  diagBus.sevr                    <= (others=>"00");
-  diagBus.fixed                   <= (others=>'1');
-  diagBus.timingMessage           <= diagFrame;
+  diagBus.strobe                  <= r.baseEnable(21);
+  diagBus.data(26 downto 0)       <= toSlv32(resize(toSlv(frame)(TIMING_MESSAGE_BITS_C-1 downto 16),27*diagBus.data'length));
+  diagBus.fixed(26 downto 0)      <= (others=>'1');
+  diagBus.sevr (26 downto 0)      <= (others=>"00");
 
-  tvalid <= '1' when seqstate0.index /= status.seqState(conv_integer(config.diagSeq)).index else
-            '0';
+  GEN_ADCDIAG : for i in 0 to 2 generate
+    diagBus.data (27+i)           <= adcDataS(i);
+    diagBus.fixed(27+i)           <= '0';
+    diagBus.sevr (27+i)           <= "00" when adcValdS(i)='1' else "11";
+  end generate;
   
-  tdata <= status.count186M(19 downto 0) &
-           '0' & slv(seqstate0.index) &
-           seqstate0.count(3) &
-           seqstate0.count(2) &
-           seqstate0.count(1) &
-           seqstate0.count(0);
-  diagMa.tData(63 downto 0)       <= tdata;
-  diagMa.tData(127 downto 64)     <= (others=>'0');
-  diagMa.tKeep                    <= x"00FF";
-  diagMa.tValid                   <= tvalid;
-  diagMa.tLast                    <= '1' when (tvalid='1' and dmaCnt=toSlv(511,9)) else '0';
-  diagMa.tDest                    <= x"00";
-  diagMa.tId                      <= x"00";
-  diagMa.tUser                    <= (others=>'0');
-  diagMa.tStrb                    <= (others=>'0');
-  
+  diagBus.data(30)                <= toSlv(0,28) &
+                                     r.extTrigger.strobe71k &
+                                     r.extTrigger.strobe360 &
+                                     r.extTrigger.strobe60  &
+                                     r.extTrigger.strobe1Hz;
+  diagBus.data (31)               <= x"deadbeef";
+  diagBus.fixed(31 downto 30)     <= "11";
+  diagBus.sevr (31 downto 30)     <= (others=>"00");
+
+  diagBus.timingMessage           <= frame;
+
   frame.bcsFault(0)               <= bcsLatch(0);
   frame.beamEnergy                <= config.beamEnergy;
   
   -- Dont know about these inputs yet
   frame.calibrationGap            <= '0';
 
-  txPolarity <= config.txPolarity;
+  txPolarity                      <= config.txPolarity;
   
   -- resources
   status.nbeamseq    <= toSlv(BEAMSEQDEPTH, 6);
@@ -214,44 +245,34 @@ begin
   status.pulseId    <= frame.pulseId;
   status.outOfSync  <= frame.syncStatus;
   status.bcsFault   <= frame.bcsFault;
-  status.pllChanged <= pllChanged;
-  status.count186M  <= count186M;
-  status.countSyncE <= countSyncE;
+  status.pllChanged <= r.pllChanged;
+  status.count186M  <= r.count186M;
+  status.countSyncE <= r.countSyncE;
 
-  U_ACDelay : entity work.SyncDelay
+  acDelay <= ('0' & config.acDelay) when config.acMaster = '0' else
+             x"0000";
+  
+  --  Sample 60Hz strobe each 71kHz cycle
+  --  Delay and assert one 186MHz cycle
+  --
+  U_ACDelay60 : entity work.SyncDelay
     port map ( clk        => txClk,
                rst        => txRst,
-               enable     => baseEnable,
-               delay      => config.acDelay,
-               ivalid     => extTrigger.strobe60,
-               istrobe    => triggerInq(1),
-               ovalid     => triggerTS1q,
-               ostrobe    => trigger360q );
-               
-  triggerIn      <= intTrigger &
-                    extTrigger.strobe &
-                    extTrigger.strobe1Hz &
-                    extTrigger.strobe60  &
-                    extTrigger.strobe360 &
-                    extTrigger.strobe71k;
-  triggerResyncq <= triggerInq(0);
-  --trigger360q    <= triggerInq(1);
-  --triggerTS1     <= triggerIn (2);
-  --triggerTS1q    <= triggerTS1 and trigger360q;
+               enable     => baseEnable,      -- count enable
+               delay      => acDelay,
+               ivalid     => r.extTrigger.strobe60,  -- input
+               istrobe    => r.extTrigger.strobe71k, -- 71kHz strobe
+               ovalid     => triggerTS1 );  -- output asserted
 
-  trigger_edge : for i in triggerIn'range generate
-    U_edge : entity work.SynchronizerOneShot
-      port map (
-        clk     => txClk,
-        rst     => txRst,
-        dataIn  => triggerIn(i),
-        dataOut => triggerInq(i));
-
-    countTrign(i) <= (others => '0') when countRst = '1' else
-                     countTrig(i)+1 when triggerInq(i) = '1' else
-                     countTrig(i);
-  end generate trigger_edge;
-
+  U_ACDelay360 : entity work.SyncDelay
+    port map ( clk        => txClk,
+               rst        => txRst,
+               enable     => baseEnable,      -- count enable
+               delay      => acDelay,
+               ivalid     => r.extTrigger.strobe360,  -- input
+               istrobe    => r.extTrigger.strobe71k,  -- 71kHz strobe
+               ovalid     => trigger360 );  -- output asserted
+  
   status.rxClkCnt <= muxSlVectorArray(rxCounters,12);
   status.rxDVCnt  <= muxSlVectorArray(rxCounters,13);
 
@@ -280,7 +301,7 @@ begin
       clk       => txClk,
       rst       => txRst,
       forceI    => config.forceSync,
-      resyncI   => triggerResyncq,
+      resyncI   => r.extTrigger.strobe71k,
       baseI     => baseEnable,
       syncReset => syncReset,
       resyncO   => frame.resync,
@@ -313,9 +334,9 @@ begin
       port map (
         sysClk   => txClk,
         sysReset => syncReset,
-        enable   => triggerTS1q,
+        enable   => triggerTS1,
         clear    => baseEnable,
-        repulse  => trigger360q,
+        repulse  => trigger360,
         divisor  => config.ACRateDivisors(i),
         trigO    => frame.acRates(i));
   end generate ACDivider_loop;
@@ -346,7 +367,7 @@ begin
           bcsFault => bcs,
           mpsFault => mps.strobe,
           mpsClass => mps.class(i),
-          jumpEn   => baseEnabled(0),
+          jumpEn   => r.baseEnable(0),
           jumpReq  => seqJump(i),
           jumpAddr => seqJumpAddr(i),
           bcsLatch => bcsLatch(i),
@@ -366,7 +387,7 @@ begin
           bcsFault => '0',
           mpsFault => '0',
           mpsClass => (others=>'0'),
-          jumpEn   => baseEnabled(0),
+          jumpEn   => r.baseEnable(0),
           jumpReq  => seqJump(i),
           jumpAddr => seqJumpAddr(i));
     end generate Seq_Others;
@@ -381,7 +402,7 @@ begin
           rst      => txRst,
           config   => config.seqJumpConfig(i),
           frame    => frame,
-          strobe   => baseEnabled(0),
+          strobe   => r.baseEnable(0),
           resetReq => config.SeqRestart(i),
           resetO   => seqReset(i));
       
@@ -395,8 +416,8 @@ begin
           wrStepA      => config.seqWrData,
           clkB         => txClk,
           rstB         => txRst,
-          rdEnB        => baseEnabled(1),
-          waitB        => baseEnabled(4),
+          rdEnB        => r.baseEnable(1),
+          waitB        => r.baseEnable(4),
           acTS         => frame.acTimeSlot,
           acRate       => frame.acRates,
           fixedRate    => frame.fixedRates,
@@ -407,7 +428,7 @@ begin
           seqNotifyWr  => SeqNotifyWr(i),
           seqNotifyAck => SeqNotifyAck(i),
           dataO        => SeqData(i),
-          monReset     => countRst,
+          monReset     => r.countRst,
           monCount     => countSeq(i));
     end generate;
 
@@ -449,10 +470,10 @@ begin
         sysclk     => txClk,
         sysrst     => txRst,
         ctrdef     => config.ctrdefv(i),
-        ctrrst     => countRst,
+        ctrrst     => r.countRst,
         txclk      => txClk,
         txrst      => txRst,
-        enable     => baseEnabled(19),
+        enable     => r.baseEnable(19),
         fixedRate  => frame.fixedRates,
         acRate     => frame.acRates,
         acTS       => frame.acTimeSlot,
@@ -468,11 +489,12 @@ begin
         sysclk     => txClk,
         sysrst     => txRst,
         bsadef     => config.bsadefv(i),
+        tmocnt     => config.bsatmo,
         nToAvgOut  => status.bsaStatus(i)(15 downto 0),
         avgToWrOut => status.bsaStatus(i)(31 downto 16),
         txclk      => txClk,
         txrst      => txRst,
-        enable     => baseEnabled(19),
+        enable     => r.baseEnable(19),
         fixedRate  => frame.fixedRates,
         acRate     => frame.acRates,
         acTS       => frame.acTimeSlot,
@@ -494,7 +516,7 @@ begin
     generic map ( NBUFFERS => 4 )
     port map ( clk       => txClk,
                rst       => txRst,
-               strobe    => baseEnabled(0),
+               strobe    => r.baseEnable(0),
                config    => config.beamDiag,
                mpsfault  => mps,
                bcsfault  => bcs,
@@ -508,7 +530,7 @@ begin
     generic map ( STREAMS_C => 1 )
     port map ( clk       => txClk,
                rst       => txRst,
-               fiducial  => baseEnabled(0),
+               fiducial  => r.baseEnable(0),
                streams   => streams,
                streamIds => streamIds,
                advance   => advance,
@@ -539,22 +561,6 @@ begin
       full   => status.irqFifoFull,
       empty  => status.irqFifoEmpty);
 
-  pulseIdn <= config.pulseId when pulseIdWr = '1' else
-              frame.pulseId+1 when baseEnable = '1' else
-              frame.pulseId;
-
-  acTSn <= "001" when triggerTS1q = '1' else
-           frame.acTimeSlot+1 when trigger360q = '1' else
-           frame.acTimeSlot;
-
-  acTSPhasen <= (others => '0') when trigger360q = '1' else
-                frame.acTimeSlotPhase+1 when baseEnable = '1' else
-                frame.acTimeSlotPhase;
-
-  countBRTn <= (others => '0') when countRst = '1' else
-               countBRT+1 when baseEnable = '1' else
-               countBRT;
-
   process (rxClk)
   begin
     if rising_edge(rxClk) then
@@ -562,78 +568,151 @@ begin
     end if;
   end process;
 
-  process (txClk)
+  comb: process ( r, txRst, txRdy, extTriggerSync, baseEnable,
+                  ctrvalv, frame, status, config, countSeq,
+                  triggerTS1, trigger360 ) is
+    variable v : RegType;
+    variable s : SequencerState;
+  begin
+    v := r;
+
+    v.baseEnable := r.baseEnable(r.baseEnable'left-1 downto 0) & baseEnable;
+    v.txRdy      := txRdy;
+    v.outOfSync  := frame.syncStatus;
+    
+    --  Latch external triggers and clear
+    if r.baseEnable(0) = '1' and frame.fixedRates(1) = '1' then
+      v.extTrigger.strobe360 := '0';
+      v.extTrigger.strobe60  := '0';
+      v.extTrigger.strobe1Hz := '0';
+    end if;
+    
+    if r.baseEnable(0) = '1' then
+      v.extTrigger.strobe71k := '0';
+    end if;
+
+    v.extTrigger.strobe71k := v.extTrigger.strobe71k or extTriggerSync.strobe71k;
+    v.extTrigger.strobe360 := v.extTrigger.strobe360 or extTriggerSync.strobe360;
+    v.extTrigger.strobe60  := v.extTrigger.strobe60  or extTriggerSync.strobe60 ;
+    v.extTrigger.strobe1Hz := v.extTrigger.strobe1Hz or extTriggerSync.strobe1Hz;
+
+    s            := status.seqState(conv_integer(config.diagSeq));
+    v.index      := s.index;
+
+    v.master.tValid    := '0';
+    v.master.tLast     := '0';
+    if r.index /= s.index then
+      v.master.tValid  := '1';
+      if r.count = toSlv(511,9) then
+        v.count        := (others=>'0');
+        v.master.tLast := '1';
+      else
+        v.count        := r.count + 1;
+      end if;
+    end if;
+
+    v.master.tData(63 downto 0) := r.count186M(19 downto 0) &
+                                   '0' & slv(s.index) &
+                                   s.count(3) &
+                                   s.count(2) &
+                                   s.count(1) &
+                                   s.count(0);
+    v.master.tKeep              := x"00FF";
+    v.master.tDest              := x"00";
+    v.master.tId                := x"00";
+    v.master.tUser              := (others=>'0');
+    v.master.tStrb              := (others=>'0');
+
+    if config.pulseIdWrEn = '1' then
+      v.pulseId                 := config.pulseId;
+    elsif baseEnable = '1' then
+      v.pulseId                 := r.pulseId+1;
+    end if;
+
+    if triggerTS1 = '1' then
+      v.acTS := "001";
+    elsif trigger360 = '1' then
+      v.acTS := r.acTS+1;
+    end if;
+    
+    if trigger360 = '1' then
+      v.acTSPhase := (others=>'0');
+    elsif baseEnable = '1' then
+      v.acTSPhase := r.acTSPhase+1;
+    end if;
+
+    v.count186M    := r.count186M+1;
+    if (frame.syncStatus = '1' and r.outOfSync = '0') then
+      v.countSyncE := r.countSyncE+1;
+    end if;
+
+    if txRdy /= r.txRdy then
+      v.pllChanged := r.pllChanged+1;
+    end if;
+
+    if v.extTrigger.strobe71k = '1' and r.extTrigger.strobe71k = '0' then
+      v.countTrig(0) := r.countTrig(0)+1;
+    end if;
+    if v.extTrigger.strobe360 = '1' and r.extTrigger.strobe360 = '0' then
+      v.countTrig(1) := r.countTrig(1)+1;
+    end if;
+    if v.extTrigger.strobe60 = '1' and r.extTrigger.strobe60 = '0' then
+      v.countTrig(2) := r.countTrig(2)+1;
+    end if;
+
+    if r.intervalCnt = toSlv(0,32) then
+      v.countRst       := '1';
+      v.intervalCnt    := config.interval;
+      v.countTrigL     := r.countTrig;
+      v.countBRTL      := r.countBRT;
+      v.countSeqL      := countSeq;
+    else
+      v.countRst       := '0';
+      v.intervalCnt    := r.intervalCnt-1;
+    end if;
+    
+    if r.countRst = '1' then
+      v.countTrig := (others=>(others=>'0'));
+      v.countBRT  := (others=>'0');
+    elsif baseEnable = '1' then
+      v.countBRT  := r.countBRT+1;    
+    end if;
+
+    if config.ctrlock = '0' then
+      v.ctrvalv        := ctrvalv;
+    end if;
+    
+    if txRst = '1' then
+      v                := REG_INIT_C;
+    end if;
+
+    if config.intervalRst = '1' then
+      v.intervalCnt := (others=>'0');
+    end if;
+    
+    rin <= v;
+
+    frame.pulseId         <= r.pulseId;
+    frame.acTimeSlot      <= r.acTS;
+    frame.acTimeSlotPhase <= r.acTSPhase;
+    status.countTrig      <= r.countTrigL;
+    status.countBRT       <= r.countBRTL;
+    status.countSeq       <= r.countSeqL;
+    status.ctrvalv        <= r.ctrvalv;
+    diagMa                <= r.master;
+  end process comb;
+
+  seq: process ( txClk ) is
   begin
     if rising_edge(txClk) then
-      seqstate0 <= status.seqState(conv_integer(config.diagSeq));
-      if (tvalid='1') then
-        dmaCnt <= dmaCnt+1;
-      end if;
+      r <= rin;
     end if;
-  end process;
+  end process seq;
     
-  process (txClk, txRst, txRdy, config)
-    variable outOfSyncd : sl;
-    variable txRdyd     : sl;
-  begin  -- process
-    if rising_edge(txClk) then
-      frame.pulseId         <= pulseIdn                                              after tpd;
-      pulseIdWr             <= '0';
-      frame.acTimeSlot      <= acTSn                                                 after tpd;
-      frame.acTimeSlotPhase <= acTSPhasen                                            after tpd;
-      baseEnabled           <= baseEnabled(baseEnabled'left-1 downto 0) & baseEnable after tpd;
-      count186M             <= count186M+1;
-      if (frame.syncStatus = '1' and outOfSyncd = '0') then
-        countSyncE <= countSyncE+1;
-      end if;
-      if (txRdy /= txRdyd) then
-        pllChanged <= pllChanged+1;
-      end if;
-      outOfSyncd := frame.syncStatus;
-      txRdyd     := txRdy;
-      countTrig  <= countTrign;
-      countBRT   <= countBRTn;
-      if allBits(intervalCnt, '0') then  -- need to execute this when
-                                         -- intervalReg is changed
-        countRst         <= '1';
-        status.countTrig <= countTrig;
-        status.countBRT  <= countBRT;
-        status.countSeq  <= countSeq;
-        intervalCnt      <= config.interval;
-      else
-        countRst    <= '0';
-        intervalCnt <= intervalCnt-1;
-      end if;
-      if config.ctrlock='0' then
-        status.ctrvalv   <= ctrvalv;
-      end if;
-    end if;
-    if txRst = '1' then
-      frame.acTimeSlot      <= "001";
-      frame.acTimeSlotPhase <= (others => '0');
-      baseEnabled           <= (others => '0');
-      count186M             <= (others => '0');
-      countSyncE            <= (others => '0');
-      outOfSyncd            := '1';
-      countRst              <= '1';
-      status.countTrig      <= (others => (others => '0'));
-      status.countBRT       <= (others => '0');
-      status.countSeq       <= (others => (others => '0'));
-      status.ctrvalv        <= (others => (others => '0'));
-    end if;
-    if config.intervalRst = '1' then
-      intervalCnt <= (others => '0');
-    end if;
-    if config.pulseIdWrEn = '1' then
-      pulseIdWr <= '0';
-    end if;
-  end process;
-
-  process (txClk, txRst, countRst, frame)
+  process (txClk, txRst, r, frame)
     variable countUpdate : slv(1 downto 0);
     variable bsaComplete : Slv64Array(1 downto 0);
     variable bsaDoneQ    : slv(63 downto 0);
-    variable tmpFrame    : TimingMessageType;
   begin  -- process
     bsaDoneQ                      := (others => '0');
     bsaDoneQ(frame.bsaDone'range) := frame.bsaDone;
@@ -648,16 +727,11 @@ begin
       status.countUpdate <= '0';
       status.bsaComplete <= (others => '0');
     end if;
-    if countRst = '1' then
+    if r.countRst = '1' then
       countUpdate := "01";
     end if;
     bsaComplete(1) := bsaComplete(1) and not bsaDoneQ;
     bsaComplete(0) := bsaComplete(0) or bsaDoneQ;
-
-    -- Record frame in diagnostics only on the last BSA accumulation
-    tmpFrame           := frame;
-    tmpFrame.bsaActive := frame.bsaAvgDone;
-    diagFrame          <= tmpFrame;
   end process;
 
   
@@ -677,6 +751,30 @@ begin
       wrEnB  => baseEnable,
       dataO  => frame.timeStamp);
 
+  
+  SYNC_71k : entity work.RstSync
+    port map ( clk => txClk, asyncRst => extTrigger.strobe71k, syncRst => extTriggerSync.strobe71k);
+  SYNC_360 : entity work.RstSync
+    port map ( clk => txClk, asyncRst => extTrigger.strobe360, syncRst => extTriggerSync.strobe360);
+  SYNC_60  : entity work.RstSync
+    port map ( clk => txClk, asyncRst => extTrigger.strobe60 , syncRst => extTriggerSync.strobe60 );
+  SYNC_1Hz : entity work.RstSync
+    port map ( clk => txClk, asyncRst => extTrigger.strobe1Hz, syncRst => extTriggerSync.strobe1Hz);
+
+  GEN_SYNC_ADC : for i in 0 to 2 generate
+    SYNC_ADC : entity work.SynchronizerVector
+      generic map ( WIDTH_G => 32 )
+      port map ( clk     => txClk,
+                 dataIn  => adcData(i),
+                 dataOut => adcDataS(i) );
+  end generate;
+
+  SYNC_ADCV : entity work.SynchronizerVector
+    generic map ( WIDTH_G => 3 )
+    port map ( clk     => txClk,
+               dataIn  => adcValid,
+               dataOut => adcValdS );
+  
   GEN_ASYNC: if ASYNC_REGCLK_G=true generate
     U_StatusSync : entity work.StatusSynchronizer
       port map (
@@ -696,5 +794,6 @@ begin
     statusO <= status;
     config  <= configI;
   end generate GEN_SYNC;
-  
+
 end TPGCore;
+

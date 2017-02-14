@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2017-01-31
+-- Last update: 2017-02-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -160,6 +160,7 @@ package TPGPkg is
                           pulseId       : slv(63 downto 0);
                           timeStamp     : slv(63 downto 0);
                           bsaComplete   : slv(63 downto 0);  -- single sysclk pulse
+                          inpDelay      : slv( 8 downto 0);
                           outOfSync     : sl;
                           irqFifoFull   : sl;
                           irqFifoEmpty  : sl;
@@ -196,6 +197,7 @@ package TPGPkg is
     pulseId       => (others=>'0'),
     timeStamp     => (others=>'0'),
     bsaComplete   => (others=>'0'),
+    inpDelay      => (others=>'0'),
     outOfSync     => '0',
     irqFifoFull   => '0',
     irqFifoEmpty  => '0',
@@ -230,7 +232,12 @@ package TPGPkg is
                           clock_remainder : slv( 7 downto 0);
                           clock_divisor   : slv( 7 downto 0);
                           txPolarity    : sl;
-                          acDelay       : slv(15 downto 0);
+                          -- AC sync from analog or digital AMC
+                          acMaster      : sl;
+                          -- Analog lookahead (master) or digital delay (us)
+                          acDelay       : slv(14 downto 0);
+                          inpDelay      : slv( 8 downto 0);
+                          inpDelayLd    : sl;
                           frameDelay    : slv(15 downto 0);
                           baseDivisor   : slv(15 downto 0);
                           pulseId       : slv(63 downto 0);
@@ -260,6 +267,7 @@ package TPGPkg is
                           ctrlock       : sl;
                           ctrdefv       : CtrDefArray(MAXCOUNTERS-1 downto 0);
                           bsadefv       : BsaDefArray(MAXARRAYSBSA-1 downto 0);
+                          bsatmo        : slv( 3 downto 0);
                           interval      : slv(31 downto 0);
                           intervalRst   : sl;
                           seqAddr       : SeqAddrType;
@@ -274,7 +282,11 @@ package TPGPkg is
     clock_divisor     => toSlv(13,8),
     txPolarity        => '0',
     baseDivisor       => x"00C8",
-    acDelay           => x"02DD",
+    acMaster          => '1',
+    acDelay           => toSlv(100,15),
+    --    acDelay           => toSlv(733,15),
+    inpDelay          => (others=>'0'),
+    inpDelayLd        => '0',
     frameDelay        => x"0000",
     pulseId           => (others=>'0'),
     pulseIdWrEn       => '1',
@@ -318,6 +330,7 @@ package TPGPkg is
     ctrlock           => '0',
     ctrdefv           => (others=>CTRDEF_INIT_C),
     bsadefv           => (others=>BSADEF_INIT_C),
+    bsatmo            => toSlv(4,4),
     interval          => x"0000488b",   -- 100 us
     intervalRst       => '1',
     seqAddr           => (others=>'0'),

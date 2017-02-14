@@ -58,24 +58,28 @@ architecture behavior of IrqSeqFifo is
   signal emptyb  : sl;
   signal wrAckb  : slv(MAXSEQDEPTH-1 downto 0);
 
-   component ila_0
-     port ( clk    : in sl;
-            probe0 : in slv(255 downto 0) );
-     end component;
+  constant DEBUG_C : boolean := false;
+  
+  component ila_0
+    port ( clk    : in sl;
+           probe0 : in slv(255 downto 0) );
+  end component;
 
 begin
 
-  U_ILA : ila_0
-    port map ( clk                    => wrClk,
-               probe0(0)              => '0',
-               probe0(1)              => wrEnQ,
-               probe0(2)              => fullb,
-               probe0(3)              => emptyb,
-               probe0(35 downto  4)   => wrDataQ,
-               probe0(MAXSEQDEPTH+35 downto 36) => wrEn,
-               probe0(2*MAXSEQDEPTH+35 downto MAXSEQDEPTH+36) => wrAckb,
-               probe0(255 downto 2*MAXSEQDEPTH+36) => (others=>'0') );
-
+  GEN_DBG : if DEBUG_C generate
+    U_ILA : ila_0
+      port map ( clk                    => wrClk,
+                 probe0(0)              => '0',
+                 probe0(1)              => wrEnQ,
+                 probe0(2)              => fullb,
+                 probe0(3)              => emptyb,
+                 probe0(35 downto  4)   => wrDataQ,
+                 probe0(MAXSEQDEPTH+35 downto 36) => wrEn,
+                 probe0(2*MAXSEQDEPTH+35 downto MAXSEQDEPTH+36) => wrAckb,
+                 probe0(255 downto 2*MAXSEQDEPTH+36) => (others=>'0') );
+  end generate GEN_DBG;
+                               
   full  <= fullb;
   empty <= emptyb;
   wrAck <= wrAckb;
