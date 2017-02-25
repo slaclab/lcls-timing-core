@@ -162,18 +162,6 @@ TimingFrameRx: &TimingFrameRx
       mode: RW
       description: Buffer bypass reset status
     #########################################################
-    PipelineDelay:
-      at:
-        offset: 0x0023
-      class: IntField
-      sizeBits: 1
-      lsBit:    0
-      mode: RW
-      description: Delay streamed databuffer by 2 fiducials
-      enums:
-        - { name: Enabled,  value: 0 }
-        - { name: Disabled, value: 1 }
-    #########################################################
     MsgDelay:
       at:
         offset: 0x0024
@@ -213,15 +201,6 @@ TimingFrameRx: &TimingFrameRx
       lsBit: 0
       mode: RO
       description: Buffer bypass reset count
-    #########################################################
-    TimestampEventCount:
-      at:
-        offset: 0x0040
-      class:    IntField
-      sizeBits: 32
-      lsBit:    0
-      mode:     RO
-      description: Counter running on event clock; reset by fiducial
     #########################################################
     C_RxReset:
       class: SequenceCommand

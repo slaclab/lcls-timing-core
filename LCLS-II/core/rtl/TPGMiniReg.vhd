@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2017-01-27
+-- Last update: 2017-02-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
---use work.Version.all;
 use work.TPGPkg.all;
 
 entity TPGMiniReg is
@@ -35,7 +34,7 @@ entity TPGMiniReg is
       TPD_G            : time            := 1 ns;
       NARRAYS_BSA      : integer         := 1;
       USE_WSTRB_G      : boolean         := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);     
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);      
    port (
       -- PCIe Interface
       irqActive      : in  sl;
@@ -248,8 +247,8 @@ begin
             when FIXEDRATE0+7 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(7);
             when FIXEDRATE0+8 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(8);
             when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
-            --when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;--VersionPkg.vhd not supportted any more
-            when FWVERSION  => tmpRdData                      := x"0000_0000";
+--  Version found in common registers
+--            when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
             when RESOURCES  => tmpRdData              := status.nallowseq &
                                                          status.seqaddrlen &
                                                          status.narraysbsa &

@@ -32,12 +32,12 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity BsaControl is
-  generic ( ASYNC_REGCLK_G : boolean := false ); 
+  generic ( ASYNC_REGCLK_G : boolean := false );
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
       bsadef     : in  BsaDefType;
-      tmocnt     : in  slv( 3 downto 0) := x"F";
+      tmocnt     : in  slv( 3 downto 0) := x"F";  -- 10 ms steps
       nToAvgOut  : out slv(15 downto 0);
       avgToWrOut : out slv(15 downto 0);
 
@@ -96,8 +96,6 @@ architecture BsaControl of BsaControl is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   constant TMO_CNT_C : integer := 4; -- 40 ms
-   
    signal rateSel : sl;
    
    -- Register delay for simulation
@@ -236,7 +234,7 @@ begin
        elsif r.bsaInit = '0' and r.bsaAvgDone = '1' then
          v.tmoactive := '1';
        end if;
-
+       
      end if;
 
      if bsadef.init='0' then
