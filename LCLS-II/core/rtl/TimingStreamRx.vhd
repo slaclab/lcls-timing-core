@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-02-09
+-- Last update: 2017-02-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -164,6 +164,8 @@ begin
             v.timingStream.dbuff   := r.dataBuffCache(0);
           else
             v.timingStream.dbuff   := r.dataBuffCache(2);
+            --  MPS word is not forecast
+            v.timingStream.dbuff.dmod(191 downto 160) := r.dataBuffCache(0).dmod(191 downto 160);
           end if;
           v.timingMessageStrobe  := '1';
         else
