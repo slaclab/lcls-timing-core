@@ -189,10 +189,18 @@ package TimingPkg is
 
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
-      linkUp : sl;
+      linkUp        : sl;
+      gtRxData      : slv(15 downto 0);-- gtRxRecClk domain
+      gtRxDataK     : slv(1 downto 0);-- gtRxRecClk domain
+      gtRxDispErr   : slv(1 downto 0);-- gtRxRecClk domain
+      gtRxDecErr    : slv(1 downto 0);-- gtRxRecClk domain
    end record;
    constant LCLS_V1_TIMING_DATA_INIT_C : LclsV1TimingDataType := (
-      linkUp => '0');
+      linkUp        => '0',
+      gtRxData      => (others=>'0'),
+      gtRxDataK     => (others=>'0'),
+      gtRxDispErr   => (others=>'0'),
+      gtRxDecErr    => (others=>'0'));
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record

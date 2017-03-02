@@ -378,6 +378,11 @@ begin
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV1,
                 dataOut => appTimingBus.v1.linkUp );
+   
+   appTimingBus.v1.gtRxData    <= gtRxData    when(timingClkSelR = '0') else (others=>'0');
+   appTimingBus.v1.gtRxDataK   <= gtRxDataK   when(timingClkSelR = '0') else (others=>'0');
+   appTimingBus.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others=>'0');
+   appTimingBus.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others=>'0');
 
    U_SYNC_LinkV2 : entity work.Synchronizer
      port map ( clk     => appTimingClk,

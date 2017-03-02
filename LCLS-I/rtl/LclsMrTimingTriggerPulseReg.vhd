@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : LclsMrTimingTriggerPulseReg.vhd
--- Author     : Uros Legat  <ulegat@slac.stanford.edu>
--- Company    : SLAC National Accelerator Laboratory (Cosylab)
+-- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2017-02-09
 -------------------------------------------------------------------------------
