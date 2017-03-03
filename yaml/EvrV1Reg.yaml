@@ -314,7 +314,6 @@ EvrV1Reg: &EvrV1Reg
       mode: RW
       description: Pulse 11 Registers
     #########################################################  
-    #########################################################  
     OutputMap:
       at:
         offset: 0x440 # address(14 downto 2) = [277:272]
@@ -326,17 +325,15 @@ EvrV1Reg: &EvrV1Reg
       description: Front Panel Output Map Registers [11:0]
     #########################################################  
     DataBuf:
-    #########################################################  
       at:
         offset: 0x800 # address(14 downto 2) = [1023:512]
         nelms: 512
       class: IntField
       name: DataBuf
       mode: RO
-      description: Front Panel Output Map Registers [511:0]
+      description: Data Buffer Receive Memory [511:0]
     #########################################################  
     MapRam1:
-    #########################################################  
       at:
         offset: 0x4000 # address(14 downto 2) = [5119:4096]
         nelms: 1024
@@ -346,7 +343,6 @@ EvrV1Reg: &EvrV1Reg
       description: Event Mapping RAM 1 [1023:0]
     #########################################################  
     MapRam2:
-    #########################################################  
       at:
         offset: 0x6000 # address(14 downto 2) = [6143:5120]
         nelms: 1024
