@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : EvrV1Reg.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
 -- Last update: 2016-09-21
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -27,12 +22,12 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.Version.all;
 use work.EvrV1Pkg.all;
 
 entity EvrV1Reg is
    generic (
       TPD_G              : time            := 1 ns;
+      BUILD_INFO_G       : BuildInfoType;
       USE_WSTRB_G        : boolean         := false;
       LATCH_TS_LATENCY_G : natural         := 15;
       AXI_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);      
@@ -55,6 +50,8 @@ entity EvrV1Reg is
 end EvrV1Reg;
 
 architecture rtl of EvrV1Reg is
+
+   constant BUILD_INFO_C : BuildInfoRetType := toBuildInfo(BUILD_INFO_G);
 
    procedure Set4bitMask (
       mask   : inout slv(3 downto 0);
@@ -130,7 +127,7 @@ architecture rtl of EvrV1Reg is
    
 begin
 
-   fwVersion <= "0001" & "1111" & FPGA_VERSION_C(23 downto 0);
+   fwVersion <= "0001" & "1111" & BUILD_INFO_C.fwVersion(23 downto 0);
 
    -------------------------------
    -- Configuration Register
@@ -449,10 +446,10 @@ begin
                   when 11 =>
                      v.axiReadSlave.rdata := fwVersion;
                   when 12 =>
-                     v.axiReadSlave.rdata(7 downto 0)   := FPGA_VERSION_C(31 downto 24);
-                     v.axiReadSlave.rdata(15 downto 8)  := FPGA_VERSION_C(23 downto 16);
-                     v.axiReadSlave.rdata(23 downto 16) := FPGA_VERSION_C(15 downto 8);
-                     v.axiReadSlave.rdata(31 downto 24) := FPGA_VERSION_C(7 downto 0);
+                     v.axiReadSlave.rdata(7 downto 0)   := BUILD_INFO_C.fwVersion(31 downto 24);
+                     v.axiReadSlave.rdata(15 downto 8)  := BUILD_INFO_C.fwVersion(23 downto 16);
+                     v.axiReadSlave.rdata(23 downto 16) := BUILD_INFO_C.fwVersion(15 downto 8);
+                     v.axiReadSlave.rdata(31 downto 24) := BUILD_INFO_C.fwVersion(7 downto 0);
                   when 19 =>
                      v.axiReadSlave.rdata := r.config.uSecDivider;
                   when 23 =>

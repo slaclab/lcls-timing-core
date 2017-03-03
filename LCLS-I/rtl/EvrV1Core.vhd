@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : EvrV1Core.vhd
--- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
 -- Last update: 2016-04-08
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -30,6 +25,7 @@ use work.EvrV1Pkg.all;
 entity EvrV1Core is
    generic (
       TPD_G           : time    := 1 ns;
+      BUILD_INFO_G    : BuildInfoType;
       SYNC_POLARITY_G : sl      := '1';     -- '1' = active HIGH logic
       USE_WSTRB_G     : boolean := false;
       ENDIAN_G        : boolean := false);  -- true = big endian, false = little endian
@@ -68,6 +64,7 @@ begin
       EvrV1Reg_Inst : entity work.EvrV1Reg
          generic map (
             TPD_G            => TPD_G,
+            BUILD_INFO_G     => BUILD_INFO_G,
             USE_WSTRB_G      => USE_WSTRB_G,
             AXI_ERROR_RESP_G => AXI_RESP_OK_C)
          port map (
@@ -92,6 +89,7 @@ begin
       EvrV1Reg_Inst : entity work.EvrV1Reg
          generic map (
             TPD_G            => TPD_G,
+            BUILD_INFO_G     => BUILD_INFO_G,
             USE_WSTRB_G      => USE_WSTRB_G,
             AXI_ERROR_RESP_G => AXI_RESP_OK_C)
          port map (
