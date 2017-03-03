@@ -32,7 +32,7 @@ entity EvrV1CoreIrqCtrl is
       TIMEOUT_EN_G      : boolean             := false;
       BRAM_EN_G         : boolean             := true;
       FIFO_ADDR_WIDTH_G : positive            := 9;
-      AXI_ERROR_RESP_G   : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
+      AXI_ERROR_RESP_G  : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       AXIS_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(4));
    port (
       -- AXI-Lite and 
@@ -115,7 +115,6 @@ begin
          if (evrRst = '1') or (gtLinkUp = '0') or (dataValid = '0') then
             cnt     <= (others => '0') after TPD_G;
             linkup  <= '0'             after TPD_G;
-            rxError <= '0'             after TPD_G;
             rxData  <= (others => '0') after TPD_G;
             rxDataK <= (others => '0') after TPD_G;
             if cnt = x"FFFFFF" then
