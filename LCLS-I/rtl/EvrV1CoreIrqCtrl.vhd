@@ -698,12 +698,11 @@ begin
          when IRQ_FIFOFULL3_S =>
             -- AXI-Lite transaction handshaking
             if (ack.done = '0') then
-               -- Clear everything except FIFOFULL, DATABUF and EVENT
+               -- Clear the FIFOFULL IRQ bit
                v.req.request                    := '1';
                v.req.rnw                        := WR_C;
                v.req.address                    := IRQ_FLAG_ADDR_C;
                v.req.wrData                     := (others => '0');
-               -- Clear the FIFOFULL IRQ bit
                v.req.wrData(IRQFLAG_FIFOFULL_C) := '1';
                -- Next state
                v.state                          := FW_ISR_RTN_S;
