@@ -64,15 +64,17 @@ EvrV1Reg: &EvrV1Reg
       name: PcieIntEna
       mode: RW
       description: PCIe interrupt Enable and state status
-    #########################################################  
-    DataBufCtrl:
-      at:
-        offset: 0x020 # address(14 downto 2) = 8
-      class: IntField
-      name: DataBufCtrl
-      mode: RW
-      description: Data Buffer Control and Status Register
-    #########################################################  
+##############################################################  
+## Controlled by ISR (not generic register interface)
+##############################################################  
+#    DataBufCtrl:
+#      at:
+#        offset: 0x020 # address(14 downto 2) = 8
+#      class: IntField
+#      name: DataBufCtrl
+#      mode: RW
+#      description: Data Buffer Control and Status Register
+############################################################## 
     FWVersion:
       at:
         offset: 0x02C # address(14 downto 2) = 11
@@ -136,32 +138,38 @@ EvrV1Reg: &EvrV1Reg
       name: EvCntLatch
       mode: RO
       description: Timestamp Event Counter Latch
-    #########################################################  
-    EvFIFOSec:
-      at:
-        offset: 0x070 # address(14 downto 2) = 28
-      class: IntField
-      name: EvFIFOSec
-      mode: RW
-      description: Event FIFO Seconds Register
-    #########################################################  
-    EvFIFOEvCnt:
-      at:
-        offset: 0x074 # address(14 downto 2) = 29
-      class: IntField
-      name: EvFIFOEvCnt
-      mode: RW
-      description: Event FIFO Event Counter Register
-    #########################################################  
-    EvFIFOCode:
-      at:
-        offset: 0x078 # address(14 downto 2) = 30
-      class: IntField
-      name: EvFIFOCode
-      sizeBits: 16
-      mode: RW
-      description: Event FIFO Event Code Register
-    #########################################################  
+##############################################################  
+## Controlled by ISR (not generic register interface)
+##############################################################  
+#    EvFIFOSec:
+#      at:
+#        offset: 0x070 # address(14 downto 2) = 28
+#      class: IntField
+#      name: EvFIFOSec
+#      mode: RW
+#      description: Event FIFO Seconds Register
+##############################################################  
+## Controlled by ISR (not generic register interface)
+##############################################################  
+#    EvFIFOEvCnt:
+#      at:
+#        offset: 0x074 # address(14 downto 2) = 29
+#      class: IntField
+#      name: EvFIFOEvCnt
+#      mode: RW
+#      description: Event FIFO Event Counter Register
+##############################################################  
+## Controlled by ISR (not generic register interface)
+##############################################################  
+#    EvFIFOCode:
+#      at:
+#        offset: 0x078 # address(14 downto 2) = 30
+#      class: IntField
+#      name: EvFIFOCode
+#      sizeBits: 16
+#      mode: RW
+#      description: Event FIFO Event Code Register
+##############################################################  
     IntEventEn:
       at:
         offset: 0x0A0 # address(14 downto 2) = 40
@@ -323,16 +331,18 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 16
       mode: RW
       description: Front Panel Output Map Registers [11:0]
-    #########################################################  
-    DataBuf:
-      at:
-        offset: 0x800 # address(14 downto 2) = [1023:512]
-        nelms: 512
-      class: IntField
-      name: DataBuf
-      mode: RO
-      description: Data Buffer Receive Memory [511:0]
-    #########################################################  
+##############################################################  
+## Controlled by ISR (not generic register interface)
+##############################################################  
+#    DataBuf:
+#      at:
+#        offset: 0x800 # address(14 downto 2) = [1023:512]
+#        nelms: 512
+#      class: IntField
+#      name: DataBuf
+#      mode: RO
+#      description: Data Buffer Receive Memory [511:0]
+##############################################################  
     MapRam1:
       at:
         offset: 0x4000 # address(14 downto 2) = [5119:4096]
