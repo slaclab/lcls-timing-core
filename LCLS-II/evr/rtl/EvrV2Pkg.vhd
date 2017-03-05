@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-11-02
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ package EvrV2Pkg is
     -- Bits(12:11)=(fixed,AC,seq,reserved)
     -- fixed:  marker = 3:0
     -- AC   :  marker = 2:0;  TS = 8:3 (mask)
-    -- seq  :  bit    = 5:0;  seq = 10:6
+    -- seq  :  bit    = 3:0;  seq = 8:4
     destSel : slv(18 downto 0);
     -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
     -- Bits(15:0)=Mask of Destinations (when Beam)
@@ -77,7 +77,7 @@ package EvrV2Pkg is
     delay    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     channel  : slv( 3 downto 0);
-    delayTap : slv( 6 downto 0);
+    delayTap : slv( 5 downto 0);
     loadTap  : sl;
   end record;
 
@@ -106,13 +106,17 @@ package EvrV2Pkg is
   type EvrV2BsaChannelType is record
     pulseId    : slv(63 downto 0);
     bsaActive  : slv(63 downto 0);
+    avgDoneId  : slv(63 downto 0);
     bsaAvgDone : slv(63 downto 0);
+    bsaDone    : slv(63 downto 0);
   end record;
 
   constant EVRV2_BSA_CHANNEL_INIT_C : EvrV2BsaChannelType := (
     pulseId   => (others=>'0'),
     bsaActive => (others=>'0'),
-    bsaAvgDone=> (others=>'0') );
+    avgDoneId => (others=>'0'),
+    bsaAvgDone=> (others=>'0'),
+    bsaDone   => (others=>'0') );
 
   type EvrV2BsaChannelArray is array (natural range<>) of EvrV2BsaChannelType;
   
@@ -162,13 +166,11 @@ package EvrV2Pkg is
 
   type EvrV2DmaDataType is record
     tValid : sl;
-    tLast  : sl;
     tData  : slv(31 downto 0);
   end record;
 
   constant EVRV2_DMA_DATA_INIT_C : EvrV2DmaDataType := (
     tValid  => '0',
-    tLast   => '0',
     tData   => (others=>'0') );
 
   type EvrV2DmaDataArray is array (natural range<>) of EvrV2DmaDataType;
@@ -176,6 +178,9 @@ package EvrV2Pkg is
   constant EVRV2_EVENT_TAG       : slv(15 downto 0) := x"0000";
   constant EVRV2_BSA_CONTROL_TAG : slv(15 downto 0) := x"0001";
   constant EVRV2_BSA_CHANNEL_TAG : slv(15 downto 0) := x"0002";
+  constant EVRV2_END_TAG         : slv(15 downto 0) := x"000F";
+  constant EVRV2_LCLS_TAG_BIT    : integer := 6;
+  constant EVRV2_DROP_TAG_BIT    : integer := 7;
   
 end EvrV2Pkg;
   

@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-01-04
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -59,8 +59,6 @@ entity EvrV2Core is
     evrRst              : in  sl;
     evrBus              : in  TimingBusType;
     exptBus             : in  ExptBusType;
-    txPhyClk            : in  sl;
-    txPhyRst            : in  sl;
     gtxDebug            : in  slv(7 downto 0);
     -- Trigger and Sync Port
     syncL               : in  sl;
@@ -68,12 +66,7 @@ entity EvrV2Core is
     evrModeSel          : out sl;
     delay_ld            : out slv      (11 downto 0);
     delay_wr            : out Slv6Array(11 downto 0);
-    delay_rd            : in  Slv6Array(11 downto 0);
-    -- Misc.
-    cardRst             : in  sl;
-    ledRedL             : out sl;
-    ledGreenL           : out sl;
-    ledBlueL            : out sl);  
+    delay_rd            : in  Slv6Array(11 downto 0) );
 end EvrV2Core;
 
 architecture mapping of EvrV2Core is
@@ -102,7 +95,7 @@ architecture mapping of EvrV2Core is
   signal mAxiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
   
-  constant STROBE_INTERVAL_C : integer := 10;
+  constant STROBE_INTERVAL_C : integer := 12;
   
   signal bsaControl       : EvrV2BsaControlType;
   signal bsaChannel       : EvrV2BsaChannelArray   (ReadoutChannels-1 downto 0);
@@ -113,14 +106,14 @@ architecture mapping of EvrV2Core is
   
   signal gtxDebugS   : slv(7 downto 0);
 
-  signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C downto 0) := (others=>'0');
+  signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C+34 downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
+  signal eventMsg       : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0) := (others=>'0');
   signal dmaSel         : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(ReadoutChannels downto 0,31 downto 0);
   signal rstCount : sl;
   
-  signal dmaControl : EvrV2DmaControlArray(ReadoutChannels+1 downto 0) := (others=>EVRV2_DMA_CONTROL_INIT_C);
   signal dmaCtrl    : AxiStreamCtrlType;
   signal dmaData    : EvrV2DmaDataArray(ReadoutChannels+1 downto 0);
 
@@ -143,17 +136,16 @@ architecture mapping of EvrV2Core is
   signal dmaFullThr     : Slv24Array (0 downto 0);
   signal dmaFullThrS    : Slv24Array (0 downto 0);
 
-  signal partitionAddr  : slv(15 downto 0);
+  signal partitionAddr  : slv(31 downto 0);
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
   
 begin  -- rtl
 
-  -- Undefined signals
-  ledRedL    <= '1';
-  ledGreenL  <= '1';
-  ledBlueL   <= '1';
+  assert (rStrobe'length <= 200)
+    report "rStrobe'length exceeds clocks per cycle"
+    severity failure;
   
   pciClk <= axiClk;
   pciRst <= axiRst;
@@ -178,9 +170,9 @@ begin  -- rtl
       axiClk              => axiClk,
       axiClkRst           => axiRst,
       sAxiWriteMasters(0) => axilWriteMaster,
-      sAxiWriteSlaves(0)  => axilWriteSlave,
-      sAxiReadMasters(0)  => axilReadMaster,
-      sAxiReadSlaves(0)   => axilReadSlave,
+      sAxiWriteSlaves (0) => axilWriteSlave,
+      sAxiReadMasters (0) => axilReadMaster,
+      sAxiReadSlaves  (0) => axilReadSlave,
       mAxiWriteMasters    => mAxiWriteMasters,
       mAxiWriteSlaves     => mAxiWriteSlaves,
       mAxiReadMasters     => mAxiReadMasters,
@@ -188,7 +180,7 @@ begin  -- rtl
   
   U_PciRxDesc : entity work.EvrV2PcieRxDesc
     generic map ( DMA_SIZE_G       => 1 )
-    port map (    dmaDescToPci(0)  => rxDescToPci,
+    port map (    dmaDescToPci  (0)=> rxDescToPci,
                   dmaDescFromPci(0)=> rxDescFromPci,
                   axiReadMaster    => mAxiReadMasters (DMA_INDEX_C),
                   axiReadSlave     => mAxiReadSlaves  (DMA_INDEX_C),
@@ -203,16 +195,16 @@ begin  -- rtl
     generic map ( TPD_G                 => TPD_G,
                   SAXIS_MASTER_CONFIG_G => SAXIS_MASTER_CONFIG_C,
                   FIFO_ADDR_WIDTH_G     => 10 )
-    port map (    sAxisClk    => evrClk,
-                  sAxisRst    => evrRst,
-                  sAxisMaster => dmaMaster,
-                  sAxisSlave  => dmaSlave,
-                  sAxisCtrl   => dmaCtrl,
-                  sAxisPauseThr => dmaFullThrS(0)(9 downto 0),
-                  pciClk      => pciClk,
-                  pciRst      => pciRst,
-                  dmaIbMaster => dmaRxIbMaster,
-                  dmaIbSlave  => dmaRxIbSlave,
+    port map (    sAxisClk       => evrClk,
+                  sAxisRst       => evrRst,
+                  sAxisMaster    => dmaMaster,
+                  sAxisSlave     => dmaSlave,
+                  sAxisCtrl      => dmaCtrl,
+                  sAxisPauseThr  => dmaFullThrS(0)(9 downto 0),
+                  pciClk         => pciClk,
+                  pciRst         => pciRst,
+                  dmaIbMaster    => dmaRxIbMaster,
+                  dmaIbSlave     => dmaRxIbSlave,
                   dmaDescFromPci => rxDescFromPci,
                   dmaDescToPci   => rxDescToPci,
                   dmaTranFromPci => dmaRxTranFromPci,
@@ -222,7 +214,9 @@ begin  -- rtl
     generic map ( CHANNELS_C    => ReadoutChannels+2,
                   AXIS_CONFIG_C => SAXIS_MASTER_CONFIG_C )
     port map (    clk        => evrClk,
-                  dmaCntl    => dmaControl,
+                  strobe     => rStrobe(rStrobe'left),
+                  modeSel    => modeSel,
+                  dmaCntl    => dmaCtrl,
                   dmaData    => dmaData,
                   dmaMaster  => dmaMaster,
                   dmaSlave   => dmaSlave );
@@ -234,16 +228,15 @@ begin  -- rtl
                   enable     => anyBsaEnabled,
                   strobeIn   => evrBus.strobe,
                   dataIn     => evrBus.message,
-                  dmaCntl    => dmaControl     (ReadoutChannels),
                   dmaData    => dmaData        (ReadoutChannels) );
 
   Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
-    U_EventSel   : entity work.EvrV2EventSelect
+    U_EventSel : entity work.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
                     config        => channelConfigS(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C),
+                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+4),
                     dataIn        => timingMsg,
                     exptIn        => exptBus,
                     selectOut     => eventSel(i),
@@ -255,9 +248,8 @@ begin  -- rtl
                     evrRst        => evrRst,
                     channelConfig => channelConfigS(i),
                     evtSelect     => dmaSel(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+1),
+                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+5),
                     dataIn        => timingMsg,
-                    dmaCntl       => dmaControl(i),
                     dmaData       => dmaData(i) );
   end generate;  -- i
 
@@ -266,10 +258,9 @@ begin  -- rtl
                   CHANNELS_C => ReadoutChannels )
     port map (    clk        => evrClk,
                   rst        => evrBus.strobe,
-                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C),
+                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C+5),
                   eventSel   => dmaSel,
-                  eventData  => timingMsg,
-                  dmaCntl    => dmaControl(ReadoutChannels+1),
+                  eventData  => eventMsg,
                   dmaData    => dmaData   (ReadoutChannels+1) );
     
   process (evrClk)
@@ -277,7 +268,37 @@ begin  -- rtl
     if rising_edge(evrClk) then
       rStrobe    <= rStrobe(rStrobe'left-1 downto 0) & evrBus.strobe;
       if evrBus.strobe='1' then
-        timingMsg <= evrBus.message;
+        if modeSel = '0' then  -- map LCLS timing stream to look like LCLS-II frame
+          timingMsg.pulseId     <= resize(evrBus.stream.pulseId,64);
+          timingMsg.timeStamp   <= evrBus.stream.dbuff.epicsTime(31 downto 0) &
+                                   evrBus.stream.dbuff.epicsTime(63 downto 32);
+          timingMsg.bsaInit     <= resize(evrBus.stream.dbuff.edefInit,64);
+          timingMsg.bsaActive   <= (resize(evrBus.stream.dbuff.edefMinor,64) and
+                                    resize(evrBus.stream.dbuff.edefInit,64)) or
+                                   not resize(evrBus.stream.dbuff.edefInit,64);
+          timingMsg.bsaAvgDone  <= (resize(evrBus.stream.dbuff.edefMajor,64) and
+                                    resize(evrBus.stream.dbuff.edefInit,64)) or
+                                   resize(evrBus.stream.dbuff.edefAvgDn,64);
+          timingMsg.bsaDone     <= resize(evrBus.stream.dbuff.edefAvgDn,64);
+          timingMsg.fixedRates  <= (others=>'0');
+          timingMsg.acRates     <= evrBus.stream.dbuff.dmod(37 downto 32);
+          for i in 0 to 15 loop
+            timingMsg.control(i) <= evrBus.stream.eventCodes(i*16+15 downto i*16);
+          end loop;
+          timingMsg.control(16 to 17) <= (others=>(others=>'0'));
+          timingMsg.beamRequest <= x"000000" & toSlv(1,4) & "000" & evrBus.stream.dbuff.dmod(83);
+          eventMsg              <= resize(evrBus.stream.eventCodes,288) &
+                                   x"00000000" &
+                                   evrBus.stream.dbuff.dmod &
+                                   evrBus.stream.dbuff.epicsTime(31 downto 0) &
+                                   evrBus.stream.dbuff.epicsTime(63 downto 32) &
+                                   resize(evrBus.stream.pulseId,64);
+
+                                   
+        else
+          timingMsg <= evrBus.message;
+          eventMsg  <= toSlvNoBsa(evrBus.message);
+        end if;
       end if;
     end if;
   end process;
@@ -495,7 +516,7 @@ begin  -- rtl
 
   Sync_partAddr : entity work.SynchronizerVector
     generic map ( TPD_G   => TPD_G,
-                  WIDTH_G => 16 )
+                  WIDTH_G => partitionAddr'length )
     port map (    clk     => axiClk,
                   dataIn  => exptBus.message.partitionAddr,
                   dataOut => partitionAddr );

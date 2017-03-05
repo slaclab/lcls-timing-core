@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-04-22
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,29 +40,28 @@ entity EvrV2EventDma is
     rst        :  in sl;
     strobe     :  in sl;
     eventSel   :  in slv(CHANNELS_C-1 downto 0);
-    eventData  :  in TimingMessageType;
-    dmaCntl    :  in EvrV2DmaControlType;
+    eventData  :  in slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0);
     dmaData    : out EvrV2DmaDataType );
 end EvrV2EventDma;
 
 architecture mapping of EvrV2EventDma is
 
---  constant VEC_SZ : integer := 32*((TIMING_MESSAGE_BITS_C-256+31)/32+2);
-  constant VEC_SZ : integer := 32*((TIMING_MESSAGE_BITS_C-256+31)/32+2);
-  constant WORDS : slv(31 downto 0) := toSlv(VEC_SZ/32,32);
+  constant WORDS_C : integer := TIMING_MESSAGE_BITS_NO_BSA_C/32;
+
+  type ReadState is (IDLE_S, HDR_S, PAYLOAD_S);
   
   type RegType is record
     channels : slv(15 downto 0);
-    strobe   : slv(VEC_SZ/32-1 downto 0);
-    last     : sl;
-    dataOut  : slv(VEC_SZ-1 downto 0);
+    state    : ReadState;
+    count    : integer range 0 to WORDS_C-1;
+    dmaData  : EvrV2DmaDataType;
   end record;
 
   constant REG_TYPE_INIT_C : RegType := (
     channels => (others=>'0'),
-    strobe   => (others=>'0'),
-    last     => '0',
-    dataOut  => (others=>'0'));
+    state    => IDLE_S,
+    count    => 0,
+    dmaData  => EVRV2_DMA_DATA_INIT_C );
 
   signal r   : RegType := REG_TYPE_INIT_C;
   signal rin : RegType;
@@ -71,27 +70,36 @@ architecture mapping of EvrV2EventDma is
   
 begin  -- mapping
 
-  dmaData.tValid <= r.strobe(0);
-  dmaData.tLast  <= r.strobe(0) and not r.strobe(1);
-  dmaData.tData  <= r.dataOut(31 downto 0);
-
+  dmaData <= r.dmaData;
+  
   process (r, rst, strobe, eventSel, eventData)
     variable v : RegType;
   begin  -- process
     v := r;
-
-    v.last     := '0';
+    v.dmaData.tValid := '1';
     v.channels(eventSel'range) := r.channels(eventSel'range) or eventSel;
-    v.dataOut  := x"00000000" & r.dataOut(r.dataOut'left downto 32);
-    v.strobe   := '0' & r.strobe(r.strobe'left downto 1);
+
+    v.count := r.count+1;
     
-    if strobe='1' and uOr(r.channels)='1' then
-      v.strobe  := (others=>'1');
-      v.dataOut := toSlvNoBsa(eventData) &
-                   r.channels &
-                   EVRV2_EVENT_TAG &
-                   toSlv(r.strobe'length,32);
-    end if;
+    case r.state is
+      when IDLE_S =>
+        if strobe='1' and uOr(r.channels)='1' then
+          v.state := HDR_S;
+          v.dmaData.tData  := EVRV2_EVENT_TAG & r.channels;
+          v.channels       := (others=>'0');
+        else
+          v.dmaData.tValid := '0';
+        end if;
+      when HDR_S =>
+        v.state := PAYLOAD_S;
+        v.count := 0;
+        v.dmaData.tData := toSlv(WORDS_C,32);
+      when PAYLOAD_S =>
+        v.dmaData.tData := eventData(32*r.count+31 downto 32*r.count);
+        if r.count=WORDS_C-1 then
+          v.state := IDLE_S;
+        end if;
+    end case;
 
     if rst='1' then
       v.channels := (others=>'0');

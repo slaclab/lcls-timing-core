@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-04-21
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,21 +38,24 @@ entity EvrV2BsaControl is
     enable        : in  sl;
     strobeIn      : in  sl;
     dataIn        : in  TimingMessageType;
-    dmaCntl       : in  EvrV2DmaControlType;
     dmaData       : out EvrV2DmaDataType );
 end EvrV2BsaControl;
 
 
 architecture mapping of EvrV2BsaControl is
 
+  type BsaReadState is ( IDLR_S, TAG_S,
+                         TIML_S, TIMU_S,
+                         INIL_S, INIU_S );
+
   type RegType is record
-    strobeOut  : slv(7 downto 0);
-    dataOut    : slv(255 downto 0);
+    state   : BsaReadState;
+    dmaData : EvrV2DmaDataType;
   end record;
 
   constant REG_TYPE_INIT_C : RegType := (
-    strobeOut   => (others=>'0'),
-    dataOut     => (others=>'0') );
+    state   => IDLR_S,
+    dmaData => EVRV2_DMA_DATA_INIT_C );
   
   signal r    : RegType := REG_TYPE_INIT_C;
   signal r_in : RegType;
@@ -60,26 +63,36 @@ architecture mapping of EvrV2BsaControl is
   
 begin  -- mapping
 
-  dmaData.tValid <= r.strobeOut(0);
-  dmaData.tLast  <= r.strobeOut(0) and not r.strobeOut(1);
-  dmaData.tData  <= r.dataOut  (31 downto 0);
+  dmaData <= r.dmaData;
   
   process (r, dataIn, strobeIn, evrRst, enable)
     variable v : RegType;
   begin  -- process
     v := r;
 
-    v.strobeOut := '0' & r.strobeOut(r.strobeOut'left downto 1);
-    v.dataOut   := x"00000000" & r.dataOut(r.dataOut'left downto 32);
-    if (strobeIn='1' and enable='1' and
-        (uOr(dataIn.bsaInit)='1' or uOr(dataIn.bsaDone)='1')) then
-      v.strobeOut   := (others=>'1');
-      v.dataOut     := dataIn.bsaDone   &
-                       dataIn.bsaInit &
-                       dataIn.timeStamp &
-                       x"0000" & EVRV2_BSA_CONTROL_TAG &
-                       slv(conv_unsigned(r.strobeOut'length,32));
+    if (strobeIn='1' and enable='1' and uOr(dataIn.bsaInit)='1' and r.state=IDLR_S) then
+      v.state := TAG_S;
     end if;
+
+    if r.state = IDLR_S then
+      v.dmaData.tValid := '0';
+    else
+      v.dmaData.tValid := '1';
+    end if;
+
+    case r.state is
+      when TAG_S  => v.dmaData.tData := EVRV2_BSA_CONTROL_TAG & x"0000";
+                     v.state := TIML_S;
+      when TIML_S => v.dmaData.tData := dataIn.timeStamp(31 downto 0);
+                     v.state := TIMU_S;
+      when TIMU_S => v.dmaData.tData := dataIn.timeStamp(63 downto 32);
+                     v.state := INIL_S;
+      when INIL_S => v.dmaData.tData := dataIn.bsaInit(31 downto 0);
+                     v.state := INIU_S;
+      when INIU_S => v.dmaData.tData := dataIn.bsaInit(63 downto 32);
+                     v.state := IDLR_S;
+      when others => null;
+    end case;
 
     if evrRst='1' then
       v := REG_TYPE_INIT_C;

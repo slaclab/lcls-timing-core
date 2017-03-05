@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-01-13
+-- Last update: 2017-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,6 +36,8 @@ package TimingPkg is
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
    constant TIMING_MESSAGE_BITS_C  : integer := 912;
+   --  Frame without BSA, beamEnergy, version
+   constant TIMING_MESSAGE_BITS_NO_BSA_C  : integer := TIMING_MESSAGE_BITS_C-256-16;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
 
@@ -332,8 +334,8 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    function toSlvNoBsa (message : TimingMessageType) return slv
    is
-      variable vector : slv(TIMING_MESSAGE_BITS_C-257 downto 0) := (others => '0');
-      variable i      : integer                               := 0;
+      variable vector : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0) := (others => '0');
+      variable i      : integer := 0;
    begin
 --      assignSlv(i, vector, message.version);
       assignSlv(i, vector, message.pulseId);
