@@ -8,9 +8,9 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once LclsMrTimingTriggerPulse.yaml
+#once LclsTriggerPulse.yaml
 
-LclsMrTimingTriggerPulse: &LclsMrTimingTriggerPulse 
+LclsTriggerPulse: &LclsTriggerPulse 
   class: MMIODev
   configPrio: 1
   description: "Timing trigger pulse comfiguration"

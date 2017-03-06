@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : LclsMrTimingRegisterStrobe.vhd
+-- File       : LclsTriggerRegisterStrobe.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-08
 -- Last update: 2017-02-09
@@ -22,7 +22,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
-entity LclsMrTimingRegisterStrobe is
+entity LclsTriggerRegisterStrobe is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -37,9 +37,9 @@ entity LclsMrTimingRegisterStrobe is
       pulseID_o   : out slv(31 downto 0);
       bsa_o       : out slv(127 downto 0);
       dmod_o      : out slv(191 downto 0));
-end LclsMrTimingRegisterStrobe;
+end LclsTriggerRegisterStrobe;
 
-architecture rtl of LclsMrTimingRegisterStrobe is
+architecture rtl of LclsTriggerRegisterStrobe is
 
    type RegType is record
       timestamp : slv(63 downto 0);

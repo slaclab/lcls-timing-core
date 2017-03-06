@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : LclsMrTimingTriggerPulse.vhd
+-- File       : LclsTriggerPulse.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-08
 -- Last update: 2017-02-09
@@ -34,7 +34,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity LclsMrTimingTriggerPulse is
+entity LclsTriggerPulse is
    generic (
       TPD_G            : time                  := 1 ns;
       AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_DECERR_C;
@@ -56,9 +56,9 @@ entity LclsMrTimingTriggerPulse is
       strobe_i  : in sl;
       -- Trigger pulse output 
       pulse_o : out sl);
-end LclsMrTimingTriggerPulse;
+end LclsTriggerPulse;
 
-architecture rtl of LclsMrTimingTriggerPulse is
+architecture rtl of LclsTriggerPulse is
 
    type StateType is (
       WAIT_TRIG_S,
@@ -90,7 +90,7 @@ architecture rtl of LclsMrTimingTriggerPulse is
 
 begin
 
-   U_Reg : entity work.LclsMrTimingTriggerPulseReg
+   U_Reg : entity work.LclsTriggerPulseReg
       generic map (
          TPD_G            => TPD_G,
          AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,

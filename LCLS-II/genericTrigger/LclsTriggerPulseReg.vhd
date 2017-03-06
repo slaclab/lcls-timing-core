@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : LclsMrTimingTriggerPulseReg.vhd
+-- File       : LclsTriggerPulseReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
 -- Last update: 2017-02-09
@@ -22,7 +22,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 
-entity LclsMrTimingTriggerPulseReg is
+entity LclsTriggerPulseReg is
    generic (
       -- General Configurations
       TPD_G            : time                  := 1 ns;
@@ -47,9 +47,9 @@ entity LclsMrTimingTriggerPulseReg is
       delayReg_o      : out slv(DELAY_WIDTH_G-1 downto 0);
       widthReg_o      : out slv(PULSE_WIDTH_G-1 downto 0);
       polarity_o      : out sl);
-end LclsMrTimingTriggerPulseReg;
+end LclsTriggerPulseReg;
 
-architecture rtl of LclsMrTimingTriggerPulseReg is
+architecture rtl of LclsTriggerPulseReg is
 
    type RegType is record
       opcodes        : slv(255 downto 0);
