@@ -10,10 +10,10 @@
 #schemaversion 3.0.0
 #once
 
-EvrV1Irq: &EvrV1Irq
+EvrV1Isr: &EvrV1Isr
   class: MMIODev
   configPrio: 1
-  description: LCLS-I EVR IRQ Controller
+  description: LCLS-I EVR ISR Controller
   size: 0x10
   children:
     #########################################################  

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1CoreIrqCtrl.vhd
+-- File       : EvrV1CoreIsrCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-03-03
 -- Last update: 2017-03-03
@@ -26,7 +26,7 @@ use work.SsiPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiLiteMasterPkg.all;
 
-entity EvrV1CoreIrqCtrl is
+entity EvrV1CoreIsrCtrl is
    generic (
       TPD_G                 : time                := 1 ns;
       DEFAULT_ISR_SEL_G     : sl                  := '1';  -- '1' = SW, '0' = FW
@@ -72,9 +72,9 @@ entity EvrV1CoreIrqCtrl is
       rxError          : out sl;
       rxData           : out slv(15 downto 0);
       rxDataK          : out slv(1 downto 0));
-end EvrV1CoreIrqCtrl;
+end EvrV1CoreIsrCtrl;
 
-architecture rtl of EvrV1CoreIrqCtrl is
+architecture rtl of EvrV1CoreIsrCtrl is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
