@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ entity EvrV2Core is
     -- Trigger and Sync Port
     syncL               : in  sl;
     trigOut             : out slv(11 downto 0);
-    evrModeSel          : out sl;
+    evrModeSel          : in  sl;
     delay_ld            : out slv      (11 downto 0);
     delay_wr            : out Slv6Array(11 downto 0);
     delay_rd            : in  Slv6Array(11 downto 0) );
@@ -78,15 +78,15 @@ architecture mapping of EvrV2Core is
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CSR_INDEX_C      => (
-      baseAddr      => x"00000000",
+      baseAddr      => x"00080000",
       addrBits      => 9,
       connectivity  => X"0001"),
     TRG_INDEX_C => (
-      baseAddr      => x"00000200",
+      baseAddr      => x"00080200",
       addrBits      => 9,
       connectivity  => X"0001"),
     DMA_INDEX_C => (
-      baseAddr      => x"00000400",
+      baseAddr      => x"00080400",
       addrBits      => 10,
       connectivity  => X"0001") );
   
@@ -151,7 +151,7 @@ begin  -- rtl
   pciRst <= axiRst;
   irqReq <= irqRequest;
 
-  evrModeSel <= modeSel;
+  modeSel    <= evrModeSel;
   delay_ld   <= delay_ldb;
   delay_wr   <= delay_wrb;
 
@@ -264,6 +264,8 @@ begin  -- rtl
                   dmaData    => dmaData   (ReadoutChannels+1) );
     
   process (evrClk)
+    variable acrate : integer;
+    variable destn  : integer;
   begin  -- process
     if rising_edge(evrClk) then
       rStrobe    <= rStrobe(rStrobe'left-1 downto 0) & evrBus.strobe;
@@ -273,20 +275,46 @@ begin  -- rtl
           timingMsg.timeStamp   <= evrBus.stream.dbuff.epicsTime(31 downto 0) &
                                    evrBus.stream.dbuff.epicsTime(63 downto 32);
           timingMsg.bsaInit     <= resize(evrBus.stream.dbuff.edefInit,64);
+          -- encode minor/major mask on bsaInit
           timingMsg.bsaActive   <= (resize(evrBus.stream.dbuff.edefMinor,64) and
                                     resize(evrBus.stream.dbuff.edefInit,64)) or
-                                   not resize(evrBus.stream.dbuff.edefInit,64);
+                                   (resize(evrBus.stream.dbuff.dmod(147 downto 128),64) and not
+                                    resize(evrBus.stream.dbuff.edefInit,64));
           timingMsg.bsaAvgDone  <= (resize(evrBus.stream.dbuff.edefMajor,64) and
                                     resize(evrBus.stream.dbuff.edefInit,64)) or
-                                   resize(evrBus.stream.dbuff.edefAvgDn,64);
+                                   (resize(evrBus.stream.dbuff.edefAvgDn,64) and not
+                                    resize(evrBus.stream.dbuff.edefInit,64));
           timingMsg.bsaDone     <= resize(evrBus.stream.dbuff.edefAvgDn,64);
           timingMsg.fixedRates  <= (others=>'0');
-          timingMsg.acRates     <= evrBus.stream.dbuff.dmod(37 downto 32);
-          for i in 0 to 15 loop
-            timingMsg.control(i) <= evrBus.stream.eventCodes(i*16+15 downto i*16);
+          acrate                := 5-conv_integer(evrBus.stream.dbuff.dmod(126 downto 124));
+          for i in 0 to timingMsg.acRates'length-1 loop
+            if i > acrate then
+              timingMsg.acRates(i) <= '0';
+            else
+              timingMsg.acRates(i) <= '1';
+            end if;
+          end loop;
+          timingMsg.acTimeSlot <= (others=>'0');
+          for i in 1 to 6 loop
+            if evrBus.stream.dbuff.dmod(31+i)='1' then
+              timingMsg.acTimeSlot <= toSlv(i,3);
+            end if;
+          end loop;
+          for i in 0 to 7 loop
+            timingMsg.control(2*i+0) <= evrBus.stream.eventCodes(i*32+31 downto i*32+16);
+            timingMsg.control(2*i+1) <= evrBus.stream.eventCodes(i*32+15 downto i*32);
           end loop;
           timingMsg.control(16 to 17) <= (others=>(others=>'0'));
-          timingMsg.beamRequest <= x"000000" & toSlv(1,4) & "000" & evrBus.stream.dbuff.dmod(83);
+          -- Simulate beam request word : charge=0, dest=0, beam=POCKCEL
+          destn := 0;
+          if evrBus.stream.dbuff.dmod(61)='1' then
+            destn := 1;
+          end if;
+          if evrBus.stream.dbuff.dmod(60)='1' then
+            destn := 2;
+          end if;
+          timingMsg.beamRequest <= x"000000" & toSlv(destn,4) & "000" & evrBus.stream.dbuff.dmod(83);
+          --
           eventMsg              <= resize(evrBus.stream.eventCodes,288) &
                                    x"00000000" &
                                    evrBus.stream.dbuff.dmod &
@@ -351,7 +379,7 @@ begin  -- rtl
                   -- configuration
                   irqEnable           => irqEnable,
                   channelConfig       => channelConfig,
-                  trigSel             => modeSel,
+                  trigSel             => open,
                   dmaFullThr          => dmaFullThr(0),
                   -- status
                   irqReq              => irqRequest,
@@ -499,10 +527,8 @@ begin  -- rtl
                     dataIn  => triggerConfig (i).loadTap,
                     dataOut => triggerConfigS(i).loadTap );
 
-    delay_wrb(i) <= (others=>'0') when modeSel='0' else
-                    triggerConfig(i).delayTap;
-    delay_ldb(i) <= '1' when modeSel='0' else
-                    triggerConfig(i).loadTap;
+    delay_wrb(i) <= triggerConfig(i).delayTap;
+    delay_ldb(i) <= triggerConfig(i).loadTap;
 
   end generate Sync_Trigger;
 
