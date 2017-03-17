@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-09
+-- Last update: 2017-03-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -286,32 +286,20 @@ begin  -- rtl
                                     resize(evrBus.stream.dbuff.edefInit,64));
           timingMsg.bsaDone     <= resize(evrBus.stream.dbuff.edefAvgDn,64);
           timingMsg.fixedRates  <= (others=>'0');
-          acrate                := 5-conv_integer(evrBus.stream.dbuff.dmod(126 downto 124));
-          for i in 0 to timingMsg.acRates'length-1 loop
-            if i > acrate then
-              timingMsg.acRates(i) <= '0';
-            else
-              timingMsg.acRates(i) <= '1';
-            end if;
-          end loop;
-          timingMsg.acTimeSlot <= (others=>'0');
-          for i in 1 to 6 loop
-            if evrBus.stream.dbuff.dmod(31+i)='1' then
-              timingMsg.acTimeSlot <= toSlv(i,3);
-            end if;
-          end loop;
-          for i in 0 to 7 loop
-            timingMsg.control(2*i+0) <= evrBus.stream.eventCodes(i*32+31 downto i*32+16);
-            timingMsg.control(2*i+1) <= evrBus.stream.eventCodes(i*32+15 downto i*32);
+          timingMsg.acRates(0)  <= '1';
+          timingMsg.acRates(5 downto 1) <= evrBus.stream.dbuff.dmod(152 downto 148);
+          timingMsg.acTimeSlot <= evrBus.stream.dbuff.dmod(127 downto 125);
+          for i in 0 to 15 loop
+            timingMsg.control(i) <= evrBus.stream.eventCodes(i*16+15 downto i*16);
           end loop;
           timingMsg.control(16 to 17) <= (others=>(others=>'0'));
-          -- Simulate beam request word : charge=0, dest=0, beam=POCKCEL
-          destn := 0;
+          -- Simulate beam request word : charge=0, dest={D10DMP,LI25,UND}, beam=POCKCEL
+          destn := 2;
           if evrBus.stream.dbuff.dmod(61)='1' then
-            destn := 1;
+            destn := 0;
           end if;
           if evrBus.stream.dbuff.dmod(60)='1' then
-            destn := 2;
+            destn := 1;
           end if;
           timingMsg.beamRequest <= x"000000" & toSlv(destn,4) & "000" & evrBus.stream.dbuff.dmod(83);
           --
