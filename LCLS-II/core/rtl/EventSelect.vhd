@@ -31,6 +31,8 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity EventSelect is
+   generic (
+      TPD_G    : time    := 1 ns);
   port (
     clk        : in  sl;
     -- criteria
@@ -60,9 +62,9 @@ begin
     if rising_edge(clk) then
       expI := conv_integer(seqword);
       if expI<18 then
-        expSeqWord <= expSeq(expI);
+        expSeqWord <= expSeq(expI) after TPD_G;
       else
-        expSeqWord <= (others=>'0');
+        expSeqWord <= (others=>'0') after TPD_G;
       end if;
     end if;
   end process;

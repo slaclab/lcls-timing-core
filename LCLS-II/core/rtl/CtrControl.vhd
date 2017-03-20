@@ -32,7 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity CtrControl is
-  generic ( ASYNC_REGCLK_G : boolean := false ); 
+  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false ); 
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
@@ -65,9 +65,6 @@ architecture CtrControl of CtrControl is
    signal rin : RegType;
 
    signal rateSel : sl;
-   
-   -- Register delay for simulation
-   constant tpd : time := 0.5 ns;
 
 begin
 
@@ -125,7 +122,7 @@ begin
    seq: process(txclk) is
    begin
      if rising_edge(txclk) then
-       r <= rin;
+       r <= rin after TPD_G;
      end if;
    end process;
    

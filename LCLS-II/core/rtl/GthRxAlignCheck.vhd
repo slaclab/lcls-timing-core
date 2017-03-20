@@ -31,6 +31,7 @@ use work.AxiLitePkg.all;
 
 entity GthRxAlignCheck is
   generic (
+    TPD_G            : time                   := 1 ns;
     TIMEOUT_G        : positive               := 4096;
     ADDR_WIDTH_G     : positive range 1 to 32 := 16;
     DATA_WIDTH_G     : positive range 1 to 32 := 16);
@@ -187,7 +188,7 @@ begin
   process (axiClk) is
   begin
     if rising_edge(axiClk) then
-      r <= r_in;
+      r <= r_in after TPD_G;
     end if;
   end process;
 end rtl;

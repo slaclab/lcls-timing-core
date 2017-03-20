@@ -29,6 +29,8 @@ use work.TimingPkg.all;
 use work.CrcPkg.all;
 
 entity TimingStreamTx is
+  generic (
+    TPD_G : time := 1 ns);
    port (
       -- Clock and reset
       clk       : in  sl;
@@ -153,7 +155,7 @@ begin
    process (clk)
    begin  -- process
       if rising_edge(clk) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process;
 

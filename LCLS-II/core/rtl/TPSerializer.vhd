@@ -31,6 +31,7 @@ use work.CrcPkg.all;
 
 entity TPSerializer is
    generic (
+      TPD_G : time := 1 ns;
       Id : integer := 0
       );
    port (
@@ -103,7 +104,7 @@ begin
    process (txClk)
    begin  -- process
       if rising_edge(txClk) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process;
 

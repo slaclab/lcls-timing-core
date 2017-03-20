@@ -31,7 +31,7 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity BsaControl is
-  generic ( ASYNC_REGCLK_G : boolean := false ); 
+  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false ); 
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
@@ -76,6 +76,7 @@ architecture BsaControl of BsaControl is
 begin
 
    U_Select : entity work.EventSelect
+     generic map ( TPD_G=>TPD_G)
      port map ( clk       => txclk,
                 rateType  => bsadef.rateSel(12 downto 11),
                 fxRateSel => bsadef.rateSel( 3 downto 0),
@@ -93,15 +94,15 @@ begin
    begin
       if rising_edge(txclk) then
          if bsadef.init = '0' then
-           initq      <= '0';
-           persist    <= '0';
-           restart    <= '0';
+           initq      <= '0' after TPD_G;
+           persist    <= '0' after TPD_G;
+           restart    <= '0' after TPD_G;
          elsif enable = '1' and initq = '0' then
-            initq <= '1';
+            initq <= '1'  after TPD_G;
             if bsadef.avgToWr = x"0000" then
-               persist <= '1';
+               persist <= '1' after TPD_G;
             end if;
-            restart <= bsadef.restart;
+            restart <= bsadef.restart after TPD_G;
          end if;
       end if;
    end process;
@@ -129,7 +130,8 @@ begin
 
    GEN_ASYNC: if ASYNC_REGCLK_G=true generate
      U_SynchFifo : entity work.SynchronizerFifo
-       generic map (DATA_WIDTH_G => 32,
+       generic map (TPD_G=>TPD_G,
+                    DATA_WIDTH_G => 32,
                     ADDR_WIDTH_G => 2)
        port map (rst                => fifoRst,
                  wr_clk             => txclk,
@@ -162,14 +164,14 @@ begin
          avgToWr    <= x"0000";
       elsif rising_edge(txclk) then
          if enable = '1' then
-            bsaInit    <= initn;
-            bsaActive  <= active;
-            bsaAvgDone <= avgDone;
-            bsaDone    <= donen and not done;  -- must overlap with bsaAvgDone
-            initd      <= initq;
-            done       <= donen;
-            nToAvg     <= nToAvgn;
-            avgToWr    <= avgToWrn;
+            bsaInit    <= initn after TPD_G;
+            bsaActive  <= active after TPD_G;
+            bsaAvgDone <= avgDone after TPD_G;
+            bsaDone    <= donen and not done after TPD_G;  -- must overlap with bsaAvgDone
+            initd      <= initq after TPD_G;
+            done       <= donen after TPD_G;
+            nToAvg     <= nToAvgn after TPD_G;
+            avgToWr    <= avgToWrn after TPD_G;
          end if;
       end if;
    end process;

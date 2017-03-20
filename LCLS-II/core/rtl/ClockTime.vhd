@@ -31,6 +31,7 @@ use work.StdRtlPkg.all;
 
 entity ClockTime is
    generic (
+      TPD_G    : time    := 1 ns;
       FRACTION_DEPTH_G : integer := 5
       );
    port (
@@ -70,7 +71,7 @@ begin
   udiv   <= '0' & divisor;
   
   U_WrFifo : entity work.SynchronizerFifo
-    generic map ( DATA_WIDTH_G => 64 )
+    generic map ( TPD_G=>TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkA,
                wr_en  => wrEnA,
@@ -81,7 +82,7 @@ begin
                dout   => wrDataB );
 
   U_RdFifo : entity work.SynchronizerFifo
-    generic map ( DATA_WIDTH_G => 64 )
+    generic map ( TPD_G=>TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkB,
                wr_en  => wrEnB,
@@ -111,8 +112,8 @@ begin
     if rst='1' then
       null;
     elsif rising_edge(clkB) then
-      dataB <= dataNU & dataNL;
-      remB  <= remN;
+      dataB <= dataNU & dataNL after TPD_G;
+      remB  <= remN after TPD_G;
     end if;
   end process;
 

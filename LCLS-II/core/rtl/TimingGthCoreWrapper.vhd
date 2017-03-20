@@ -323,6 +323,7 @@ architecture rtl of TimingGthCoreWrapper is
    
    U_AlignCheck : entity work.GthRxAlignCheck
       generic map (
+        TPD_G        => TPD_G,
         ADDR_WIDTH_G => 9 )
       port map (
          resetIn         => rxControl.reset,
@@ -527,11 +528,13 @@ architecture rtl of TimingGthCoreWrapper is
    end generate;
 
    U_RstSyncTx : entity work.RstSync
+      generic map (TPD_G  => TPD_G)
       port map ( clk      => txoutclkb,
                  asyncRst => txControl.reset,
                  syncRst  => txbypassrst );
 
    U_RstSyncRx : entity work.RstSync
+      generic map (TPD_G  => TPD_G)
       port map ( clk      => rxoutclkb,
                  asyncRst => rxRst,
                  syncRst  => rxbypassrst );

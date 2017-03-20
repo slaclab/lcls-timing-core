@@ -110,6 +110,7 @@ begin  -- rtl
 
    TPGMini_Inst : entity work.TPGMini
       generic map (
+         TPD_G        => TPD_G,
          NARRAYSBSA   => NARRAYSBSA )
       port map (
          -- Register Interface
@@ -123,6 +124,8 @@ begin  -- rtl
          txDataK  => txDataK(1) );
 
    TPGMiniStream_Inst : entity work.TPGMiniStream
+      generic map (
+         TPD_G    => TPD_G)   
       port map (
          -- Register Interface
          config   => config,
