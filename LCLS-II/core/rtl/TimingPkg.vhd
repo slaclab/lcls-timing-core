@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-03-03
+-- Last update: 2017-03-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ package TimingPkg is
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 912;
+   constant TIMING_MESSAGE_BITS_C  : integer := 944;
    --  Frame without BSA, beamEnergy, version
    constant TIMING_MESSAGE_BITS_NO_BSA_C  : integer := TIMING_MESSAGE_BITS_C-256-16;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
@@ -108,8 +108,9 @@ package TimingPkg is
       resync          : sl;
       beamRequest     : slv(31 downto 0);
       beamEnergy      : Slv16Array(0 to 3);
+      photonWavelen   : Slv16Array(0 to 1);
       syncStatus      : sl;
-      calibrationGap  : sl;
+      mpsValid        : sl;
       bcsFault        : slv(0 downto 0);
       mpsLimit        : slv(15 downto 0);
       mpsClass        : slv4Array(0 to 15);
@@ -131,8 +132,9 @@ package TimingPkg is
       resync          => '0',
       beamRequest     => (others => '0'),
       beamEnergy      => (others => (others => '0')),
+      photonWavelen   => (others => (others => '0')),
       syncStatus      => '0',
-      calibrationGap  => '0',
+      mpsValid        => '0',
       bcsFault        => (others => '0'),
       mpsLimit        => (others => '0'),
       mpsClass        => (others => (others => '1')),
@@ -296,9 +298,12 @@ package body TimingPkg is
       for j in message.beamEnergy'range loop
         assignSlv(i, vector, message.beamEnergy(j));
       end loop;                                        -- 4 words
+      for j in message.photonWavelen'range loop
+        assignSlv(i, vector, message.photonWavelen(j));
+      end loop;                                        -- 2 words
       assignSlv(i, vector, "0000000000000");           -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.calibrationGap);
+      assignSlv(i, vector, message.mpsValid);
       assignSlv(i, vector, message.bcsFault);          -- 1 bit
       assignSlv(i, vector, message.mpsLimit);          -- 1 word
       for j in message.mpsClass'range loop
@@ -348,7 +353,7 @@ package body TimingPkg is
       assignSlv(i, vector, message.beamRequest);
       assignSlv(i, vector, "0000000000000");        -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.calibrationGap);
+      assignSlv(i, vector, message.mpsValid);
       assignSlv(i, vector, message.bcsFault);
       assignSlv(i, vector, message.mpsLimit);
       for j in message.mpsClass'range loop
@@ -380,9 +385,12 @@ package body TimingPkg is
       for j in message.beamEnergy'range loop
         assignRecord(i, vector, message.beamEnergy(j));
       end loop;                                        -- 4 words
-      i := i+ 13;                        -- 3 unused bits
+      for j in message.photonWavelen'range loop
+        assignRecord(i, vector, message.photonWavelen(j));
+      end loop;                                        -- 2 words
+      i := i+ 13;                        -- 13 unused bits
       assignRecord(i, vector, message.syncStatus);
-      assignRecord(i, vector, message.calibrationGap);
+      assignRecord(i, vector, message.mpsValid);
       assignRecord(i, vector, message.bcsFault);
       assignRecord(i, vector, message.mpsLimit);
       for j in message.mpsClass'range loop

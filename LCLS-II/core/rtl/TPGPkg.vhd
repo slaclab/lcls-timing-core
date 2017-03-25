@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2017-02-11
+-- Last update: 2017-03-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -255,7 +255,8 @@ package TPGPkg is
                           allowRequired    : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           destnControl     : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           --
-                          beamEnergy    : Slv16Array(3 downto 0);
+                          beamEnergy    : Slv16Array(0 to 3);
+                          photonWavelen : Slv16Array(0 to 1);
                           irqEnable     : sl;
                           irqFifoEnable : sl;
                           irqIntvEnable : sl;
@@ -319,6 +320,7 @@ package TPGPkg is
     allowRequired     => (others=>x"0000"),
     destnControl      => (others=>x"0000"),
     beamEnergy        => (others=>(others=>'0')),
+    photonWavelen     => (others=>(others=>'0')),
     irqEnable         => '0',
     irqFifoEnable     => '0',
     irqIntvEnable     => '0',
