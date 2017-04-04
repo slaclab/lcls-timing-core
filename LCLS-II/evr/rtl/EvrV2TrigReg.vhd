@@ -76,7 +76,7 @@ begin  -- mapping
     end if;
   end process;
 
-  process (r,axilReadMaster,axilWriteMaster,axiRst)
+  process (r,axilReadMaster,axilWriteMaster,axiRst,delay_rd)
     variable v : RegType;
     variable axilStatus : AxiLiteStatusType;
     procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is

@@ -29,7 +29,7 @@ use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.SsiPciePkg.all;
+--use work.SsiPciePkg.all;
 use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 --use work.PciPkg.all;
@@ -37,7 +37,8 @@ use work.SsiPkg.all;
 
 entity EvrV2Core is
   generic (
-    TPD_G : time := 1 ns);
+    TPD_G            : time := 1 ns;
+    AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0') );
   port (
     -- AXI-Lite and IRQ Interface
     axiClk              : in  sl;
@@ -50,10 +51,10 @@ entity EvrV2Core is
     irqEnable           : out sl;
     irqReq              : out sl;
     -- DMA
-    dmaRxIbMaster       : out AxiStreamMasterType;
-    dmaRxIbSlave        : in  AxiStreamSlaveType;
-    dmaRxTranFromPci    : in  TranFromPcieType;
-    dmaReady            : out sl;
+--    dmaRxIbMaster       : out AxiStreamMasterType;
+--    dmaRxIbSlave        : in  AxiStreamSlaveType;
+--    dmaRxTranFromPci    : in  TranFromPcieType;
+--    dmaReady            : out sl;
     -- EVR Ports
     evrClk              : in  sl;
     evrRst              : in  sl;
@@ -78,24 +79,24 @@ end EvrV2Core;
 
 architecture mapping of EvrV2Core is
 
-  constant NUM_AXI_MASTERS_C : natural := 3;
+  constant NUM_AXI_MASTERS_C : natural := 2;
   constant CSR_INDEX_C       : natural := 0;
   constant TRG_INDEX_C       : natural := 1;
   constant DMA_INDEX_C       : natural := 2;
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CSR_INDEX_C      => (
-      baseAddr      => x"00000000",
+      baseAddr      => (AXIL_BASE_ADDR_G + x"00000000"),
       addrBits      => 9,
       connectivity  => X"0001"),
     TRG_INDEX_C => (
-      baseAddr      => x"00000200",
+      baseAddr      => (AXIL_BASE_ADDR_G + x"00000200"),
       addrBits      => 9,
-      connectivity  => X"0001"),
-    DMA_INDEX_C => (
-      baseAddr      => x"00000400",
-      addrBits      => 10,
-      connectivity  => X"0001") );
+      connectivity  => X"0001"));
+--    DMA_INDEX_C => (
+--      baseAddr      => (AXIL_BASE_ADDR_G + x"00000400"),
+--      addrBits      => 10,
+--      connectivity  => X"0001") );
   
   signal mAxiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
@@ -132,8 +133,8 @@ architecture mapping of EvrV2Core is
   signal pciClk : sl;
   signal pciRst : sl;
 
-  signal rxDescToPci   : DescToPcieType;
-  signal rxDescFromPci : DescFromPcieType;
+--  signal rxDescToPci   : DescToPcieType;
+--  signal rxDescFromPci : DescFromPcieType;
 
   signal bsaEnabled : slv(ReadoutChannels-1 downto 0);
   signal anyBsaEnabled : sl;
@@ -143,7 +144,7 @@ architecture mapping of EvrV2Core is
   signal dmaFullThr     : Slv24Array (0 downto 0);
   signal dmaFullThrS    : Slv24Array (0 downto 0);
 
-  signal partitionAddr  : slv(15 downto 0);
+  signal partitionAddr  : slv(31 downto 0);
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
@@ -163,7 +164,7 @@ begin  -- rtl
   delay_ld   <= delay_ldb;
   delay_wr   <= delay_wrb;
 
-  dmaReady <= not dmaCtrl.pause;
+--  dmaReady <= not dmaCtrl.pause;
 
   -------------------------
   -- AXI-Lite Crossbar Core
@@ -186,92 +187,92 @@ begin  -- rtl
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves);   
   
-  U_PciRxDesc : entity work.EvrV2PcieRxDesc
-    generic map ( DMA_SIZE_G       => 1 )
-    port map (    dmaDescToPci(0)  => rxDescToPci,
-                  dmaDescFromPci(0)=> rxDescFromPci,
-                  axiReadMaster    => mAxiReadMasters (DMA_INDEX_C),
-                  axiReadSlave     => mAxiReadSlaves  (DMA_INDEX_C),
-                  axiWriteMaster   => mAxiWriteMasters(DMA_INDEX_C),
-                  axiWriteSlave    => mAxiWriteSlaves (DMA_INDEX_C),
-                  irqReq           => irqRequest,
-                  cntRst           => '0',
-                  pciClk           => pciClk,
-                  pciRst           => pciRst );
-
-  U_PciRxDma : entity work.EvrV2PcieRxDma
-    generic map ( TPD_G                 => TPD_G,
-                  SAXIS_MASTER_CONFIG_G => SAXIS_MASTER_CONFIG_C,
-                  FIFO_ADDR_WIDTH_G     => 10 )
-    port map (    sAxisClk    => evrClk,
-                  sAxisRst    => evrRst,
-                  sAxisMaster => dmaMaster,
-                  sAxisSlave  => dmaSlave,
-                  sAxisCtrl   => dmaCtrl,
-                  sAxisPauseThr => dmaFullThrS(0)(9 downto 0),
-                  pciClk      => pciClk,
-                  pciRst      => pciRst,
-                  dmaIbMaster => dmaRxIbMaster,
-                  dmaIbSlave  => dmaRxIbSlave,
-                  dmaDescFromPci => rxDescFromPci,
-                  dmaDescToPci   => rxDescToPci,
-                  dmaTranFromPci => dmaRxTranFromPci,
-                  dmaChannel     => x"0" );
-
-  U_Dma : entity work.EvrV2Dma
-    generic map ( CHANNELS_C    => ReadoutChannels+2,
-                  AXIS_CONFIG_C => SAXIS_MASTER_CONFIG_C )
-    port map (    clk        => evrClk,
-                  dmaCntl    => dmaControl,
-                  dmaData    => dmaData,
-                  dmaMaster  => dmaMaster,
-                  dmaSlave   => dmaSlave );
-  
-  U_BsaControl : entity work.EvrV2BsaControl
-    generic map ( TPD_G      => TPD_G )
-    port map (    evrClk     => evrClk,
-                  evrRst     => evrRst,
-                  enable     => anyBsaEnabled,
-                  strobeIn   => evrBus.strobe,
-                  dataIn     => evrBus.message,
-                  dmaCntl    => dmaControl     (ReadoutChannels),
-                  dmaData    => dmaData        (ReadoutChannels) );
-
-  Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
-    U_EventSel   : entity work.EvrV2EventSelect
-      generic map ( TPD_G         => TPD_G )
-      port map    ( clk           => evrClk,
-                    rst           => evrRst,
-                    config        => channelConfigS(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C),
-                    dataIn        => timingMsg,
-                    exptIn        => exptBus,
-                    selectOut     => eventSel(i),
-                    dmaOut        => dmaSel(i) );
-    U_BsaChannel : entity work.EvrV2BsaChannel
-      generic map ( TPD_G         => TPD_G,
-                    CHAN_C        => i )
-      port map    ( evrClk        => evrClk,
-                    evrRst        => evrRst,
-                    channelConfig => channelConfigS(i),
-                    evtSelect     => dmaSel(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+1),
-                    dataIn        => timingMsg,
-                    dmaCntl       => dmaControl(i),
-                    dmaData       => dmaData(i) );
-  end generate;  -- i
-
-  U_EventDma : entity work.EvrV2EventDma
-    generic map ( TPD_G      => TPD_G,
-                  CHANNELS_C => ReadoutChannels )
-    port map (    clk        => evrClk,
-                  rst        => evrBus.strobe,
-                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C),
-                  eventSel   => dmaSel,
-                  eventData  => timingMsg,
-                  dmaCntl    => dmaControl(ReadoutChannels+1),
-                  dmaData    => dmaData   (ReadoutChannels+1) );
-    
+--  U_PciRxDesc : entity work.EvrV2PcieRxDesc
+--    generic map ( DMA_SIZE_G       => 1 )
+--    port map (    dmaDescToPci(0)  => rxDescToPci,
+--                  dmaDescFromPci(0)=> rxDescFromPci,
+--                  axiReadMaster    => mAxiReadMasters (DMA_INDEX_C),
+--                  axiReadSlave     => mAxiReadSlaves  (DMA_INDEX_C),
+--                  axiWriteMaster   => mAxiWriteMasters(DMA_INDEX_C),
+--                  axiWriteSlave    => mAxiWriteSlaves (DMA_INDEX_C),
+--                  irqReq           => irqRequest,
+--                  cntRst           => '0',
+--                  pciClk           => pciClk,
+--                  pciRst           => pciRst );
+--
+--  U_PciRxDma : entity work.EvrV2PcieRxDma
+--    generic map ( TPD_G                 => TPD_G,
+--                  SAXIS_MASTER_CONFIG_G => SAXIS_MASTER_CONFIG_C,
+--                  FIFO_ADDR_WIDTH_G     => 10 )
+--    port map (    sAxisClk    => evrClk,
+--                  sAxisRst    => evrRst,
+--                  sAxisMaster => dmaMaster,
+--                  sAxisSlave  => dmaSlave,
+--                  sAxisCtrl   => dmaCtrl,
+--                  sAxisPauseThr => dmaFullThrS(0)(9 downto 0),
+--                  pciClk      => pciClk,
+--                  pciRst      => pciRst,
+--                  dmaIbMaster => dmaRxIbMaster,
+--                  dmaIbSlave  => dmaRxIbSlave,
+--                  dmaDescFromPci => rxDescFromPci,
+--                  dmaDescToPci   => rxDescToPci,
+--                  dmaTranFromPci => dmaRxTranFromPci,
+--                  dmaChannel     => x"0" );
+--
+--U_Dma : entity work.EvrV2Dma
+--  generic map ( CHANNELS_C    => ReadoutChannels+2,
+--                AXIS_CONFIG_C => SAXIS_MASTER_CONFIG_C )
+--  port map (    clk        => evrClk,
+--                dmaCntl    => dmaControl,
+--                dmaData    => dmaData,
+--                dmaMaster  => dmaMaster,
+--                dmaSlave   => dmaSlave );
+--  
+--  U_BsaControl : entity work.EvrV2BsaControl
+--    generic map ( TPD_G      => TPD_G )
+--    port map (    evrClk     => evrClk,
+--                  evrRst     => evrRst,
+--                  enable     => anyBsaEnabled,
+--                  strobeIn   => evrBus.strobe,
+--                  dataIn     => evrBus.message,
+--                  dmaCntl    => dmaControl     (ReadoutChannels),
+--                  dmaData    => dmaData        (ReadoutChannels) );
+--
+    Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
+      U_EventSel   : entity work.EvrV2EventSelect
+        generic map ( TPD_G         => TPD_G )
+        port map    ( clk           => evrClk,
+                      rst           => evrRst,
+                      config        => channelConfigS(i),
+                      strobeIn      => rStrobe(i*STROBE_INTERVAL_C),
+                      dataIn        => timingMsg,
+                      exptIn        => exptBus,
+                      selectOut     => eventSel(i),
+                      dmaOut        => dmaSel(i) );
+--    U_BsaChannel : entity work.EvrV2BsaChannel
+--      generic map ( TPD_G         => TPD_G,
+--                    CHAN_C        => i )
+--      port map    ( evrClk        => evrClk,
+--                    evrRst        => evrRst,
+--                    channelConfig => channelConfigS(i),
+--                    evtSelect     => dmaSel(i),
+--                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+1),
+--                    dataIn        => timingMsg,
+--                    dmaCntl       => dmaControl(i),
+--                    dmaData       => dmaData(i) );
+    end generate;  -- i
+--
+--  U_EventDma : entity work.EvrV2EventDma
+--    generic map ( TPD_G      => TPD_G,
+--                  CHANNELS_C => ReadoutChannels )
+--    port map (    clk        => evrClk,
+--                  rst        => evrBus.strobe,
+--                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C),
+--                  eventSel   => dmaSel,
+--                  eventData  => timingMsg,
+--                  dmaCntl    => dmaControl(ReadoutChannels+1),
+--                  dmaData    => dmaData   (ReadoutChannels+1) );
+--    
   process (evrClk)
   begin  -- process
     if rising_edge(evrClk) then
@@ -495,7 +496,7 @@ begin  -- rtl
 
   Sync_partAddr : entity work.SynchronizerVector
     generic map ( TPD_G   => TPD_G,
-                  WIDTH_G => 16 )
+                  WIDTH_G => 32 )
     port map (    clk     => axiClk,
                   dataIn  => exptBus.message.partitionAddr,
                   dataOut => partitionAddr );

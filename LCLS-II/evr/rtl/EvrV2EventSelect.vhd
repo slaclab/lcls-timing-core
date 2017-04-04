@@ -59,7 +59,7 @@ begin
         selectOut <= rateSel and destSel and strobeIn and config.enabled;
         dmaOut    <= rateSel and destSel and strobeIn and config.enabled and config.dmaEnabled;
 
-        controlI := conv_integer(config.rateSel(10 downto 5));
+        controlI := conv_integer(config.rateSel(8 downto 4));
          if controlI<MAXEXPSEQDEPTH then
            controlWord <= dataIn.control(controlI);
          else
@@ -93,7 +93,8 @@ begin
    end process;
 
    destSel <= '1' when ((config.destSel(17 downto 16) = "10") or
-                        (config.destSel(17 downto 16) = "01" and not (dataIn.beamRequest(0)='1' and bsaDef.destSeldestSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
+                        (config.destSel(17 downto 16) = "01" and not (dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
+
                         (config.destSel(17 downto 16) = "00" and      dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
               '0';
 

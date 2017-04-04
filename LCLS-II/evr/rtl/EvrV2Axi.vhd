@@ -49,7 +49,7 @@ entity EvrV2Axi is
     dmaFullThr          : out slv(23 downto 0);
     -- status
     irqReq              : in  sl;
-    partitionAddr       : in  slv(15 downto 0);
+    partitionAddr       : in  slv(31 downto 0);
     rstCount            : out sl;
     eventCount          : in  SlVectorArray(CHANNELS_C downto 0,31 downto 0);
     gtxDebug            : in  slv(7 downto 0) );
@@ -94,7 +94,7 @@ begin  -- mapping
     end if;
   end process;
 
-  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq)
+  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq, partitionAddr)
     variable v : RegType;
     variable sReg : slv(0 downto 0);
     variable axilStatus : AxiLiteStatusType;
