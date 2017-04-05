@@ -8,8 +8,8 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once EvrV2Core.yaml
-#include EvrV2TriggerPulse.yaml
+#once EvrV2TriggerPulse.yaml
+#include EvrV2PulsegenRegs.yaml
 
 EvrV2TriggerPulse: &EvrV2TriggerPulse
   class:       MMIODev
