@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : GthRxAlignCheck.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2017-03-15
--- Platform   : 
--- Standard   : VHDL'93/02
+-- Last update: 2017-04-05
 -------------------------------------------------------------------------------
--- Description: AXI-Lite to Xilinx DRP Bridge 
+-- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,173 +17,229 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use ieee.NUMERIC_STD.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiLiteMasterPkg.all;
 
 entity GthRxAlignCheck is
-  generic (
-    TPD_G            : time                   := 1 ns;
-    TIMEOUT_G        : positive               := 4096;
-    ADDR_WIDTH_G     : positive range 1 to 32 := 16;
-    DATA_WIDTH_G     : positive range 1 to 32 := 16);
-  port (
-    resetIn         : in  sl;
-    resetOut        : out sl;
-    resetDone       : in  sl;
-    resetErr        : in  sl;
-    locked          : out sl;
-    drpClk          : out sl;
-    drpRst          : out sl;
-    drpRdy          : in  sl;
-    drpEn           : out sl;
-    drpWe           : out sl;
-    drpUsrRst       : out sl;
-    drpAddr         : out slv(ADDR_WIDTH_G-1 downto 0);
-    drpDi           : out slv(DATA_WIDTH_G-1 downto 0);
-    drpDo           : in  slv(DATA_WIDTH_G-1 downto 0);
-    axiClk          : in  sl;
-    axiRst          : in  sl;
-    axiReadMaster   : in  AxiLiteReadMasterType;
-    axiReadSlave    : out AxiLiteReadSlaveType;
-    axiWriteMaster  : in  AxiLiteWriteMasterType;
-    axiWriteSlave   : out AxiLiteWriteSlaveType );
+   generic (
+      TPD_G            : time            := 1 ns;
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      DRP_ADDR_G       : slv(31 downto 0));
+   port (
+      -- GTH Status/Control Interface
+      resetIn          : in  sl;
+      resetOut         : out sl;
+      resetDone        : in  sl;
+      resetErr         : in  sl;
+      locked           : out sl;
+      -- Clock and Reset
+      axilClk          : in  sl;
+      axilRst          : in  sl;
+      -- Master AXI-Lite Interface
+      mAxilReadMaster  : out AxiLiteReadMasterType;
+      mAxilReadSlave   : in  AxiLiteReadSlaveType;
+      mAxilWriteMaster : out AxiLiteWriteMasterType;
+      mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
+      -- Slave AXI-Lite Interface
+      sAxilReadMaster  : in  AxiLiteReadMasterType;
+      sAxilReadSlave   : out AxiLiteReadSlaveType;
+      sAxilWriteMaster : in  AxiLiteWriteMasterType;
+      sAxilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity GthRxAlignCheck;
 
 architecture rtl of GthRxAlignCheck is
 
-  constant LOCK_VALUE : integer :=  16;
-  constant MASK_VALUE : integer := 126;
-  
-  type StateType is (
-    RESET_S,
-    RSTDONE_S,
-    READ_S,
-    ACK_S,
-    LOCKED_S );
-  
-  type RegType is record
-    state : StateType;
-    drpEn : sl;
-    locked: sl;
-    rst   : sl;
-    rstlen: slv(3 downto 0);
-    rstcnt: slv(3 downto 0);
-    tgt   : slv(6 downto 0);
-    mask  : slv(6 downto 0);
-    last  : slv(6 downto 0);
-    sample: Slv8Array(39 downto 0);
-    axiWriteSlave : AxiLiteWriteSlaveType;
-    axiReadSlave  : AxiLiteReadSlaveType;
-  end record;
-  constant REG_INIT_C : RegType := (
-    state => READ_S,
-    drpEn => '0',
-    locked=> '0',
-    rst   => '1',
-    rstlen=> toSlv(3,4),
-    rstcnt=> toSlv(0,4),
-    tgt   => toSlv(LOCK_VALUE,7),
-    mask  => toSlv(MASK_VALUE,7),
-    last  => toSlv(0,7),
-    sample=> (others=>(others=>'0')),
-    axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-    axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C );
+   constant COMMA_ALIGN_LATENCY_ADDR_C : slv(31 downto 0) := (DRP_ADDR_G + x"0000_0540");-- DRP_ADDR=0x150 (see UG576 (v1.4) on page 416)
 
-  signal r    : RegType := REG_INIT_C;
-  signal r_in : RegType;
+   constant LOCK_VALUE : integer := 16;
+   constant MASK_VALUE : integer := 126;
+
+   type StateType is (
+      RESET_S,
+      RSTDONE_S,
+      READ_S,
+      ACK_S,
+      LOCKED_S);
+
+   type RegType is record
+      locked          : sl;
+      rst             : sl;
+      rstlen          : slv(3 downto 0);
+      rstcnt          : slv(3 downto 0);
+      tgt             : slv(6 downto 0);
+      mask            : slv(6 downto 0);
+      last            : slv(6 downto 0);
+      sample          : Slv8Array(39 downto 0);
+      sAxilWriteSlave : AxiLiteWriteSlaveType;
+      sAxilReadSlave  : AxiLiteReadSlaveType;
+      req             : AxiLiteMasterReqType;
+      state           : StateType;
+   end record;
+   constant REG_INIT_C : RegType := (
+      locked          => '0',
+      rst             => '1',
+      rstlen          => toSlv(3, 4),
+      rstcnt          => toSlv(0, 4),
+      tgt             => toSlv(LOCK_VALUE, 7),
+      mask            => toSlv(MASK_VALUE, 7),
+      last            => toSlv(0, 7),
+      sample          => (others => (others => '0')),
+      sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      sAxilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      req             => AXI_LITE_MASTER_REQ_INIT_C,
+      state           => READ_S);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal ack : AxiLiteMasterAckType;
 
 begin
 
-  locked        <= r.locked;
-  axiReadSlave  <= r.axiReadSlave;
-  axiWriteSlave <= r.axiWriteSlave;
+   process(ack, axilRst, r, resetDone, resetErr, resetIn, sAxilReadMaster,
+           sAxilWriteMaster) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteStatusType;
+      variable i      : natural;
+   begin
+      -- Latch the current value
+      v        := r;
+      
+      -- Reset the flags      
+      v.rst    := '0';
+      v.locked := '0';
 
-  drpClk    <= axiClk;
-  drpRst    <= axiRst;
-  drpAddr   <= toSlv(336,drpAddr'length); -- COMMA_ALIGN_LATENCY
-  drpDi     <= (others=>'0');
-  drpWe     <= '0';
-  drpUsrRst <= '0';
-  drpEn     <= r.drpEn;
-  resetOut  <= r.rst;
-  
-  process( r, resetIn, resetDone, resetErr, drpRdy, drpDo, axiWriteMaster, axiReadMaster, axiRst ) is
-    variable v : RegType;
-    variable axiStatus : AxiLiteStatusType;
-    variable i : integer;
-  begin
-    v := r;
-    v.rst     := '0';
-    v.drpEn   := '0';
-    v.locked  := '0';
-    
-    -- Determine the transaction type
-    axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
+      -- Determine the transaction type
+      axiSlaveWaitTxn(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp);
 
-    for i in 0 to r.sample'length-1 loop
-      axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(4*(i/4),9), 8*(i mod 4), v.sample(i));
-    end loop;
-    axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9), 0, v.tgt);
-    axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9), 8, v.mask);
-    axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9),16, v.rstlen);
-    axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(260,9), 0, v.last);
+      for i in 0 to r.sample'length-1 loop
+         axiSlaveRegister(sAxilReadMaster, v.sAxilReadSlave, axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), v.sample(i));
+      end loop;
+      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 0, v.tgt);
+      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 8, v.mask);
+      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 16, v.rstlen);
+      axiSlaveRegister(sAxilReadMaster, v.sAxilReadSlave, axilEp, toSlv(260, 9), 0, v.last);
 
-    axiSlaveDefault(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, AXI_RESP_OK_C);
-    
-    case r.state is
-      when RESET_S =>
-        v.rst := '1';
-        if r.rstcnt=r.rstlen then
-          v.state := RSTDONE_S;
-        else
-          v.rstcnt := r.rstcnt+1;
-        end if;
-      when RSTDONE_S =>
-        if resetDone='0' then
-          v.state := READ_S;
-        end if;
-      when READ_S =>
-        if resetDone='1' then
-          v.drpEn := '1';
-          v.state := ACK_S;
-        end if;
-      when ACK_S =>
-        if drpRdy='1' then
-          i := conv_integer(drpDo(6 downto 0));
-          v.sample(i) := r.sample(i)+1;
-          v.last      := drpDo;
-          if ((drpDo(6 downto 0) xor r.tgt) and r.mask)=toSlv(0,7) then
-            v.state := LOCKED_S;
-          else
-            v.rst   := '1';
-            v.rstcnt:= (others=>'0');
-            v.state := RESET_S;
-          end if;
-        end if;
-      when LOCKED_S => v.locked := '1';
-    end case;
+      axiSlaveDefault(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, AXI_RESP_OK_C);
 
-    if axiRst='1' or resetIn='1' or resetErr='1' then
-      v.rst   := '1';
-      v.rstcnt:= (others=>'0');
-      v.state := RESET_S;
-    end if;
+      -- State Machine
+      case r.state is
+         ----------------------------------------------------------------------
+         when RESET_S =>
+            -- Set the flag
+            v.rst := '1';
+            -- Check the counter
+            if (r.rstcnt = r.rstlen) then
+               -- Reset the counter
+               v.rstcnt := (others => '0');
+               -- Next state
+               v.state  := RSTDONE_S;
+            else
+               -- Increment the counter
+               v.rstcnt := r.rstcnt+1;
+            end if;
+         ----------------------------------------------------------------------
+         when RSTDONE_S =>
+            -- Wait for the reset transition
+            if (resetDone = '0') then
+               -- Next state
+               v.state := READ_S;
+            end if;
+         ----------------------------------------------------------------------
+         when READ_S =>
+            -- Wait for the reset transition and check state of master AXI-Lite
+            if (resetDone = '1') and (ack.done = '0') then
+               -- Start the master AXI-Lite transaction
+               v.req.request := '1';
+               v.req.rnw     := '1';    -- read operation
+               v.req.address := COMMA_ALIGN_LATENCY_ADDR_C;
+               -- Next state
+               v.state       := ACK_S;
+            end if;
+         ----------------------------------------------------------------------
+         when ACK_S =>
+            -- AXI-Lite transaction handshaking
+            if (ack.done = '1') then
+               -- Reset the flag
+               v.req.request := '0';
+               -- Get the index pointer
+               i             := conv_integer(ack.rdData(6 downto 0));
+               -- Increment the counter 
+               v.sample(i)   := r.sample(i)+1;
+               -- Save the last byte alignment check
+               v.last        := ack.rdData(15 downto 0);
+               -- Check the byte alignment
+               if ((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7) then
+                  -- Next state
+                  v.state := LOCKED_S;
+               else
+                  -- Set the flag
+                  v.rst   := '1';
+                  -- Next state      
+                  v.state := RESET_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when LOCKED_S =>
+            -- Set the flag
+            v.locked := '1';
+      ----------------------------------------------------------------------
+      end case;
 
-    if (axiStatus.writeEnable='1' and std_match(axiWriteMaster.awaddr(8 downto 0),toSlv(256,9))) then
-      v.sample:= (others=>(others=>'0'));
-    end if;
-    
-    r_in <= v;
-  end process;
+      -- Check for software controlled sampler reset
+      if (axilEp.writeEnable = '1') and (sAxilWriteMaster.awaddr(8 downto 0) = toSlv(256, 9)) then
+         v.sample := (others => (others => '0'));
+      end if;
 
-  process (axiClk) is
-  begin
-    if rising_edge(axiClk) then
-      r <= r_in after TPD_G;
-    end if;
-  end process;
+      -- Check for user reset
+      if (resetIn = '1') or (resetErr = '1') then
+         -- Setup flags for reset state
+         v.rst         := '1';
+         v.req.request := '0';
+         -- Reset the counter
+         v.rstcnt      := (others => '0');
+         -- Next state
+         v.state       := RESET_S;
+      end if;
+
+      -- Reset
+      if (axilRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs 
+      sAxilReadSlave  <= r.sAxilReadSlave;
+      sAxilWriteSlave <= r.sAxilWriteSlave;
+      locked          <= r.locked;
+      resetOut        <= r.rst;
+
+   end process comb;
+
+   seq : process (axilClk) is
+   begin
+      if rising_edge(axilClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+   U_AxiLiteMaster : entity work.AxiLiteMaster
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         req             => r.req,
+         ack             => ack,
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilWriteMaster => mAxilWriteMaster,
+         axilWriteSlave  => mAxilWriteSlave,
+         axilReadMaster  => mAxilReadMaster,
+         axilReadSlave   => mAxilReadSlave);
+
 end rtl;
