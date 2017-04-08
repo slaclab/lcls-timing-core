@@ -85,7 +85,7 @@ architecture mapping of EvrV2Core is
     TRG_INDEX_C => (
       baseAddr      => (AXIL_BASE_ADDR_G + x"00000200"),
       addrBits      => 9,
-      connectivity  => X"0001"),
+      connectivity  => X"0001")
 --- DMA_INDEX_C => (
 ---   baseAddr      => x"00080400",
 ---   addrBits      => 10,
