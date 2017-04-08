@@ -243,11 +243,11 @@ begin
       begin
          if rising_edge(gtRxRecClk) then
             if timingStrobe = '1' then
-               timingFrameSlvShift <= timingFrameSlv & x"deadbeef";
-               timingFrameSlvValid <= (others => '1');
+               timingFrameSlvShift <= timingFrameSlv & x"deadbeef" after TPD_G;
+               timingFrameSlvValid <= (others => '1') after TPD_G;
             else
-               timingFrameSlvShift <= x"00000000" & timingFrameSlvShift(timingFrameSlvShift'left downto 32);
-               timingFrameSlvValid <= '0' & timingFrameSlvValid(timingFrameSlvValid'left downto 1);
+               timingFrameSlvShift <= x"00000000" & timingFrameSlvShift(timingFrameSlvShift'left downto 32) after TPD_G;
+               timingFrameSlvValid <= '0' & timingFrameSlvValid(timingFrameSlvValid'left downto 1) after TPD_G;
             end if;
          end if;
       end process;
@@ -278,6 +278,7 @@ begin
    GEN_MINICORE : if USE_TPGMINI_C generate
       TPGMiniCore_1 : entity work.TPGMiniCore
          generic map (
+            TPD_G      => TPD_G, 
             NARRAYSBSA => 2)
          port map (
             txClk          => gtTxUsrClk,
@@ -297,6 +298,7 @@ begin
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
       U_SyncClkSel : entity work.Synchronizer
+         generic map (TPD_G=> TPD_G)      
         port map ( clk     => gtTxUsrClk,
                    dataIn  => clkSel,
                    dataOut => clkSelTx );
@@ -375,6 +377,7 @@ begin
    end generate;
 
    U_SYNC_LinkV1 : entity work.Synchronizer
+     generic map (TPD_G => TPD_G)   
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV1,
                 dataOut => appTimingBus.v1.linkUp );
@@ -385,6 +388,7 @@ begin
    appTimingBus.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others=>'0');
 
    U_SYNC_LinkV2 : entity work.Synchronizer
+     generic map (TPD_G => TPD_G)     
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV2,
                 dataOut => appTimingBus.v2.linkUp );

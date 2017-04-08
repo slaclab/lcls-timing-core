@@ -29,6 +29,8 @@ use work.StdRtlPkg.all;
 use work.TimingPkg.all;
 
 entity TimingFrameRx is
+   generic (
+      TPD_G    : time    := 1 ns);
    port (
       rxClk               : in  sl;
       rxRst               : in  sl;
@@ -95,7 +97,7 @@ begin
    delayRst <= rxRst or messageDelayRst;
    
    U_Deserializer : entity work.TimingDeserializer
-      generic map ( STREAMS_C => 2 )
+      generic map ( TPD_G=>TPD_G, STREAMS_C => 2 )
       port map ( clk       => rxClk,
                  rst       => rxRst,
                  fiducial  => fiducial,
@@ -108,7 +110,7 @@ begin
                  crcErr    => crcErr );
 
    U_Delay0 : entity work.TimingSerialDelay
-     generic map ( NWORDS_G => TIMING_MESSAGE_WORDS_C,
+     generic map ( TPD_G=>TPD_G, NWORDS_G => TIMING_MESSAGE_WORDS_C,
                    FDEPTH_G => 100 )
      port map ( clk        => rxClk,
                 rst        => delayRst,
@@ -122,7 +124,7 @@ begin
                 overflow_o => doverflow0);
 
    U_Delay1 : entity work.TimingSerialDelay
-     generic map ( NWORDS_G => EXPT_MESSAGE_BITS_C/16,
+     generic map ( TPD_G=>TPD_G, NWORDS_G => EXPT_MESSAGE_BITS_C/16,
                    FDEPTH_G => 100 )
      port map ( clk        => rxClk,
                 rst        => delayRst,

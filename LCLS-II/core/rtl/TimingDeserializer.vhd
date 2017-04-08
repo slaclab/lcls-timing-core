@@ -30,6 +30,7 @@ use work.CrcPkg.all;
 
 entity TimingDeserializer is
    generic (
+      TPD_G     : time    := 1 ns;
       STREAMS_C : integer := 1 );
    port (
       -- Clock and reset
@@ -94,7 +95,7 @@ begin
   crcErr   <= r.crcErr;
   
   U_CRC : entity work.Crc32Parallel
-    generic map ( BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
+    generic map ( TPD_G=>TPD_G, BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
     port map ( crcOut       => crc,
                crcClk       => clk,
                crcDataValid => rin.crcValid,
@@ -192,7 +193,7 @@ begin
    process (clk)
    begin  -- process
       if rising_edge(clk) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process;
 

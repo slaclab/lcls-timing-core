@@ -36,7 +36,7 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity TPFifo is
-   generic (LOGDEPTH : integer := 10);
+   generic ( TPD_G : time := 1 ns; LOGDEPTH : integer := 10);
    port (
       -- Clock and reset
       rst        : in sl;
@@ -115,6 +115,7 @@ begin
 
    U_tpfifo_delay : entity work.SimpleDualPortRam
       generic map (
+         TPD_G        => TPD_G,
          DATA_WIDTH_G => 19,
          ADDR_WIDTH_G => 8)
       port map (
@@ -134,6 +135,7 @@ begin
 
    U_tpfifo_async : entity work.FifoAsync
       generic map (
+         TPD_G        => TPD_G,
          FWFT_EN_G    => true,
          DATA_WIDTH_G => 18,
          ADDR_WIDTH_G => LOGDEPTH,
@@ -205,7 +207,7 @@ begin
          r.full  <= '0';
          r.wrEn  <= '0';
       elsif rising_edge(wrClk) then
-         r <= rin;
+         r <= rin after TPD_G;
       end if;
    end process;
 

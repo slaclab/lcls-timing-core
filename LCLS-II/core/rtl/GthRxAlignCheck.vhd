@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2017-02-13
+-- Last update: 2017-03-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ use work.AxiLitePkg.all;
 
 entity GthRxAlignCheck is
   generic (
+    TPD_G            : time                   := 1 ns;
     TIMEOUT_G        : positive               := 4096;
     ADDR_WIDTH_G     : positive range 1 to 32 := 16;
     DATA_WIDTH_G     : positive range 1 to 32 := 16);
@@ -59,7 +60,8 @@ end entity GthRxAlignCheck;
 
 architecture rtl of GthRxAlignCheck is
 
-  constant LOCK_VALUE : integer := 16;
+  constant LOCK_VALUE : integer :=  16;
+  constant MASK_VALUE : integer := 126;
   
   type StateType is (
     RESET_S,
@@ -76,8 +78,9 @@ architecture rtl of GthRxAlignCheck is
     rstlen: slv(3 downto 0);
     rstcnt: slv(3 downto 0);
     tgt   : slv(6 downto 0);
+    mask  : slv(6 downto 0);
     last  : slv(6 downto 0);
-    sample: Slv16Array(127 downto 0);
+    sample: Slv8Array(39 downto 0);
     axiWriteSlave : AxiLiteWriteSlaveType;
     axiReadSlave  : AxiLiteReadSlaveType;
   end record;
@@ -89,6 +92,7 @@ architecture rtl of GthRxAlignCheck is
     rstlen=> toSlv(3,4),
     rstcnt=> toSlv(0,4),
     tgt   => toSlv(LOCK_VALUE,7),
+    mask  => toSlv(MASK_VALUE,7),
     last  => toSlv(0,7),
     sample=> (others=>(others=>'0')),
     axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -125,10 +129,11 @@ begin
     -- Determine the transaction type
     axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
-    for i in 0 to 127 loop
-      axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(4*(i/2),9), 16*(i mod 2), v.sample(i));
+    for i in 0 to r.sample'length-1 loop
+      axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(4*(i/4),9), 8*(i mod 4), v.sample(i));
     end loop;
     axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9), 0, v.tgt);
+    axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9), 8, v.mask);
     axiSlaveRegister(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus, toSlv(256,9),16, v.rstlen);
     axiSlaveRegister(axiReadMaster, v.axiReadSlave, axiStatus, toSlv(260,9), 0, v.last);
 
@@ -156,7 +161,7 @@ begin
           i := conv_integer(drpDo(6 downto 0));
           v.sample(i) := r.sample(i)+1;
           v.last      := drpDo;
-          if drpDo(6 downto 0)=r.tgt then
+          if ((drpDo(6 downto 0) xor r.tgt) and r.mask)=toSlv(0,7) then
             v.state := LOCKED_S;
           else
             v.rst   := '1';
@@ -183,7 +188,7 @@ begin
   process (axiClk) is
   begin
     if rising_edge(axiClk) then
-      r <= r_in;
+      r <= r_in after TPD_G;
     end if;
   end process;
 end rtl;

@@ -32,6 +32,7 @@ use work.TimingPkg.all;
 
 entity TPGMini is
   generic (
+    TPD_G : time := 1 ns;
     NARRAYSBSA   : integer := 2
     );
   port (
@@ -95,9 +96,6 @@ architecture TPGMini of TPGMini is
   signal status : TPGStatusType := TPG_STATUS_INIT_C;
   signal config : TPGConfigType;
 
-  -- Register delay for simulation
-  constant tpd : time := 0.5 ns;
-
   constant TPG_ID : integer := 0;
   
   signal streams   : TimingSerialArray(0 downto 0);
@@ -132,6 +130,7 @@ begin
 
   BaseEnableDivider : entity work.Divider
     generic map (
+      TPD_G => TPD_G,
       Width => 16)
     port map (
       sysClk   => txClk,
@@ -146,6 +145,7 @@ begin
   FixedDivider_loop : for i in 0 to FixedRateDepth-1 generate
     U_FixedDivider_1 : entity work.Divider
       generic map (
+        TPD_G => TPD_G,
         Width => FixedRateWidth)
       port map (
         sysClk   => txClk,
@@ -165,7 +165,7 @@ begin
   
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
     U_BsaControl : entity work.BsaControl
-      generic map (ASYNC_REGCLK_G => false)
+      generic map (TPD_G => TPD_G, ASYNC_REGCLK_G => false)
       port map (
         sysclk     => txClk,
         sysrst     => txRst,
@@ -195,7 +195,7 @@ begin
   end generate GEN_NULL_BSA;
 
   U_TSerializer : entity work.TimingSerializer
-    generic map ( STREAMS_C => 1 )
+    generic map ( TPD_G => TPD_G, STREAMS_C => 1 )
     port map ( clk       => txClk,
                rst       => txRst,
                fiducial  => baseEnabled(0),
@@ -206,7 +206,7 @@ begin
                dataK     => txDataK );
   
   U_TPSerializer : entity work.TPSerializer
-    generic map ( Id => TPG_ID )
+    generic map ( TPD_G => TPD_G, Id => TPG_ID )
     port map ( txClk      => txClk,
                txRst      => txRst,
                fiducial   => baseEnable,
@@ -235,11 +235,11 @@ begin
     variable txRdyd     : sl;
   begin  -- process
     if rising_edge(txClk) then
-      frame.pulseId         <= pulseIdn                                              after tpd;
+      frame.pulseId         <= pulseIdn                                              after TPD_G;
       pulseIdWr             <= '0';
-      frame.acTimeSlot      <= acTSn                                                 after tpd;
-      frame.acTimeSlotPhase <= acTSPhasen                                            after tpd;
-      baseEnabled           <= baseEnabled(baseEnabled'left-1 downto 0) & baseEnable after tpd;
+      frame.acTimeSlot      <= acTSn                                                 after TPD_G;
+      frame.acTimeSlotPhase <= acTSPhasen                                            after TPD_G;
+      baseEnabled           <= baseEnabled(baseEnabled'left-1 downto 0) & baseEnable after TPD_G;
       count186M             <= count186M+1;
       if (frame.syncStatus = '1' and outOfSyncd = '0') then
         countSyncE <= countSyncE+1;
@@ -310,11 +310,13 @@ begin
   seq: process (txClk) is
   begin
     if rising_edge(txClk) then
-      r <= rin after tpd;
+      r <= rin after TPD_G;
     end if;
   end process;
 
   U_ClockTime : entity work.ClockTime
+    generic map (
+      TPD_G =>   TPD_G)
     port map (
       rst    => txRst,
       clkA   => txClk,

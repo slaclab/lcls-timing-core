@@ -5,7 +5,7 @@
 -- Author     : Larry Ruckman  <ruckman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-22
--- Last update: 2016-10-28
+-- Last update: 2017-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -240,7 +240,7 @@ begin
          pciRst      => pciRst);      
 
    comb : process (dmaChannel, dmaDescFromPci, dmaTranFromPci, pciRst, r, rxMaster, tranCnt,
-                   tranEofe, tranLength, tranSubId, tranValid, txSlave) is
+                   tranEofe, tranLength, tranSubId, tranValid, txSlave, sAxisPauseThr) is
       variable v         : RegType;
       variable i         : natural;
       variable increment : natural;

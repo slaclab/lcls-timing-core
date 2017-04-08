@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-09-25
+-- Last update: 2017-03-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,9 @@ entity EvrV2Dma is
     AXIS_CONFIG_C : AxiStreamConfigType );
   port (
     clk        :  in sl;
-    dmaCntl    : out EvrV2DmaControlArray(CHANNELS_C-1 downto 0);
+    strobe     :  in sl;
+    modeSel    :  in sl;
+    dmaCntl    :  in AxiStreamCtrlType;
     dmaData    :  in EvrV2DmaDataArray   (CHANNELS_C-1 downto 0);
     dmaMaster  : out AxiStreamMasterType;
     dmaSlave   :  in AxiStreamSlaveType );
@@ -48,10 +50,16 @@ end EvrV2Dma;
 architecture mapping of EvrV2Dma is
 
   type RegType is record
+    idle    : sl;
+    paused  : sl;
+    dropped  : sl;
     smaster : AxiStreamMasterType;
   end record;
 
   constant REG_TYPE_INIT_C : RegType := (
+    idle    => '1',
+    paused  => '0',
+    dropped => '0',
     smaster => AXI_STREAM_MASTER_INIT_C );
 
   signal r   : RegType := REG_TYPE_INIT_C;
@@ -60,9 +68,8 @@ architecture mapping of EvrV2Dma is
 begin  -- mapping
 
   dmaMaster <= r.smaster;
-  dmaCntl   <= (others=>EVRV2_DMA_CONTROL_INIT_C);  -- ignored
   
-  process (r, dmaData, dmaSlave)
+  process (r, dmaData, dmaSlave, strobe, modeSel, dmaCntl)
     variable v : RegType;
     variable i : integer;
   begin  -- process
@@ -70,19 +77,39 @@ begin  -- mapping
     v.smaster.tValid := '0';
     v.smaster.tLast  := '0';
     v.smaster.tData  := (others=>'0');
+    v.smaster.tUser  := (others=>'0');
     for i in 0 to CHANNELS_C-1 loop
       if dmaData(i).tValid='1' then
-        v.smaster.tValid := dmaData(i).tValid;
-        v.smaster.tLast  := dmaData(i).tLast;
-        v.smaster.tData(dmaData(i).tData'range) := dmaData(i).tData;
-        if r.smaster.tValid='0' then
-          ssiSetUserSof(AXIS_CONFIG_C, v.smaster, '1');
-        end if;
-        if dmaData(i).tLast='1' then
-          ssiSetUserEofe(AXIS_CONFIG_C, v.smaster, '1');
+        if r.paused = '1' then
+          v.dropped := '1';
+        else
+          v.smaster.tValid := dmaData(i).tValid;
+          v.smaster.tData(dmaData(i).tData'range) := dmaData(i).tData;
+          if r.idle='1' then
+            if modeSel='0' then
+              v.smaster.tData(EVRV2_LCLS_TAG_BIT) := '1';
+            end if;
+            if r.dropped = '1' then
+              v.smaster.tData(EVRV2_DROP_TAG_BIT) := '1';
+              v.dropped := '0';
+            end if;
+            ssiSetUserSof(AXIS_CONFIG_C, v.smaster, '1');
+            v.idle := '0';
+          end if;
         end if;
       end if;
     end loop;  -- i
+
+    if strobe='1' then
+      if r.idle='0' then
+        v.idle           := '1';
+        v.smaster.tValid := '1';
+        v.smaster.tLast  := '1';
+        v.smaster.tData(dmaData(0).tData'range) := EVRV2_END_TAG & x"FFFF";
+      end if;
+      v.paused := dmaCntl.pause;
+    end if;
+    
     rin <= v;
   end process;
 

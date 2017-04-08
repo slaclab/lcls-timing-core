@@ -30,7 +30,7 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
 
 entity Divider is
-   generic ( Width    : integer := 4 );
+   generic ( TPD_G    : time    := 1 ns; Width    : integer := 4 );
    port ( 
       -- Clock and reset
       sysClk             : in  std_logic;
@@ -55,10 +55,7 @@ architecture Divider of Divider is
 
   signal r    : RegType := REG_INIT_C;
   signal rin  : RegType;
-  
-  -- Register delay for simulation
-  constant tpd:time := 0.5 ns;
-  
+
 begin
 
   trigO <= r.trig;
@@ -91,7 +88,7 @@ begin
   seq: process (sysClk) is
   begin
      if rising_edge(sysClk) then
-       r <= rin after tpd;
+       r <= rin after TPD_G;
      end if;
   end process seq;
 

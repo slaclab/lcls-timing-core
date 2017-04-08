@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2016-11-02
+-- Last update: 2017-03-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
 entity EvrV2Axi is
@@ -49,7 +50,7 @@ entity EvrV2Axi is
     dmaFullThr          : out slv(23 downto 0);
     -- status
     irqReq              : in  sl;
-    partitionAddr       : in  slv(31 downto 0);
+    partitionAddr       : in  slv(PADDR_LEN-1 downto 0);
     rstCount            : out sl;
     eventCount          : in  SlVectorArray(CHANNELS_C downto 0,31 downto 0);
     gtxDebug            : in  slv(7 downto 0) );
@@ -94,7 +95,7 @@ begin  -- mapping
     end if;
   end process;
 
-  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq, partitionAddr)
+  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq,partitionAddr)
     variable v : RegType;
     variable sReg : slv(0 downto 0);
     variable axilStatus : AxiLiteStatusType;

@@ -34,6 +34,7 @@ use work.TimingPkg.all;
 
 entity TPGMiniStream is
   generic (
+    TPD_G : time := 1 ns;
     AC_PERIOD : integer := 119000000/360
     );
   port (
@@ -98,6 +99,7 @@ begin
   
   BaseEnableDivider : entity work.Divider
     generic map (
+      TPD_G => TPD_G, 
       Width => SbaseDivisor'length)
     port map (
       sysClk   => txClk,
@@ -113,6 +115,7 @@ begin
   FixedDivider_loop : for i in 0 to FixedRateDiv'length-1 generate
     U_FixedDivider_1 : entity work.Divider
       generic map (
+        TPD_G => TPD_G, 
         Width => log2(FixedRateDiv(i)))
       port map (
         sysClk   => txClk,
@@ -134,6 +137,8 @@ begin
   end generate FixedDivider_loop;
 
   U_TSerializer : entity work.TimingStreamTx
+    generic map (
+      TPD_G => TPD_G)  
     port map ( clk       => txClk,
                rst       => txRst,
                fiducial  => baseEnable,
@@ -182,11 +187,13 @@ begin
   seq: process (txClk) is
   begin
     if rising_edge(txClk) then
-      r <= rin;
+      r <= rin after TPD_G;
     end if;
   end process;
 
   U_ClockTime : entity work.ClockTime
+    generic map (
+      TPD_G => TPD_G)
     port map (
       step      => toSlv(8,5),
       remainder => toSlv(2,5),

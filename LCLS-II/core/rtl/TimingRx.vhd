@@ -153,6 +153,8 @@ begin
          staData             => staData(0) );
 
    U_RxLcls2 : entity work.TimingFrameRx
+       generic map (
+         TPD_G             => TPD_G)   
        port map (
          rxClk               => rxClk,
          rxRst               => rxRst(1),
@@ -274,7 +276,7 @@ begin
    txClkCnt_seq : process (txClk) is
    begin
      if rising_edge(txClk) then
-       txClkCnt <= txClkCnt+1;
+       txClkCnt <= txClkCnt+1 after TPD_G;
      end if;
    end process txClkCnt_seq;
    
@@ -369,33 +371,37 @@ begin
    rxClkCnt_seq : process (rxClk) is
    begin
       if (rising_edge(rxClk)) then
-         rxR <= rxRin;
+         rxR <= rxRin after TPD_G;
       end if;
    end process rxClkCnt_seq;
 
    SyncRxRst : entity work.Synchronizer
+     generic map ( TPD_G => TPD_G )
      port map ( clk     => rxClk,
                 dataIn  => axilR.clkSel,
                 dataOut => clkSelR );
 
    SyncDelayRst : entity work.Synchronizer
+     generic map ( TPD_G => TPD_G )   
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelayRst,
                 dataOut => messageDelayRst );
 
    SyncDelay : entity work.SynchronizerVector
-     generic map ( WIDTH_G => axilR.messageDelay'length )
+     generic map ( TPD_G => TPD_G, WIDTH_G => axilR.messageDelay'length )
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelay,
                 dataOut => messageDelayR );
 
    SyncStreamNoDelay : entity work.Synchronizer
+     generic map ( TPD_G => TPD_G )    
      port map ( clk     => rxClk,
                 dataIn  => axilR.streamNoDelay,
                 dataOut => timingStreamNoDelayR );
 
    SyncRxStatus : entity work.SyncStatusVector
       generic map (
+         TPD_G          => TPD_G,
          IN_POLARITY_G  => "11",
          CNT_WIDTH_G    => 16,
          WIDTH_G        => 2 )
@@ -411,6 +417,7 @@ begin
          rdRst        => '0');
      
    SyncBypassRst : entity work.Synchronizer
+     generic map ( TPD_G => TPD_G )     
      port map ( clk     => rxClk,
                 dataIn  => axilR.rxControl.bufferByRst,
                 dataOut => rxControl.bufferByRst );

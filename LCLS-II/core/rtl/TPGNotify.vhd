@@ -28,6 +28,8 @@ use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 
 entity TPGNotify is
+  generic (
+   TPD_G : time := 1 ns);
   port (
     -- Clock and reset
     txClk         : in  sl;
@@ -83,7 +85,7 @@ begin
   process (txClk) is
   begin
     if rising_edge(txClk) then
-      r <= rin;
+      r <= rin after TPD_G;
     end if;
   end process;
 end TPGNotify;

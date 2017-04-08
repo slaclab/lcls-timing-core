@@ -32,7 +32,7 @@ use UNISIM.VCOMPONENTS.all;
 use work.StdRtlPkg.all;
 
 entity BsaControl is
-  generic ( ASYNC_REGCLK_G : boolean := false );
+  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false );
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
@@ -109,6 +109,7 @@ begin
    bsaDone    <= r.bsaDone;
    
    U_Select : entity work.EventSelect
+     generic map (TPD_G=>TPD_G)
      port map ( clk       => txclk,
                 rateType  => bsadef.rateSel(12 downto 11),
                 fxRateSel => bsadef.rateSel( 3 downto 0),
@@ -125,7 +126,8 @@ begin
 
    GEN_ASYNC: if ASYNC_REGCLK_G=true generate
      U_SynchFifo : entity work.SynchronizerFifo
-       generic map (DATA_WIDTH_G => 32,
+       generic map (TPD_G=>TPD_G,
+                    DATA_WIDTH_G => 32,
                     ADDR_WIDTH_G => 2)
        port map (rst                => rin.fifoRst,
                  wr_clk             => txclk,
@@ -257,7 +259,7 @@ begin
    seq: process(txclk) is
    begin
      if rising_edge(txclk) then
-       r <= rin;
+       r <= rin after TPD_G;
      end if;
    end process;
    
