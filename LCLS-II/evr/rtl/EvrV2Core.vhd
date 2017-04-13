@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-10
+-- Last update: 2017-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ use work.SsiPkg.all;
 
 entity EvrV2Core is
   generic (
-    TPD_G : time := 1 ns);
+    TPD_G         : time             := 1 ns;
+    AXIL_BASEADDR : slv(31 downto 0) := x"00080000" );
   port (
     -- AXI-Lite and IRQ Interface
     axiClk              : in  sl;
@@ -78,15 +79,15 @@ architecture mapping of EvrV2Core is
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CSR_INDEX_C      => (
-      baseAddr      => x"00080000",
+      baseAddr      => x"00000000" + AXIL_BASEADDR,
       addrBits      => 9,
       connectivity  => X"0001"),
     TRG_INDEX_C => (
-      baseAddr      => x"00080200",
+      baseAddr      => x"00000200" + AXIL_BASEADDR,
       addrBits      => 9,
       connectivity  => X"0001"),
     DMA_INDEX_C => (
-      baseAddr      => x"00080400",
+      baseAddr      => x"00000400" + AXIL_BASEADDR,
       addrBits      => 10,
       connectivity  => X"0001") );
   
@@ -106,7 +107,8 @@ architecture mapping of EvrV2Core is
   
   signal gtxDebugS   : slv(7 downto 0);
 
-  signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C+34 downto 0) := (others=>'0');
+  signal rStrobe        : slv(198 downto 0) := (others=>'0');
+  
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventMsg       : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0) := (others=>'0');
   signal dmaSel         : slv(ReadoutChannels-1 downto 0) := (others=>'0');
@@ -140,10 +142,13 @@ architecture mapping of EvrV2Core is
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
+
+  signal triggerStrobe  : sl;
   
 begin  -- rtl
 
-  assert (rStrobe'length <= 200)
+--  assert (rStrobe'length <= 200)
+  assert (ReadoutChannels*STROBE_INTERVAL_C+34 < 200)
     report "rStrobe'length exceeds clocks per cycle"
     severity failure;
   
@@ -262,60 +267,17 @@ begin  -- rtl
                   eventSel   => dmaSel,
                   eventData  => eventMsg,
                   dmaData    => dmaData   (ReadoutChannels+1) );
-    
+
+  U_V2FromV1 : entity work.EvrV2FromV1
+    port map ( clk       => evrClk,
+               disable   => modeSel,
+               timingIn  => evrBus,
+               timingOut => timingMsg );
+
   process (evrClk)
-    variable acrate : integer;
-    variable destn  : integer;
-  begin  -- process
+  begin
     if rising_edge(evrClk) then
       rStrobe    <= rStrobe(rStrobe'left-1 downto 0) & evrBus.strobe;
-      if evrBus.strobe='1' then
-        if modeSel = '0' then  -- map LCLS timing stream to look like LCLS-II frame
-          timingMsg.pulseId     <= resize(evrBus.stream.pulseId,64);
-          timingMsg.timeStamp   <= evrBus.stream.dbuff.epicsTime(31 downto 0) &
-                                   evrBus.stream.dbuff.epicsTime(63 downto 32);
-          timingMsg.bsaInit     <= resize(evrBus.stream.dbuff.edefInit,64);
-          -- encode minor/major mask on bsaInit
-          timingMsg.bsaActive   <= (resize(evrBus.stream.dbuff.edefMinor,64) and
-                                    resize(evrBus.stream.dbuff.edefInit,64)) or
-                                   (resize(evrBus.stream.dbuff.dmod(147 downto 128),64) and not
-                                    resize(evrBus.stream.dbuff.edefInit,64));
-          timingMsg.bsaAvgDone  <= (resize(evrBus.stream.dbuff.edefMajor,64) and
-                                    resize(evrBus.stream.dbuff.edefInit,64)) or
-                                   (resize(evrBus.stream.dbuff.edefAvgDn,64) and not
-                                    resize(evrBus.stream.dbuff.edefInit,64));
-          timingMsg.bsaDone     <= resize(evrBus.stream.dbuff.edefAvgDn,64);
-          timingMsg.fixedRates  <= (others=>'0');
-          timingMsg.acRates(0)  <= '1';
-          timingMsg.acRates(5 downto 1) <= evrBus.stream.dbuff.dmod(152 downto 148);
-          timingMsg.acTimeSlot <= evrBus.stream.dbuff.dmod(127 downto 125);
-          for i in 0 to 15 loop
-            timingMsg.control(i) <= evrBus.stream.eventCodes(i*16+15 downto i*16);
-          end loop;
-          timingMsg.control(16 to 17) <= (others=>(others=>'0'));
-          -- Simulate beam request word : charge=0, dest={D10DMP,LI25,UND}, beam=POCKCEL
-          destn := 2;
-          if evrBus.stream.dbuff.dmod(61)='1' then
-            destn := 0;
-          end if;
-          if evrBus.stream.dbuff.dmod(60)='1' then
-            destn := 1;
-          end if;
-          timingMsg.beamRequest <= x"000000" & toSlv(destn,4) & "000" & evrBus.stream.dbuff.dmod(83);
-          --
-          eventMsg              <= resize(evrBus.stream.eventCodes,288) &
-                                   x"00000000" &
-                                   evrBus.stream.dbuff.dmod &
-                                   evrBus.stream.dbuff.epicsTime(31 downto 0) &
-                                   evrBus.stream.dbuff.epicsTime(63 downto 32) &
-                                   resize(evrBus.stream.pulseId,64);
-
-                                   
-        else
-          timingMsg <= evrBus.message;
-          eventMsg  <= toSlvNoBsa(evrBus.message);
-        end if;
-      end if;
     end if;
   end process;
 
@@ -341,23 +303,28 @@ begin  -- rtl
                   rdClk        => axiClk,
                   rdRst        => axiRst );
 
+  triggerStrobe <= rStrobe(rStrobe'left) when modeSel='0' else
+                   evrBus.strobe;
+  
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
      U_Trig : entity work.EvrV2Trigger
-        generic map ( TPD_G    => TPD_G,
-                      CHANNELS_C => ReadoutChannels,
+        generic map ( TPD_G        => TPD_G,
+                      CHANNELS_C   => ReadoutChannels,
+                      TRIG_DEPTH_C => 256,
                       --DEBUG_C    => (i<1) )
-                      DEBUG_C    => false )
+                      DEBUG_C      => false )
         port map (    clk      => evrClk,
                       rst      => evrRst,
                       config   => triggerConfigS(i),
                       arm      => eventSel,
-                      fire     => evrBus.strobe,
+                      fire     => triggerStrobe,
                       trigstate=> trigOut(i) );
   end generate Out_Trigger;
   
   U_EvrAxi : entity work.EvrV2Axi
-    generic map ( TPD_G      => TPD_G,
-                  CHANNELS_C => ReadoutChannels )
+    generic map ( TPD_G        => TPD_G,
+                  DMA_ENABLE_G => true,
+                  CHANNELS_C   => ReadoutChannels )
     port map (    axiClk              => axiClk,
                   axiRst              => axiRst,
                   axilWriteMaster     => mAxiWriteMasters (CSR_INDEX_C),
@@ -378,7 +345,8 @@ begin  -- rtl
 
   U_EvrTrigReg : entity work.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
-                  TRIGGERS_C => TriggerOutputs )
+                  TRIGGERS_C => TriggerOutputs,
+                  USE_TAP_C  => true )
     port map (    axiClk              => axiClk,
                   axiRst              => axiRst,
                   axilWriteMaster     => mAxiWriteMasters (TRG_INDEX_C),

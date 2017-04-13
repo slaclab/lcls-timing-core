@@ -36,9 +36,10 @@ use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
 entity EvrV2Trigger is
-  generic ( TPD_G      : time := 1 ns;
-            CHANNELS_C : integer := 1;
-            DEBUG_C    : boolean := false);
+  generic ( TPD_G        : time := 1 ns;
+            CHANNELS_C   : integer := 1;
+            TRIG_DEPTH_C : integer := 16;
+            DEBUG_C      : boolean := false);
   port (
       clk        : in  sl;
       rst        : in  sl;
@@ -124,7 +125,7 @@ begin
    U_Fifo : entity work.FifoSync
      generic map ( TPD_G        => TPD_G,
                    DATA_WIDTH_G => EVRV2_TRIG_WIDTH,
-                   ADDR_WIDTH_G =>  9,
+                   ADDR_WIDTH_G => bitSize(TRIG_DEPTH_C),
                    FWFT_EN_G    => false )
      port map (    rst   => r.fifoReset,
                    clk   => clk,

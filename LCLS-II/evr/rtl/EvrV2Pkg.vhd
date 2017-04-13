@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-04-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,6 +38,8 @@ package EvrV2Pkg is
   -- prior to the <eventSelect> until <BsaActiveDelay> + <BsaActiveWidth> after
   -- the <eventSelect>
   constant BsaActiveSetup : integer := 108;
+
+  constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 82;
   
   type EvrV2ChannelConfig is record
     enabled          : sl;
@@ -71,6 +73,8 @@ package EvrV2Pkg is
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
   constant EVRV2_TRIG_WIDTH : integer := 28;
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 13+2*EVRV2_TRIG_WIDTH;
+  
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
@@ -181,6 +185,73 @@ package EvrV2Pkg is
   constant EVRV2_END_TAG         : slv(15 downto 0) := x"000F";
   constant EVRV2_LCLS_TAG_BIT    : integer := 6;
   constant EVRV2_DROP_TAG_BIT    : integer := 7;
-  
+
+  function toSlv( cfg : EvrV2ChannelConfig ) return slv;
+  function toSlv( cfg : EvrV2TriggerConfigType ) return slv;
+  function toChannelConfig( vector : slv ) return EvrV2ChannelConfig;
+  function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType;
+
 end EvrV2Pkg;
   
+package body EvrV2Pkg is
+
+  function toSlv( cfg : EvrV2ChannelConfig) return slv is
+    variable vector : slv(EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0) := (others=>'0');
+    variable i      : integer := 0;
+  begin
+    assignSlv(i, vector, cfg.enabled);
+    assignSlv(i, vector, cfg.rateSel);
+    assignSlv(i, vector, cfg.destSel);
+    assignSlv(i, vector, cfg.bsaEnabled);
+    assignSlv(i, vector, cfg.bsaActiveSetup);
+    assignSlv(i, vector, cfg.bsaActiveDelay);
+    assignSlv(i, vector, cfg.bsaActiveWidth);
+    assignSlv(i, vector, cfg.dmaEnabled);
+    return vector;
+  end function;
+
+  function toSlv( cfg : EvrV2TriggerConfigType) return slv is
+    variable vector : slv(EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0) := (others=>'0');
+    variable i      : integer := 0;
+  begin
+    assignSlv(i, vector, cfg.enabled);
+    assignSlv(i, vector, cfg.polarity);
+    assignSlv(i, vector, cfg.delay);
+    assignSlv(i, vector, cfg.width);
+    assignSlv(i, vector, cfg.channel);
+    assignSlv(i, vector, cfg.delayTap);
+    assignSlv(i, vector, cfg.loadTap);
+    return vector;
+  end function;
+
+  function toChannelConfig( vector : slv ) return EvrV2ChannelConfig is
+    variable cfg : EvrV2ChannelConfig := EVRV2_CHANNEL_CONFIG_INIT_C;
+    variable i   : integer                := 0;
+  begin
+    assignRecord(i, vector, cfg.enabled);
+    assignRecord(i, vector, cfg.rateSel);
+    assignRecord(i, vector, cfg.destSel);
+    assignRecord(i, vector, cfg.bsaEnabled);
+    assignRecord(i, vector, cfg.bsaActiveSetup);
+    assignRecord(i, vector, cfg.bsaActiveDelay);
+    assignRecord(i, vector, cfg.bsaActiveWidth);
+    assignRecord(i, vector, cfg.dmaEnabled);
+    return cfg;
+  end function;
+  
+  function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType is
+    variable cfg : EvrV2TriggerConfigType := EVRV2_TRIGGER_CONFIG_INIT_C;
+    variable i      : integer := 0;
+  begin
+    assignRecord(i, vector, cfg.enabled);
+    assignRecord(i, vector, cfg.polarity);
+    assignRecord(i, vector, cfg.delay);
+    assignRecord(i, vector, cfg.width);
+    assignRecord(i, vector, cfg.channel);
+    assignRecord(i, vector, cfg.delayTap);
+    assignRecord(i, vector, cfg.loadTap);
+    return cfg;
+  end function;
+end package body;
+  
+    
