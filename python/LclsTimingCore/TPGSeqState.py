@@ -3,7 +3,7 @@
 # Title      : PyRogue Timing pattern sequencer state
 #-----------------------------------------------------------------------------
 # File       : TPGSeqState.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing pattern sequencer state
@@ -20,60 +20,71 @@
 import pyrogue as pr
 
 class TPGSeqState(pr.Device):
-    def __init__(self, name="TPGSeqState", description="Timing pattern sequencer state", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "TPGSeqState",
+                    description = "Timing pattern sequencer state",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        for i in range(50):
-            self.add(pr.Variable(   name         = "SeqIndex_%.*i" % (2, i),
-                                    description  = "Sequencer instruction at offset %.*i" % (2, i),
-                                    offset       =  0x00 + (i * 0x08),
-                                    bitSize      =  32,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RO",
-                                ))
+        self.addVariables(  name         = "SeqIndex",
+                            description  = "Sequencer instruction at offset",
+                            offset       =  0x00,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                            number       =  50,
+                            stride       =  8,
+                        )
 
-        for i in range(50):
-            self.add(pr.Variable(   name         = "SeqCondACount_%.*i" % (2, i),
-                                    description  = "BSA condition A counter %.*i" % (2, i),
-                                    offset       =  0x04 + (i * 0x08),
-                                    bitSize      =  8,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RO",
-                                ))
+        self.addVariables(  name         = "SeqCondACount",
+                            description  = "BSA condition A counter",
+                            offset       =  0x04,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                            number       =  50,
+                            stride       =  8,
+                        )
 
-        for i in range(50):
-            self.add(pr.Variable(   name         = "SeqCondBCount_%.*i" % (2, i),
-                                    description  = "BSA condition B counter %.*i" % (2, i),
-                                    offset       =  0x04 + (i * 0x40),
-                                    bitSize      =  8,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RO",
-                                ))
+        self.addVariables(  name         = "SeqCondBCount",
+                            description  = "BSA condition B counter",
+                            offset       =  0x04,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                            number       =  50,
+                            stride       =  64,
+                        )
 
-        for i in range(50):
-            self.add(pr.Variable(   name         = "SeqCondCCount_%.*i" % (2, i),
-                                    description  = "BSA condition C counter %.*i" % (2, i),
-                                    offset       =  0x04 + (i * 0x08),
-                                    bitSize      =  8,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RO",
-                                ))
+        self.addVariables(  name         = "SeqCondCCount",
+                            description  = "BSA condition C counter",
+                            offset       =  0x04,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                            number       =  50,
+                            stride       =  8,
+                        )
 
-        for i in range(50):
-            self.add(pr.Variable(   name         = "SeqCondDCount_%.*i" % (2, i),
-                                    description  = "BSA condition D counter %.*i" % (2, i),
-                                    offset       =  0x04 + (i * 0x08),
-                                    bitSize      =  8,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RO",
-                                ))
+        self.addVariables(  name         = "SeqCondDCount",
+                            description  = "BSA condition D counter",
+                            offset       =  0x04,
+                            bitSize      =  8,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                            number       =  50,
+                            stride       =  8,
+                        )
 

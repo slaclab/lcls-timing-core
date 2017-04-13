@@ -3,7 +3,7 @@
 # Title      : PyRogue Timing pattern sequencer jump programming
 #-----------------------------------------------------------------------------
 # File       : TPGSeqJump.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing pattern sequencer jump programming
@@ -20,40 +20,49 @@
 import pyrogue as pr
 
 class TPGSeqJump(pr.Device):
-    def __init__(self, name="TPGSeqJump", description="Timing pattern sequencer jump programming", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "TPGSeqJump",
+                    description = "Timing pattern sequencer jump programming",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        for i in range(1024):
-            self.add(pr.Variable(   name         = "StartAddr_%.*i" % (4, i),
-                                    description  = "Sequence start offset %.*i" % (4, i),
-                                    offset       =  0x00 + (i * 0x04),
-                                    bitSize      =  12,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "StartAddr",
+                            description  = "Sequence start offset",
+                            offset       =  0x00,
+                            bitSize      =  12,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  1024,
+                            stride       =  4,
+                        )
 
-        for i in range(1024):
-            self.add(pr.Variable(   name         = "Class_%.*i" % (4, i),
-                                    description  = "Sequence power class %.*i" % (4, i),
-                                    offset       =  0x01 + (i * 0x04),
-                                    bitSize      =  4,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "Class",
+                            description  = "Sequence power class",
+                            offset       =  0x01,
+                            bitSize      =  4,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  1024,
+                            stride       =  4,
+                        )
 
-        for i in range(1024):
-            self.add(pr.Variable(   name         = "StartSync_%.*i" % (4, i),
-                                    description  = "Start synchronization condition %.*i" % (4, i),
-                                    offset       =  0x02 + (i * 0x04),
-                                    bitSize      =  16,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "StartSync",
+                            description  = "Start synchronization condition",
+                            offset       =  0x02,
+                            bitSize      =  16,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  1024,
+                            stride       =  4,
+                        )
 

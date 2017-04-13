@@ -3,7 +3,7 @@
 # Title      : PyRogue Timing trigger pulse comfiguration
 #-----------------------------------------------------------------------------
 # File       : LclsTriggerPulse.py
-# Created    : 2017-04-04
+# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing trigger pulse comfiguration
@@ -20,47 +20,54 @@
 import pyrogue as pr
 
 class LclsTriggerPulse(pr.Device):
-    def __init__(self, name="LclsTriggerPulse", description="Timing trigger pulse comfiguration", memBase=None, offset=0x0, hidden=False):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden)
+    def __init__(   self,       
+                    name        = "LclsTriggerPulse",
+                    description = "Timing trigger pulse comfiguration",
+                    memBase     =  None,
+                    offset      =  0x00,
+                    hidden      =  False,
+                ):
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
 
         ##############################
         # Variables
         ##############################
 
-        for i in range(8):
-            self.add(pr.Variable(   name         = "OpCodeMask_%i" % (i),
-                                    description  = "Opcode mask 256 bits to connect the pulse to any combination of opcodes %i" % (i),
-                                    offset       =  0x00 + (i * 0x04),
-                                    bitSize      =  32,
-                                    bitOffset    =  0x00,
-                                    base         = "hex",
-                                    mode         = "RW",
-                                ))
+        self.addVariables(  name         = "OpCodeMask",
+                            description  = "Opcode mask 256 bits to connect the pulse to any combination of opcodes",
+                            offset       =  0x00,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                            number       =  8,
+                            stride       =  4,
+                        )
 
-        self.add(pr.Variable(   name         = "PulseDelay",
-                                description  = "Pulse delay (Number of recovered clock cycles)",
-                                offset       =  0x20,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "PulseDelay",
+                            description  = "Pulse delay (Number of recovered clock cycles)",
+                            offset       =  0x20,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "PulseWidth",
-                                description  = "Pulse Width (Number of recovered clock cycles)",
-                                offset       =  0x24,
-                                bitSize      =  32,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "PulseWidth",
+                            description  = "Pulse Width (Number of recovered clock cycles)",
+                            offset       =  0x24,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
-        self.add(pr.Variable(   name         = "PulsePolarity",
-                                description  = "Pulse polarity: 0-Normal. 1-Inverted",
-                                offset       =  0x28,
-                                bitSize      =  1,
-                                bitOffset    =  0x00,
-                                base         = "hex",
-                                mode         = "RW",
-                            ))
+        self.addVariable(   name         = "PulsePolarity",
+                            description  = "Pulse polarity: 0-Normal. 1-Inverted",
+                            offset       =  0x28,
+                            bitSize      =  1,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RW",
+                        )
 
