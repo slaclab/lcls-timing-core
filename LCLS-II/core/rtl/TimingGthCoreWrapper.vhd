@@ -1,15 +1,10 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : TimingGthCoreWrapper.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
 -- Last update: 2016-12-04
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Wrapper for GTH Core
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -22,6 +17,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.TimingPkg.all;
@@ -30,13 +28,12 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity TimingGthCoreWrapper is
-
    generic (
-      TPD_G    : time    := 1 ns;
-      EXTREF_G : boolean := false);
-
+      TPD_G            : time            := 1 ns;
+      EXTREF_G         : boolean         := false;
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      AXIL_BASE_ADDR_G : slv(31 downto 0));
    port (
-
       -- AXI-Lite Port
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -74,8 +71,7 @@ entity TimingGthCoreWrapper is
       txDataK        : in  slv(1 downto 0);
       txOutClk       : out sl;
 
-      loopback : in slv(2 downto 0)
-      );
+      loopback : in slv(2 downto 0));
 end entity TimingGthCoreWrapper;
 
 architecture rtl of TimingGthCoreWrapper is
@@ -285,6 +281,17 @@ architecture rtl of TimingGthCoreWrapper is
          txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
          );
    end component;
+   
+   
+   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
+      0               => (
+         baseAddr     => (AXIL_BASE_ADDR_G+x"00000000"),
+         addrBits     => 22,
+         connectivity => x"FFFF"),
+      1               => (
+         baseAddr     => (AXIL_BASE_ADDR_G+x"00400000"), 
+         addrBits     => 22,
+         connectivity => x"FFFF"));   
 
    signal rxCtrl0Out   : slv(15 downto 0);
    signal rxCtrl1Out   : slv(15 downto 0);
@@ -308,44 +315,99 @@ architecture rtl of TimingGthCoreWrapper is
    signal bypassdone    : sl;
    signal bypasserr     : sl;
    
- begin
-
-   --U_AxiLite : entity work.AxiLiteEmpty
-   --  port map ( axiClk    => axilClk,
-   --             axiClkRst => axilRst,
-   --             axiReadMaster  => axilReadMaster,
-   --             axiReadSlave   => axilReadSlave,
-   --             axiWriteMaster => axilWriteMaster,
-   --             axiWriteSlave  => axilWriteSlave );
-
+   signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
+   signal axilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);   
+   
+   signal mAxilWriteMaster : AxiLiteWriteMasterType;
+   signal mAxilWriteSlave  : AxiLiteWriteSlaveType;
+   signal mAxilReadMaster  : AxiLiteReadMasterType;
+   signal mAxilReadSlave   : AxiLiteReadSlaveType;
+   
+begin
+ 
    rxStatus.bufferByDone <= bypassdone;
    rxStatus.bufferByErr  <= bypasserr;
-   
+
+   U_XBAR : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
+         NUM_SLAVE_SLOTS_G  => 2,
+         NUM_MASTER_SLOTS_G => 2,
+         MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteMasters(1) => mAxilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiWriteSlaves(1)  => mAxilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadMasters(1)  => mAxilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         sAxiReadSlaves(1)   => mAxilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves); 
+
    U_AlignCheck : entity work.GthRxAlignCheck
       generic map (
-        TPD_G        => TPD_G,
-        ADDR_WIDTH_G => 9 )
+        TPD_G            => TPD_G,
+        AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+        DRP_ADDR_G       => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
+         -- GTH Status/Control Interface
          resetIn         => rxControl.reset,
          resetDone       => bypassdone,
          resetErr        => bypasserr,
          resetOut        => rxRst,
          locked          => rxStatus.locked,
-         drpClk          => drpClk,
-         drpRst          => drpRst,
+         -- Clock and Reset
+         axilClk          => axilClk,
+         axilRst          => axilRst,
+         -- Slave AXI-Lite Interface
+         mAxilReadMaster   => mAxilReadMaster,
+         mAxilReadSlave    => mAxilReadSlave,
+         mAxilWriteMaster  => mAxilWriteMaster,
+         mAxilWriteSlave   => mAxilWriteSlave,
+         -- Slave AXI-Lite Interface
+         sAxilReadMaster   => axilReadMasters(0),
+         sAxilReadSlave    => axilReadSlaves(0),
+         sAxilWriteMaster  => axilWriteMasters(0),
+         sAxilWriteSlave   => axilWriteSlaves(0));
+
+   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         TIMEOUT_G        => 4096,
+         ADDR_WIDTH_G     => 9,
+         DATA_WIDTH_G     => 16)      
+      port map (
+         -- AXI-Lite Port
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(1),
+         axilReadSlave   => axilReadSlaves(1),
+         axilWriteMaster => axilWriteMasters(1),
+         axilWriteSlave  => axilWriteSlaves(1),
+         -- DRP Interface
+         drpClk          => axilClk,
+         drpRst          => axilRst,
          drpRdy          => drpRdy,
          drpEn           => drpEn,
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo,
-         axiClk          => axilClk,
-         axiRst          => axilRst,
-         axiReadMaster   => axilReadMaster,
-         axiReadSlave    => axilReadSlave,
-         axiWriteMaster  => axilWriteMaster,
-         axiWriteSlave   => axilWriteSlave );
+         drpDo           => drpDo); 
 
+   drpClk <= axilClk;
+   drpRst <= axilRst;
 
    GEN_EXTREF : if EXTREF_G generate
       U_TimingGthCore : TimingGth_extref

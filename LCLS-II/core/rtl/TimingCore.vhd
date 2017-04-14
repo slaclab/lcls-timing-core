@@ -361,11 +361,11 @@ begin
             rst                             => appTimingRst,
             wr_clk                          => gtRxRecClk,
             wr_en                           => timingStrobe,
-            din(0)                          => timingValid,
             din(TIMING_FRAME_LEN downto 1)  => timingFrameSlv,
+            din(0)                          => timingValid,
             rd_clk                          => appTimingClk,
-            dout(0)                         => appTimingBus.valid,
             dout(TIMING_FRAME_LEN downto 1) => appTimingFrameSlv,
+            dout(0)                         => appTimingBus.valid,
             valid                           => appTimingBus.strobe);
    end generate;
 
