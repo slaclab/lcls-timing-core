@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-07-25
+-- Last update: 2017-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,8 +45,9 @@ entity TimingFrameRx is
 
       exptMessage         : out ExptMessageType;
       exptMessageValid    : out sl;
-      
-      staData             : out slv(3 downto 0)
+
+      rxVersion           : out slv(31 downto 0);
+      staData             : out slv(4 downto 0)
       );
 end entity TimingFrameRx;
 
@@ -58,24 +59,13 @@ architecture rtl of TimingFrameRx is
    type StateType is (IDLE_S, FRAME_S);
 
    type RegType is record
-      timingMessage       : TimingMessageType;
-      timingMessageShift  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-      timingMessageStrobe : sl;
-      timingMessageValid  : sl;
-      exptMessage         : ExptMessageType;
-      exptMessageShift    : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
-      exptMessageValid    : sl;
+      vsnErr  : sl;
+      version : slv(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      timingMessage       => TIMING_MESSAGE_INIT_C,
-      timingMessageShift  => (others => '0'),
-      timingMessageStrobe => '0',
-      timingMessageValid  => '0',
-      exptMessage         => EXPT_MESSAGE_INIT_C,
-      exptMessageShift    => (others => '0'),
-      exptMessageValid    => '0'
-      );
+     vsnErr  => '0',
+     version => (others=>'1') );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -92,6 +82,8 @@ architecture rtl of TimingFrameRx is
    signal dvalid1            : sl;
    signal dstrobe            : sl;
    signal delayRst           : sl;
+   signal dmsg               : TimingMessageType;
+
 begin
 
    delayRst <= rxRst or messageDelayRst;
@@ -136,13 +128,38 @@ begin
                 strobe_o   => open,
                 valid_o    => dvalid1 );
 
-   timingMessage       <= toTimingMessageType(dframe0);
+   dmsg                <= toTimingMessageType(dframe0);
+   timingMessage       <= dmsg;
    timingMessageStrobe <= dstrobe;
-   timingMessageValid  <= dvalid0;
+   timingMessageValid  <= dvalid0 and not r.vsnErr;
    exptMessage         <= toExptMessageType(dframe1);
    exptMessageValid    <= dvalid1;
+   rxVersion           <= r.version;
+   staData             <= r.vsnErr & (crcErr or doverflow0) & fiducial & eof & sof;
 
-   staData             <= (crcErr or doverflow0) & fiducial & eof & sof;
-   
+   comb: process ( r, dmsg, dstrobe ) is
+     variable v : RegType;
+   begin
+     v := r;
+
+     if dstrobe = '1' then
+       v.version := x"0000" & dmsg.version;
+       if dmsg.version=TIMING_MESSAGE_VERSION_C then
+         v.vsnErr := '0';
+       else
+         v.vsnErr := '1';
+       end if;
+     end if;
+
+     rin <= v;
+   end process;
+
+   seq: process ( rxClk ) is
+   begin
+     if rising_edge(rxClk) then
+       r <= rin;
+     end if;
+   end process;
+     
 end architecture rtl;
 

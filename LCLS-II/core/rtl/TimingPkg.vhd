@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-03-24
+-- Last update: 2017-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,7 +39,10 @@ package TimingPkg is
    --  Frame without BSA, beamEnergy, version
    constant TIMING_MESSAGE_BITS_NO_BSA_C  : integer := TIMING_MESSAGE_BITS_C-256-16;
    constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
-   constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
+
+--   constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
+   --  Added photon wavelen meta data
+   constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0001";
 
    constant TIMING_STREAM_ID  : slv(3 downto 0) := x"0";
    constant EXPT_STREAM_ID    : slv(3 downto 0) := x"1";
