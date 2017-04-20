@@ -71,10 +71,10 @@ begin
 
    count <= r.latch;
 
-   U_Latch : entity work.RstSync
-     port map ( clk      => txclk,
-                asyncRst => ctrrst,
-                syncRst  => ctrlatch);
+   U_Latch : entity work.SynchronizerEdge
+     port map ( clk        => txclk,
+                dataIn     => ctrrst,
+                risingEdge => ctrlatch);
    
    U_Select : entity work.EventSelect
      port map ( clk       => txclk,
