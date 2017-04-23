@@ -181,7 +181,7 @@ begin  -- mapping
     if v.ramen='1' then
       case r.phase is
         when "00" =>
-          if v.state=INTEG_S then
+          if r.state=INTEG_S then
             v.newActive   := frame and not r.pendActive;
             v.pendAvgDone := r.pendAvgDone or v.newActive;
           end if;

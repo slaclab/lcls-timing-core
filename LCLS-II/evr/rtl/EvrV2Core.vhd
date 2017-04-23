@@ -230,7 +230,7 @@ begin  -- rtl
     port map (    evrClk     => evrClk,
                   evrRst     => evrRst,
                   enable     => anyBsaEnabled,
-                  strobeIn   => evrBus.strobe,
+                  strobeIn   => rStrobe(0),
                   dataIn     => timingMsg,
                   dmaData    => dmaData        (ReadoutChannels) );
 
@@ -240,7 +240,7 @@ begin  -- rtl
       port map    ( clk           => evrClk,
                     rst           => evrRst,
                     config        => channelConfigS(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+4),
+                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+5),
                     dataIn        => timingMsg,
                     exptIn        => exptBus,
                     selectOut     => eventSel(i),
@@ -252,7 +252,7 @@ begin  -- rtl
                     evrRst        => evrRst,
                     channelConfig => channelConfigS(i),
                     evtSelect     => dmaSel(i),
-                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+5),
+                    strobeIn      => rStrobe(i*STROBE_INTERVAL_C+6),
                     dataIn        => timingMsg,
                     dmaData       => dmaData(i) );
   end generate;  -- i
@@ -262,7 +262,7 @@ begin  -- rtl
                   CHANNELS_C => ReadoutChannels )
     port map (    clk        => evrClk,
                   rst        => evrBus.strobe,
-                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C+5),
+                  strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C+6),
                   eventSel   => dmaSel,
                   eventData  => timingMsg,
                   dmaData    => dmaData   (ReadoutChannels+1) );
