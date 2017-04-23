@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ entity EvrV2EventDma is
     rst        :  in sl;
     strobe     :  in sl;
     eventSel   :  in slv(CHANNELS_C-1 downto 0);
-    eventData  :  in slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0);
+    eventData  :  in TimingMessageType;
     dmaData    : out EvrV2DmaDataType );
 end EvrV2EventDma;
 
@@ -74,12 +74,15 @@ begin  -- mapping
   
   process (r, rst, strobe, eventSel, eventData)
     variable v : RegType;
+    variable eventSlv : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0);
   begin  -- process
     v := r;
     v.dmaData.tValid := '1';
     v.channels(eventSel'range) := r.channels(eventSel'range) or eventSel;
 
     v.count := r.count+1;
+
+    eventSlv := toSlvNoBsa(eventData);
     
     case r.state is
       when IDLE_S =>
@@ -95,7 +98,7 @@ begin  -- mapping
         v.count := 0;
         v.dmaData.tData := toSlv(WORDS_C,32);
       when PAYLOAD_S =>
-        v.dmaData.tData := eventData(32*r.count+31 downto 32*r.count);
+        v.dmaData.tData := eventSlv(32*r.count+31 downto 32*r.count);
         if r.count=WORDS_C-1 then
           v.state := IDLE_S;
         end if;

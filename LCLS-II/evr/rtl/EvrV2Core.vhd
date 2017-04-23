@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-12
+-- Last update: 2017-04-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -110,7 +110,6 @@ architecture mapping of EvrV2Core is
   signal rStrobe        : slv(198 downto 0) := (others=>'0');
   
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
-  signal eventMsg       : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0) := (others=>'0');
   signal dmaSel         : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(ReadoutChannels downto 0,31 downto 0);
@@ -232,7 +231,7 @@ begin  -- rtl
                   evrRst     => evrRst,
                   enable     => anyBsaEnabled,
                   strobeIn   => evrBus.strobe,
-                  dataIn     => evrBus.message,
+                  dataIn     => timingMsg,
                   dmaData    => dmaData        (ReadoutChannels) );
 
   Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
@@ -265,7 +264,7 @@ begin  -- rtl
                   rst        => evrBus.strobe,
                   strobe     => rStrobe(ReadoutChannels*STROBE_INTERVAL_C+5),
                   eventSel   => dmaSel,
-                  eventData  => eventMsg,
+                  eventData  => timingMsg,
                   dmaData    => dmaData   (ReadoutChannels+1) );
 
   U_V2FromV1 : entity work.EvrV2FromV1

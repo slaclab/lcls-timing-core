@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2017-01-16
+-- Last update: 2017-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ end entity TimingCore;
 
 architecture rtl of TimingCore is
 
-   constant USE_TPGMINI_C               : boolean := USE_TPGMINI_G;
+   constant USE_TPGMINI_C               : boolean := USE_TPGMINI_G and not TPGEN_G;
    constant FRAME_RX_AXIL_INDEX_C       : natural := 0;
    constant RAW_BUFFER_AXIL_INDEX_C     : natural := 1;
    constant MESSAGE_BUFFER_AXIL_INDEX_C : natural := 2;

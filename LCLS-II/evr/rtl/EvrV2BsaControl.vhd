@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-04-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,10 +70,6 @@ begin  -- mapping
   begin  -- process
     v := r;
 
-    if (strobeIn='1' and enable='1' and uOr(dataIn.bsaInit)='1' and r.state=IDLR_S) then
-      v.state := TAG_S;
-    end if;
-
     if r.state = IDLR_S then
       v.dmaData.tValid := '0';
     else
@@ -81,6 +77,9 @@ begin  -- mapping
     end if;
 
     case r.state is
+      when IDLR_S => if (strobeIn='1' and enable='1' and uOr(dataIn.bsaInit)='1') then
+                       v.state := TAG_S;
+                     end if;
       when TAG_S  => v.dmaData.tData := EVRV2_BSA_CONTROL_TAG & x"0000";
                      v.state := TIML_S;
       when TIML_S => v.dmaData.tData := dataIn.timeStamp(31 downto 0);

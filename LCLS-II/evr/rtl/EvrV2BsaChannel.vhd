@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-04-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ begin  -- mapping
     if v.ramen='1' then
       case r.phase is
         when "00" =>
-          if r.state=INTEG_S then
+          if v.state=INTEG_S then
             v.newActive   := frame and not r.pendActive;
             v.pendAvgDone := r.pendAvgDone or v.newActive;
           end if;
@@ -204,7 +204,7 @@ begin  -- mapping
 
     if r.ramen='1' and r.phase="00" and r.rstate=IDLR_S then
       if (r.newActiveOr='1' or r.newAvgDoneOr='1' or r.newDoneOr='1') then
-        v.rstate := TAG_S;
+        v.rstate       := TAG_S;
         v.newActiveOr  := '0';
         v.newAvgDoneOr := '0';
         v.newDoneOr    := '0';

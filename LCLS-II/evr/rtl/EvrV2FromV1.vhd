@@ -49,7 +49,7 @@ begin
   begin  -- process
     if rising_edge(clk) then
       if timingIn.strobe='1' then
-        if disable = '1' then  -- map LCLS timing stream to look like LCLS-II frame
+        if disable = '0' then  -- map LCLS timing stream to look like LCLS-II frame
           timingOut.pulseId     <= resize(timingIn.stream.pulseId,64);
           timingOut.timeStamp   <= timingIn.stream.dbuff.epicsTime(31 downto 0) &
                                    timingIn.stream.dbuff.epicsTime(63 downto 32);
