@@ -106,10 +106,10 @@ begin  -- rtl
       port map ( -- Slave Port
         sAxiClk         => axiClk,
         sAxiClkRst      => axiRst,
-        sAxiReadMaster  => axiReadMaster,
-        sAxiReadSlave   => axiReadSlave,
-        sAxiWriteMaster => axiWriteMaster,
-        sAxiWriteSlave  => axiWriteSlave,
+        sAxiReadMaster  => axilReadMaster,
+        sAxiReadSlave   => axilReadSlave,
+        sAxiWriteMaster => axilWriteMaster,
+        sAxiWriteSlave  => axilWriteSlave,
         -- Master Port
         mAxiClk         => evrClk,
         mAxiClkRst      => evrRst,
@@ -120,10 +120,10 @@ begin  -- rtl
   end generate;
 
   GEN_SYNC : if COMMON_CLK_G generate
-    maxiReadMaster  <= axiReadMaster;
-    maxiWriteMaster <= axiWriteMaster;
-    axiReadSlave    <= maxiReadSlave;
-    axiWriteSlave   <= maxiWriteSlave;
+    maxiReadMaster  <= axilReadMaster;
+    maxiWriteMaster <= axilWriteMaster;
+    axilReadSlave    <= maxiReadSlave;
+    axilWriteSlave   <= maxiWriteSlave;
   end generate;
   
   -------------------------
@@ -189,7 +189,7 @@ begin  -- rtl
      U_Trig : entity work.EvrV2Trigger
         generic map ( TPD_G        => TPD_G,
                       CHANNELS_C   => NCHANNELS_G,
-                      TRIG_DEPTH_G => TRIG_DEPTH_G,
+                      TRIG_DEPTH_C => TRIG_DEPTH_G,
                       DEBUG_C      => false )
         port map (    clk        => evrClk,
                       rst        => evrRst,
