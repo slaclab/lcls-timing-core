@@ -120,7 +120,7 @@ begin
                   probe0(196 downto 177) => config.width,
                   probe0(200 downto 197) => config.channel,
                   probe0(201)            => config.enabled,
-                  probe0(208 downto 202) => fifoCountDbg,
+                  probe0(208 downto 202) => resize(fifoCount,7),
                   probe0(209)            => fifoEmpty,
                   probe0(210)            => fifoFull,
                   probe0(210+CHANNELS_C downto 211) => arm,

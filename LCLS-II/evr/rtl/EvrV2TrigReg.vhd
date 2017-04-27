@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-07
+-- Last update: 2017-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -98,11 +98,11 @@ begin  -- mapping
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
     for i in 0 to TRIGGERS_C-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(512+i*16,12)),   0, v.triggerConfig(i).channel);
-      axilSlaveRegisterW(slv(conv_unsigned(512+i*16,12)),  16, v.triggerConfig(i).polarity);
-      axilSlaveRegisterW(slv(conv_unsigned(512+i*16,12)),  31, v.triggerConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(516+i*16,12)),   0, v.triggerConfig(i).delay);
-      axilSlaveRegisterW(slv(conv_unsigned(520+i*16,12)),   0, v.triggerConfig(i).width);
+      axilSlaveRegisterW(slv(conv_unsigned(i*16,9)),   0, v.triggerConfig(i).channel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*16,9)),  16, v.triggerConfig(i).polarity);
+      axilSlaveRegisterW(slv(conv_unsigned(i*16,9)),  31, v.triggerConfig(i).enabled);
+      axilSlaveRegisterW(slv(conv_unsigned(4+i*16,9)),   0, v.triggerConfig(i).delay);
+      axilSlaveRegisterW(slv(conv_unsigned(8+i*16,9)),   0, v.triggerConfig(i).width);
 
       if USE_TAP_C then
         --  Special handling of delay tap
