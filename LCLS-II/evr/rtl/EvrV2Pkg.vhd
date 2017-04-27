@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-12
+-- Last update: 2017-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -226,7 +226,7 @@ package body EvrV2Pkg is
 
   function toChannelConfig( vector : slv ) return EvrV2ChannelConfig is
     variable cfg : EvrV2ChannelConfig := EVRV2_CHANNEL_CONFIG_INIT_C;
-    variable i   : integer                := 0;
+    variable i   : integer                := vector'right;
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.rateSel);
@@ -241,7 +241,7 @@ package body EvrV2Pkg is
   
   function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType is
     variable cfg : EvrV2TriggerConfigType := EVRV2_TRIGGER_CONFIG_INIT_C;
-    variable i      : integer := 0;
+    variable i      : integer := vector'right;
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.polarity);
