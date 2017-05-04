@@ -27,7 +27,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.SsiPciePkg.all;
+-- use work.SsiPciePkg.all;
 
 entity EvrV2PcieRxDesc is
    generic (

@@ -32,7 +32,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
-use work.SsiPciePkg.all;
+-- use work.SsiPciePkg.all;
 
 entity EvrV2PcieRxDma is
    generic (
