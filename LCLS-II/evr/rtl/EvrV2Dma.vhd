@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-04
+-- Last update: 2017-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -85,12 +85,14 @@ begin  -- mapping
         else
           v.smaster.tValid := dmaData(i).tValid;
           v.smaster.tData(dmaData(i).tData'range) := dmaData(i).tData;
-          if r.idle='1' then
+          if r.smaster.tValid = '0' then  -- message header
             if modeSel='0' then
-              v.smaster.tData(EVRV2_LCLS_TAG_BIT) := '1';
+              v.smaster.tData(EVRV2_LCLS_TAG_BIT+16) := '1';
             end if;
+          end if;
+          if r.idle='1' then -- DMA header, too
             if r.dropped = '1' then
-              v.smaster.tData(EVRV2_DROP_TAG_BIT) := '1';
+              v.smaster.tData(EVRV2_DROP_TAG_BIT+16) := '1';
               v.dropped := '0';
             end if;
             ssiSetUserSof(AXIS_CONFIG_C, v.smaster, '1');

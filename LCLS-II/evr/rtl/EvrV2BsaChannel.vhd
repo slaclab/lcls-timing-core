@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-23
+-- Last update: 2017-05-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,7 +36,8 @@ use work.EvrV2Pkg.all;
 entity EvrV2BsaChannel is
   generic (
     TPD_G : time := 1ns;
-    CHAN_C  : integer := 0 );
+    CHAN_C  : integer := 0;
+    DEBUG_C : boolean := false );
   port (
     evrClk        : in  sl;
     evrRst        : in  sl;
@@ -70,6 +71,7 @@ architecture mapping of EvrV2BsaChannel is
     pulseId     : slv(63 downto 0);
     pendActive  : slv(63 downto 0); -- mask of EDEFs gone active
     pendAvgDone : slv(63 downto 0); -- mask of EDEFs awaiting AvgDone
+    pendDone    : slv(63 downto 0); -- mask of EDEFs awaiting Done/Update
     newActive   : slv(63 downto 0); -- mask of EDEFs just gone active
     newAvgDone  : slv(63 downto 0);
     newDone     : slv(63 downto 0);
@@ -92,6 +94,7 @@ architecture mapping of EvrV2BsaChannel is
     pulseId     => (others=>'0'),
     pendActive  => (others=>'0'),
     pendAvgDone => (others=>'0'),
+    pendDone    => (others=>'0'),
     newActive   => (others=>'0'),
     newAvgDone  => (others=>'0'),
     newDone     => (others=>'0'),
@@ -104,9 +107,57 @@ architecture mapping of EvrV2BsaChannel is
   signal rin  : RegType;
 
   signal frame, frameIn, frameOut : slv(63 downto 0);
+
+  component ila_0
+    port ( clk : in sl;
+           probe0 : in slv(255 downto 0) );
+  end component;
+
+  signal r_state  : slv(1 downto 0);
+  signal r_rstate : slv(3 downto 0);
   
 begin  -- mapping
 
+  GEN_DBUG : if DEBUG_C generate
+    r_state <= "00" when r.state = IDLE_S else
+               "01" when r.state = DELAY_S else
+               "10";
+    r_rstate <= x"0" when r.rstate = IDLR_S else
+                x"1" when r.rstate = TAG_S else
+                x"2" when r.rstate = PIDL_S else
+                x"3" when r.rstate = PIDU_S else
+                x"4" when r.rstate = ACTL_S else
+                x"5" when r.rstate = ACTU_S else
+                x"6" when r.rstate = AVDL_S else
+                x"7" when r.rstate = AVDU_S else
+                x"8" when r.rstate = DONL_S else
+                x"9";
+    U_ILA : ila_0
+      port map ( clk         => evrClk,
+                 probe0(1 downto 0) => r_state,
+                 probe0(5 downto 2) => r_rstate,
+                 probe0(14 downto 6) => r.addra,
+                 probe0(23 downto 15) => r.addrb,
+                 probe0(43 downto 24) => r.count,
+                 probe0(45 downto 44) => r.phase,
+                 probe0(46)           => r.strobe,
+                 probe0(47)           => r.evtSelect,
+                 probe0(48)           => r.ramen,
+                 probe0(60 downto 49) => r.pulseId    (11 downto 0),
+                 probe0(64 downto 61) => r.pendActive (19 downto 16),
+                 probe0(68 downto 65) => r.pendAvgDone(19 downto 16),
+                 probe0(72 downto 69) => r.newActive  (19 downto 16),
+                 probe0(76 downto 73) => r.newAvgDone (19 downto 16),
+                 probe0(80 downto 77) => r.newDone    (19 downto 16),
+                 probe0(81)           => r.newActiveOr,
+                 probe0(82)           => r.newAvgDoneOr,
+                 probe0(83)           => r.newDoneOr,
+                 probe0(84)           => evtSelect,
+                 probe0(85)           => strobeIn,
+                 probe0(149 downto 86) => frame,
+                 probe0(255 downto 150) => (others=>'0') );
+  end generate;
+  
   dmaData    <= r.dmaData;
   
   frameIn    <= dataIn.bsaActive  when r.phase="00" else
@@ -181,8 +232,8 @@ begin  -- mapping
     if v.ramen='1' then
       case r.phase is
         when "00" =>
-          if r.state=INTEG_S then
-            v.newActive   := frame and not r.pendActive;
+          if v.state=INTEG_S then
+            v.newActive   := frame and not v.pendActive;
             v.pendAvgDone := r.pendAvgDone or v.newActive;
           end if;
         when "01" =>
@@ -191,8 +242,10 @@ begin  -- mapping
           end if;
           v.pendActive  := r.newActive or r.pendActive;
           v.newAvgDone  := frame and r.pendAvgDone;
+          v.pendDone    := r.pendDone or v.newAvgDone;
         when "10" =>
-          v.newDone     := frame;
+          v.newDone     := frame and r.pendDone;
+          v.pendDone    := r.pendDone and not frame;
           v.pendAvgDone := r.pendAvgDone and not r.newAvgDone;
           v.newAvgDoneOr:= uOr(r.newAvgDone);
         when "11" =>
