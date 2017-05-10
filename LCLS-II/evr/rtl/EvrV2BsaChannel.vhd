@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-05-05
+-- Last update: 2017-05-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -52,11 +52,11 @@ end EvrV2BsaChannel;
 architecture mapping of EvrV2BsaChannel is
 
   type BsaIntState is (IDLE_S, DELAY_S, INTEG_S);
-  type BsaReadState is ( IDLR_S, TAG_S,
-                         PIDL_S, PIDU_S,
-                         ACTL_S, ACTU_S,
-                         AVDL_S, AVDU_S,
-                         DONL_S, DONU_S );
+  type BsaReadState is ( IDLR_S , TAG_S,
+                         PIDL_S , PIDU_S,
+                         ACTL_S , ACTU_S,
+                         APIDL_S, APIDU_S,
+                         AVDL_S , AVDU_S );
   
   type RegType is record
     state : BsaIntState;
@@ -256,7 +256,7 @@ begin  -- mapping
     end if;
 
     if r.ramen='1' and r.phase="00" and r.rstate=IDLR_S then
-      if (r.newActiveOr='1' or r.newAvgDoneOr='1' or r.newDoneOr='1') then
+      if (r.newActiveOr='1' or r.newAvgDoneOr='1') then
         v.rstate       := TAG_S;
         v.newActiveOr  := '0';
         v.newAvgDoneOr := '0';
@@ -287,17 +287,17 @@ begin  -- mapping
       when ACTU_S =>
         v.dmaData.tData  := r.newActive(63 downto 32);
         v.rstate := AVDL_S;
+      when APIDL_S =>
+        v.dmaData.tData  := r.pulseId(31 downto 0);
+        v.rstate := APIDU_S;
+      when APIDU_S =>
+        v.dmaData.tData  := r.pulseId(63 downto 32);
+        v.rstate := AVDL_S;
       when AVDL_S =>
         v.dmaData.tData  := r.newAvgDone(31 downto 0);
         v.rstate := AVDU_S;
       when AVDU_S =>
         v.dmaData.tData  := r.newAvgDone(63 downto 32);
-        v.rstate := DONL_S;
-      when DONL_S =>
-        v.dmaData.tData  := r.newDone(31 downto 0);
-        v.rstate := DONU_S;
-      when DONU_S =>
-        v.dmaData.tData  := r.newDone(63 downto 32);
         v.rstate := IDLR_S;
         v.newActive  := (others=>'0');
         v.newAvgDone := (others=>'0');

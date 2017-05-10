@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-22
+-- Last update: 2017-05-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,6 +47,9 @@ architecture mapping of EvrV2BsaControl is
   type BsaReadState is ( IDLR_S, TAG_S,
                          TIML_S, TIMU_S,
                          INIL_S, INIU_S );
+                         ACTL_S, ACTU_S );
+                         AVGL_S, AVGU_S );
+                         UPDL_S, UPDU_S );
 
   type RegType is record
     state   : BsaReadState;
@@ -77,7 +80,8 @@ begin  -- mapping
     end if;
 
     case r.state is
-      when IDLR_S => if (strobeIn='1' and enable='1' and uOr(dataIn.bsaInit)='1') then
+      when IDLR_S => if (strobeIn='1' and enable='1' and
+                         (uOr(dataIn.bsaInit)='1' or uOr(dataIn.bsaDone)='1')) then
                        v.state := TAG_S;
                      end if;
       when TAG_S  => v.dmaData.tData := EVRV2_BSA_CONTROL_TAG & x"0000";
@@ -89,6 +93,18 @@ begin  -- mapping
       when INIL_S => v.dmaData.tData := dataIn.bsaInit(31 downto 0);
                      v.state := INIU_S;
       when INIU_S => v.dmaData.tData := dataIn.bsaInit(63 downto 32);
+                     v.state := ACTL_S;
+      when ACTL_S => v.dmaData.tData := dataIn.bsaInit(31 downto 0) and dataIn.bsaActive(31 downto 0);
+                     v.state := ACTU_S;
+      when ACTU_S => v.dmaData.tData := dataIn.bsaInit(63 downto 32) and dataIn.bsaActive(63 downto 32);
+                     v.state := AVGL_S;
+      when AVGL_S => v.dmaData.tData := dataIn.bsaInit(31 downto 0) and dataIn.bsaAvgDone(31 downto 0);
+                     v.state := AVGU_S;
+      when AVGU_S => v.dmaData.tData := dataIn.bsaInit(63 downto 32) and dataIn.bsaAvgDone(63 downto 32);
+                     v.state := UPDL_S;
+      when UPDL_S => v.dmaData.tData := dataIn.bsaDone(31 downto 0);
+                     v.state := UPDU_S;
+      when UPDU_S => v.dmaData.tData := dataIn.bsaDone(63 downto 32);
                      v.state := IDLR_S;
       when others => null;
     end case;
