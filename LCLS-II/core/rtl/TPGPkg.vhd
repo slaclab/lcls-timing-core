@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2017-04-13
+-- Last update: 2017-04-23
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -332,7 +332,7 @@ package TPGPkg is
     irqBsaEnable      => '0',
     irqFaultEnable    => '0',
     irqFifoRd         => '0',
-    diagSeq           => (others=>'0'),
+    diagSeq           => (others=>'1'),
     beamDiag          => BEAM_DIAG_CONTROL_INIT_C,
     ctrlock           => '0',
     ctrdefv           => (others=>CTRDEF_INIT_C),

@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-04-14
+-- Last update: 2017-05-10
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -354,10 +354,18 @@ package body TimingPkg is
       assignSlv(i, vector, message.acTimeSlotPhase);
       assignSlv(i, vector, message.resync);
       assignSlv(i, vector, message.beamRequest);
-      assignSlv(i, vector, "0000000000000");        -- 13 unused bits
-      assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.mpsValid);
-      assignSlv(i, vector, message.bcsFault);
+      for j in message.beamEnergy'range loop
+        assignSlv(i, vector, message.beamEnergy(j));
+      end loop;                                        -- 4 words
+      for j in message.photonWavelen'range loop
+        assignSlv(i, vector, message.photonWavelen(j));
+      end loop;                                        -- 2 words
+      assignSlv(i, vector, message.control(16));    -- use this field to complete
+                                                    -- modifier word encoding
+      --assignSlv(i, vector, "0000000000000");        -- 13 unused bits
+      --assignSlv(i, vector, message.syncStatus);
+      --assignSlv(i, vector, message.mpsValid);
+      --assignSlv(i, vector, message.bcsFault);
       assignSlv(i, vector, message.mpsLimit);
       for j in message.mpsClass'range loop
          assignSlv(i, vector, message.mpsClass(j));

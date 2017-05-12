@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-28
+-- Last update: 2017-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -73,20 +73,20 @@ architecture mapping of EvrV2Module is
       addrBits      => 9,
       connectivity  => X"0001") );
 
-  signal maxiWriteMaster : AxiLiteWriteMasterType;
-  signal maxiWriteSlave  : AxiLiteWriteSlaveType;
-  signal maxiReadMaster  : AxiLiteReadMasterType;
-  signal maxiReadSlave   : AxiLiteReadSlaveType;
-
   signal mAxiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
   
-  constant STROBE_INTERVAL_C : integer := 12;
-
   signal channelConfig    : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
+  signal channelConfigS   : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
+  signal channelConfigAV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
+  signal channelConfigSV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
+
   signal triggerConfig    : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
+  signal triggerConfigS   : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
+  signal triggerConfigAV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
+  signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
   
   signal rStrobe        : slv(5 downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
@@ -100,32 +100,6 @@ begin  -- rtl
     report "rStrobe'length exceeds clocks per cycle"
     severity failure;
   
-  GEN_ASYNC : if not COMMON_CLK_G generate
-    AxiLiteAsync_Inst : entity work.AxiLiteAsync
-      generic map ( TPD_G        => TPD_G )
-      port map ( -- Slave Port
-        sAxiClk         => axiClk,
-        sAxiClkRst      => axiRst,
-        sAxiReadMaster  => axiReadMaster,
-        sAxiReadSlave   => axiReadSlave,
-        sAxiWriteMaster => axiWriteMaster,
-        sAxiWriteSlave  => axiWriteSlave,
-        -- Master Port
-        mAxiClk         => evrClk,
-        mAxiClkRst      => evrRst,
-        mAxiReadMaster  => maxiReadMaster,
-        mAxiReadSlave   => maxiReadSlave,
-        mAxiWriteMaster => maxiWriteMaster,
-        mAxiWriteSlave  => maxiWriteSlave );
-  end generate;
-
-  GEN_SYNC : if COMMON_CLK_G generate
-    maxiReadMaster  <= axiReadMaster;
-    maxiWriteMaster <= axiWriteMaster;
-    axiReadSlave    <= maxiReadSlave;
-    axiWriteSlave   <= maxiWriteSlave;
-  end generate;
-  
   -------------------------
   -- AXI-Lite Crossbar Core
   -------------------------  
@@ -136,23 +110,33 @@ begin  -- rtl
       NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
       MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
     port map (
-      axiClk              => evrClk,
-      axiClkRst           => evrRst,
-      sAxiWriteMasters(0) => maxiWriteMaster,
-      sAxiWriteSlaves (0) => maxiWriteSlave,
-      sAxiReadMasters (0) => maxiReadMaster,
-      sAxiReadSlaves  (0) => maxiReadSlave,
+      axiClk              => axiClk,
+      axiClkRst           => axiRst,
+      sAxiWriteMasters(0) => axilWriteMaster,
+      sAxiWriteSlaves (0) => axilWriteSlave,
+      sAxiReadMasters (0) => axilReadMaster,
+      sAxiReadSlaves  (0) => axilReadSlave,
       mAxiWriteMasters    => mAxiWriteMasters,
       mAxiWriteSlaves     => mAxiWriteSlaves,
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves);   
+
+  U_SyncChannelConfig : entity work.SynchronizerVector
+    generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
+    port map ( clk     => evrClk,
+               dataIn  => channelConfigAV,
+               dataOut => channelConfigSV );
   
   Loop_EvtSel: for i in 0 to NCHANNELS_G-1 generate
+    channelConfigAV((i+1)*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto i*EVRV2_CHANNEL_CONFIG_BITS_C)
+      <= toSlv(channelConfig(i));
+    channelConfigS(i) <= toChannelConfig(channelConfigSV((i+1)*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto i*EVRV2_CHANNEL_CONFIG_BITS_C));
+
     U_EventSel : entity work.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
-                    config        => channelConfig(i),
+                    config        => channelConfigS(i),
                     strobeIn      => rStrobe(4),
                     dataIn        => timingMsg,
                     exptIn        => exptBus,
@@ -185,11 +169,21 @@ begin  -- rtl
                   rdClk        => axiClk,
                   rdRst        => axiRst );
 
+  U_SyncTriggerConfig : entity work.SynchronizerVector
+    generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
+    port map ( clk     => evrClk,
+               dataIn  => triggerConfigAV,
+               dataOut => triggerConfigSV );
+  
   Out_Trigger: for i in 0 to NTRIGGERS_G-1 generate
+     triggerConfigAV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C)
+      <= toSlv(triggerConfig(i));
+     triggerConfigS(i) <= toTriggerConfig(triggerConfigSV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C));
+
      U_Trig : entity work.EvrV2Trigger
         generic map ( TPD_G        => TPD_G,
                       CHANNELS_C   => NCHANNELS_G,
-                      TRIG_DEPTH_G => TRIG_DEPTH_G,
+                      TRIG_DEPTH_C => TRIG_DEPTH_G,
                       DEBUG_C      => false )
         port map (    clk        => evrClk,
                       rst        => evrRst,
@@ -202,7 +196,7 @@ begin  -- rtl
   U_EvrAxi : entity work.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
                   CHANNELS_C => NCHANNELS_G )
-    port map (    axiClk              => evrClk,
+    port map (    axiClk              => axiClk,
                   axiRst              => axiRst,
                   axilWriteMaster     => mAxiWriteMasters (CSR_INDEX_C),
                   axilWriteSlave      => mAxiWriteSlaves  (CSR_INDEX_C),
@@ -217,7 +211,7 @@ begin  -- rtl
   U_EvrTrigReg : entity work.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
                   TRIGGERS_C => NTRIGGERS_G )
-    port map (    axiClk              => evrClk,
+    port map (    axiClk              => axiClk,
                   axiRst              => axiRst,
                   axilWriteMaster     => mAxiWriteMasters (TRG_INDEX_C),
                   axilWriteSlave      => mAxiWriteSlaves  (TRG_INDEX_C),

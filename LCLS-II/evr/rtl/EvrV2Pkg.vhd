@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-05-05
+-- Last update: 2017-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,9 +36,9 @@ package EvrV2Pkg is
   -- BSA active signals are integrating from <BsaActiveSetup> frames
   -- prior to the <eventSelect> until <BsaActiveDelay> + <BsaActiveWidth> after
   -- the <eventSelect>
-  constant BsaActiveSetup : integer := 108;
+--  constant BsaActiveSetup : integer := 108;
 
-  constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 82;
+  constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 81;
   
   type EvrV2ChannelConfig is record
     enabled          : sl;
@@ -53,7 +53,7 @@ package EvrV2Pkg is
     -- Bits(15:0)=Mask of Destinations (when Beam)
     -- BSA
     bsaEnabled       : sl;              -- participate in BSA
-    bsaActiveSetup   : slv( 6 downto 0);
+    bsaActiveSetup   : slv( 5 downto 0);
     bsaActiveDelay   : slv(19 downto 0);
     bsaActiveWidth   : slv(19 downto 0);
     dmaEnabled       : sl;
@@ -225,7 +225,7 @@ package body EvrV2Pkg is
 
   function toChannelConfig( vector : slv ) return EvrV2ChannelConfig is
     variable cfg : EvrV2ChannelConfig := EVRV2_CHANNEL_CONFIG_INIT_C;
-    variable i   : integer                := 0;
+    variable i   : integer                := vector'right;
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.rateSel);
@@ -240,7 +240,7 @@ package body EvrV2Pkg is
   
   function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType is
     variable cfg : EvrV2TriggerConfigType := EVRV2_TRIGGER_CONFIG_INIT_C;
-    variable i      : integer := 0;
+    variable i      : integer := vector'right;
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.polarity);
