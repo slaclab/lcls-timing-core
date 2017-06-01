@@ -26,8 +26,9 @@ class TimingFrameRx(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
         ##############################
         # Variables
@@ -197,9 +198,9 @@ class TimingFrameRx(pr.Device):
 
         self.addVariable(   name         = "BypassResetCount",
                             description  = "Buffer bypass reset count",
-                            offset       =  0x2E,
+                            offset       =  0x2C,
                             bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitOffset    =  16,
                             base         = "hex",
                             mode         = "RO",
                         )

@@ -26,8 +26,9 @@ class TPGMiniCore(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    expand	    =  True,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)  
 
         ##############################
         # Variables
@@ -123,6 +124,7 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                             number       =  10,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "RateReload",
@@ -145,36 +147,36 @@ class TPGMiniCore(pr.Device):
 
         self.addVariable(   name         = "NControlSeq",
                             description  = "Number of control sequence engines",
-                            offset       =  0x4D,
+                            offset       =  0x4C,
                             bitSize      =  8,
-                            bitOffset    =  0x00,
+                            bitOffset    =  8,
                             base         = "hex",
                             mode         = "RO",
                         )
 
         self.addVariable(   name         = "NArraysBsa",
                             description  = "Number of BSA arrays",
-                            offset       =  0x4E,
+                            offset       =  0x4C,
                             bitSize      =  8,
-                            bitOffset    =  0x00,
+                            bitOffset    =  16,
                             base         = "hex",
                             mode         = "RO",
                         )
 
         self.addVariable(   name         = "SeqAddrLen",
                             description  = "Number of beam sequence engines",
-                            offset       =  0x4F,
+                            offset       =  0x4C,
                             bitSize      =  4,
-                            bitOffset    =  0x00,
+                            bitOffset    =  24,
                             base         = "hex",
                             mode         = "RO",
                         )
 
         self.addVariable(   name         = "NAllowSeq",
                             description  = "Number of beam allow engines",
-                            offset       =  0x4F,
+                            offset       =  0x4C,
                             bitSize      =  4,
-                            bitOffset    =  0x04,
+                            bitOffset    =  28,
                             base         = "hex",
                             mode         = "RO",
                         )
@@ -206,17 +208,19 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                             number       =  64,
                             stride       =  8,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "BsaDestSel",
                             description  = "BSA def destination selection",
-                            offset       =  0x201,
+                            offset       =  0x200,
                             bitSize      =  19,
-                            bitOffset    =  0x05,
+                            bitOffset    =  13,
                             base         = "hex",
                             mode         = "RW",
                             number       =  64,
                             stride       =  8,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "BsaNtoAvg",
@@ -228,17 +232,19 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                             number       =  64,
                             stride       =  8,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "BsaAvgToWr",
                             description  = "BSA def num averages to record",
-                            offset       =  0x206,
+                            offset       =  0x204,
                             bitSize      =  16,
-                            bitOffset    =  0x00,
+                            bitOffset    =  16,
                             base         = "hex",
                             mode         = "RW",
                             number       =  64,
                             stride       =  8,
+                            hidden       =  True,
                         )
 
         self.addVariable(   name         = "PllCnt",
