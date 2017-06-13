@@ -78,52 +78,52 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "PulseIdL",
-                            description  = "Pulse ID lower word",
-                            offset       =  0x08,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+#        self.addVariable(   name         = "PulseIdL",
+#                            description  = "Pulse ID lower word",
+#                            offset       =  0x08,
+#                            bitSize      =  32,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                        )
+#
+#        self.addVariable(   name         = "PulseIdU",
+#                            description  = "Pulse ID upper word",
+#                            offset       =  0x0C,
+#                            bitSize      =  32,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                        )
 
-        self.addVariable(   name         = "PulseIdU",
-                            description  = "Pulse ID upper word",
-                            offset       =  0x0C,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+#        self.addVariable(   name         = "TStampL",
+#                            description  = "Time stamp lower word",
+#                            offset       =  0x10,
+#                            bitSize      =  32,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                        )
+#
+#        self.addVariable(   name         = "TStampU",
+#                            description  = "Time stamp upper word",
+#                            offset       =  0x14,
+#                            bitSize      =  32,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                        )
 
-        self.addVariable(   name         = "TStampL",
-                            description  = "Time stamp lower word",
-                            offset       =  0x10,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
-
-        self.addVariable(   name         = "TStampU",
-                            description  = "Time stamp upper word",
-                            offset       =  0x14,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
-
-        self.addVariables(  name         = "FixedRateDiv",
-                            description  = "Fixed rate marker divisors",
-                            offset       =  0x18,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                            number       =  10,
-                            stride       =  4,
-                        )
+        #self.addVariables(  name         = "FixedRateDiv",
+        #                    description  = "Fixed rate marker divisors",
+        #                    offset       =  0x18,
+        #                    bitSize      =  32,
+        #                    bitOffset    =  0x00,
+        #                    base         = "hex",
+        #                    mode         = "RW",
+        #                    number       =  10,
+        #                    stride       =  4,
+        #                )
 
         self.addVariable(   name         = "RateReload",
                             description  = "Loads cached fixed rate marker divisors",
@@ -197,28 +197,28 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariables(  name         = "BsaRateSel",
-                            description  = "BSA def rate selection",
-                            offset       =  0x200,
-                            bitSize      =  13,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                            number       =  64,
-                            stride       =  8,
-                        )
-
-        self.addVariables(  name         = "BsaDestSel",
-                            description  = "BSA def destination selection",
-                            offset       =  0x201,
-                            bitSize      =  19,
-                            bitOffset    =  0x05,
-                            base         = "hex",
-                            mode         = "RW",
-                            number       =  64,
-                            stride       =  8,
-                        )
-
+#        self.addVariables(  name         = "BsaRateSel",
+#                            description  = "BSA def rate selection",
+#                            offset       =  0x200,
+#                            bitSize      =  13,
+#                            bitOffset    =  0x00,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                            number       =  64,
+#                            stride       =  8,
+#                        )
+#
+#        self.addVariables(  name         = "BsaDestSel",
+#                            description  = "BSA def destination selection",
+#                            offset       =  0x201,
+#                            bitSize      =  19,
+#                            bitOffset    =  0x05,
+#                            base         = "hex",
+#                            mode         = "RW",
+#                            number       =  64,
+#                            stride       =  8,
+#                        )
+#
         self.addVariables(  name         = "BsaNtoAvg",
                             description  = "BSA def num acquisitions to average",
                             offset       =  0x204,
