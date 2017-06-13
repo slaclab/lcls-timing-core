@@ -26,8 +26,9 @@ class EvrV1Reg(pr.Device):
                     memBase     =  None,
                     offset      =  0x00,
                     hidden      =  False,
+                    expand      =  False,
                 ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)
 
         ##############################
         # Variables
@@ -356,6 +357,7 @@ class EvrV1Reg(pr.Device):
                             mode         = "RO",
                             number       =  1024,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
         self.addVariables(  name         = "MapRam2",
@@ -367,5 +369,6 @@ class EvrV1Reg(pr.Device):
                             mode         = "RO",
                             number       =  1024,
                             stride       =  4,
+                            hidden       =  True,
                         )
 
