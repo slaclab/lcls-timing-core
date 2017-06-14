@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time 
 
 class TimingFrameRx(pr.Device):
     def __init__(   self,       
@@ -212,18 +213,18 @@ class TimingFrameRx(pr.Device):
         self.addCommand(    name         = "C_RxReset",
                             description  = "Reset Rx Link",
                             function     = """\
-                                           self.RxReset.set(1)
-                                           self.usleep.set(1000)
-                                           self.RxReset.set(0)
+                                           dev.RxReset.set(1)
+                                           time.sleep(0.001)
+                                           dev.RxReset.set(0)
                                            """
                         )
 
         self.addCommand(    name         = "ClearRxCounters",
                             description  = "Clear the Rx status counters.",
                             function     = """\
-                                           self.RxCountReset.set(1)
-                                           self.usleep.set(1000)
-                                           self.RxCountReset.set(0)
+                                           dev.RxCountReset.set(1)
+                                           time.sleep(0.001)
+                                           dev.RxCountReset.set(0)
                                            """
                         )
 
