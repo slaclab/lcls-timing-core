@@ -25,6 +25,7 @@ class TPGMiniCore(pr.Device):
                     description = "Embedded timing pattern generator",
                     memBase     =  None,
                     offset      =  0x00,
+                    NARRAYSBSA  =  2,
                     hidden      =  False,
                     expand	    =  True,
                 ):
@@ -40,7 +41,7 @@ class TPGMiniCore(pr.Device):
                             bitSize      =  1,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
         self.addVariable(   name         = "TxPolarity",
@@ -79,40 +80,40 @@ class TPGMiniCore(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "PulseIdL",
-                            description  = "Pulse ID lower word",
+        self.addVariable(   name         = "PulseIdWr",
+                            description  = "Pulse ID write",
                             offset       =  0x08,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
-        self.addVariable(   name         = "PulseIdU",
-                            description  = "Pulse ID upper word",
-                            offset       =  0x0C,
-                            bitSize      =  32,
+        self.addVariable(   name         = "PulseIdRd",
+                            description  = "Pulse ID read",
+                            offset       =  0x08,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "RO",
                         )
 
-        self.addVariable(   name         = "TStampL",
-                            description  = "Time stamp lower word",
+        self.addVariable(   name         = "TStampWr",
+                            description  = "Time stamp Write",
                             offset       =  0x10,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
-        self.addVariable(   name         = "TStampU",
-                            description  = "Time stamp upper word",
-                            offset       =  0x14,
-                            bitSize      =  32,
+        self.addVariable(   name         = "TStampRd",
+                            description  = "Time stamp read",
+                            offset       =  0x10,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "RO",
                         )
 
         self.addVariables(  name         = "FixedRateDiv",
@@ -181,22 +182,22 @@ class TPGMiniCore(pr.Device):
                             mode         = "RO",
                         )
 
-        self.addVariable(   name         = "BsaCompleteL",
-                            description  = "BSA complete lower word",
+        self.addVariable(   name         = "BsaCompleteWr",
+                            description  = "BSA complete write",
                             offset       =  0x50,
-                            bitSize      =  32,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
-        self.addVariable(   name         = "BsaCompleteU",
-                            description  = "BSA complete upper word",
-                            offset       =  0x54,
-                            bitSize      =  32,
+        self.addVariable(   name         = "BsaCompleteRd",
+                            description  = "BSA complete read",
+                            offset       =  0x50,
+                            bitSize      =  64,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "RO",
                         )
 
         self.addVariables(  name         = "BsaRateSel",
@@ -206,7 +207,7 @@ class TPGMiniCore(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
-                            number       =  64,
+                            number       =  NARRAYSBSA,
                             stride       =  8,
                             hidden       =  True,
                         )
@@ -218,7 +219,7 @@ class TPGMiniCore(pr.Device):
                             bitOffset    =  13,
                             base         = "hex",
                             mode         = "RW",
-                            number       =  64,
+                            number       =  NARRAYSBSA,
                             stride       =  8,
                             hidden       =  True,
                         )
@@ -230,7 +231,7 @@ class TPGMiniCore(pr.Device):
                             bitOffset    =  0x00,
                             base         = "hex",
                             mode         = "RW",
-                            number       =  64,
+                            number       =  NARRAYSBSA,
                             stride       =  8,
                             hidden       =  True,
                         )
@@ -242,7 +243,7 @@ class TPGMiniCore(pr.Device):
                             bitOffset    =  16,
                             base         = "hex",
                             mode         = "RW",
-                            number       =  64,
+                            number       =  NARRAYSBSA,
                             stride       =  8,
                             hidden       =  True,
                         )
