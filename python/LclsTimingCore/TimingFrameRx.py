@@ -113,7 +113,7 @@ class TimingFrameRx(pr.Device):
                             bitSize      =  1,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
         self.addVariable(   name         = "RxLinkUp",
@@ -140,7 +140,7 @@ class TimingFrameRx(pr.Device):
                             bitSize      =  1,
                             bitOffset    =  0x03,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
         self.addVariable(   name         = "ClkSel",
@@ -210,21 +210,21 @@ class TimingFrameRx(pr.Device):
         # Commands
         ##############################
 
+        def C_RxResetCmd(dev, cmd, arg):
+            dev.RxReset.set(1)
+            time.sleep(0.001)
+            dev.RxReset.set(0)       
         self.addCommand(    name         = "C_RxReset",
                             description  = "Reset Rx Link",
-                            function     = """\
-                                           dev.RxReset.set(1)
-                                           time.sleep(0.001)
-                                           dev.RxReset.set(0)
-                                           """
+                            function     = C_RxResetCmd
                         )
 
+        def ClearRxCountersCmd(dev, cmd, arg):
+            dev.RxCountReset.set(1)
+            time.sleep(0.001)
+            dev.RxCountReset.set(0)                         
         self.addCommand(    name         = "ClearRxCounters",
                             description  = "Clear the Rx status counters.",
-                            function     = """\
-                                           dev.RxCountReset.set(1)
-                                           time.sleep(0.001)
-                                           dev.RxCountReset.set(0)
-                                           """
+                            function     = ClearRxCountersCmd
                         )
 
