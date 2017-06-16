@@ -18,6 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time 
 
 class TimingFrameRx(pr.Device):
     def __init__(   self,       
@@ -112,7 +113,7 @@ class TimingFrameRx(pr.Device):
                             bitSize      =  1,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
         self.addVariable(   name         = "RxLinkUp",
@@ -139,7 +140,7 @@ class TimingFrameRx(pr.Device):
                             bitSize      =  1,
                             bitOffset    =  0x03,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
 
         self.addVariable(   name         = "ClkSel",
@@ -209,21 +210,21 @@ class TimingFrameRx(pr.Device):
         # Commands
         ##############################
 
+        def C_RxResetCmd(dev, cmd, arg):
+            dev.RxReset.set(1)
+            time.sleep(0.001)
+            dev.RxReset.set(0)       
         self.addCommand(    name         = "C_RxReset",
                             description  = "Reset Rx Link",
-                            function     = """\
-                                           self.RxReset.set(1)
-                                           self.usleep.set(1000)
-                                           self.RxReset.set(0)
-                                           """
+                            function     = C_RxResetCmd
                         )
 
+        def ClearRxCountersCmd(dev, cmd, arg):
+            dev.RxCountReset.set(1)
+            time.sleep(0.001)
+            dev.RxCountReset.set(0)                         
         self.addCommand(    name         = "ClearRxCounters",
                             description  = "Clear the Rx status counters.",
-                            function     = """\
-                                           self.RxCountReset.set(1)
-                                           self.usleep.set(1000)
-                                           self.RxCountReset.set(0)
-                                           """
+                            function     = ClearRxCountersCmd
                         )
 

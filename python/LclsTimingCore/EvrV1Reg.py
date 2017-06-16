@@ -52,14 +52,23 @@ class EvrV1Reg(pr.Device):
                             mode         = "RW",
                         )
 
-        self.addVariable(   name         = "IrqFlag",
+        self.addVariable(   name         = "IrqFlagWr",
                             description  = "Interrupt Flag Register",
                             offset       =  0x08,
                             bitSize      =  32,
                             bitOffset    =  0x00,
                             base         = "hex",
-                            mode         = "RW",
+                            mode         = "WO",
                         )
+
+        self.addVariable(   name         = "IrqFlagRd",
+                            description  = "Interrupt Flag Register",
+                            offset       =  0x08,
+                            bitSize      =  32,
+                            bitOffset    =  0x00,
+                            base         = "hex",
+                            mode         = "RO",
+                        )                        
 
         self.addVariable(   name         = "IrqEnable",
                             description  = "Interrupt Enable Register",
