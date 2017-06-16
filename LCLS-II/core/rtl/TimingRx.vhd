@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2017-04-14
+-- Last update: 2017-06-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -242,6 +242,7 @@ begin
       axilSlaveRegisterW(X"20",24, v.streamNoDelay);
 
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
+      axilSlaveRegisterW(X"24",31, v.messageDelayRst);
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
@@ -251,12 +252,6 @@ begin
       axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
-
-      v.messageDelayRst := '0';
-      if (axilStatus.writeEnable='1' and
-          std_match(axilWriteMaster.awaddr(7 downto 0),x"24")) then
-        v.messageDelayRst := '1';
-      end if;
 
       if axilRxLinkUp='0' then
         v.rxDown := '1';
