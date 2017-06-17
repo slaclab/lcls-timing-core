@@ -245,7 +245,7 @@ begin
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
       axilSlaveRegisterW(X"24",31, v.messageDelayRst);
 
-      if v.messageDelay/=r.messageDelay then
+      if v.messageDelay/=axilR.messageDelay then
         v.messageDelayRst := '1';
       end if;
       
@@ -329,7 +329,7 @@ begin
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
-         statusIn(3 downto 0)  => staData12,
+         statusIn(3 downto 0)  => staData12(3 downto 0),
          cntRstIn       => axilR.cntRst,
          rollOverEnIn => "0111",
          cntOut       => axilStatusCounters12,
