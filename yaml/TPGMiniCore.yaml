@@ -196,7 +196,7 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0200
         stride: 8
-        nelms: *numRxLanes
+        nelms: *NARRAYSBSA
       class: IntField
       name: BsaRateSel
       sizeBits: 13
@@ -208,7 +208,7 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0201
         stride: 8
-        nelms: *numRxLanes
+        nelms: *NARRAYSBSA
       class: IntField
       name: BsaDestSel
       sizeBits: 19
@@ -220,7 +220,7 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0204
         stride: 8
-        nelms: *numRxLanes
+        nelms: *NARRAYSBSA
       class: IntField
       name: BsaNtoAvg
       sizeBits: 16
@@ -232,7 +232,7 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0206
         stride: 8
-        nelms: *numRxLanes
+        nelms: *NARRAYSBSA
       class: IntField
       name: BsaAvgToWr
       sizeBits: 16
