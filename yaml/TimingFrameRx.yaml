@@ -185,7 +185,7 @@ TimingFrameRx: &TimingFrameRx
       at:
         offset: 0x0027
       class: IntField
-      name: MsgDelay
+      name: MsgDelayRst
       sizeBits: 1
       lsBit: 7
       mode: RW
