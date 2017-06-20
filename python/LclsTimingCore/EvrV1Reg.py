@@ -368,7 +368,7 @@ class EvrV1Reg(pr.Device):
                             stride       =  4,
                             hidden       =  True,
                         )
-
+                     
         self.addVariables(  name         = "MapRam2",
                             description  = "Event Mapping RAM 2 [1023:0]",
                             offset       =  0x6000,
