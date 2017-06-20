@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-27
+-- Last update: 2017-05-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,17 +29,16 @@ use work.TimingPkg.all;
 package EvrV2Pkg is
 
   constant TriggerOutputs  : integer := 12;
---  constant TriggerOutputs  : integer :=  6;
-  constant ReadoutChannels : integer := 10;
---  constant ReadoutChannels : integer := 6;
+--  constant ReadoutChannels : integer := 10;
+  constant ReadoutChannels : integer := 12;
   
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames
   -- prior to the <eventSelect> until <BsaActiveDelay> + <BsaActiveWidth> after
   -- the <eventSelect>
-  constant BsaActiveSetup : integer := 108;
+--  constant BsaActiveSetup : integer := 108;
 
-  constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 82;
+  constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 81;
   
   type EvrV2ChannelConfig is record
     enabled          : sl;
@@ -54,7 +53,7 @@ package EvrV2Pkg is
     -- Bits(15:0)=Mask of Destinations (when Beam)
     -- BSA
     bsaEnabled       : sl;              -- participate in BSA
-    bsaActiveSetup   : slv( 6 downto 0);
+    bsaActiveSetup   : slv( 5 downto 0);
     bsaActiveDelay   : slv(19 downto 0);
     bsaActiveWidth   : slv(19 downto 0);
     dmaEnabled       : sl;
