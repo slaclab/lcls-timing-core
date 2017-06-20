@@ -68,10 +68,22 @@ begin
           timingOut.acRates(0)  <= '1';
           timingOut.acRates(5 downto 1) <= timingIn.stream.dbuff.dmod(152 downto 148);
           timingOut.acTimeSlot <= timingIn.stream.dbuff.dmod(127 downto 125);
+          --  Map all 6 modifier words
+          timingOut.beamEnergy(0)    <= timingIn.stream.dbuff.dmod( 15 downto   0);
+          timingOut.beamEnergy(1)    <= timingIn.stream.dbuff.dmod( 31 downto  16);
+          timingOut.beamEnergy(2)    <= timingIn.stream.dbuff.dmod( 47 downto  32);
+          timingOut.beamEnergy(3)    <= timingIn.stream.dbuff.dmod( 63 downto  48);
+          timingOut.photonWavelen(0) <= timingIn.stream.dbuff.dmod( 79 downto  64);
+          timingOut.photonWavelen(1) <= timingIn.stream.dbuff.dmod( 95 downto  80);
+          timingOut.control(16)      <= timingIn.stream.dbuff.dmod(111 downto  96);
+          timingOut.mpsLimit         <= timingIn.stream.dbuff.dmod(127 downto 112);
+          for i in 0 to 15 loop
+            timingOut.mpsClass(i)    <= timingIn.stream.dbuff.dmod(131+4*i downto 128+4*i);
+          end loop;
           for i in 0 to 15 loop
             timingOut.control(i) <= timingIn.stream.eventCodes(i*16+15 downto i*16);
           end loop;
-          timingOut.control(16 to 17) <= (others=>(others=>'0'));
+          timingOut.control(17) <= (others=>'0');
           -- Simulate beam request word : charge=0, dest={D10DMP,LI25,UND}, beam=POCKCEL
           destn := 2;
           if timingIn.stream.dbuff.dmod(61)='1' then
