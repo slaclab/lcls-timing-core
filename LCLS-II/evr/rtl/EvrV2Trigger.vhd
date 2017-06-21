@@ -36,9 +36,10 @@ use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
 entity EvrV2Trigger is
-  generic ( TPD_G      : time := 1 ns;
-            CHANNELS_C : integer := 1;
-            DEBUG_C    : boolean := false);
+  generic ( TPD_G        : time := 1 ns;
+            CHANNELS_C   : integer := 1;
+            TRIG_DEPTH_C : integer := 16;
+            DEBUG_C      : boolean := false);
   port (
       clk        : in  sl;
       rst        : in  sl;
@@ -74,15 +75,19 @@ architecture EvrV2Trigger of EvrV2Trigger is
      fifoWr     => '0',
      fifoRd     => '0',
      fifoDin    => (others=>'0'));
+
+   constant FIFO_AWIDTH_C : natural := bitSize( TRIG_DEPTH_C );
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal fifoValid : sl;
    signal fifoDout  : slv(EVRV2_TRIG_WIDTH-1 downto 0);
-   signal fifoCount : slv(8 downto 0);
+   signal fifoCount : slv(FIFO_AWIDTH_C-1 downto 0);
    signal fifoEmpty : sl;
    signal fifoFull  : sl;
+
+   signal fifoCountDbg : slv(6 downto 0);
    
    component ila_0
     PORT ( clk         : IN STD_LOGIC;
@@ -92,6 +97,9 @@ architecture EvrV2Trigger of EvrV2Trigger is
 begin
 
    G_ila: if DEBUG_C=true generate
+
+     fifoCountDbg <= resize( fifoCount, 7 );
+
      U_ila : ila_0
        port map ( clk       => clk,
                   probe0(0) => rst,
@@ -112,7 +120,7 @@ begin
                   probe0(196 downto 177) => config.width,
                   probe0(200 downto 197) => config.channel,
                   probe0(201)            => config.enabled,
-                  probe0(208 downto 202) => fifoCount,
+                  probe0(208 downto 202) => resize(fifoCount,7),
                   probe0(209)            => fifoEmpty,
                   probe0(210)            => fifoFull,
                   probe0(210+CHANNELS_C downto 211) => arm,
@@ -124,7 +132,7 @@ begin
    U_Fifo : entity work.FifoSync
      generic map ( TPD_G        => TPD_G,
                    DATA_WIDTH_G => EVRV2_TRIG_WIDTH,
-                   ADDR_WIDTH_G =>  9,
+                   ADDR_WIDTH_G => FIFO_AWIDTH_C,
                    FWFT_EN_G    => false )
      port map (    rst   => r.fifoReset,
                    clk   => clk,

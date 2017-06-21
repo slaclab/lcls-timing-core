@@ -84,10 +84,10 @@ begin
       axiSlaveWaitTxn(regCon, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the registers
-      axiSlaveRegisterR(regCon, x"00", 0, v.opcodes);
-      axiSlaveRegisterR(regCon, x"20", 0, v.delay);
-      axiSlaveRegisterR(regCon, x"24", 0, v.pulseWidth);
-      axiSlaveRegisterR(regCon, x"28", 0, v.polarity);
+      axiSlaveRegister(regCon, x"00", 0, v.opcodes);
+      axiSlaveRegister(regCon, x"20", 0, v.delay);
+      axiSlaveRegister(regCon, x"24", 0, v.pulseWidth);
+      axiSlaveRegister(regCon, x"28", 0, v.polarity);
 
       -- Closeout the AXI-Lite transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);

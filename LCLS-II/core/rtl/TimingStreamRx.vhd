@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-02-28
+-- Last update: 2017-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,7 +50,8 @@ entity TimingStreamRx is
       timingMessageValid  : out sl;
       timingTSEventCounter: out slv(31 downto 0);
 
-      staData             : out slv(3 downto 0)
+      rxVersion           : out slv(31 downto 0);
+      staData             : out slv(4 downto 0)
       );
 
 end entity TimingStreamRx;
@@ -187,7 +188,8 @@ begin
   
   timingMessage       <= r.timingStream;
   timingMessageStrobe <= r.timingMessageStrobe;
-  staData             <= '0' & r.timingMessageStrobe & r.eofStrobe & r.sofStrobe;
+  rxVersion           <= x"0000" & r.timingStream.dbuff.version;
+  staData             <= "00" & r.timingMessageStrobe & r.eofStrobe & r.sofStrobe;
 
   timingTSEventCounter<= r.timingTSEventCounter;
 

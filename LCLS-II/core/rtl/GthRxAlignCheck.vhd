@@ -2,7 +2,7 @@
 -- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2017-04-05
+-- Last update: 2017-04-11
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
@@ -53,14 +53,13 @@ end entity GthRxAlignCheck;
 
 architecture rtl of GthRxAlignCheck is
 
-   constant COMMA_ALIGN_LATENCY_ADDR_C : slv(31 downto 0) := (DRP_ADDR_G + x"0000_0540");-- DRP_ADDR=0x150 (see UG576 (v1.4) on page 416)
+   constant COMMA_ALIGN_LATENCY_ADDR_C : slv(31 downto 0) := (DRP_ADDR_G + x"0000_0540");  -- DRP_ADDR=0x150 (see UG576 (v1.4) on page 416)
 
    constant LOCK_VALUE : integer := 16;
    constant MASK_VALUE : integer := 126;
 
    type StateType is (
       RESET_S,
-      RSTDONE_S,
       READ_S,
       ACK_S,
       LOCKED_S);
@@ -98,6 +97,12 @@ architecture rtl of GthRxAlignCheck is
 
    signal ack : AxiLiteMasterAckType;
 
+
+--   attribute dont_touch        : string;
+--   attribute dont_touch of r   : signal is "TRUE";
+--   attribute dont_touch of ack : signal is "TRUE";
+
+
 begin
 
    process(ack, axilRst, r, resetDone, resetErr, resetIn, sAxilReadMaster,
@@ -107,8 +112,8 @@ begin
       variable i      : natural;
    begin
       -- Latch the current value
-      v        := r;
-      
+      v := r;
+
       -- Reset the flags      
       v.rst    := '0';
       v.locked := '0';
@@ -134,20 +139,16 @@ begin
             v.rst := '1';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
-               -- Reset the counter
-               v.rstcnt := (others => '0');
-               -- Next state
-               v.state  := RSTDONE_S;
+               -- Wait for the reset transition
+               if (resetDone = '0') then
+                  -- Reset the counter
+                  v.rstcnt := (others => '0');
+                  -- Next state
+                  v.state  := READ_S;
+               end if;
             else
                -- Increment the counter
                v.rstcnt := r.rstcnt+1;
-            end if;
-         ----------------------------------------------------------------------
-         when RSTDONE_S =>
-            -- Wait for the reset transition
-            if (resetDone = '0') then
-               -- Next state
-               v.state := READ_S;
             end if;
          ----------------------------------------------------------------------
          when READ_S =>

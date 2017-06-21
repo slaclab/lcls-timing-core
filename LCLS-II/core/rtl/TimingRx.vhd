@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2017-02-02
+-- Last update: 2017-06-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -112,16 +112,17 @@ architecture rtl of TimingRx is
    signal rxR   : RxRegType := RX_REG_INIT_C;
    signal rxRin : RxRegType;
    
-   signal staData            : Slv4Array(1 downto 0);
+   signal staData            : Slv5Array(1 downto 0);
+   signal staData12          : slv(4 downto 0);
    
-   signal rxDecErrSum        : sl;
-   signal rxDspErrSum        : sl;
+   signal rxVersion          : Slv32Array(1 downto 0);
+   signal rxVersion12        : slv(31 downto 0);
 
    signal stv                : slv(3 downto 0);
    signal axilRxLinkUp       : sl;
-   signal axilStatusCounters1,
-          axilStatusCounters2,
-          axilStatusCounters12,
+   signal axilVsnErr         : sl;
+   signal axilVersion        : slv(31 downto 0);
+   signal axilStatusCounters12,
           axilStatusCounters3 : SlVectorArray(3 downto 0, 31 downto 0);
    signal txClkCnt            : slv( 3 downto 0) := (others=>'0');
    signal txClkCntS           : slv(31 downto 0);
@@ -150,7 +151,8 @@ begin
          timingMessageStrobe => timingStreamStrobe,
          timingMessageValid  => timingStreamValid,
          timingTSEventCounter=> timingTSEventCounter,
-         staData             => staData(0) );
+         rxVersion           => rxVersion(0),
+         staData             => staData  (0) );
 
    U_RxLcls2 : entity work.TimingFrameRx
        generic map (
@@ -166,10 +168,13 @@ begin
          timingMessageValid  => timingMessageValid,
          exptMessage         => exptMessage,
          exptMessageValid    => exptMessageValid,
-         staData             => staData(1) );
+         rxVersion           => rxVersion(1),
+         staData             => staData  (1) );
      
    axilComb : process (axilR, axilReadMaster, axilRst,
                        axilRxLinkUp,
+                       axilVsnErr,
+                       axilVersion,
                        axilStatusCounters12,
                        axilStatusCounters3,
                        rxStatusCount,
@@ -233,23 +238,26 @@ begin
       axilSlaveRegisterW(X"20", 5, v.rxDown);
       axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
       axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);
+      axilSlaveRegisterR(X"20", 8, axilVsnErr);
       axilSlaveRegisterW(X"20",24, v.streamNoDelay);
 
+      v.messageDelayRst := '0';
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
+      axilSlaveRegisterW(X"24",31, v.messageDelayRst);
+
+      if v.messageDelay/=axilR.messageDelay then
+        v.messageDelayRst := '1';
+      end if;
+      
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
       axilSlaveRegisterR(X"2C",16, muxSlVectorArray(rxStatusCount,1));
+      axilSlaveRegisterR(X"30", 0, axilVersion);
 
       axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
-
-      v.messageDelayRst := '0';
-      if (axilStatus.writeEnable='1' and
-          std_match(axilWriteMaster.awaddr(7 downto 0),x"24")) then
-        v.messageDelayRst := '1';
-      end if;
 
       if axilRxLinkUp='0' then
         v.rxDown := '1';
@@ -297,9 +305,11 @@ begin
        rdRst        => axilRst );
 
    axilRxLinkUp <= stv(1);
-   axilStatusCounters12 <= axilStatusCounters1 when axilR.clkSel='0' else
-                           axilStatusCounters2;
-
+   rxVersion12  <= rxVersion(0) when clkSelR='0' else
+                   rxVersion(1);
+   staData12    <= staData(0) when clkSelR='0' else
+                   staData(1);
+   
    rxcomb : process(rxR, rxData) is
      variable v : RxRegType;
    begin
@@ -319,28 +329,10 @@ begin
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
-         statusIn(3 downto 0)  => staData(0),
+         statusIn(3 downto 0)  => staData12(3 downto 0),
          cntRstIn       => axilR.cntRst,
          rollOverEnIn => "0111",
-         cntOut       => axilStatusCounters1,
-         wrClk        => rxClk,
-         wrRst        => '0',
-         rdClk        => axilClk,
-         rdRst        => '0');
-
-   SyncStatusVector_2 : entity work.SyncStatusVector
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => "1111",
-         USE_DSP48_G    => "no",
-         CNT_RST_EDGE_G => true,
-         CNT_WIDTH_G    => 32,
-         WIDTH_G        => 4 )
-      port map (
-         statusIn(3 downto 0)  => staData(1),
-         cntRstIn     => axilR.cntRst,
-         rollOverEnIn => "0111",
-         cntOut       => axilStatusCounters2,
+         cntOut       => axilStatusCounters12,
          wrClk        => rxClk,
          wrRst        => '0',
          rdClk        => axilClk,
@@ -368,6 +360,17 @@ begin
          rdClk        => axilClk,
          rdRst        => '0');
 
+   U_Version : entity work.SynchronizerVector
+     generic map ( WIDTH_G => 32 )
+     port map ( clk     => axilClk,
+                dataIn  => rxVersion12,
+                dataOut => axilVersion );
+   
+   U_VsnErr : entity work.Synchronizer
+     port map ( clk     => axilClk,
+                dataIn  => staData12(4),
+                dataOut => axilVsnErr );
+   
    rxClkCnt_seq : process (rxClk) is
    begin
       if (rising_edge(rxClk)) then

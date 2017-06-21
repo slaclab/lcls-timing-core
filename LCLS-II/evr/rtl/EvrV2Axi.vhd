@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-03-03
+-- Last update: 2017-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,8 +33,9 @@ use work.EvrV2Pkg.all;
 
 entity EvrV2Axi is
   generic (
-    TPD_G      : time    := 1 ns;
-    CHANNELS_C : integer := 1 );
+    TPD_G        : time    := 1 ns;
+    DMA_ENABLE_G : boolean := false;
+    CHANNELS_C   : integer := 1 );
   port (
     -- AXI-Lite and IRQ Interface
     axiClk              : in  sl;
@@ -49,11 +50,11 @@ entity EvrV2Axi is
     trigSel             : out sl;
     dmaFullThr          : out slv(23 downto 0);
     -- status
-    irqReq              : in  sl;
-    partitionAddr       : in  slv(PADDR_LEN-1 downto 0);
+    irqReq              : in  sl := '0';
+    partitionAddr       : in  slv(PADDR_LEN-1 downto 0) := (others=>'0');
     rstCount            : out sl;
     eventCount          : in  SlVectorArray(CHANNELS_C downto 0,31 downto 0);
-    gtxDebug            : in  slv(7 downto 0) );
+    gtxDebug            : in  slv(7 downto 0) := (others=>'0') );
 end EvrV2Axi;
 
 architecture mapping of EvrV2Axi is
@@ -130,26 +131,31 @@ begin  -- mapping
     v  := r;
     sReg(0) := irqReq;
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
-    axilSlaveRegisterW(X"000", 0, v.irqEnable);
-    axilSlaveRegisterR(X"004", sReg);
-    axilSlaveRegisterR(X"008", partitionAddr);
-    axilSlaveRegisterR(X"00C", gtxDebug);
     axilSlaveRegisterW(X"010", 0, v.countReset);
     axilSlaveRegisterW(X"014", 0, v.trigSel);
-    axilSlaveRegisterW(X"018", 0, v.dmaFullThr);
     for i in 0 to CHANNELS_C-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  0, v.channelConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  1, v.channelConfig(i).bsaEnabled);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+32,12)),  2, v.channelConfig(i).dmaEnabled);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,12)),  0, v.channelConfig(i).rateSel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,12)), 13, v.channelConfig(i).destSel);
-      axilSlaveRegisterR(slv(conv_unsigned(i*32+40,12)), muxSlVectorArray(eventCount, i));
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+44,12)),  0, v.channelConfig(i).bsaActiveDelay);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+44,12)), 20, v.channelConfig(i).bsaActiveSetup);
-      axilSlaveRegisterW(slv(conv_unsigned(i*32+48,12)),  0, v.channelConfig(i).bsaActiveWidth);
+      axilSlaveRegisterW(slv(conv_unsigned(i*32+32,9)),  0, v.channelConfig(i).enabled);
+      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,9)),  0, v.channelConfig(i).rateSel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*32+36,9)), 13, v.channelConfig(i).destSel);
+      axilSlaveRegisterR(slv(conv_unsigned(i*32+40,9)), muxSlVectorArray(eventCount, i));
     end loop;  -- i
-    axilSlaveRegisterR(slv(conv_unsigned(12*32+40,12)), muxSlVectorArray(eventCount, CHANNELS_C));
+    axilSlaveRegisterR(slv(conv_unsigned(12*32+40,9)), muxSlVectorArray(eventCount, CHANNELS_C));
 
+    if DMA_ENABLE_G then
+      axilSlaveRegisterW(X"000", 0, v.irqEnable);
+      axilSlaveRegisterR(X"004", sReg);
+      axilSlaveRegisterR(X"008", partitionAddr);
+      axilSlaveRegisterR(X"00C", gtxDebug);
+      axilSlaveRegisterW(X"018", 0, v.dmaFullThr);
+      for i in 0 to CHANNELS_C-1 loop
+        axilSlaveRegisterW(slv(conv_unsigned(i*32+32,9)),  1, v.channelConfig(i).bsaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*32+32,9)),  2, v.channelConfig(i).dmaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*32+44,9)),  0, v.channelConfig(i).bsaActiveDelay);
+        axilSlaveRegisterW(slv(conv_unsigned(i*32+44,9)), 20, v.channelConfig(i).bsaActiveSetup);
+        axilSlaveRegisterW(slv(conv_unsigned(i*32+48,9)),  0, v.channelConfig(i).bsaActiveWidth);
+      end loop;  -- i
+    end if;
+    
     axilSlaveDefault(AXI_RESP_OK_C);
     rin <= v;
   end process;

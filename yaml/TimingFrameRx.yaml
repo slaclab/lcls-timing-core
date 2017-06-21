@@ -162,6 +162,15 @@ TimingFrameRx: &TimingFrameRx
       mode: RW
       description: Buffer bypass reset status
     #########################################################
+    VersionErr:
+      at:
+        offset: 0x0021
+      class: IntField
+      name: VersionErr
+      sizeBits: 1
+      mode: RO
+      description: Version check error
+    #########################################################
     MsgDelay:
       at:
         offset: 0x0024
@@ -171,6 +180,16 @@ TimingFrameRx: &TimingFrameRx
       lsBit: 0
       mode: RW
       description: LCLS-II timing frame pipeline delay (186MHz clks)
+    #########################################################
+    MsgDelayRst:
+      at:
+        offset: 0x0027
+      class: IntField
+      name: MsgDelayRst
+      sizeBits: 1
+      lsBit: 7
+      mode: RW
+      description: Reset timing frame pipeline with new value
     #########################################################
     TxClkCount:
       at:
@@ -201,6 +220,15 @@ TimingFrameRx: &TimingFrameRx
       lsBit: 0
       mode: RO
       description: Buffer bypass reset count
+    #########################################################
+    FrameVersion:
+      at:
+        offset: 0x0030
+      class: IntField
+      name: FrameVersion
+      sizeBits: 32
+      mode: RO
+      description: Received timing frame version
     #########################################################
     C_RxReset:
       class: SequenceCommand

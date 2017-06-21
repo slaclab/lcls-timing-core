@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2017-02-11
+-- Last update: 2017-06-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -138,11 +138,12 @@ package TPGPkg is
   type SequencerStateArray  is array (natural range <>) of SequencerState;
 
   type BeamDiagStatusType is record
-    latch    : sl;
+    latch    : sl;                     -- source for interrupt
     buffered : sl;
-    index    : slv(1 downto 0);
-    buffers  : Slv32Array(3 downto 0);
+    index    : slv(1 downto 0);        -- last buffer latched
+    buffers  : Slv32Array(3 downto 0); -- tags and latch source
   end record;
+
   constant BEAM_DIAG_STATUS_INIT_C : BeamDiagStatusType := (
     latch    => '0',
     buffered => '0',
@@ -181,6 +182,8 @@ package TPGPkg is
                           bsaStatus     : Slv32Array(63 downto 0);
                           seqState      : SequencerStateArray(MAXSEQDEPTH-1 downto 0);
                           bcsFault      : slv(BCSWIDTH-1 downto 0);
+                          mpsLatch      : Slv4Array(15 downto 0);  -- latched value
+                          mpsState      : Slv4Array(15 downto 0);  -- current status
                         end record;
 
   constant SEQUENCER_STATE_INIT_C : SequencerState := (
@@ -217,7 +220,9 @@ package TPGPkg is
     ctrvalv       => (others=>(others=>'0')),
     bsaStatus     => (others=>(others=>'0')),
     seqState      => (others=>SEQUENCER_STATE_INIT_C),
-    bcsFault      => (others=>'0') );
+    bcsFault      => (others=>'0'),
+    mpsLatch      => (others=>(others=>'0')),
+    mpsState      => (others=>(others=>'0')) );
 
   type BeamDiagControlType is record
     manfault   : sl;
@@ -255,7 +260,8 @@ package TPGPkg is
                           allowRequired    : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           destnControl     : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           --
-                          beamEnergy    : Slv16Array(3 downto 0);
+                          beamEnergy    : Slv16Array(0 to 3);
+                          photonWavelen : Slv16Array(0 to 1);
                           irqEnable     : sl;
                           irqFifoEnable : sl;
                           irqIntvEnable : sl;
@@ -319,13 +325,14 @@ package TPGPkg is
     allowRequired     => (others=>x"0000"),
     destnControl      => (others=>x"0000"),
     beamEnergy        => (others=>(others=>'0')),
+    photonWavelen     => (others=>(others=>'0')),
     irqEnable         => '0',
     irqFifoEnable     => '0',
     irqIntvEnable     => '0',
     irqBsaEnable      => '0',
     irqFaultEnable    => '0',
     irqFifoRd         => '0',
-    diagSeq           => (others=>'0'),
+    diagSeq           => toSlv(MAXSEQDEPTH-1,7),
     beamDiag          => BEAM_DIAG_CONTROL_INIT_C,
     ctrlock           => '0',
     ctrdefv           => (others=>CTRDEF_INIT_C),

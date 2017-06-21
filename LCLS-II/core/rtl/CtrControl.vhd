@@ -65,11 +65,17 @@ architecture CtrControl of CtrControl is
    signal rin : RegType;
 
    signal rateSel : sl;
-
+   signal ctrlatch : sl;
+   
 begin
 
    count <= r.latch;
-  
+
+   U_Latch : entity work.SynchronizerEdge
+     port map ( clk        => txclk,
+                dataIn     => ctrrst,
+                risingEdge => ctrlatch);
+   
    U_Select : entity work.EventSelect
      port map ( clk       => txclk,
                 rateType  => ctrdef.rateSel(12 downto 11),
@@ -85,7 +91,7 @@ begin
                 rateSel   => rateSel );
                 
 
-   comb: process (r, ctrrst, txrst, enable, ctrdef, beamSeq, rateSel) is
+   comb: process (r, ctrlatch, txrst, enable, ctrdef, beamSeq, rateSel) is
      variable v : RegType;
      variable destSel : sl;
    begin
@@ -107,7 +113,7 @@ begin
        
      end if;
 
-     if ctrrst='1' then
+     if ctrlatch='1' then
        v.latch := r.count;
        v.count := (others=>'0');
      end if;

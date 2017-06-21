@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2016-10-16
+-- Last update: 2017-03-24
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ begin
 
   frame.mpsLimit       <= (others => '0');
   frame.mpsClass       <= (others => (others => '0'));
-  frame.calibrationGap <= '0';
+  frame.mpsValid       <= '0';
 
   -- resources
   status.nbeamseq    <= toSlv(0, status.nbeamseq'length);

@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2017-02-09
+-- Last update: 2017-04-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -92,10 +92,15 @@ begin
   dataBuff.dtype                            <= X"0001";
   dataBuff.version                          <= X"0001";
 
+  dataBuff.dmod(14 downto 0)                <= (others=>'0');
   dataBuff.dmod(15)                         <= fixedRates_i(6); -- MODULO720_MASK
+  dataBuff.dmod(31 downto 16)               <= (others=>'0');
   dataBuff.dmod(37 downto 32)               <= r.timeSlotBit;
+  dataBuff.dmod(3*32+28 downto 38)          <= (others=>'0');
   dataBuff.dmod( 3*32+29+2 downto 3*32+29 ) <= r.timeSlot;
+  dataBuff.dmod( 5*32-1    downto 4*32 )    <= (others=>'0');
   dataBuff.dmod(                  5*32+ 0 ) <= '1'; -- fake MPS_VALID in MOD6
+  dataBuff.dmod( 191       downto 5*32+ 1 ) <= (others=>'0');
   
   BaseEnableDivider : entity work.Divider
     generic map (
@@ -109,8 +114,11 @@ begin
       divisor  => SbaseDivisor,
       trigO    => baseEnable);
 
-  eventCodes(1) <= '1';
-  eventCodes(9) <= '1';
+  eventCodes(9 downto 0) <= "1000000010";  -- 360Hz
+  GEN_EC : for j in 1 to 6 generate
+    eventCodes(j*10+9 downto j*10+FixedRateDiv'length) <= (others=>'0');
+  end generate;
+  eventCodes(255 downto 70) <= (others=>'0');
   
   FixedDivider_loop : for i in 0 to FixedRateDiv'length-1 generate
     U_FixedDivider_1 : entity work.Divider
