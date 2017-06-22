@@ -357,27 +357,27 @@ class EvrV1Reg(pr.Device):
                             stride       =  4,
                         )
 
-        self.addVariables(  name         = "MapRam1",
-                            description  = "Event Mapping RAM 1 [1023:0]",
-                            offset       =  0x4000,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                            number       =  1024,
-                            stride       =  4,
-                            hidden       =  True,
-                        )
+        # self.addVariables(  name         = "MapRam1",
+                            # description  = "Event Mapping RAM 1 [1023:0]",
+                            # offset       =  0x4000,
+                            # bitSize      =  32,
+                            # bitOffset    =  0x00,
+                            # base         = "hex",
+                            # mode         = "RO",
+                            # number       =  1024,
+                            # stride       =  4,
+                            # hidden       =  True,
+                        # )
                      
-        self.addVariables(  name         = "MapRam2",
-                            description  = "Event Mapping RAM 2 [1023:0]",
-                            offset       =  0x6000,
-                            bitSize      =  32,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                            number       =  1024,
-                            stride       =  4,
-                            hidden       =  True,
-                        )
-
+        # self.addVariables(  name         = "MapRam2",
+                            # description  = "Event Mapping RAM 2 [1023:0]",
+                            # offset       =  0x6000,
+                            # bitSize      =  32,
+                            # bitOffset    =  0x00,
+                            # base         = "hex",
+                            # mode         = "RO",
+                            # number       =  1024,
+                            # stride       =  4,
+                            # hidden       =  True,
+                        # )
+                        
