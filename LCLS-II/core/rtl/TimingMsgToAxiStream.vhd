@@ -125,7 +125,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_1 : entity work.AxiStreamFifo
+   AxiStreamFifo_1 : entity work.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
