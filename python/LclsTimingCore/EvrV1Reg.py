@@ -21,14 +21,21 @@ import pyrogue as pr
 
 class EvrV1Reg(pr.Device):
     def __init__(   self,       
-                    name        = "EvrV1Reg",
-                    description = "LCLS-I EVR Registers",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                    expand      =  False,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, expand=expand)
+        name        = "EvrV1Reg",
+        description = "LCLS-I EVR Registers",
+        memBase     =  None,
+        offset      =  0x00,
+        hidden      =  False,
+        expand      =  False,
+    ):
+        super().__init__(
+            name        = name,
+            description = description,
+            memBase     = memBase,
+            offset      = offset,
+            hidden      = hidden,
+            expand      = expand,
+        )
 
         ##############################
         # Variables
