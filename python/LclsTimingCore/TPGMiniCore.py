@@ -43,288 +43,288 @@ class TPGMiniCore(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TxReset",
             description  = "Reset transmit link",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TxPolarity",
             description  = "Invert transmit link polarity",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TxLoopback",
             description  = "Set transmit link loopback",
             offset       =  0x00,
             bitSize      =  3,
             bitOffset    =  0x02,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TxInhibit",
             description  = "Set transmit link inhibit",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x05,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BaseControl",
             description  = "Base rate trigger divisor",
             offset       =  0x04,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "PulseIdWr",
             description  = "Pulse ID write",
             offset       =  0x08,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "PulseIdRd",
             description  = "Pulse ID read",
             offset       =  0x08,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TStampWr",
             description  = "Time stamp Write",
             offset       =  0x10,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TStampRd",
             description  = "Time stamp read",
             offset       =  0x10,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       =  0x18,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  10,
             stride       =  4,
             hidden       =  True,
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RateReload",
             description  = "Loads cached fixed rate marker divisors",
             offset       =  0x40,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "NBeamSeq",
             description  = "Number of beam request engines",
             offset       =  0x4C,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "NControlSeq",
             description  = "Number of control sequence engines",
             offset       =  0x4C,
             bitSize      =  8,
             bitOffset    =  8,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "NArraysBsa",
             description  = "Number of BSA arrays",
             offset       =  0x4C,
             bitSize      =  8,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "SeqAddrLen",
             description  = "Number of beam sequence engines",
             offset       =  0x4C,
             bitSize      =  4,
             bitOffset    =  24,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "NAllowSeq",
             description  = "Number of beam allow engines",
             offset       =  0x4C,
             bitSize      =  4,
             bitOffset    =  28,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BsaCompleteWr",
             description  = "BSA complete write",
             offset       =  0x50,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BsaCompleteRd",
             description  = "BSA complete read",
             offset       =  0x50,
             bitSize      =  64,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "BsaRateSel",
             description  = "BSA def rate selection",
             offset       =  0x200,
             bitSize      =  13,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "BsaDestSel",
             description  = "BSA def destination selection",
             offset       =  0x200,
             bitSize      =  19,
             bitOffset    =  13,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "BsaNtoAvg",
             description  = "BSA def num acquisitions to average",
             offset       =  0x204,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "BsaAvgToWr",
             description  = "BSA def num averages to record",
             offset       =  0x204,
             bitSize      =  16,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "PllCnt",
             description  = "Count of PLL status changes",
             offset       =  0x500,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ClkCnt",
             description  = "Count of local 186M clock",
             offset       =  0x504,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "SyncErrCnt",
             description  = "Count of 71k sync errors",
             offset       =  0x508,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "CountInterval",
             description  = "Interval counters update period",
             offset       =  0x50C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BaseRateCount",
             description  = "Count of base rate triggers",
             offset       =  0x510,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 

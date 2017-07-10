@@ -41,39 +41,39 @@ class TPGSeqJump(pr.Device):
         # Variables
         ##############################
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "StartAddr",
             description  = "Sequence start offset",
             offset       =  0x00,
             bitSize      =  12,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  1024,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "Class",
             description  = "Sequence power class",
             offset       =  0x01,
             bitSize      =  4,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  1024,
             stride       =  4,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "StartSync",
             description  = "Start synchronization condition",
             offset       =  0x02,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
             number       =  1024,
             stride       =  4,
-        )
+        ))
 

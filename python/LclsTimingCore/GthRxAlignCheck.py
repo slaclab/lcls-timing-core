@@ -41,59 +41,59 @@ class GthRxAlignCheck(pr.Device):
         # Variables
         ##############################
 
-        # self.addVariables(  
+        # self.add(pr.RemoteVariable(   
             # name         = "PhaseCount",
             # description  = "Timing frame phase",
             # offset       =  0x00,
             # bitSize      =  16,
             # bitOffset    =  0x00,
-            # base         = "hex",
+            # base         = pr.UInt,
             # mode         = "RO",
             # number       =  128,
             # stride       =  2,
             # hidden       =  True,
         # )
                         
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "PhaseCount",
             description  = "Timing frame phase",
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  64,
             stride       =  4,
             hidden       =  True,
-        )                        
+        ))                        
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "PhaseTarget",
             description  = "Timing frame phase lock target",
             offset       =  0x100,
             bitSize      =  7,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ResetLen",
             description  = "Reset length",
             offset       =  0x100,
             bitSize      =  4,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "LastPhase",
             description  = "Last timing frame phase seen",
             offset       =  0x104,
             bitSize      =  7,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 

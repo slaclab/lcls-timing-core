@@ -41,63 +41,63 @@ class TPGSeqState(pr.Device):
         # Variables
         ##############################
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SeqIndex",
             description  = "Sequencer instruction at offset",
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SeqCondACount",
             description  = "BSA condition A counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SeqCondBCount",
             description  = "BSA condition B counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  64,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SeqCondCCount",
             description  = "BSA condition C counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        )
+        ))
 
-        self.addVariables(  
+        self.add(pr.RemoteVariable(   
             name         = "SeqCondDCount",
             description  = "BSA condition D counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        )
+        ))
 

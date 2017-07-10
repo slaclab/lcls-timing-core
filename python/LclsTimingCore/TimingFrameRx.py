@@ -42,195 +42,195 @@ class TimingFrameRx(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "sofCount",
             description  = "Start of frame count",
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "eofCount",
             description  = "End of frame count",
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "FidCount",
             description  = "Valid frame count",
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "CrcErrCount",
             description  = "CRC error count",
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxClkCount",
             description  = "Recovered clock count div 16",
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxRstCount",
             description  = "Receive link reset count",
             offset       =  0x14,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxDecErrCount",
             description  = "Receive 8b/10b decode error count",
             offset       =  0x18,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxDspErrCount",
             description  = "Receive disparity error count",
             offset       =  0x1C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxCountReset",
             description  = "Reset receive counters",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxLinkUp",
             description  = "Receive link status",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxPolarity",
             description  = "Invert receive link polarity",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x02,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxReset",
             description  = "Reset receive link",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x03,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "WO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "ClkSel",
             description  = "Select LCLS-I/LCLS-II Timing",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x04,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "RxDown",
             description  = "Rx down latch status",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x05,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BypassRst",
             description  = "Buffer bypass reset status",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x06,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "MsgDelay",
             description  = "LCLS-II timing frame pipeline delay (186MHz clks)",
             offset       =  0x24,
             bitSize      =  20,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "TxClkCount",
             description  = "Transmit clock counter div 16",
             offset       =  0x28,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BypassDoneCount",
             description  = "Buffer bypass done count",
             offset       =  0x2C,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "BypassResetCount",
             description  = "Buffer bypass reset count",
             offset       =  0x2C,
             bitSize      =  16,
             bitOffset    =  16,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
-        )
+        ))
 
         ##############################
         # Commands

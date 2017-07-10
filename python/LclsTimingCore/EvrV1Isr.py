@@ -41,13 +41,13 @@ class EvrV1Isr(pr.Device):
         # Variables
         ##############################
 
-        self.addVariable(   
+        self.add(pr.RemoteVariable(    
             name         = "IsrSelect",
             description  = "0x1 = Software ISR, 0x0 = Firmware ISR",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RW",
-        )
+        ))
 
