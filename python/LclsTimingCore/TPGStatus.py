@@ -41,7 +41,7 @@ class TPGStatus(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "BsaStat",
             description  = "BSA status num averaged/written",
             offset       =  0x00,
@@ -51,7 +51,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  64,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "CountPLL",
@@ -103,7 +103,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "CountTrig",
             description  = "External trigger count in interval",
             offset       =  0x114,
@@ -113,9 +113,9 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  12,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "CountSeq",
             description  = "Sequence requests in interval",
             offset       =  0x144,
@@ -125,7 +125,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  64,
             stride       =  2,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "CountRxClks",

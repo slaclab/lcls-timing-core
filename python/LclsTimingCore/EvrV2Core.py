@@ -121,7 +121,7 @@ class Device(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "ChannelBsaEnable",
             description  = "Enable BSA channel",
             offset       =  0x20,
@@ -131,9 +131,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables( 
             name         = "ChannelDmaEnable",
             description  = "",
             offset       =  0x20,
@@ -143,7 +143,7 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "ChannelRateSel",
@@ -155,7 +155,7 @@ class Device(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ChannelDestSel",
             description  = "Channel event destination selection",
             offset       =  0x25,
@@ -165,9 +165,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ChannelEventCnt",
             description  = "Channel event counts",
             offset       =  0x28,
@@ -177,9 +177,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "ChannelBsaDelay",
             description  = "Channel BSA active delay",
             offset       =  0x2C,
@@ -189,9 +189,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "ChannelBsaSetup",
             description  = "Channel BSA active setup",
             offset       =  0x2E,
@@ -201,9 +201,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "ChannelBsaWidth",
             description  = "Channel BSA active width",
             offset       =  0x30,
@@ -213,7 +213,7 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  32,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "GlobalEventCnt",
@@ -225,7 +225,7 @@ class Device(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "TriggerChannel",
             description  = "Channel used for event selection",
             offset       =  0x200,
@@ -235,9 +235,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  16,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "TriggerPolarity",
             description  = "Trigger polarity (0=negative, 1=positive)",
             offset       =  0x202,
@@ -247,9 +247,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  16,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "TriggerEnable",
             description  = "Trigger enable",
             offset       =  0x203,
@@ -259,9 +259,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  16,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "TriggerDelay",
             description  = "Trigger width (186MHz clocks)",
             offset       =  0x208,
@@ -271,9 +271,9 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  16,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "TriggerFineDelay",
             description  = "Trigger fine delay (82.2 ps steps)",
             offset       =  0x20C,
@@ -283,5 +283,5 @@ class Device(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  16,
-        ))
+        )
         

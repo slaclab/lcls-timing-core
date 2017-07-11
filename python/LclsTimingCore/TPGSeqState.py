@@ -41,7 +41,7 @@ class TPGSeqState(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "SeqIndex",
             description  = "Sequencer instruction at offset",
             offset       =  0x00,
@@ -51,9 +51,9 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "SeqCondACount",
             description  = "BSA condition A counter",
             offset       =  0x04,
@@ -63,9 +63,9 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "SeqCondBCount",
             description  = "BSA condition B counter",
             offset       =  0x04,
@@ -75,9 +75,9 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  64,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "SeqCondCCount",
             description  = "BSA condition C counter",
             offset       =  0x04,
@@ -87,9 +87,9 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "SeqCondDCount",
             description  = "BSA condition D counter",
             offset       =  0x04,
@@ -99,5 +99,5 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
-        ))
+        )
 

@@ -241,7 +241,7 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Pulse00",
             description  = "Pulse 0 Registers",
             offset       =  0x200,
@@ -251,9 +251,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Pulse01",
             description  = "Pulse 1 Registers",
             offset       =  0x210,
@@ -263,9 +263,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Pulse02",
             description  = "Pulse 2 Registers",
             offset       =  0x220,
@@ -275,9 +275,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables( 
             name         = "Pulse03",
             description  = "Pulse 3 Registers",
             offset       =  0x230,
@@ -287,9 +287,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "Pulse04",
             description  = "Pulse 4 Registers",
             offset       =  0x240,
@@ -299,9 +299,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "Pulse05",
             description  = "Pulse 5 Registers",
             offset       =  0x250,
@@ -311,9 +311,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "Pulse06",
             description  = "Pulse 6 Registers",
             offset       =  0x260,
@@ -323,9 +323,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables( 
             name         = "Pulse07",
             description  = "Pulse 7 Registers",
             offset       =  0x270,
@@ -335,9 +335,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Pulse08",
             description  = "Pulse 8 Registers",
             offset       =  0x280,
@@ -347,9 +347,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "Pulse09",
             description  = "Pulse 9 Registers",
             offset       =  0x290,
@@ -359,9 +359,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables( 
             name         = "Pulse10",
             description  = "Pulse 10 Registers",
             offset       =  0x2A0,
@@ -371,9 +371,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "Pulse11",
             description  = "Pulse 11 Registers",
             offset       =  0x2B0,
@@ -383,9 +383,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "OutputMap",
             description  = "Front Panel Output Map Registers [11:0]",
             offset       =  0x440,
@@ -395,9 +395,9 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
             number       =  12,
             stride       =  4,
-        ))
+        )
 
-        # self.add(pr.RemoteVariable(   
+        # self.addRemoteVariables(   
             # name         = "MapRam1",
             # description  = "Event Mapping RAM 1 [1023:0]",
             # offset       =  0x4000,
@@ -408,9 +408,9 @@ class EvrV1Reg(pr.Device):
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,
-        # ))
+        # )
                      
-        # self.add(pr.RemoteVariable(   
+        # self.addRemoteVariables(   
             # name         = "MapRam2",
             # description  = "Event Mapping RAM 2 [1023:0]",
             # offset       =  0x6000,
@@ -421,5 +421,5 @@ class EvrV1Reg(pr.Device):
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,
-        # ))
+        # )
                         

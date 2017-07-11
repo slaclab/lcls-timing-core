@@ -161,7 +161,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "ACRateDiv",
             description  = "Power line synch rate marker divisors",
             offset       =  0x20,
@@ -171,9 +171,9 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  6,
             stride       =  1,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       =  0x40,
@@ -183,7 +183,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  10,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "RateReload",
@@ -275,7 +275,7 @@ class TPGControl(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "BeamSeqCntl",
             description  = "Beam sequence arbitration control",
             offset       =  0x80,
@@ -285,7 +285,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  16,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "SeqResetL",
@@ -307,7 +307,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BeamEnergy",
             description  = "Beam energy meta data",
             offset       =  0x120,
@@ -317,7 +317,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "BeamDiagCntl",
@@ -329,7 +329,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BeamDiagStat",
             description  = "Beam diagnostic latched status",
             offset       =  0x1E8,
@@ -339,7 +339,7 @@ class TPGControl(pr.Device):
             mode         = "RO",
             number       =  4,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "BsaCompleteL",
@@ -361,7 +361,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BsaEventSel",
             description  = "Bsa definition rate/destination selection",
             offset       =  0x200,
@@ -371,9 +371,9 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  64,
             stride       =  8,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BsaStatSel",
             description  = "Bsa definition samples to average/acquire",
             offset       =  0x204,
@@ -383,5 +383,5 @@ class TPGControl(pr.Device):
             mode         = "RW",
             number       =  64,
             stride       =  8,
-        ))
+        )
 

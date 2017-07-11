@@ -133,7 +133,7 @@ class TPGMiniCore(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       =  0x18,
@@ -144,7 +144,7 @@ class TPGMiniCore(pr.Device):
             number       =  10,
             stride       =  4,
             hidden       =  True,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "RateReload",
@@ -226,7 +226,7 @@ class TPGMiniCore(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(  
             name         = "BsaRateSel",
             description  = "BSA def rate selection",
             offset       =  0x200,
@@ -237,9 +237,9 @@ class TPGMiniCore(pr.Device):
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BsaDestSel",
             description  = "BSA def destination selection",
             offset       =  0x200,
@@ -250,9 +250,9 @@ class TPGMiniCore(pr.Device):
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(    
             name         = "BsaNtoAvg",
             description  = "BSA def num acquisitions to average",
             offset       =  0x204,
@@ -263,9 +263,9 @@ class TPGMiniCore(pr.Device):
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        ))
+        )
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "BsaAvgToWr",
             description  = "BSA def num averages to record",
             offset       =  0x204,
@@ -276,7 +276,7 @@ class TPGMiniCore(pr.Device):
             number       =  NARRAYSBSA,
             stride       =  8,
             hidden       =  True,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "PllCnt",

@@ -41,7 +41,7 @@ class GthRxAlignCheck(pr.Device):
         # Variables
         ##############################
 
-        # self.add(pr.RemoteVariable(   
+        # self.addRemoteVariables(   
             # name         = "PhaseCount",
             # description  = "Timing frame phase",
             # offset       =  0x00,
@@ -54,7 +54,7 @@ class GthRxAlignCheck(pr.Device):
             # hidden       =  True,
         # )
                         
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "PhaseCount",
             description  = "Timing frame phase",
             offset       =  0x00,
@@ -65,7 +65,7 @@ class GthRxAlignCheck(pr.Device):
             number       =  64,
             stride       =  4,
             hidden       =  True,
-        ))                        
+        )                       
 
         self.add(pr.RemoteVariable(    
             name         = "PhaseTarget",

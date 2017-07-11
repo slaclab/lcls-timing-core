@@ -41,7 +41,7 @@ class LclsTriggerPulse(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(   
+        self.addRemoteVariables(   
             name         = "OpCodeMask",
             description  = "Opcode mask 256 bits to connect the pulse to any combination of opcodes",
             offset       =  0x00,
@@ -51,7 +51,7 @@ class LclsTriggerPulse(pr.Device):
             mode         = "RW",
             number       =  8,
             stride       =  4,
-        ))
+        )
 
         self.add(pr.RemoteVariable(    
             name         = "PulseDelay",
