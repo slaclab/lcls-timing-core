@@ -21,21 +21,10 @@ import pyrogue as pr
 
 class TPGControl(pr.Device):
     def __init__(   self,       
-        name        = "TPGControl",
-        description = "Timing pattern generator control",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "TPGControl",
+            description = "Timing pattern generator control",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables

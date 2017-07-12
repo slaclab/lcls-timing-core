@@ -22,21 +22,10 @@ import time
 
 class TimingFrameRx(pr.Device):
     def __init__(   self,       
-        name        = "TimingFrameRx",
-        description = "Status of timing frame reception",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "TimingFrameRx",
+            description = "Status of timing frame reception",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables

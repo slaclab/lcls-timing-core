@@ -21,21 +21,10 @@ import pyrogue as pr
 
 class LclsTriggerPulse(pr.Device):
     def __init__(   self,       
-        name        = "LclsTriggerPulse",
-        description = "Timing trigger pulse configuration",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  False,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "LclsTriggerPulse",
+            description = "Timing trigger pulse configuration",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables

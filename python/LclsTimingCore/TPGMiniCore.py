@@ -21,24 +21,11 @@ import pyrogue as pr
 
 class TPGMiniCore(pr.Device):
     def __init__(   self,       
-        name        = "TPGMiniCore",
-        description = "Embedded timing pattern generator",
-        memBase     =  None,
-        offset      =  0x00,
-        NARRAYSBSA  =  2,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
-
-
+            name        = "TPGMiniCore",
+            description = "Embedded timing pattern generator",
+            NARRAYSBSA  =  2,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
         ##############################
         # Variables
         ##############################

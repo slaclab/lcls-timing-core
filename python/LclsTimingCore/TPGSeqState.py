@@ -21,21 +21,10 @@ import pyrogue as pr
 
 class TPGSeqState(pr.Device):
     def __init__(   self,       
-        name        = "TPGSeqState",
-        description = "Timing pattern sequencer state",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "TPGSeqState",
+            description = "Timing pattern sequencer state",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables

@@ -21,21 +21,10 @@ import pyrogue as pr
 
 class TPGSeqJump(pr.Device):
     def __init__(   self,       
-        name        = "TPGSeqJump",
-        description = "Timing pattern sequencer jump programming",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "TPGSeqJump",
+            description = "Timing pattern sequencer jump programming",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables

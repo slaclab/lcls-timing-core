@@ -19,23 +19,12 @@
 
 import pyrogue as pr
 
-class Device(pr.Device):
+class EvrV2Core(pr.Device):
     def __init__(   self,       
-        name        = "EvrV2Core",
-        description = "LCLS-II Timing Receiver module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "EvrV2Core",
+            description = "LCLS-II Timing Receiver module",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
