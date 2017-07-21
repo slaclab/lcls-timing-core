@@ -21,81 +21,70 @@ import pyrogue as pr
 
 class TPGSeqState(pr.Device):
     def __init__(   self,       
-        name        = "TPGSeqState",
-        description = "Timing pattern sequencer state",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-        )
+            name        = "TPGSeqState",
+            description = "Timing pattern sequencer state",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariables(  
+        self.addRemoteVariables(    
             name         = "SeqIndex",
             description  = "Sequencer instruction at offset",
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
         )
 
-        self.addVariables(  
+        self.addRemoteVariables(   
             name         = "SeqCondACount",
             description  = "BSA condition A counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
         )
 
-        self.addVariables(  
+        self.addRemoteVariables(   
             name         = "SeqCondBCount",
             description  = "BSA condition B counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  64,
         )
 
-        self.addVariables(  
+        self.addRemoteVariables(   
             name         = "SeqCondCCount",
             description  = "BSA condition C counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
         )
 
-        self.addVariables(  
+        self.addRemoteVariables(    
             name         = "SeqCondDCount",
             description  = "BSA condition D counter",
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = "hex",
+            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
