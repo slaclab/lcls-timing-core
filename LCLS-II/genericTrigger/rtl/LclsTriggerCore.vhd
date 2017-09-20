@@ -2,7 +2,7 @@
 -- File       : LclsTriggerCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-08
--- Last update: 2016-11-07
+-- Last update: 2017-09-20
 -------------------------------------------------------------------------------
 -- Description:  Triggered if opcode received.
 --               Opcode = oth 0 (Disabled)
@@ -47,9 +47,9 @@ entity LclsTriggerCore is
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Timing Interface
       recClk          : in  sl;
@@ -60,12 +60,12 @@ entity LclsTriggerCore is
       timeStamp_o     : out slv(63 downto 0);
       pulseId_o       : out slv(31 downto 0);
       bsa_o           : out slv(127 downto 0);
-      dmod_o          : out slv(191 downto 0));   
+      dmod_o          : out slv(191 downto 0));
 end LclsTriggerCore;
 
 architecture mapping of LclsTriggerCore is
 
-   constant NUM_AXI_MASTERS_C : natural := NUM_OF_TRIG_PULSES_G;
+   constant NUM_AXI_MASTERS_C : positive := NUM_OF_TRIG_PULSES_G;
 
    constant AXIL_CROSSBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) :=
       genAxiLiteConfig(NUM_AXI_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
@@ -78,27 +78,35 @@ architecture mapping of LclsTriggerCore is
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
-   
+
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
-         MASTERS_CONFIG_G   => AXIL_CROSSBAR_CONFIG_C)
-      port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => axilWriteMaster,
-         sAxiWriteSlaves(0)  => axilWriteSlave,
-         sAxiReadMasters(0)  => axilReadMaster,
-         sAxiReadSlaves(0)   => axilReadSlave,
-         mAxiWriteMasters    => axilWriteMasters,
-         mAxiWriteSlaves     => axilWriteSlaves,
-         mAxiReadMasters     => axilReadMasters,
-         mAxiReadSlaves      => axilReadSlaves);
+   GEN_XBAR : if (NUM_AXI_MASTERS_C /= 1) generate
+      U_XBAR : entity work.AxiLiteCrossbar
+         generic map (
+            TPD_G              => TPD_G,
+            NUM_SLAVE_SLOTS_G  => 1,
+            NUM_MASTER_SLOTS_G => NUM_AXI_MASTERS_C,
+            MASTERS_CONFIG_G   => AXIL_CROSSBAR_CONFIG_C)
+         port map (
+            axiClk              => axilClk,
+            axiClkRst           => axilRst,
+            sAxiWriteMasters(0) => axilWriteMaster,
+            sAxiWriteSlaves(0)  => axilWriteSlave,
+            sAxiReadMasters(0)  => axilReadMaster,
+            sAxiReadSlaves(0)   => axilReadSlave,
+            mAxiWriteMasters    => axilWriteMasters,
+            mAxiWriteSlaves     => axilWriteSlaves,
+            mAxiReadMasters     => axilReadMasters,
+            mAxiReadSlaves      => axilReadSlaves);
+   end generate;
 
+   BYPASS_XBAR : if (NUM_AXI_MASTERS_C = 1) generate
+      axilReadMasters(0)  <= axilReadMaster;
+      axilReadSlave       <= axilReadSlaves(0);
+      axilWriteMasters(0) <= axilWriteMaster;
+      axilWriteSlave      <= axilWriteSlaves(0);
+   end generate;
 
    U_TimingRegStb : entity work.LclsTriggerRegisterStrobe
       generic map (
@@ -140,5 +148,5 @@ begin
             strobe_i        => timingBus_i.strobe,
             pulse_o         => trigPulse_o(i));
    end generate GEN_TRIG_PULSE;
-   
+
 end architecture mapping;
