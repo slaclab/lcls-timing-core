@@ -37,19 +37,19 @@ use work.TimingPkg.all;
 
 entity LclsTriggerCore is
    generic (
-      TPD_G                : time                  := 1 ns;
-      AXIL_BASE_ADDR_G     : slv(31 downto 0)      := (others => '0');
-      AXI_ERROR_RESP_G     : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      NUM_OF_TRIG_PULSES_G : positive              := 3;
-      DELAY_WIDTH_G        : integer range 1 to 32 := 32;
-      PULSE_WIDTH_G        : integer range 1 to 32 := 32);
+      TPD_G                : time                   := 1 ns;
+      AXIL_BASE_ADDR_G     : slv(31 downto 0)       := (others => '0');
+      AXI_ERROR_RESP_G     : slv(1 downto 0)        := AXI_RESP_SLVERR_C;
+      NUM_OF_TRIG_PULSES_G : positive range 1 to 16 := 3;
+      DELAY_WIDTH_G        : positive range 1 to 32 := 32;
+      PULSE_WIDTH_G        : positive range 1 to 32 := 32);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType
+      axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Timing Interface
       recClk          : in  sl;
