@@ -328,7 +328,7 @@ begin
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
       port map (
-         statusIn(3 downto 0)  => staData12,
+         statusIn(3 downto 0)  => staData12(3 downto 0),
          cntRstIn       => axilR.cntRst,
          rollOverEnIn => "0111",
          cntOut       => axilStatusCounters12,
