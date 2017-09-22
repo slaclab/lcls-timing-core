@@ -21,53 +21,68 @@ import pyrogue as pr
 
 class GthRxAlignCheck(pr.Device):
     def __init__(   self,       
-                    name        = "GthRxAlignCheck",
-                    description = "Timing frame phase lock",
-                    memBase     =  None,
-                    offset      =  0x00,
-                    hidden      =  False,
-                ):
-        super(self.__class__, self).__init__(name, description, memBase, offset, hidden, )
+            name        = "GthRxAlignCheck",
+            description = "Timing frame phase lock",
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.addVariables(  name         = "PhaseCount",
-                            description  = "Timing frame phase",
-                            offset       =  0x00,
-                            bitSize      =  16,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                            number       =  128,
-                            stride       =  2,
-                        )
+        # self.addRemoteVariables(   
+            # name         = "PhaseCount",
+            # description  = "Timing frame phase",
+            # offset       =  0x00,
+            # bitSize      =  16,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "RO",
+            # number       =  128,
+            # stride       =  2,
+            # hidden       =  True,
+        # )
+                        
+        self.addRemoteVariables(   
+            name         = "PhaseCount",
+            description  = "Timing frame phase",
+            offset       =  0x00,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RO",
+            number       =  64,
+            stride       =  4,
+            hidden       =  True,
+        )                       
 
-        self.addVariable(   name         = "PhaseTarget",
-                            description  = "Timing frame phase lock target",
-                            offset       =  0x100,
-                            bitSize      =  7,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "PhaseTarget",
+            description  = "Timing frame phase lock target",
+            offset       =  0x100,
+            bitSize      =  7,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "ResetLen",
-                            description  = "Reset length",
-                            offset       =  0x102,
-                            bitSize      =  4,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RW",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "ResetLen",
+            description  = "Reset length",
+            offset       =  0x100,
+            bitSize      =  4,
+            bitOffset    =  16,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
-        self.addVariable(   name         = "LastPhase",
-                            description  = "Last timing frame phase seen",
-                            offset       =  0x104,
-                            bitSize      =  7,
-                            bitOffset    =  0x00,
-                            base         = "hex",
-                            mode         = "RO",
-                        )
+        self.add(pr.RemoteVariable(    
+            name         = "LastPhase",
+            description  = "Last timing frame phase seen",
+            offset       =  0x104,
+            bitSize      =  7,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RO",
+        ))
 
