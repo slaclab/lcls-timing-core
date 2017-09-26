@@ -39,6 +39,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -49,6 +50,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -59,6 +61,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -69,6 +72,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -79,6 +83,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -89,6 +94,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -99,6 +105,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -109,6 +116,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -129,6 +137,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x01,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -199,6 +208,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -209,6 +219,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         self.add(pr.RemoteVariable(    
@@ -219,6 +230,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  16,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1
         ))
 
         ##############################
