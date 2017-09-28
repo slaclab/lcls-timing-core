@@ -32,6 +32,7 @@ entity TimingCore is
 
    generic (
       TPD_G             : time             := 1 ns;
+      DEFAULT_CLK_SEL_G : sl               := '1';
       TPGEN_G           : boolean          := false;
       TPGMINI_G         : boolean          := true;
       AXIL_RINGB_G      : boolean          := true;
@@ -188,6 +189,7 @@ begin
    U_TimingRx : entity work.TimingRx
       generic map (
          TPD_G             => TPD_G,
+         DEFAULT_CLK_SEL_G => DEFAULT_CLK_SEL_G,
          AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
       port map (
          txClk               => gtTxUsrClk,
@@ -342,7 +344,7 @@ begin
        end if;
      end process;
 
-     -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
+     -- Need to synchronize timingClkSelR to appTimingClk so we can use
      -- it to switch between stream and message in appTimingClk domain
      U_Synchronizer_1 : entity work.Synchronizer
        generic map (

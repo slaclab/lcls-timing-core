@@ -34,6 +34,7 @@ use work.TimingPkg.all;
 entity TimingRx is
    generic (
       TPD_G               : time            := 1 ns;
+      DEFAULT_CLK_SEL_G   : sl              := '1';
       AXIL_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
@@ -86,7 +87,7 @@ architecture rtl of TimingRx is
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      clkSel         => '1',
+      clkSel         => DEFAULT_CLK_SEL_G,
       cntRst         => '0',
       rxControl      => TIMING_PHY_CONTROL_INIT_C,
       rxDown         => '0',
