@@ -126,7 +126,7 @@ class TimingFrameRx(pr.Device):
             bitSize      =  1,
             bitOffset    =  0x00,
             base         = pr.UInt,
-            mode         = "WO",
+            mode         = "RW",
         ))
 
         self.add(pr.RemoteVariable(    
@@ -254,7 +254,7 @@ class TimingFrameRx(pr.Device):
             self.RxPllReset.set(1)
             self.RxReset.set(1)
             self.RxCountReset.set(1)
-            time.sleep(0.100)
+            time.sleep(2.0)
             self.RxPllReset.set(0)    
             self.RxReset.set(0)    
             self.RxCountReset.set(0)                      
