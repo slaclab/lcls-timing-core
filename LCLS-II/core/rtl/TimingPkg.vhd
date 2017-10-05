@@ -224,6 +224,7 @@ package TimingPkg is
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
    end record;
+   type TimingBusArray is array (integer range<>) of TimingBusType;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
       valid   => '0',
