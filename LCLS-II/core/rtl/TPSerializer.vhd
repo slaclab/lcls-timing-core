@@ -64,6 +64,9 @@ architecture TPSerializer of TPSerializer is
   signal r : RegType := REG_INIT_C;
   signal rin : RegType;
   
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";   
+  
 begin
 
   streamId      <= toSlv(Id,streamId'length);

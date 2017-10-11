@@ -101,6 +101,12 @@ architecture TPGMini of TPGMini is
   signal streams   : TimingSerialArray(0 downto 0);
   signal streamIds : Slv4Array(0 downto 0);
   signal advance   : slv(0 downto 0);
+  
+  attribute use_dsp48                : string;
+  attribute use_dsp48 of intervalCnt : signal is "yes";   
+  attribute use_dsp48 of pllChanged  : signal is "yes";   
+  attribute use_dsp48 of countSyncE  : signal is "yes";   
+  
 begin
 
   -- Dont know about these inputs yet

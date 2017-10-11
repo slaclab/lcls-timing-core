@@ -90,6 +90,9 @@ architecture TimingSerialDelay of TimingSerialDelay is
   signal dout_msg  : slv(15 downto 0);
   signal firstW    : sl;
   
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";  
+  
 begin
 
    GEN_FRAME: for i in 0 to NWORDS_G-1 generate

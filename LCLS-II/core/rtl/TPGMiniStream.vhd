@@ -85,6 +85,9 @@ architecture TPGMiniStream of TPGMiniStream is
   signal eventCodes     : slv(255 downto 0)  := (others=>'0');
   signal epicsTime      : slv(63 downto 0);
   
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";   
+  
 begin
 
   dataBuff.epicsTime <= epicsTime(31 downto 17) & (r.pulseId(16 downto 0)+toSlv(2,17)) & epicsTime(63 downto 32);
