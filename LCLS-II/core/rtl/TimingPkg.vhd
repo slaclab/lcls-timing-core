@@ -58,6 +58,7 @@ package TimingPkg is
       dataK     => "00",
       decErr    => "00",
       dspErr    => "00" );
+   type TimingRxArray is array (natural range<>) of TimingRxType;
 
    type TimingPhyControlType is record
       reset        : sl;
@@ -72,6 +73,7 @@ package TimingPkg is
       polarity    => '0',
       bufferByRst => '0',
       pllReset    => '0' );
+   type TimingPhyControlArray is array (natural range<>) of TimingPhyControlType;
 
    type TimingPhyStatusType is record
       locked       : sl;
@@ -84,6 +86,7 @@ package TimingPkg is
       resetDone    => '0',
       bufferByDone => '0',
       bufferByErr  => '0' );
+   type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
    
    type TimingSerialType is record
       ready      : sl;                -- tx: new segment ready,
@@ -123,7 +126,6 @@ package TimingPkg is
       bsaDone         : slv(63 downto 0);
       control         : slv16Array(0 to 17);
    end record;
-
    constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
       version         => TIMING_MESSAGE_VERSION_C,
       pulseId         => (others => '0'),
@@ -146,6 +148,7 @@ package TimingPkg is
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
       control         => (others => (others => '0')) );
+   type TimingMessageArray is array (natural range<>) of TimingMessageType;      
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(vector               : slv)               return Slv32Array;
@@ -165,7 +168,6 @@ package TimingPkg is
       edefMajor  : slv(31 downto 0);
       edefInit   : slv(31 downto 0);
    end record;
-
    constant TIMING_DATA_BUFF_INIT_C : TimingDataBuffType := (
       dtype      => (others=>'0'),
       version    => (others=>'0'),
@@ -175,7 +177,6 @@ package TimingPkg is
       edefMinor  => (others=>'0'),
       edefMajor  => (others=>'0'),
       edefInit   => (others=>'0') );
-
    type TimingDataBuffArray is array (natural range<>) of TimingDataBuffType;
    
    type TimingStreamType is record
@@ -183,11 +184,11 @@ package TimingPkg is
       eventCodes      : slv(255 downto 0);
       dbuff           : TimingDataBuffType;
    end record;
-
    constant TIMING_STREAM_INIT_C : TimingStreamType := (
       pulseId         => (others=>'0'),
       eventCodes      => (others=>'0'),
       dbuff           => TIMING_DATA_BUFF_INIT_C );
+   type TimingStreamArray is array (natural range<>) of TimingStreamType;
 
    function toTimingDataBuffType(vector : slv) return TimingDataBuffType;
    function toTimingStreamType(vector : slv) return TimingStreamType;
@@ -208,6 +209,7 @@ package TimingPkg is
       gtRxDataK     => (others=>'0'),
       gtRxDispErr   => (others=>'0'),
       gtRxDecErr    => (others=>'0'));
+   type LclsV1TimingDataArray is array (natural range<>) of LclsV1TimingDataType;
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record
@@ -215,6 +217,7 @@ package TimingPkg is
    end record;
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
       linkUp     => '0');
+   type LclsV2TimingDataArray is array (natural range<>) of LclsV2TimingDataType;
 
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
@@ -224,7 +227,6 @@ package TimingPkg is
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
    end record;
-   type TimingBusArray is array (integer range<>) of TimingBusType;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
       valid   => '0',
@@ -232,6 +234,7 @@ package TimingPkg is
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C);
+   type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record
       dataK      : slv(1 downto 0);
@@ -242,6 +245,7 @@ package TimingPkg is
       dataK      => "00",
       data       => x"0000",
       control    => TIMING_PHY_CONTROL_INIT_C );
+   type TimingPhyArray is array (integer range<>) of TimingPhyType;
 
    --
    --  Experiment timing information (appended by downstream masters)
@@ -266,6 +270,7 @@ package TimingPkg is
    constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
      partitionAddr  => (others=>'1'),
      partitionWord  => (others=>x"800080008000") );
+   type ExptMessageArray is array (integer range<>) of ExptMessageType;
 
    type ExptBusType is record
      message : ExptMessageType;
@@ -274,6 +279,7 @@ package TimingPkg is
    constant EXPT_BUS_INIT_C : ExptBusType := (
      message => EXPT_MESSAGE_INIT_C,
      valid   => '0' );
+   type ExptBusArray is array (integer range<>) of ExptBusType;
    
    function toExptMessageType (vector : slv) return ExptMessageType;
    
