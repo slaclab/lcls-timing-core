@@ -71,7 +71,7 @@ architecture rtl of GthRxAlignCheck is
       rstcnt          : slv(3 downto 0);
       tgt             : slv(6 downto 0);
       mask            : slv(6 downto 0);
-      last            : slv(6 downto 0);
+      last            : slv(15 downto 0);
       sample          : Slv8Array(39 downto 0);
       sAxilWriteSlave : AxiLiteWriteSlaveType;
       sAxilReadSlave  : AxiLiteReadSlaveType;
@@ -85,7 +85,7 @@ architecture rtl of GthRxAlignCheck is
       rstcnt          => toSlv(0, 4),
       tgt             => toSlv(LOCK_VALUE, 7),
       mask            => toSlv(MASK_VALUE, 7),
-      last            => toSlv(0, 7),
+      last            => toSlv(0, 16),
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
