@@ -2,7 +2,7 @@
 -- File       : TimingGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2017-12-14
+-- Last update: 2017-12-15
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTH Core
 -------------------------------------------------------------------------------
@@ -45,6 +45,7 @@ entity TimingGthCoreWrapper is
       stableClk : in  sl;
       -- GTH FPGA IO
       gtRefClk  : in  sl;
+      gtRefClkDiv2  : in  sl;-- Unused in GTHE3, but unused in GTHE4
       gtRxP     : in  sl;
       gtRxN     : in  sl;
       gtTxP     : out sl;
@@ -417,29 +418,6 @@ begin
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out(0)                 => open);
 
-      rxDataK   <= rxCtrl0Out(1 downto 0);
-      rxDispErr <= rxCtrl1Out(1 downto 0);
-      rxDecErr  <= rxCtrl3Out(1 downto 0);
-
-      TIMING_TXCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => txoutclk_out,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => txoutclkb);
-
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => rxoutclk_out,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => rxoutclkb);
    end generate;
 
    LOCREF_G : if not EXTREF_G generate
@@ -508,42 +486,39 @@ begin
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out(0)                 => open);
 
-      rxDataK   <= rxCtrl0Out(1 downto 0);
-      rxDispErr <= rxCtrl1Out(1 downto 0);
-      rxDecErr  <= rxCtrl3Out(1 downto 0);
-
-      TIMING_TXCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => txoutclk_out,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "001",           -- Divide-by-2
-            O       => txoutclkb);
-
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => rxoutclk_out,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => rxoutclkb);
    end generate;
 
+   rxDataK   <= rxCtrl0Out(1 downto 0);
+   rxDispErr <= rxCtrl1Out(1 downto 0);
+   rxDecErr  <= rxCtrl3Out(1 downto 0);
+
+   txoutclkb <= gtRefClkDiv2;
+
+   TIMING_RECCLK_BUFG_GT : BUFG_GT
+      port map (
+         I       => rxoutclk_out,
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => '0',
+         CLRMASK => '1',
+         DIV     => "000",              -- Divide-by-1
+         O       => rxoutclkb);
+
    U_RstSyncTx : entity work.RstSync
-      generic map (TPD_G => TPD_G)
-      port map (clk      => txoutclkb,
-                asyncRst => txControl.reset,
-                syncRst  => txbypassrst);
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => txoutclkb,
+         asyncRst => txControl.reset,
+         syncRst  => txbypassrst);
 
    U_RstSyncRx : entity work.RstSync
-      generic map (TPD_G => TPD_G)
-      port map (clk      => rxoutclkb,
-                asyncRst => rxRst,
-                syncRst  => rxbypassrst);
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => rxoutclkb,
+         asyncRst => rxRst,
+         syncRst  => rxbypassrst);
 
 --   txRst    <= txControl.reset;
 --   rxRst    <= rxControl.reset;
