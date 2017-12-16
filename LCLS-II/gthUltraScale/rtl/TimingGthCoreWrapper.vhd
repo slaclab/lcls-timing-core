@@ -45,7 +45,7 @@ entity TimingGthCoreWrapper is
       stableClk : in  sl;
       -- GTH FPGA IO
       gtRefClk  : in  sl;
-      gtRefClkDiv2  : in  sl;-- Unused in GTHE3, but unused in GTHE4
+      gtRefClkDiv2  : in  sl;-- Unused in GTHE3, but used in GTHE4
       gtRxP     : in  sl;
       gtRxN     : in  sl;
       gtTxP     : out sl;
