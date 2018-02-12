@@ -2,7 +2,7 @@
 -- File       : LclsTriggerPulseReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-04-15
--- Last update: 2017-02-09
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description:  
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ entity LclsTriggerPulseReg is
    generic (
       -- General Configurations
       TPD_G            : time                  := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
       AXI_ADDR_WIDTH_G : positive              := 8;
       DELAY_WIDTH_G    : integer range 1 to 32 := 16;
       PULSE_WIDTH_G    : integer range 1 to 32 := 16);
@@ -90,7 +89,7 @@ begin
       axiSlaveRegister(regCon, x"28", 0, v.polarity);
 
       -- Closeout the AXI-Lite transaction
-      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Reset
       if (axiRst_i = '1') then
