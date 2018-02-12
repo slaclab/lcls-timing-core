@@ -2,7 +2,7 @@
 -- File       : EvrV1Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-04-08
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -63,10 +63,9 @@ begin
    GEN_LITTLE_ENDIAN : if (ENDIAN_G = false) generate
       EvrV1Reg_Inst : entity work.EvrV1Reg
          generic map (
-            TPD_G            => TPD_G,
-            BUILD_INFO_G     => BUILD_INFO_G,
-            USE_WSTRB_G      => USE_WSTRB_G,
-            AXI_ERROR_RESP_G => AXI_RESP_OK_C)
+            TPD_G        => TPD_G,
+            BUILD_INFO_G => BUILD_INFO_G,
+            USE_WSTRB_G  => USE_WSTRB_G)
          port map (
             -- PCIe Interface
             irqActive      => irqActive,
@@ -82,16 +81,15 @@ begin
             config         => config,
             -- Clock and Reset
             axiClk         => axiClk,
-            axiRst         => axiRst);         
+            axiRst         => axiRst);
    end generate;
 
    GEN_BIG_ENDIAN : if (ENDIAN_G = true) generate
       EvrV1Reg_Inst : entity work.EvrV1Reg
          generic map (
-            TPD_G            => TPD_G,
-            BUILD_INFO_G     => BUILD_INFO_G,
-            USE_WSTRB_G      => USE_WSTRB_G,
-            AXI_ERROR_RESP_G => AXI_RESP_OK_C)
+            TPD_G        => TPD_G,
+            BUILD_INFO_G => BUILD_INFO_G,
+            USE_WSTRB_G  => USE_WSTRB_G)
          port map (
             -- PCIe Interface
             irqActive                          => irqActive,
@@ -125,7 +123,7 @@ begin
             config                             => config,
             -- Clock and Reset
             axiClk                             => axiClk,
-            axiRst                             => axiRst);         
+            axiRst                             => axiRst);
    end generate;
 
    EvrV1EventReceiver_Inst : entity work.EvrV1EventReceiver
@@ -148,6 +146,6 @@ begin
          rxLinkUp       => rxLinkUp,
          rxError        => rxError,
          rxData         => rxData,
-         rxDataK        => rxDataK);        
+         rxDataK        => rxDataK);
 
 end mapping;

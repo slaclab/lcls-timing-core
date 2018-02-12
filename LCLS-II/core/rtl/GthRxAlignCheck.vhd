@@ -2,7 +2,7 @@
 -- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2017-04-11
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ use work.AxiLiteMasterPkg.all;
 entity GthRxAlignCheck is
    generic (
       TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
       DRP_ADDR_G       : slv(31 downto 0));
    port (
       -- GTH Status/Control Interface

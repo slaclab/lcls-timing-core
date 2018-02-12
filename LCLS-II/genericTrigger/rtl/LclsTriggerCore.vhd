@@ -2,7 +2,7 @@
 -- File       : LclsTriggerCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-08
--- Last update: 2016-11-07
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description:  Triggered if opcode received.
 --               Opcode = oth 0 (Disabled)
@@ -37,12 +37,11 @@ use work.TimingPkg.all;
 
 entity LclsTriggerCore is
    generic (
-      TPD_G                : time                  := 1 ns;
-      AXIL_BASE_ADDR_G     : slv(31 downto 0)      := (others => '0');
-      AXI_ERROR_RESP_G     : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      NUM_OF_TRIG_PULSES_G : positive              := 3;
-      DELAY_WIDTH_G        : integer range 1 to 32 := 32;
-      PULSE_WIDTH_G        : integer range 1 to 32 := 32);
+      TPD_G                : time                   := 1 ns;
+      AXIL_BASE_ADDR_G     : slv(31 downto 0)       := (others => '0');
+      NUM_OF_TRIG_PULSES_G : positive range 1 to 16 := 3;
+      DELAY_WIDTH_G        : positive range 1 to 32 := 32;
+      PULSE_WIDTH_G        : positive range 1 to 32 := 32);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -123,10 +122,9 @@ begin
    GEN_TRIG_PULSE : for i in NUM_OF_TRIG_PULSES_G-1 downto 0 generate
       U_TimingTriggerPulse : entity work.LclsTriggerPulse
          generic map (
-            TPD_G            => TPD_G,
-            AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-            DELAY_WIDTH_G    => DELAY_WIDTH_G,
-            PULSE_WIDTH_G    => PULSE_WIDTH_G)
+            TPD_G         => TPD_G,
+            DELAY_WIDTH_G => DELAY_WIDTH_G,
+            PULSE_WIDTH_G => PULSE_WIDTH_G)
          port map (
             clk             => recClk,
             rst             => recRst,

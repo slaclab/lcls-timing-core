@@ -2,7 +2,7 @@
 -- File       : EvrV1CoreIsrCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-03-03
--- Last update: 2017-03-03
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ entity EvrV1CoreIsrCtrl is
       BRAM_EN_G             : boolean             := true;
       FIFO_ADDR_WIDTH_G     : positive            := 9;
       REM_BASE_ADDR_G       : slv(31 downto 0)    := (others => '0');
-      AXI_ERROR_RESP_G      : slv(1 downto 0)     := AXI_RESP_SLVERR_C;
       AXIS_CONFIG_G         : AxiStreamConfigType := ssiAxiStreamConfig(4));
    port (
       -- AXI-Lite and 
@@ -252,7 +251,7 @@ begin
       axiSlaveRegister(axilEp, x"0", 0, v.isrSelect);
 
       -- Close out the transaction
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_ERROR_RESP_G);
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- State Machine
       case r.state is

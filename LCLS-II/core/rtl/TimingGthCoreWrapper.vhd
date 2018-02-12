@@ -2,7 +2,7 @@
 -- File       : TimingGthCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2016-12-04
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTH Core
 -------------------------------------------------------------------------------
@@ -29,9 +29,8 @@ use unisim.vcomponents.all;
 
 entity TimingGthCoreWrapper is
    generic (
-      TPD_G            : time            := 1 ns;
-      EXTREF_G         : boolean         := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
+      TPD_G            : time    := 1 ns;
+      EXTREF_G         : boolean := false;
       AXIL_BASE_ADDR_G : slv(31 downto 0));
    port (
       -- AXI-Lite Port
@@ -197,17 +196,17 @@ architecture rtl of TimingGthCoreWrapper is
          rxctrl1_out                        : out std_logic_vector(15 downto 0);
          rxctrl2_out                        : out std_logic_vector(7 downto 0);
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
-         rxdlysresetdone_out                : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxphaligndone_out                  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxphalignerr_out                   : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxsyncdone_out                     : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxsyncout_out                      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+         rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
+         rxoutclk_out                       : out std_logic_vector(0 downto 0);
+         rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxphalignerr_out                   : out std_logic_vector(0 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         rxsyncout_out                      : out std_logic_vector(0 downto 0);
+         txoutclk_out                       : out std_logic_vector(0 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
    component TimingGth_extref
@@ -268,30 +267,30 @@ architecture rtl of TimingGthCoreWrapper is
          rxctrl1_out                        : out std_logic_vector(15 downto 0);
          rxctrl2_out                        : out std_logic_vector(7 downto 0);
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
-         rxdlysresetdone_out                : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxphaligndone_out                  : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxphalignerr_out                   : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxsyncdone_out                     : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxsyncout_out                      : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txoutclk_out                       : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txpmaresetdone_out                 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         txresetdone_out                    : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+         rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
+         rxoutclk_out                       : out std_logic_vector(0 downto 0);
+         rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxphalignerr_out                   : out std_logic_vector(0 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         rxsyncout_out                      : out std_logic_vector(0 downto 0);
+         txoutclk_out                       : out std_logic_vector(0 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
-   
-   
+
+
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
       0               => (
          baseAddr     => (AXIL_BASE_ADDR_G+x"00000000"),
          addrBits     => 22,
          connectivity => x"FFFF"),
       1               => (
-         baseAddr     => (AXIL_BASE_ADDR_G+x"00400000"), 
+         baseAddr     => (AXIL_BASE_ADDR_G+x"00400000"),
          addrBits     => 22,
-         connectivity => x"FFFF"));   
+         connectivity => x"FFFF"));
 
    signal rxCtrl0Out   : slv(15 downto 0);
    signal rxCtrl1Out   : slv(15 downto 0);
@@ -301,39 +300,38 @@ architecture rtl of TimingGthCoreWrapper is
    signal rxoutclk_out : sl;
    signal rxoutclkb    : sl;
 
-   signal drpClk  : sl;
-   signal drpRst  : sl;
-   signal drpAddr : slv(8 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal drpDO   : slv(15 downto 0);
-   signal drpRdy  : sl;
-   signal txbypassrst  : sl;
-   signal rxbypassrst  : sl;
-   signal rxRst         : sl;
-   signal bypassdone    : sl;
-   signal bypasserr     : sl;
-   
+   signal drpClk      : sl;
+   signal drpRst      : sl;
+   signal drpAddr     : slv(8 downto 0);
+   signal drpDi       : slv(15 downto 0);
+   signal drpEn       : sl;
+   signal drpWe       : sl;
+   signal drpDO       : slv(15 downto 0);
+   signal drpRdy      : sl;
+   signal txbypassrst : sl;
+   signal rxbypassrst : sl;
+   signal rxRst       : sl;
+   signal bypassdone  : sl;
+   signal bypasserr   : sl;
+
    signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);   
-   
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
+
    signal mAxilWriteMaster : AxiLiteWriteMasterType;
    signal mAxilWriteSlave  : AxiLiteWriteSlaveType;
    signal mAxilReadMaster  : AxiLiteReadMasterType;
    signal mAxilReadSlave   : AxiLiteReadSlaveType;
-   
+
 begin
- 
+
    rxStatus.bufferByDone <= bypassdone;
    rxStatus.bufferByErr  <= bypasserr;
 
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         DEC_ERROR_RESP_G   => AXI_ERROR_RESP_G,
          NUM_SLAVE_SLOTS_G  => 2,
          NUM_MASTER_SLOTS_G => 2,
          MASTERS_CONFIG_G   => AXI_CROSSBAR_MASTERS_CONFIG_C)
@@ -351,43 +349,41 @@ begin
          mAxiWriteMasters    => axilWriteMasters,
          mAxiWriteSlaves     => axilWriteSlaves,
          mAxiReadMasters     => axilReadMasters,
-         mAxiReadSlaves      => axilReadSlaves); 
+         mAxiReadSlaves      => axilReadSlaves);
 
    U_AlignCheck : entity work.GthRxAlignCheck
       generic map (
-        TPD_G            => TPD_G,
-        AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-        DRP_ADDR_G       => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
+         TPD_G      => TPD_G,
+         DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- GTH Status/Control Interface
-         resetIn         => rxControl.reset,
-         resetDone       => bypassdone,
-         resetErr        => bypasserr,
-         resetOut        => rxRst,
-         locked          => rxStatus.locked,
+         resetIn          => rxControl.reset,
+         resetDone        => bypassdone,
+         resetErr         => bypasserr,
+         resetOut         => rxRst,
+         locked           => rxStatus.locked,
          -- Clock and Reset
          axilClk          => axilClk,
          axilRst          => axilRst,
          -- Slave AXI-Lite Interface
-         mAxilReadMaster   => mAxilReadMaster,
-         mAxilReadSlave    => mAxilReadSlave,
-         mAxilWriteMaster  => mAxilWriteMaster,
-         mAxilWriteSlave   => mAxilWriteSlave,
+         mAxilReadMaster  => mAxilReadMaster,
+         mAxilReadSlave   => mAxilReadSlave,
+         mAxilWriteMaster => mAxilWriteMaster,
+         mAxilWriteSlave  => mAxilWriteSlave,
          -- Slave AXI-Lite Interface
-         sAxilReadMaster   => axilReadMasters(0),
-         sAxilReadSlave    => axilReadSlaves(0),
-         sAxilWriteMaster  => axilWriteMasters(0),
-         sAxilWriteSlave   => axilWriteSlaves(0));
+         sAxilReadMaster  => axilReadMasters(0),
+         sAxilReadSlave   => axilReadSlaves(0),
+         sAxilWriteMaster => axilWriteMasters(0),
+         sAxilWriteSlave  => axilWriteSlaves(0));
 
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
          COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 16)      
+         DATA_WIDTH_G     => 16)
       port map (
          -- AXI-Lite Port
          axilClk         => axilClk,
@@ -404,7 +400,7 @@ begin
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo); 
+         drpDo           => drpDo);
 
    drpClk <= axilClk;
    drpRst <= axilRst;
@@ -472,7 +468,7 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out(0)                 => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out(0)                 => open );
+            txpmaresetdone_out(0)                 => open);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -562,7 +558,7 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out(0)                 => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out(0)                 => open );
+            txpmaresetdone_out(0)                 => open);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -590,21 +586,21 @@ begin
    end generate;
 
    U_RstSyncTx : entity work.RstSync
-      generic map (TPD_G  => TPD_G)
-      port map ( clk      => txoutclkb,
-                 asyncRst => txControl.reset,
-                 syncRst  => txbypassrst );
+      generic map (TPD_G => TPD_G)
+      port map (clk      => txoutclkb,
+                asyncRst => txControl.reset,
+                syncRst  => txbypassrst);
 
    U_RstSyncRx : entity work.RstSync
-      generic map (TPD_G  => TPD_G)
-      port map ( clk      => rxoutclkb,
-                 asyncRst => rxRst,
-                 syncRst  => rxbypassrst );
+      generic map (TPD_G => TPD_G)
+      port map (clk      => rxoutclkb,
+                asyncRst => rxRst,
+                syncRst  => rxbypassrst);
 
 --   txRst    <= txControl.reset;
 --   rxRst    <= rxControl.reset;
-   
+
    txOutClk <= txoutclkb;
    rxOutClk <= rxoutclkb;
-   
+
 end architecture rtl;
