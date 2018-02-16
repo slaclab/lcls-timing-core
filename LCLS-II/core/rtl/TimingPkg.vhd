@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-04-14
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -58,6 +58,7 @@ package TimingPkg is
       dataK     => "00",
       decErr    => "00",
       dspErr    => "00" );
+   type TimingRxArray is array (natural range<>) of TimingRxType;
 
    type TimingPhyControlType is record
       reset        : sl;
@@ -72,6 +73,7 @@ package TimingPkg is
       polarity    => '0',
       bufferByRst => '0',
       pllReset    => '0' );
+   type TimingPhyControlArray is array (natural range<>) of TimingPhyControlType;
 
    type TimingPhyStatusType is record
       locked       : sl;
@@ -84,7 +86,8 @@ package TimingPkg is
       resetDone    => '0',
       bufferByDone => '0',
       bufferByErr  => '0' );
-   
+   type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
+
    type TimingSerialType is record
       ready      : sl;                -- tx: new segment ready,
                                       -- rx: last segment valid
@@ -109,7 +112,9 @@ package TimingPkg is
       acTimeSlot      : slv(2 downto 0);
       acTimeSlotPhase : slv(11 downto 0);
       resync          : sl;
-      beamRequest     : slv(31 downto 0);
+      beamRequest     : slv(31 downto 0);  -- [31:16] charge(pC),
+                                           -- [7:4] destn,
+                                           -- [0] beam present
       beamEnergy      : Slv16Array(0 to 3);
       photonWavelen   : Slv16Array(0 to 1);
       syncStatus      : sl;
@@ -146,6 +151,7 @@ package TimingPkg is
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
       control         => (others => (others => '0')) );
+   type TimingMessageArray is array (natural range<>) of TimingMessageType;      
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(vector               : slv)               return Slv32Array;
@@ -188,6 +194,7 @@ package TimingPkg is
       pulseId         => (others=>'0'),
       eventCodes      => (others=>'0'),
       dbuff           => TIMING_DATA_BUFF_INIT_C );
+   type TimingStreamArray is array (natural range<>) of TimingStreamType;
 
    function toTimingDataBuffType(vector : slv) return TimingDataBuffType;
    function toTimingStreamType(vector : slv) return TimingStreamType;
@@ -208,6 +215,7 @@ package TimingPkg is
       gtRxDataK     => (others=>'0'),
       gtRxDispErr   => (others=>'0'),
       gtRxDecErr    => (others=>'0'));
+   type LclsV1TimingDataArray is array (natural range<>) of LclsV1TimingDataType;
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record
@@ -215,6 +223,7 @@ package TimingPkg is
    end record;
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
       linkUp     => '0');
+   type LclsV2TimingDataArray is array (natural range<>) of LclsV2TimingDataType;
 
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
@@ -231,6 +240,7 @@ package TimingPkg is
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C);
+   type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record
       dataK      : slv(1 downto 0);
@@ -241,7 +251,16 @@ package TimingPkg is
       dataK      => "00",
       data       => x"0000",
       control    => TIMING_PHY_CONTROL_INIT_C );
+   type TimingPhyArray is array (integer range<>) of TimingPhyType;
 
+   type TimingTrigType is record
+      trigPulse  : slv(15 downto 0);
+      timeStamp  : slv(63 downto 0);
+   end record;
+   constant TIMING_TRIG_INIT_C : TimingTrigType := (
+      trigPulse  => (others=>'0'),
+      timeStamp  => (others=>'0') );
+ 
    --
    --  Experiment timing information (appended by downstream masters)
    --
@@ -265,6 +284,7 @@ package TimingPkg is
    constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
      partitionAddr  => (others=>'1'),
      partitionWord  => (others=>x"800080008000") );
+   type ExptMessageArray is array (integer range<>) of ExptMessageType;
 
    type ExptBusType is record
      message : ExptMessageType;
@@ -273,7 +293,9 @@ package TimingPkg is
    constant EXPT_BUS_INIT_C : ExptBusType := (
      message => EXPT_MESSAGE_INIT_C,
      valid   => '0' );
-   
+   type ExptBusArray is array (integer range<>) of ExptBusType;
+
+   function toSlv(message : ExptMessageType) return slv;
    function toExptMessageType (vector : slv) return ExptMessageType;
    
 end package TimingPkg;
@@ -354,10 +376,18 @@ package body TimingPkg is
       assignSlv(i, vector, message.acTimeSlotPhase);
       assignSlv(i, vector, message.resync);
       assignSlv(i, vector, message.beamRequest);
-      assignSlv(i, vector, "0000000000000");        -- 13 unused bits
-      assignSlv(i, vector, message.syncStatus);
-      assignSlv(i, vector, message.mpsValid);
-      assignSlv(i, vector, message.bcsFault);
+      for j in message.beamEnergy'range loop
+        assignSlv(i, vector, message.beamEnergy(j));
+      end loop;                                        -- 4 words
+      for j in message.photonWavelen'range loop
+        assignSlv(i, vector, message.photonWavelen(j));
+      end loop;                                        -- 2 words
+      assignSlv(i, vector, message.control(16));    -- use this field to complete
+                                                    -- modifier word encoding
+      --assignSlv(i, vector, "0000000000000");        -- 13 unused bits
+      --assignSlv(i, vector, message.syncStatus);
+      --assignSlv(i, vector, message.mpsValid);
+      --assignSlv(i, vector, message.bcsFault);
       assignSlv(i, vector, message.mpsLimit);
       for j in message.mpsClass'range loop
          assignSlv(i, vector, message.mpsClass(j));
@@ -477,6 +507,18 @@ package body TimingPkg is
       return vector;
    end function;
 
+   function toSlv(message : ExptMessageType) return slv
+   is
+      variable vector  : slv(EXPT_MESSAGE_BITS_C-1 downto 0) := (others=>'0');
+      variable i       : integer := 0;
+   begin
+      assignSlv(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignSlv(i, vector, message.partitionWord(j));
+      end loop;
+      return vector;
+   end function;
+      
    function toExptMessageType (vector : slv) return ExptMessageType
    is
       variable message : ExptMessageType;
