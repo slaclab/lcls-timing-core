@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2018-02-15
+-- Last update: 2018-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -146,15 +146,17 @@ architecture rtl of TimingCore is
                                                 (slvZero(16-ETH_REM) & slvOne(ETH_REM)),
                                                 slvOne(16));
    type RegType is record
+     tmo    : slv(29 downto 0);
      valid  : slv(ETH_WORDS-2 downto 0);
      data   : slv(TIMING_STREAM_BITS_C-1-ETH_WORD_SZ downto 0);
      master : AxiStreamMasterType;
    end record;
 
    constant REG_INIT_C : RegType := (
+     tmo    => (others=>'1'),
      valid  => (others=>'0'),
      data   => (others=>'0'),
-     master => AXI_STREAM_MASTER_INIT_C );
+     master => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -461,11 +463,17 @@ begin
    obEthMsgMaster <= r.master;
 
    GEN_ETHMSG : if STREAM_L1_G generate
-     comb: process(r, axilRst, ethTimingSlv, ethTimingStrobe, ethTimingValid, obEthMsgSlave) is
+     comb: process(r, axilRst, ethTimingSlv, ethTimingStrobe, ethTimingValid, obEthMsgSlave, ibEthMsgMaster) is
        variable v : RegType;
      begin
        v := r;
 
+       if ibEthMsgMaster.tValid = '1' then
+         tmo := (others=>'0');
+       elsif tmo(tmo'left) = '0' then
+         tmo := tmo + 1;
+       end if;
+       
        if obEthMsgSlave.tReady = '1' then
          v.valid                      := '0' & r.valid(r.valid'left downto 1);
          v.data                       := toSlv(0,ETH_WORD_SZ) & r.data(r.data'left downto ETH_WORD_SZ);
@@ -482,7 +490,7 @@ begin
          end if;
        end if;
 
-       if ethTimingStrobe = '1' and ethTimingValid = '1' and r.valid(0)='0' then
+       if ethTimingStrobe = '1' and ethTimingValid = '1' and r.valid(0)='0' and tmo(tmo'left) = '0' then
          v.valid                      := (others=>'1');
          v.data                       := ethTimingSlv(ethTimingSlv'length-1 downto ETH_WORD_SZ);
          v.master.tData(ETH_WORD_SZ-1 downto 0) := ethTimingSlv(ETH_WORD_SZ-1 downto 0);
