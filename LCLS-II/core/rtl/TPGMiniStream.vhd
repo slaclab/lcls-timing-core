@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2017-04-14
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -84,6 +84,9 @@ architecture TPGMiniStream of TPGMiniStream is
   signal dataBuff       : TimingDataBuffType := TIMING_DATA_BUFF_INIT_C;
   signal eventCodes     : slv(255 downto 0)  := (others=>'0');
   signal epicsTime      : slv(63 downto 0);
+  
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";   
   
 begin
 
