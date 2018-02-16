@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-05-11
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -66,13 +66,13 @@ package EvrV2Pkg is
     bsaEnabled     => '0',
     bsaActiveSetup => (others=>'0'),
     bsaActiveDelay => (others=>'0'),
-    bsaActiveWidth => (others=>'0'),
+    bsaActiveWidth => toSlv(1,20),
     dmaEnabled     => '0' );
 
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
   constant EVRV2_TRIG_WIDTH : integer := 28;
-  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 13+2*EVRV2_TRIG_WIDTH;
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 29+2*EVRV2_TRIG_WIDTH;
   
   type EvrV2TriggerConfigType is record
     enabled  : sl;
@@ -80,6 +80,7 @@ package EvrV2Pkg is
     delay    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
     channel  : slv( 3 downto 0);
+    channels : slv(15 downto 0);  -- mask of channels that arm trigger
     delayTap : slv( 5 downto 0);
     loadTap  : sl;
   end record;
@@ -90,6 +91,7 @@ package EvrV2Pkg is
     delay     => (others=>'0'),
     width     => (others=>'0'),
     channel   => (others=>'0'),
+    channels  => (others=>'0'),
     delayTap  => (others=>'0'),
     loadTap   => '0' );
 
@@ -218,6 +220,7 @@ package body EvrV2Pkg is
     assignSlv(i, vector, cfg.delay);
     assignSlv(i, vector, cfg.width);
     assignSlv(i, vector, cfg.channel);
+    assignSlv(i, vector, cfg.channels);
     assignSlv(i, vector, cfg.delayTap);
     assignSlv(i, vector, cfg.loadTap);
     return vector;
@@ -247,6 +250,7 @@ package body EvrV2Pkg is
     assignRecord(i, vector, cfg.delay);
     assignRecord(i, vector, cfg.width);
     assignRecord(i, vector, cfg.channel);
+    assignRecord(i, vector, cfg.channels);
     assignRecord(i, vector, cfg.delayTap);
     assignRecord(i, vector, cfg.loadTap);
     return cfg;
