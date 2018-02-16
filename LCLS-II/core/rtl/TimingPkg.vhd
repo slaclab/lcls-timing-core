@@ -232,6 +232,7 @@ package TimingPkg is
       stream  : TimingStreamType;
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
+      modesel : sl;  -- LCLS-II selected
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
@@ -239,7 +240,8 @@ package TimingPkg is
       message => TIMING_MESSAGE_INIT_C,
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
-      v2      => LCLS_V2_TIMING_DATA_INIT_C);
+      v2      => LCLS_V2_TIMING_DATA_INIT_C,
+      modesel => '0');
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record
