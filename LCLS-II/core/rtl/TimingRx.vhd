@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2017-06-16
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,8 @@ use work.TimingPkg.all;
 entity TimingRx is
    generic (
       TPD_G               : time            := 1 ns;
+      DEFAULT_CLK_SEL_G   : sl              := '1';
+      CLKSEL_MODE_G       : string          := "SELECT"; -- "LCLSI","LCLSII"
       AXIL_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
@@ -86,7 +88,8 @@ architecture rtl of TimingRx is
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      clkSel         => '1',
+      clkSel         => ite(CLKSEL_MODE_G="SELECT",DEFAULT_CLK_SEL_G,
+                            ite(CLKSEL_MODE_G="LCLSI",'0','1')),
       cntRst         => '0',
       rxControl      => TIMING_PHY_CONTROL_INIT_C,
       rxDown         => '0',
@@ -234,7 +237,11 @@ begin
       axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
       axilSlaveRegisterW(X"20", 2, v.rxControl.polarity);
       axilSlaveRegisterW(X"20", 3, v.rxControl.reset);
-      axilSlaveRegisterW(X"20", 4, v.clkSel);
+      if (CLKSEL_MODE_G="SELECT") then
+        axilSlaveRegisterW(X"20", 4, v.clkSel);
+      else
+        axilSlaveRegisterR(X"20", 4, v.clkSel);
+      end if;
       axilSlaveRegisterW(X"20", 5, v.rxDown);
       axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
       axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);

@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-04-14
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ architecture rtl of TimingStreamRx is
       timingStream        : TimingStreamType;
       dataBuffCache       : TimingDataBuffArray(2 downto 0);
       timingMessageStrobe : sl;
+      timingMessageValid  : sl;
       timingTSEventCounter: slv(31 downto 0);
    end record;
 
@@ -92,6 +93,7 @@ architecture rtl of TimingStreamRx is
       timingStream        => TIMING_STREAM_INIT_C,
       dataBuffCache       => (others=>TIMING_DATA_BUFF_INIT_C),
       timingMessageStrobe => '0',
+      timingMessageValid  => '0',
       timingTSEventCounter=> (others=>'0') );
 
    constant FRAME_LEN : slv(19 downto 0) := x"036b0";  -- end of EVG stream
@@ -188,6 +190,7 @@ begin
   
   timingMessage       <= r.timingStream;
   timingMessageStrobe <= r.timingMessageStrobe;
+  timingMessageValid  <= r.timingMessageValid;
   rxVersion           <= x"0000" & r.timingStream.dbuff.version;
   staData             <= "00" & r.timingMessageStrobe & r.eofStrobe & r.sofStrobe;
 
