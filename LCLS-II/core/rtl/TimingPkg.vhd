@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-02-15
+-- Last update: 2018-02-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -258,10 +258,14 @@ package TimingPkg is
    type TimingTrigType is record
       trigPulse  : slv(15 downto 0);
       timeStamp  : slv(63 downto 0);
+      bsa        : slv(127 downto 0);  -- LCLS-I control info
+      dmod       : slv(191 downto 0);  --
    end record;
    constant TIMING_TRIG_INIT_C : TimingTrigType := (
       trigPulse  => (others=>'0'),
-      timeStamp  => (others=>'0') );
+      timeStamp  => (others=>'0'),
+      bsa        => (others=>'0'),
+      dmod       => (others=>'0') );
  
    --
    --  Experiment timing information (appended by downstream masters)

@@ -123,6 +123,7 @@ architecture rtl of TimingCore is
    signal timingStreamValid   : sl                                     := '1';
    signal timingMessage       : TimingMessageType;
    signal timingStream        : TimingStreamType;
+   signal timingStreamPrompt  : TimingStreamType;
    signal timingFrameSlv      : slv(TIMING_FRAME_LEN-1 downto 0);
    signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
    signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others=>'0');
@@ -139,38 +140,11 @@ architecture rtl of TimingCore is
    signal itxData             : Slv16Array(1 downto 0);
    signal itxDataK            : Slv2Array (1 downto 0);
    
-   constant ETH_WORD_SZ : integer := 8*ETHMSG_AXIS_CFG_G.TDATA_BYTES_C;
-   constant ETH_WORDS : integer := wordCount(TIMING_STREAM_BITS_C,ETH_WORD_SZ);
-   constant ETH_REM   : integer := TIMING_STREAM_BITS_C/8 mod 16;
-   constant ETH_TKEEP : slv(15 downto 0) := ite(ETH_REM>0,
-                                                (slvZero(16-ETH_REM) & slvOne(ETH_REM)),
-                                                slvOne(16));
-   type RegType is record
-     tmo    : slv(29 downto 0);
-     valid  : slv(ETH_WORDS-2 downto 0);
-     data   : slv(TIMING_STREAM_BITS_C-1-ETH_WORD_SZ downto 0);
-     master : AxiStreamMasterType;
-   end record;
-
-   constant REG_INIT_C : RegType := (
-     tmo    => (others=>'1'),
-     valid  => (others=>'0'),
-     data   => (others=>'0'),
-     master => AXI_STREAM_MASTER_INIT_C);
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
-   signal ethTimingClk    : sl;
-   signal ethTimingValid  : sl;
-   signal ethTimingStrobe : sl;
-   signal ethTimingSlv    : slv(TIMING_STREAM_BITS_C-1 downto 0);
-
    signal appTimingBus_i  : TimingBusType;
    signal appExptBus_i    : ExptBusType;
    signal exptBus_i       : ExptBusType;
    signal exptFrameSlv, appExptFrameSlv : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
-
+   
 begin
 
    appTimingBus  <= appTimingBus_i;
@@ -220,7 +194,8 @@ begin
          rxData              => timingRx,
          timingClkSel        => clkSel,
          timingClkSelR       => timingClkSelR,
-         timingStream        => timingStream,
+         timingStreamUser    => timingStream,
+         timingStreamPrompt  => timingStreamPrompt,
          timingStreamStrobe  => timingStreamStrobe,
          timingStreamValid   => timingStreamValid,
          timingMessage       => timingMessage,
@@ -442,77 +417,19 @@ begin
    linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
    linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
-   ethTimingClk <= axilClk;
-   
-   SynchronizerFifo_EthMsg : entity work.SynchronizerFifo
-     generic map (
-       TPD_G        => TPD_G,
-       DATA_WIDTH_G => TIMING_STREAM_BITS_C+1)
-     port map (
-       rst                                 => appTimingRst,
-       wr_clk                              => gtRxRecClk,
-       wr_en                               => timingStreamStrobe,
-       din(TIMING_STREAM_BITS_C downto 1)  => timingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0),
-       din(0)                              => timingValid,
-       rd_clk                              => ethTimingClk,
-       dout(TIMING_STREAM_BITS_C downto 1) => ethTimingSlv,
-       dout(0)                             => ethTimingValid,
-       valid                               => ethTimingStrobe);
-
-   ibEthMsgSlave  <= AXI_STREAM_SLAVE_FORCE_C;
-   obEthMsgMaster <= r.master;
-
-   GEN_ETHMSG : if STREAM_L1_G generate
-     comb: process(r, axilRst, ethTimingSlv, ethTimingStrobe, ethTimingValid, obEthMsgSlave, ibEthMsgMaster) is
-       variable v : RegType;
-     begin
-       v := r;
-
-       if ibEthMsgMaster.tValid = '1' then
-         tmo := (others=>'0');
-       elsif tmo(tmo'left) = '0' then
-         tmo := tmo + 1;
-       end if;
-       
-       if obEthMsgSlave.tReady = '1' then
-         v.valid                      := '0' & r.valid(r.valid'left downto 1);
-         v.data                       := toSlv(0,ETH_WORD_SZ) & r.data(r.data'left downto ETH_WORD_SZ);
-         v.master.tData(ETH_WORD_SZ-1 downto 0) := r.data(ETH_WORD_SZ-1 downto 0);
-         v.master.tValid              := r.valid(0);
-         ssiSetUserSof(ETHMSG_AXIS_CFG_G, v.master, '0');
-         if r.valid(1) = '1' then
-           v.master.tLast             := '0';
-           v.master.tKeep             := x"FFFF";
-         else
-           v.master.tLast             := '1';
-           v.master.tKeep             := ETH_TKEEP;
-           ssiSetUserEofe(ETHMSG_AXIS_CFG_G, v.master, '0');
-         end if;
-       end if;
-
-       if ethTimingStrobe = '1' and ethTimingValid = '1' and r.valid(0)='0' and tmo(tmo'left) = '0' then
-         v.valid                      := (others=>'1');
-         v.data                       := ethTimingSlv(ethTimingSlv'length-1 downto ETH_WORD_SZ);
-         v.master.tData(ETH_WORD_SZ-1 downto 0) := ethTimingSlv(ETH_WORD_SZ-1 downto 0);
-         v.master.tValid              := '1';
-         v.master.tLast               := '0';
-         v.master.tKeep               := x"FFFF";
-         ssiSetUserSof(ETHMSG_AXIS_CFG_G, v.master, '1');
-       end if;
-       
-       if axilRst = '1' then
-         v := REG_INIT_C;
-       end if;
-
-       rin <= v;
-     end process;
-
-     seq: process(axilClk) is
-     begin
-       if rising_edge(axilClk) then
-         r <= rin;
-       end if;
-     end process;
-   end generate;
-
+   U_EthTiming : entity work.EthTimingModule
+     generic map ( TPD_G             => TPD_G,
+                   STREAM_L1_G       => STREAM_L1_G,
+                   ETHMSG_AXIS_CFG_G => ETHMSG_AXIS_CFG_G )
+     port map ( timingClk      => gtRxRecClk,
+                timingRst      => appTimingRst,
+                timingStrobe   => timingStreamStrobe,
+                timingStream   => timingStreamPrompt,
+                ethClk         => axilClk,
+                ethRst         => axilRst,
+                ibEthMsgMaster => ibEthMsgMaster,
+                ibEthMsgSlave  => ibEthMsgSlave,
+                obEthMsgMaster => obEthMsgMaster,
+                obEthMsgSlave  => obEthMsgSlave );
+                  
 end rtl;

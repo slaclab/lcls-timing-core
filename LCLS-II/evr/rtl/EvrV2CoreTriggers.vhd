@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-12-06
+-- Last update: 2018-02-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -169,7 +169,12 @@ begin  -- rtl
    end generate;  -- i
 
    trigOut.timeStamp <= timingMsg.timeStamp;
-   
+   trigOut.bsa       <= evrBus.stream.dbuff.edefAvgDn &
+                        evrBus.stream.dbuff.edefMinor &
+                        evrBus.stream.dbuff.edefMajor &
+                        evrBus.stream.dbuff.edefInit;
+   trigOut.dmod      <= evrBus.stream.dbuff.dmod;
+  
    U_V2FromV1 : entity work.EvrV2FromV1
      port map ( clk       => evrClk,
                 disable   => evrModeSel,

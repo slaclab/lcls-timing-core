@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-02-15
+-- Last update: 2018-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,7 +45,8 @@ entity TimingStreamRx is
 
       timingMessageNoDely : in  sl := '0';
       
-      timingMessage       : out TimingStreamType;
+      timingMessageUser   : out TimingStreamType;
+      timingMessagePrompt : out TimingStreamType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
       timingTSEventCounter: out slv(31 downto 0);
@@ -74,6 +75,7 @@ architecture rtl of TimingStreamRx is
       pulseIdShift        : slv(31 downto 0);
       eventCodes          : slv(255 downto 0);
       timingStream        : TimingStreamType;
+      dataBuffPrompt      : TimingDataBuffType;
       dataBuffCache       : TimingDataBuffArray(2 downto 0);
       timingMessageStrobe : sl;
       timingMessageValid  : sl;
@@ -91,6 +93,7 @@ architecture rtl of TimingStreamRx is
       pulseIdShift        => (others => '0'),
       eventCodes          => (others => '0'),
       timingStream        => TIMING_STREAM_INIT_C,
+      dataBuffPrompt      => TIMING_DATA_BUFF_INIT_C,
       dataBuffCache       => (others=>TIMING_DATA_BUFF_INIT_C),
       timingMessageStrobe => '0',
       timingMessageValid  => '0',
@@ -161,8 +164,9 @@ begin
         if r.ecount = FRAME_LEN then
           v.estate := IDLE_S;
           v.eventCodes := (others=>'0');
-          v.timingStream.pulseId := r.pulseIdShift;
+          v.timingStream.pulseId     := r.pulseIdShift;
           v.timingStream.eventCodes  := r.eventCodes;
+          v.dataBuffPrompt           := r.dataBuffCache(0);
           if timingMessageNoDely = '1' then
             v.timingStream.dbuff   := r.dataBuffCache(0);
           else
@@ -188,9 +192,14 @@ begin
     rin              <= v;
   end process comb;
   
-  timingMessage       <= r.timingStream;
+  timingMessageUser   <= r.timingStream;
   timingMessageStrobe <= r.timingMessageStrobe;
   timingMessageValid  <= r.timingMessageValid;
+
+  timingMessagePrompt.pulseId    <= r.timingStream.pulseId;
+  timingMessagePrompt.eventCodes <= r.timingStream.eventCodes;
+  timingMessagePrompt.dbuff      <= r.dataBuffPrompt;
+
   rxVersion           <= x"0000" & r.timingStream.dbuff.version;
   staData             <= "00" & r.timingMessageStrobe & r.eofStrobe & r.sofStrobe;
 

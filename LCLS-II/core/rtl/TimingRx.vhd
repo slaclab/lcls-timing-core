@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2018-02-15
+-- Last update: 2018-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,7 +47,8 @@ entity TimingRx is
       timingClkSel        : out sl; -- '0'=LCLS1, '1'=LCLS2
       timingClkSelR       : out sl; 
       
-      timingStream        : out TimingStreamType;
+      timingStreamUser    : out TimingStreamType;
+      timingStreamPrompt  : out TimingStreamType;
       timingStreamStrobe  : out sl;
       timingStreamValid   : out sl;
       
@@ -150,7 +151,8 @@ begin
          rxRst               => rxRst(0),
          rxData              => rxData,
          timingMessageNoDely => timingStreamNoDelayR,
-         timingMessage       => timingStream,
+         timingMessageUser   => timingStreamUser,
+         timingMessagePrompt => timingStreamPrompt,
          timingMessageStrobe => timingStreamStrobe,
          timingMessageValid  => timingStreamValid,
          timingTSEventCounter=> timingTSEventCounter,
