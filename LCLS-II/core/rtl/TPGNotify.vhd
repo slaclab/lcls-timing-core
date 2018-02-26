@@ -56,6 +56,9 @@ architecture TPGNotify of TPGNotify is
   signal rin : RegType;
   signal irq, irqS : sl;
   
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";   
+  
 begin
 
   obDebugMaster <= r.master;

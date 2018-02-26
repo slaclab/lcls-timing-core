@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-07
--- Last update: 2016-08-30
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -89,6 +89,10 @@ architecture TimingSerialDelay of TimingSerialDelay is
   signal dout_rdy  : sl;
   signal dout_msg  : slv(15 downto 0);
   signal firstW    : sl;
+  signal wr_cnt    : sl;
+
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";  
   
 begin
 
@@ -100,6 +104,8 @@ begin
    valid_o    <= r.valid;
    overflow_o <= full_cnt or full_msg;
    
+   wr_cnt     <= fiducial_i and not r.firstW;
+   
    U_CntDelay : entity work.FifoSync
      generic map ( TPD_G        => TPD_G,
                    FWFT_EN_G    => true,
@@ -107,7 +113,7 @@ begin
                    ADDR_WIDTH_G => CADDR_WIDTH_C )
      port map ( rst               => r.fifoRst,
                 clk               => clk,
-                wr_en             => fiducial_i,
+                wr_en             => wr_cnt,
                 din(19 downto 0)  => r.target,
                 din(20)           => stream_i.ready,
                 rd_en             => r.rd_cnt,

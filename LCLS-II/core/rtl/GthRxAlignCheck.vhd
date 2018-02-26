@@ -2,7 +2,7 @@
 -- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2017-12-14
+-- Last update: 2018-02-15
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
@@ -178,7 +178,7 @@ begin
                -- Increment the counter 
                v.sample(i)   := r.sample(i)+1;
                -- Save the last byte alignment check
-               v.last        := ack.rdData(15 downto 0);
+               v.last        := ack.rdData(6 downto 0);
                -- Check the byte alignment
                if ((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7) then
                   -- Next state
