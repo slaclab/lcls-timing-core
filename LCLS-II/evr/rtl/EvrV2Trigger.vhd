@@ -39,6 +39,9 @@ entity EvrV2Trigger is
   generic ( TPD_G        : time := 1 ns;
             CHANNELS_C   : integer := 1;
             TRIG_DEPTH_C : integer := 16;
+            TRIG_WIDTH_C : integer := EVRV2_TRIG_WIDTH; -- bit size of
+                                                        -- width,delay counters
+            USE_MASK_G   : boolean := false;
             DEBUG_C      : boolean := false);
   port (
       clk        : in  sl;
@@ -52,16 +55,15 @@ end EvrV2Trigger;
 architecture EvrV2Trigger of EvrV2Trigger is
 
    type RegType is record
-     fifo_delay     : slv(EVRV2_TRIG_WIDTH-1 downto 0);      -- clks until trigger fifo is empty
+     fifo_delay     : slv(TRIG_WIDTH_C-1 downto 0);      -- clks until trigger fifo is empty
      armed          : sl;
      delay          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
      width          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
-     fired          : sl;
      state          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
-     fifoDin        : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+     fifoDin        : slv(TRIG_WIDTH_C-1 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -69,7 +71,6 @@ architecture EvrV2Trigger of EvrV2Trigger is
      armed      => '0',
      delay      => (others=>'0'),
      width      => (others=>'0'),
-     fired      => '0',
      state      => '0',
      fifoReset  => '1',
      fifoWr     => '0',
@@ -82,68 +83,39 @@ architecture EvrV2Trigger of EvrV2Trigger is
    signal rin : RegType;
 
    signal fifoValid : sl;
-   signal fifoDout  : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+   signal fifoDout  : slv(TRIG_WIDTH_C-1 downto 0);
    signal fifoCount : slv(FIFO_AWIDTH_C-1 downto 0);
    signal fifoEmpty : sl;
    signal fifoFull  : sl;
 
    signal fifoCountDbg : slv(6 downto 0);
    
-   component ila_0
-    PORT ( clk         : IN STD_LOGIC;
-           probe0      : IN STD_LOGIC_VECTOR(255 DOWNTO 0) );
-   end component;
-
 begin
 
-   G_ila: if DEBUG_C=true generate
-
-     fifoCountDbg <= resize( fifoCount, 7 );
-
-     U_ila : ila_0
-       port map ( clk       => clk,
-                  probe0(0) => rst,
-                  probe0(1) => fifoValid,
-                  probe0(2) => fire,
-                  probe0(3) => r.state,
-                  probe0(4) => r.armed,
-                  probe0(5) => r.fired,
-                  probe0(6) => r.fifoReset,
-                  probe0(7) => r.fifoWr,
-                  probe0(8) => r.fifoRd,
-                  probe0( 48 downto   9) => r.fifoDin,
-                  probe0( 88 downto  49) => fifoDout,
-                  probe0(108 downto  89) => r.delay,
-                  probe0(128 downto 109) => r.width,
-                  probe0(156 downto 129) => r.fifo_delay,
-                  probe0(176 downto 157) => config.delay,
-                  probe0(196 downto 177) => config.width,
-                  probe0(200 downto 197) => config.channel,
-                  probe0(201)            => config.enabled,
-                  probe0(208 downto 202) => resize(fifoCount,7),
-                  probe0(209)            => fifoEmpty,
-                  probe0(210)            => fifoFull,
-                  probe0(210+CHANNELS_C downto 211) => arm,
-                  probe0(255 downto 211+CHANNELS_C) => (others=>'0') );
-   end generate G_ila;
-   
    trigstate <= r.state;
 
-   U_Fifo : entity work.FifoSync
-     generic map ( TPD_G        => TPD_G,
-                   DATA_WIDTH_G => EVRV2_TRIG_WIDTH,
-                   ADDR_WIDTH_G => FIFO_AWIDTH_C,
-                   FWFT_EN_G    => false )
-     port map (    rst   => r.fifoReset,
-                   clk   => clk,
-                   wr_en => rin.fifoWr,
-                   rd_en => rin.fifoRd,
-                   din   => rin.fifoDin,
-                   dout  => fifoDout,
-                   valid => fifoValid,
-                   empty => fifoEmpty,
-                   full  => fifoFull,
-                   data_count => fifoCount );
+   GEN_NO_FIFO : if TRIG_DEPTH_C = 0 generate
+     fifoDout  <= resize(config.delay,fifoDout'length);
+     fifoEmpty <= not r.fifoWr;
+   end generate;
+
+   GEN_FIFO : if TRIG_DEPTH_C > 0 generate
+     U_Fifo : entity work.FifoSync
+       generic map ( TPD_G        => TPD_G,
+                     DATA_WIDTH_G => TRIG_WIDTH_C,
+                     ADDR_WIDTH_G => FIFO_AWIDTH_C,
+                     FWFT_EN_G    => false )
+       port map (    rst   => r.fifoReset,
+                     clk   => clk,
+                     wr_en => rin.fifoWr,
+                     rd_en => rin.fifoRd,
+                     din   => rin.fifoDin,
+                     dout  => fifoDout,
+                     valid => fifoValid,
+                     empty => fifoEmpty,
+                     full  => fifoFull,
+                     data_count => fifoCount );
+   end generate;
 
    process (r, arm, fire, rst, config, fifoValid, fifoDout, fifoEmpty)
       variable v : RegType;
@@ -182,7 +154,8 @@ begin
          end if;
       end if;
 
-      if arm(conv_integer(config.channel)) = '1' then
+      if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
+          ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
          v.armed := '1';
       end if;
 
