@@ -71,14 +71,14 @@ package EvrV2Pkg is
 
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
-  constant EVRV2_TRIG_WIDTH : integer := 28;
-  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 29+2*EVRV2_TRIG_WIDTH;
+  constant EVRV2_TRIG_WIDTH_C : integer := 28;
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 29+2*EVRV2_TRIG_WIDTH_C;
   
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
-    delay    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
-    width    : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+    delay    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
+    width    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     channel  : slv( 3 downto 0);
     channels : slv(15 downto 0);  -- mask of channels that arm trigger
     delayTap : slv( 5 downto 0);

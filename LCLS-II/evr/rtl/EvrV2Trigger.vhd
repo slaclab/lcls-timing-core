@@ -39,7 +39,7 @@ entity EvrV2Trigger is
   generic ( TPD_G        : time := 1 ns;
             CHANNELS_C   : integer := 1;
             TRIG_DEPTH_C : integer := 16;
-            TRIG_WIDTH_C : integer := EVRV2_TRIG_WIDTH; -- bit size of
+            TRIG_WIDTH_C : integer := EVRV2_TRIG_WIDTH_C; -- bit size of
                                                         -- width,delay counters
             USE_MASK_G   : boolean := false;
             DEBUG_C      : boolean := false);
@@ -57,8 +57,8 @@ architecture EvrV2Trigger of EvrV2Trigger is
    type RegType is record
      fifo_delay     : slv(TRIG_WIDTH_C-1 downto 0);      -- clks until trigger fifo is empty
      armed          : sl;
-     delay          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
-     width          : slv(EVRV2_TRIG_WIDTH-1 downto 0);
+     delay          : slv(TRIG_WIDTH_C-1 downto 0);
+     width          : slv(TRIG_WIDTH_C-1 downto 0);
      state          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
@@ -129,7 +129,7 @@ begin
       if allBits(r.delay,'0') then
         if allBits(r.width,'0') then
           if r.fifoRd='1' then
-            v.width  := config.width;
+            v.width  := config.width(TRIG_WIDTH_C-1 downto 0);
             v.delay  := fifoDout;
           elsif fifoEmpty='0' then
             v.fifoRd := '1';
@@ -145,8 +145,8 @@ begin
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
          v.fifoWr     := '1';
-         v.fifoDin    := config.delay - r.fifo_delay;
-         v.fifo_delay := config.delay + config.width + 1;
+         v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
+         v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
       else
          v.fifoWr     := '0';
          if not allBits(r.fifo_delay,'0') then
