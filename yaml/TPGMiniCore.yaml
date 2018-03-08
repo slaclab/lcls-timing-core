@@ -180,7 +180,7 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits: 12
       mode: RW
-      description: "Lcls-1 BSA Number of Samples"
+      description: "Lcls-1 BSA Number of Samples - 1"
     Lcls1BsaRate:
     #########################################################
       at:
@@ -244,7 +244,7 @@ TPGMiniCore: &TPGMiniCore
       sizeBits:  8
       lsBit:     0
       mode: RW
-      description: "Lcls-1 BSA Number of Values to Average per Sample"
+      description: "Lcls-1 BSA Number of Values to Average per Sample - 1"
     Lcls1BsaStart:
     #########################################################
       at:

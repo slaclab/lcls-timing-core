@@ -101,6 +101,7 @@ begin  -- rtl
          axiWriteSlave  => regWriteSlave,
          status         => status,
          config         => config,
+         edefConfig     => edefConfig,
          txReset        => txResetO,
          txLoopback     => txLoopback,
          txInhibit      => txInhibit,

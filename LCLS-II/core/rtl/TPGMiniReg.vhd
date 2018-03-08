@@ -77,8 +77,7 @@ architecture rtl of TPGMiniReg is
    constant BSA1_EDEF  : integer := 30;
    constant BSA1_INIT  : integer := 31;
    constant BSADEF     : integer := 128;  -- 128 registers
-   constant NARRAYS_BSA_C : integer := 1;
-   constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA_C;
+   constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA;
    constant BSASTATUS  : integer := 256;  -- 64 registers
    constant BSASTATUS_END  : integer := 319;
    constant CNTPLL     : integer := 320;
@@ -266,6 +265,8 @@ begin
                                                          status.nbeamseq;
             when BSACMPLU   => tmpRdData              := r.bsaComplete(63 downto 32);
             when BSACMPLL   => tmpRdData              := r.bsaComplete(31 downto  0);
+            when BSA1_EDEF  => tmpRdData              := toSlv( r.edefConfig );
+            when BSA1_INIT  => tmpRdData              := (others => '0');
             when BSADEF to BSADEF_END =>
               iseq      := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
