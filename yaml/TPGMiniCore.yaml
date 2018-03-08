@@ -173,14 +173,87 @@ TPGMiniCore: &TPGMiniCore
       sizeBits: 64
       mode: RO
       description: BSA complete read
-    Lcls1BsaEdef:
+    Lcls1BsaNumSamples:
+    #########################################################
+      at:
+        offset: 0x0078
+      class: IntField
+      sizeBits: 12
+      mode: RW
+      description: "Lcls-1 BSA Number of Samples"
+    Lcls1BsaRate:
+    #########################################################
+      at:
+        offset: 0x0079
+      class: IntField
+      sizeBits:  3
+      lsBit:     4
+      mode: RW
+      description: "Lcls-1 BSA Rate"
+      enums:
+        - { name: "120Hz", value: 0 }
+        - { name: "60Hz",  value: 1 }
+        - { name: "30Hz",  value: 2 }
+        - { name: "10Hz",  value: 3 }
+        - { name: "5Hz",   value: 4 }
+        - { name: "1Hz",   value: 5 }
+        - { name: "0.5Hz", value: 6 }
+    Lcls1BsaTimeSlot:
+    #########################################################
+      at:
+        offset: 0x0079
+      class: IntField
+      sizeBits: 3
+      lsBit:    7
+      mode: RW
+      description: "Lcls-1 BSA Time Slot"
+      enums:
+        - { name: "TS1", value: 0 }
+        - { name: "TS2", value: 1 }
+        - { name: "TS3", value: 2 }
+        - { name: "TS4", value: 3 }
+        - { name: "TS5", value: 4 }
+        - { name: "TS6", value: 5 }
+    Lcls1BsaSeverity:
+    #########################################################
+      at:
+        offset: 0x007a
+      class: IntField
+      sizeBits:  2
+      lsBit:     2
+      mode: RW
+      description: "Lcls-1 BSA Rejection Severity Threshold"
+      enums:
+        - { name: "INVALID", value: 0 }
+        - { name: "MAJOR",   value: 2 }
+        - { name: "MINOR",   value: 1 }
+    Lcls1BsaEdefSlot:
+    #########################################################
+      at:
+        offset: 0x007a
+      class: IntField
+      sizeBits:  4
+      lsBit:     4
+      mode: RW
+      description: "Lcls-1 BSA EDEF Slot Number"
+    Lcls1BsaNumAvgs:
+    #########################################################
+      at:
+        offset: 0x007b
+      class: IntField
+      sizeBits:  8
+      lsBit:     0
+      mode: RW
+      description: "Lcls-1 BSA Number of Values to Average per Sample"
+    Lcls1BsaStart:
     #########################################################
       at:
         offset: 0x007c
       class: IntField
-      sizeBits: 32
+      sizeBits:  32
+      lsBit:     0
       mode: RW
-      description: "Lcls-1 style BSA EDEF"
+      description: "Lcls-1 BSA Started by writing any value here"
     BsaRateSel:
     #########################################################
       at:

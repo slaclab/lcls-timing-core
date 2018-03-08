@@ -74,7 +74,8 @@ architecture rtl of TPGMiniReg is
    constant RESOURCES  : integer := 19;
    constant BSACMPLL   : integer := 20;
    constant BSACMPLU   : integer := 21;
-   constant BSA1_EDEF  : integer := 31;
+   constant BSA1_EDEF  : integer := 30;
+   constant BSA1_INIT  : integer := 31;
    constant BSADEF     : integer := 128;  -- 128 registers
    constant NARRAYS_BSA_C : integer := 1;
    constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA_C;
@@ -196,7 +197,8 @@ begin
             when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
             when BSACMPLL   => bsaClear(31 downto  0)          := regWrData;
             when BSACMPLU   => bsaClear(63 downto 32)          := regWrData;
-            when BSA1_EDEF  => v.edefConfig                    := fromSlv( regWrData, '1' );
+            when BSA1_EDEF  => v.edefConfig                    := fromSlv( regWrData, '0' );
+            when BSA1_INIT  => v.edefConfig.wrEn               := '1';
             when BSADEF to BSADEF_END =>
               iseq               := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
