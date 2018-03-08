@@ -253,7 +253,7 @@ TPGMiniCore: &TPGMiniCore
       sizeBits:  32
       lsBit:     0
       mode: RW
-      description: "Lcls-1 BSA Started by writing any value here"
+      description: "Lcls-1 BSA Started by Writing any Value Here"
     BsaRateSel:
     #########################################################
       at:
