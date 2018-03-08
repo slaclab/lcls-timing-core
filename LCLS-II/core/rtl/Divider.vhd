@@ -26,8 +26,6 @@ use work.StdRtlPkg.all;
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
 
 entity Divider is
    generic ( TPD_G    : time    := 1 ns; Width    : integer := 4 );
