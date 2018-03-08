@@ -73,10 +73,10 @@ architecture TPGMini of TPGMini is
   signal acTSPhasen : slv(11 downto 0);
 
   constant ACRateWidth : integer := 8;
-  constant ACRateDepth : integer := ACRATEDEPTH;
+  constant ACRateDepth : integer := TPGPkg.ACRATEDEPTH;
 
   constant FixedRateWidth : integer := 20;
-  constant FixedRateDepth : integer := FIXEDRATEDEPTH;
+  constant FixedRateDepth : integer := TPGPkg.FIXEDRATEDEPTH;
 
   signal syncReset : sl;
 
