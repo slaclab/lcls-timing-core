@@ -6,17 +6,17 @@
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-03-08
 -- Last update: 2018-03-08
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ package body TPGMiniEdefPkg is
       assignSlv( i, v, cfg.sevr );
       assignSlv( i, v, cfg.edef );
       assignSlv( i, v, cfg.navg );
-      return v; 
+      return v;
    end function toSlv;
 
    function fromSlv(v : slv; wen : sl) return TPGMiniEdefConfigType is
@@ -108,7 +108,7 @@ package body TPGMiniEdefPkg is
       assignRecord( i, v, cfg.edef );
       assignRecord( i, v, cfg.navg );
       cfg.wrEn := wen;
-      return cfg; 
+      return cfg;
    end function fromSlv;
 
 end package body TPGMiniEdefPkg;

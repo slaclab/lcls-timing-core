@@ -1,24 +1,24 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- File       : TPGMiniStream.vhd
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
 -- Last update: 2018-02-15
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -- Since the event codes are not 'predicted' we pick them
 -- off the event pipeline;
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -97,10 +97,10 @@ architecture TPGMiniStream of TPGMiniStream is
   signal eventCodes     : slv(255 downto 0)  := (others=>'0');
   signal epicsTime      : slv(63 downto 0);
 
-  
+
   attribute use_dsp48      : string;
-  attribute use_dsp48 of r : signal is "yes";   
-  
+  attribute use_dsp48 of r : signal is "yes";
+
 begin
 
   dataBuff.epicsTime <= epicsTime(31 downto 17) & (r.pulseId(16 downto 0)+toSlv(2,17)) & epicsTime(63 downto 32);
@@ -124,10 +124,10 @@ begin
   GEN_BASERATES : for i in 2 to 6 generate
     baseRates( i - 2 ) <= fixedRates_i( i );
   end generate;
-  
+
   BaseEnableDivider : entity work.Divider
     generic map (
-      TPD_G => TPD_G, 
+      TPD_G => TPD_G,
       Width => SbaseDivisor'length)
     port map (
       sysClk   => txClk,
@@ -149,11 +149,11 @@ begin
     eventCodes(j*10+9 downto j*10+FixedRateDiv'length) <= (others=>'0');
   end generate;
   eventCodes(255 downto 70) <= (others=>'0');
-  
+
   FixedDivider_loop : for i in 0 to FixedRateDiv'length-1 generate
     U_FixedDivider_1 : entity work.Divider
       generic map (
-        TPD_G => TPD_G, 
+        TPD_G => TPD_G,
         Width => log2(FixedRateDiv(i)))
       port map (
         sysClk   => txClk,
@@ -176,7 +176,7 @@ begin
 
   U_TSerializer : entity work.TimingStreamTx
     generic map (
-      TPD_G => TPD_G)  
+      TPD_G => TPD_G)
     port map ( clk       => txClk,
                rst       => txRst,
                fiducial  => baseEnable,
@@ -226,7 +226,7 @@ begin
 
     rin <= v;
   end process;
-         
+
   seq: process (txClk) is
   begin
     if rising_edge(txClk) then
