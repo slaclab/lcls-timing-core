@@ -1,3 +1,24 @@
+-------------------------------------------------------------------------------
+-- Title      : TPGMiniEdef
+-------------------------------------------------------------------------------
+-- File       : TPGMiniEdef.vhd
+-- Author     : Till Straumann <strauman@slac.stanford.edu>
+-- Company    : SLAC National Accelerator Laboratory
+-- Created    : 2018-03-08
+-- Last update: 2018-03-08
+-- Platform   : 
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description: 
+------------------------------------------------------------------------------- -- This file is part of 'LCLS2 Timing Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'LCLS2 Timing Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -12,20 +33,35 @@ entity TPGMiniEdef is
       EDEF_G : EdefType := (others => '0')
    );
    port (
+      -- clock, reset
       clk   : in  sl;
       rst   : in  sl;
+      -- CE; only advance state machine at base (fiducial) rate
       cen   : in  sl;
 
+      -- Higher-level strobes during active timeslot as
+      -- selected by 'rate' and (time-)'slot'.
       strb  : in  sl;
 
+      -- Parameters; are latched on first 'cen' if (and only if)
+      -- EDEF is not currently active.
       cnfg  : in TPGMiniEdefConfigType;
 
+      -- EDEF currently running (asserted always; not only during
+      -- active time-slot)
       actv  : out sl;
+      -- EDEF average done flag (to be raised in timing stream)
       avgD  : out sl;
+      -- EDEF all done flag     (to be raised in timing stream)
       allD  : out sl;
+      -- EDEF init flag         (to be raised in timing stream)
       init  : out sl;
+      -- EDEF minor flag        (to be raised in timing stream)
       smin  : out sl;
+      -- EDEF major flag        (to be raised in timing stream)
       smaj  : out sl;
+      -- Rate and time-slot selected by 'cnfg' - used by higher-level
+      -- module to drive 'strb' accordingly.
       rate  : out EdefRateType;
       slot  : out EdefTSType
    );
