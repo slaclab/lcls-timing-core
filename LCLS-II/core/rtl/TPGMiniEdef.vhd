@@ -10,7 +10,8 @@
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
-------------------------------------------------------------------------------- -- This file is part of 'LCLS2 Timing Core'.
+-------------------------------------------------------------------------------
+-- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
