@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EvrV2TrigReg.vhd
+-- File       : EvrV2TriggerReg.vhd
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2018-02-15
+-- Last update: 2017-04-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,10 +30,9 @@ use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.EvrV2Pkg.all;
 
-entity EvrV2TrigReg is
+entity EvrV2TriggerReg is
   generic (
     TPD_G      : time    := 1 ns;
-    TRIGGERS_C : integer := 1;
     USE_TAP_C  : boolean := false );
   port (
     -- AXI-Lite and IRQ Interface
@@ -44,23 +43,23 @@ entity EvrV2TrigReg is
     axilReadMaster      : in  AxiLiteReadMasterType;
     axilReadSlave       : out AxiLiteReadSlaveType;
     -- configuration
-    triggerConfig       : out EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
-    delay_rd            : in  Slv6Array(TRIGGERS_C-1 downto 0) := (others=>"000000") );
-end EvrV2TrigReg;
+    triggerConfig       : out EvrV2TriggerConfigType;
+    delay_rd            : in  slv(5 downto 0) := (others=>'0') );
+end EvrV2TriggerReg;
 
-architecture mapping of EvrV2TrigReg is
+architecture mapping of EvrV2TriggerReg is
 
   type RegType is record
     axilReadSlave  : AxiLiteReadSlaveType;
     axilWriteSlave : AxiLiteWriteSlaveType;
-    triggerConfig  : EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
-    loadShift      : Slv4Array(TRIGGERS_C-1 downto 0);
+    triggerConfig  : EvrV2TriggerConfigType;
+    loadShift      : slv(3 downto 0);
   end record;
   constant REG_INIT_C : RegType := (
     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
     axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-    triggerConfig  => (others=>EVRV2_TRIGGER_CONFIG_INIT_C),
-    loadShift      => (others=>(others=>'0')) );
+    triggerConfig  => EVRV2_TRIGGER_CONFIG_INIT_C,
+    loadShift      => (others=>'0') );
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
 
@@ -78,54 +77,45 @@ begin  -- mapping
   end process;
 
   process (r,axilReadMaster,axilWriteMaster,axiRst,delay_rd)
-    variable v : RegType;
-    variable axilStatus : AxiLiteStatusType;
+    variable v  : RegType;
+    variable ep : AxiLiteEndPointType;
+
+    procedure axilSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
+    begin
+      axiSlaveRegisterR(ep, addr, offset, reg);
+    end procedure;
     procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
     begin
-      axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, addr, offset, reg);
+      axiSlaveRegister(ep, addr, offset, reg);
     end procedure;
     procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
     begin
-      axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, addr, offset, reg);
+      axiSlaveRegister(ep, addr, offset, reg);
     end procedure;
     procedure axilSlaveDefault (
       axilResp : in slv(1 downto 0)) is
     begin
-      axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, axilResp);
+      axiSlaveDefault(ep, v.axilWriteSlave, v.axilReadSlave, axilResp);
     end procedure;
   begin  -- process
     v  := r;
-    axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+    axiSlaveWaitTxn(ep, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-    for i in 0 to TRIGGERS_C-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),   0, v.triggerConfig(i).channel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  16, v.triggerConfig(i).polarity);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  31, v.triggerConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(4+i*4096,17)),   0, v.triggerConfig(i).delay);
-      axilSlaveRegisterW(slv(conv_unsigned(8+i*4096,17)),   0, v.triggerConfig(i).width);
+    axilSlaveRegisterW(slv(conv_unsigned(0,9)),   0, v.triggerConfig.channels);
+    axilSlaveRegisterW(slv(conv_unsigned(0,9)),  16, v.triggerConfig.polarity);
+    axilSlaveRegisterW(slv(conv_unsigned(0,9)),  31, v.triggerConfig.enabled);
+    axilSlaveRegisterW(slv(conv_unsigned(4,9)),   0, v.triggerConfig.delay);
+    axilSlaveRegisterW(slv(conv_unsigned(8,9)),   0, v.triggerConfig.width);
 
-      if USE_TAP_C then
-        --  Special handling of delay tap
-        v.triggerConfig(i).loadTap := r.loadShift(i)(3);
-        v.loadShift(i) := r.loadShift(i)(2 downto 0) & '0';
-        if (axilStatus.readEnable = '1') then
-          if (std_match(axilReadMaster.araddr(16 downto 0), toSlv(12+i*4096,17))) then
-            v.axilReadSlave.rdata(31 downto 6) := (others=>'0');
-            v.axilReadSlave.rdata( 5 downto 0) := delay_rd(i);
-            axiSlaveReadResponse(v.axilReadSlave);
-          end if;
-        end if;
-
-        if (axilStatus.writeEnable = '1') then
-          if (std_match(axilWriteMaster.awaddr(16 downto 0), toSlv(12+i*4096,17))) then
-            v.triggerConfig(i).delayTap := axilWriteMaster.wdata(5 downto 0);
-            axiSlaveWriteResponse(v.axilWriteSlave);
-            v.loadShift(i)(0) := '1';
-          end if;
-        end if;
-      end if;
-      
-    end loop;   -- i
+    if USE_TAP_C then
+      --  Special handling of delay tap
+      v.triggerConfig.loadTap := r.loadShift(3);
+      v.loadShift := r.loadShift(2 downto 0) & '0';
+      axiWrDetect   (ep, slv(conv_unsigned(12,9)), v.loadShift(0));
+      axilSlaveRegisterW(slv(conv_unsigned(12,9)), 0, v.triggerConfig.delayTap);
+      axilSlaveRegisterR(slv(conv_unsigned(12,9)),16, delay_rd);
+    end if;
+    
     axilSlaveDefault(AXI_RESP_OK_C);
     rin <= v;
   end process;

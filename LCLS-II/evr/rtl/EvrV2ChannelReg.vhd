@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : EvrV2TrigReg.vhd
+-- File       : EvrV2ChannelReg.vhd
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2018-02-15
+-- Last update: 2017-12-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -28,13 +28,14 @@ use ieee.NUMERIC_STD.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
-entity EvrV2TrigReg is
+entity EvrV2ChannelReg is
   generic (
-    TPD_G      : time    := 1 ns;
-    TRIGGERS_C : integer := 1;
-    USE_TAP_C  : boolean := false );
+    TPD_G        : time    := 1 ns;
+    NCHANNELS_G  : integer := 1;
+    DMA_ENABLE_G : boolean := false );
   port (
     -- AXI-Lite and IRQ Interface
     axiClk              : in  sl;
@@ -44,29 +45,29 @@ entity EvrV2TrigReg is
     axilReadMaster      : in  AxiLiteReadMasterType;
     axilReadSlave       : out AxiLiteReadSlaveType;
     -- configuration
-    triggerConfig       : out EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
-    delay_rd            : in  Slv6Array(TRIGGERS_C-1 downto 0) := (others=>"000000") );
-end EvrV2TrigReg;
+    channelConfig       : out EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
+    -- status
+    eventCount          : in  Slv32Array(NCHANNELS_G-1 downto 0) );
+end EvrV2ChannelReg;
 
-architecture mapping of EvrV2TrigReg is
+architecture mapping of EvrV2ChannelReg is
 
   type RegType is record
     axilReadSlave  : AxiLiteReadSlaveType;
     axilWriteSlave : AxiLiteWriteSlaveType;
-    triggerConfig  : EvrV2TriggerConfigArray(TRIGGERS_C-1 downto 0);
-    loadShift      : Slv4Array(TRIGGERS_C-1 downto 0);
+    channelConfig  : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   end record;
   constant REG_INIT_C : RegType := (
     axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
     axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-    triggerConfig  => (others=>EVRV2_TRIGGER_CONFIG_INIT_C),
-    loadShift      => (others=>(others=>'0')) );
+    channelConfig  => (others=>EVRV2_CHANNEL_CONFIG_INIT_C) );
+
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
 
 begin  -- mapping
 
-  triggerConfig  <= r.triggerConfig;
+  channelConfig  <= r.channelConfig;
   axilReadSlave  <= r.axilReadSlave;
   axilWriteSlave <= r.axilWriteSlave;
 
@@ -77,9 +78,23 @@ begin  -- mapping
     end if;
   end process;
 
-  process (r,axilReadMaster,axilWriteMaster,axiRst,delay_rd)
+  process (r,axilReadMaster,axilWriteMaster,axiRst,eventCount)
     variable v : RegType;
     variable axilStatus : AxiLiteStatusType;
+    procedure axilSlaveRegisterR (addr : in slv; reg : in slv) is
+    begin
+      axiSlaveRegister(axilReadMaster, v.axilReadSlave, axilStatus, addr, 0, reg);
+    end procedure;
+    procedure axilSlaveRegisterR (addr : in slv; reg : in slv; ack : out sl) is
+    begin
+      if (axilStatus.readEnable = '1') then
+         if (std_match(axilReadMaster.araddr(addr'length-1 downto 0), addr)) then
+            v.axilReadSlave.rdata(reg'range) := reg;
+            axiSlaveReadResponse(v.axilReadSlave);
+            ack := '1';
+         end if;
+      end if;
+    end procedure;
     procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv) is
     begin
       axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, addr, offset, reg);
@@ -96,36 +111,21 @@ begin  -- mapping
   begin  -- process
     v  := r;
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+    for i in 0 to NCHANNELS_G-1 loop
+      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  0, v.channelConfig(i).enabled);
+      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 4,17)),  0, v.channelConfig(i).rateSel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 4,17)), 13, v.channelConfig(i).destSel);
+      axilSlaveRegisterR(slv(conv_unsigned(i*4096+ 8,17)),     eventCount(i));
 
-    for i in 0 to TRIGGERS_C-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),   0, v.triggerConfig(i).channel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  16, v.triggerConfig(i).polarity);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  31, v.triggerConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(4+i*4096,17)),   0, v.triggerConfig(i).delay);
-      axilSlaveRegisterW(slv(conv_unsigned(8+i*4096,17)),   0, v.triggerConfig(i).width);
-
-      if USE_TAP_C then
-        --  Special handling of delay tap
-        v.triggerConfig(i).loadTap := r.loadShift(i)(3);
-        v.loadShift(i) := r.loadShift(i)(2 downto 0) & '0';
-        if (axilStatus.readEnable = '1') then
-          if (std_match(axilReadMaster.araddr(16 downto 0), toSlv(12+i*4096,17))) then
-            v.axilReadSlave.rdata(31 downto 6) := (others=>'0');
-            v.axilReadSlave.rdata( 5 downto 0) := delay_rd(i);
-            axiSlaveReadResponse(v.axilReadSlave);
-          end if;
-        end if;
-
-        if (axilStatus.writeEnable = '1') then
-          if (std_match(axilWriteMaster.awaddr(16 downto 0), toSlv(12+i*4096,17))) then
-            v.triggerConfig(i).delayTap := axilWriteMaster.wdata(5 downto 0);
-            axiSlaveWriteResponse(v.axilWriteSlave);
-            v.loadShift(i)(0) := '1';
-          end if;
-        end if;
+      if DMA_ENABLE_G then
+        axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  1, v.channelConfig(i).bsaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  2, v.channelConfig(i).dmaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*4096+12,17)),  0, v.channelConfig(i).bsaActiveDelay);
+        axilSlaveRegisterW(slv(conv_unsigned(i*4096+12,17)), 20, v.channelConfig(i).bsaActiveSetup);
+        axilSlaveRegisterW(slv(conv_unsigned(i*4096+16,17)),  0, v.channelConfig(i).bsaActiveWidth);
       end if;
-      
-    end loop;   -- i
+    end loop;
+    
     axilSlaveDefault(AXI_RESP_OK_C);
     rin <= v;
   end process;

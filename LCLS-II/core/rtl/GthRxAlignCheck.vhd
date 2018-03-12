@@ -2,7 +2,7 @@
 -- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2018-02-12
+-- Last update: 2018-02-15
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
