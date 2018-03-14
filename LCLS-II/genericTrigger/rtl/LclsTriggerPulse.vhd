@@ -2,7 +2,7 @@
 -- File       : LclsTriggerPulse.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-08
--- Last update: 2017-02-09
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description:  Triggered if opcode received.
 --               Opcode = oth 0 (Disabled)
@@ -36,14 +36,13 @@ use work.AxiLitePkg.all;
 
 entity LclsTriggerPulse is
    generic (
-      TPD_G            : time                  := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_DECERR_C;
-      DELAY_WIDTH_G    : integer range 1 to 32 := 32;
-      PULSE_WIDTH_G    : integer range 1 to 32 := 32);
+      TPD_G         : time                  := 1 ns;
+      DELAY_WIDTH_G : integer range 1 to 32 := 32;
+      PULSE_WIDTH_G : integer range 1 to 32 := 32);
    port (
       -- Timing clock
-      clk : in sl;
-      rst : in sl;
+      clk             : in  sl;
+      rst             : in  sl;
       -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -52,10 +51,10 @@ entity LclsTriggerPulse is
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Opcodes (events)
-      opcodes_i : in slv(255 downto 0);
-      strobe_i  : in sl;
+      opcodes_i       : in  slv(255 downto 0);
+      strobe_i        : in  sl;
       -- Trigger pulse output 
-      pulse_o : out sl);
+      pulse_o         : out sl);
 end LclsTriggerPulse;
 
 architecture rtl of LclsTriggerPulse is
@@ -70,7 +69,7 @@ architecture rtl of LclsTriggerPulse is
       pulse    : sl;
       delayReg : slv(DELAY_WIDTH_G-1 downto 0);
       widthReg : slv(PULSE_WIDTH_G-1 downto 0);
-      state : StateType;
+      state    : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -92,10 +91,9 @@ begin
 
    U_Reg : entity work.LclsTriggerPulseReg
       generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G,
-         DELAY_WIDTH_G    => DELAY_WIDTH_G,
-         PULSE_WIDTH_G    => PULSE_WIDTH_G)
+         TPD_G         => TPD_G,
+         DELAY_WIDTH_G => DELAY_WIDTH_G,
+         PULSE_WIDTH_G => PULSE_WIDTH_G)
       port map (
          axiclk_i        => axilClk,
          axirst_i        => axilRst,
@@ -121,7 +119,7 @@ begin
          ----------------------------------------------------------------------
          when WAIT_TRIG_S =>
             -- Save configurations
-            v.pulse    := s_polarity;   -- Pulse NOT active
+            v.pulse    := s_polarity;    -- Pulse NOT active
             v.delayReg := s_delayReg;
             v.widthReg := s_widthReg;
             -- Check for trigger
@@ -134,7 +132,7 @@ begin
             -- Increment the counter
             v.cnt   := r.cnt + 1;
             -- NOT asserted the pulse
-            v.pulse := s_polarity;      -- Pulse NOT active
+            v.pulse := s_polarity;       -- Pulse NOT active
             -- Check the counter
             if r.cnt = r.delayReg then
                v.cnt   := (others => '0');
@@ -150,7 +148,7 @@ begin
             -- Check the counter
             if r.cnt = r.widthReg then
                -- Reset the counter
-               v.cnt      := (others => '0');
+               v.cnt   := (others => '0');
                -- Next state
                v.state := WAIT_TRIG_S;
             end if;
@@ -164,7 +162,7 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
       -- Outputs
       pulse_o <= r.pulse;
 
@@ -177,4 +175,4 @@ begin
       end if;
    end process seq;
 
-end  rtl;
+end rtl;
