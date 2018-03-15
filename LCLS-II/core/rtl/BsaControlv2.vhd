@@ -234,7 +234,7 @@ begin
        if r.bsaDone = '1' then
          v.tmoactive := '0';
        elsif r.bsaInit = '0' and r.bsaAvgDone = '1' then
-         v.tmoactive := '1';
+         v.tmoactive := not bsadef.noTmo;
        end if;
        
      end if;

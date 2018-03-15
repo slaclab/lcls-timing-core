@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-05-10
+-- Last update: 2018-02-17
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ package TimingPkg is
       bufferByDone => '0',
       bufferByErr  => '0' );
    type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
-   
+
    type TimingSerialType is record
       ready      : sl;                -- tx: new segment ready,
                                       -- rx: last segment valid
@@ -112,7 +112,9 @@ package TimingPkg is
       acTimeSlot      : slv(2 downto 0);
       acTimeSlotPhase : slv(11 downto 0);
       resync          : sl;
-      beamRequest     : slv(31 downto 0);
+      beamRequest     : slv(31 downto 0);  -- [31:16] charge(pC),
+                                           -- [7:4] destn,
+                                           -- [0] beam present
       beamEnergy      : Slv16Array(0 to 3);
       photonWavelen   : Slv16Array(0 to 1);
       syncStatus      : sl;
@@ -226,6 +228,7 @@ package TimingPkg is
       stream  : TimingStreamType;
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
+      modesel : sl;  -- LCLS-II selected
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
@@ -233,7 +236,9 @@ package TimingPkg is
       message => TIMING_MESSAGE_INIT_C,
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
-      v2      => LCLS_V2_TIMING_DATA_INIT_C);
+      v2      => LCLS_V2_TIMING_DATA_INIT_C,
+      modesel => '0');
+
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record
@@ -247,6 +252,18 @@ package TimingPkg is
       control    => TIMING_PHY_CONTROL_INIT_C );
    type TimingPhyArray is array (integer range<>) of TimingPhyType;
 
+   type TimingTrigType is record
+      trigPulse  : slv(15 downto 0);
+      timeStamp  : slv(63 downto 0);
+      bsa        : slv(127 downto 0);  -- LCLS-I control info
+      dmod       : slv(191 downto 0);  --
+   end record;
+   constant TIMING_TRIG_INIT_C : TimingTrigType := (
+      trigPulse  => (others=>'0'),
+      timeStamp  => (others=>'0'),
+      bsa        => (others=>'0'),
+      dmod       => (others=>'0') );
+ 
    --
    --  Experiment timing information (appended by downstream masters)
    --
@@ -280,7 +297,8 @@ package TimingPkg is
      message => EXPT_MESSAGE_INIT_C,
      valid   => '0' );
    type ExptBusArray is array (integer range<>) of ExptBusType;
-   
+
+   function toSlv(message : ExptMessageType) return slv;
    function toExptMessageType (vector : slv) return ExptMessageType;
    
 end package TimingPkg;
@@ -492,6 +510,18 @@ package body TimingPkg is
       return vector;
    end function;
 
+   function toSlv(message : ExptMessageType) return slv
+   is
+      variable vector  : slv(EXPT_MESSAGE_BITS_C-1 downto 0) := (others=>'0');
+      variable i       : integer := 0;
+   begin
+      assignSlv(i, vector, message.partitionAddr);
+      for j in message.partitionWord'range loop
+         assignSlv(i, vector, message.partitionWord(j));
+      end loop;
+      return vector;
+   end function;
+      
    function toExptMessageType (vector : slv) return ExptMessageType
    is
       variable message : ExptMessageType;

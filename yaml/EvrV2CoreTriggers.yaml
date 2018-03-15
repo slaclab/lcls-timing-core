@@ -8,21 +8,31 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
-#once EvrV1Isr.yaml
+#once EvrV2CoreTriggers.yaml
+#include EvrV2ChannelReg.yaml
+#include EvrV2TriggerReg.yaml
 
-EvrV1Isr: &EvrV1Isr
+EvrV2CoreTriggers: &EvrV2CoreTriggers
   class: MMIODev
   configPrio: 1
-  description: LCLS-I EVR ISR Controller
-  size: 0x10
+  description: Core trigger control
+  size: 0x40000
+  metadata:
+    numTriggers: &numTriggers 16
+  ############
   children:
-    #########################################################  
-    IsrSelect:
+  ############
+    EvrV2ChannelReg:
+      <<: *EvrV2ChannelReg
       at:
-        offset: 0x0
-      class: IntField
-      name: IsrSelect
-      sizeBits: 1
-      mode: RW
-      description: 0x1 = Software ISR, 0x0 = Firmware ISR
-    #########################################################  
+        offset: 0x00000
+        nelms: *numTriggers
+        stride: 0x1000
+    #########################################################
+    EvrV2TriggerReg:
+      <<: *EvrV2TriggerReg
+      at:
+        offset: 0x20000
+        nelms: *numTriggers
+        stride: 0x1000
+    #########################################################

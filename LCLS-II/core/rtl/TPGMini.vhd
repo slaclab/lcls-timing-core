@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2017-03-24
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -266,24 +266,25 @@ begin
         countRst    <= '0';
         intervalCnt <= intervalCnt-1;
       end if;
-    end if;
-    if txRst = '1' then
-      frame.acTimeSlot      <= "001";
-      frame.acTimeSlotPhase <= (others => '0');
-      baseEnabled           <= (others => '0');
-      count186M             <= (others => '0');
-      countSyncE            <= (others => '0');
-      outOfSyncd            := '1';
-      countRst              <= '1';
-      status.countTrig      <= (others => (others => '0'));
-      status.countBRT       <= (others => '0');
-      status.countSeq       <= (others => (others => '0'));
-    end if;
-    if config.intervalRst = '1' then
-      intervalCnt <= (others => '0');
-    end if;
-    if config.pulseIdWrEn = '1' then
-      pulseIdWr <= '0';
+      -- synchronous reset
+      if txRst = '1' then
+        frame.acTimeSlot      <= "001";
+        frame.acTimeSlotPhase <= (others => '0');
+        baseEnabled           <= (others => '0');
+        count186M             <= (others => '0');
+        countSyncE            <= (others => '0');
+        outOfSyncd            := '1';
+        countRst              <= '1';
+        status.countTrig      <= (others => (others => '0'));
+        status.countBRT       <= (others => '0');
+        status.countSeq       <= (others => (others => '0'));
+      end if;
+      if config.intervalRst = '1' then
+        intervalCnt <= (others => '0');
+      end if;
+      if config.pulseIdWrEn = '1' then
+        pulseIdWr <= '0';
+      end if;
     end if;
   end process;
 

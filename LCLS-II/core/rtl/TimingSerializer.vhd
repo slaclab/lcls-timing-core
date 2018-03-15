@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2016-04-13
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ end TimingSerializer;
 -- Define architecture for top level module
 architecture TimingSerializer of TimingSerializer is
 
-   type StateType is (IDLE_S, SOS_S, SEGMENT_S, EOF_S, CRC1_S, CRC2_S, CRC3_S);
+   type StateType is (IDLE_S,  SOF_S, SOS_S, SEGMENT_S, EOF_S, CRC1_S, CRC2_S, CRC3_S);
    type RegType is
    record
       state      : StateType;
@@ -105,24 +105,27 @@ begin
       case (r.state) is
         when IDLE_S => 
           if fiducial = '1' then
-            -- Queue the start of frame
-            v.data  := D_215_C & K_SOF_C;
-            v.dataK := "01";
-            v.crcReset:= '1';
-            -- Latch the streams that are ready to send
-            v.state   := EOF_S;  -- if no streams are ready: empty frame
-            v.ready   := (others=>'0');
-            for i in STREAMS_C-1 downto 0 loop
-              if (streams(i).ready='1') then
-                v.ready(i) := '1';
-                v.state    := SOS_S;
-                v.stream   := i;
-              end if;
-            end loop;
+            v.data  := D_215_C & K_281_C; -- special 4-byte alignment comma
+            v.state := SOF_S;
           else
             v.data  := D_215_C & K_COM_C;
             v.dataK := "01";
           end if;
+        when SOF_S =>
+          -- Queue the start of frame
+          v.data  := D_215_C & K_SOF_C;
+          v.dataK := "01";
+          v.crcReset:= '1';
+          -- Latch the streams that are ready to send
+          v.state   := EOF_S;  -- if no streams are ready: empty frame
+          v.ready   := (others=>'0');
+          for i in STREAMS_C-1 downto 0 loop
+            if (streams(i).ready='1') then
+              v.ready(i) := '1';
+              v.state    := SOS_S;
+              v.stream   := i;
+            end if;
+          end loop;
         when SOS_S =>
           -- Queue the segment header
           v.data  := streamIds(r.stream) & "0000" & streams(r.stream).last & streams(r.stream).offset;

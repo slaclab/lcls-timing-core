@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2017-04-14
+-- Last update: 2018-02-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ entity TimingRx is
    generic (
       TPD_G               : time            := 1 ns;
       DEFAULT_CLK_SEL_G   : sl              := '1';
+      CLKSEL_MODE_G       : string          := "SELECT"; -- "LCLSI","LCLSII"
       AXIL_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);
    port (
       rxClk               : in  sl;
@@ -46,7 +47,8 @@ entity TimingRx is
       timingClkSel        : out sl; -- '0'=LCLS1, '1'=LCLS2
       timingClkSelR       : out sl; 
       
-      timingStream        : out TimingStreamType;
+      timingStreamUser    : out TimingStreamType;
+      timingStreamPrompt  : out TimingStreamType;
       timingStreamStrobe  : out sl;
       timingStreamValid   : out sl;
       
@@ -87,7 +89,8 @@ architecture rtl of TimingRx is
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      clkSel         => DEFAULT_CLK_SEL_G,
+      clkSel         => ite(CLKSEL_MODE_G="SELECT",DEFAULT_CLK_SEL_G,
+                            ite(CLKSEL_MODE_G="LCLSI",'0','1')),
       cntRst         => '0',
       rxControl      => TIMING_PHY_CONTROL_INIT_C,
       rxDown         => '0',
@@ -148,7 +151,8 @@ begin
          rxRst               => rxRst(0),
          rxData              => rxData,
          timingMessageNoDely => timingStreamNoDelayR,
-         timingMessage       => timingStream,
+         timingMessageUser   => timingStreamUser,
+         timingMessagePrompt => timingStreamPrompt,
          timingMessageStrobe => timingStreamStrobe,
          timingMessageValid  => timingStreamValid,
          timingTSEventCounter=> timingTSEventCounter,
@@ -235,14 +239,25 @@ begin
       axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
       axilSlaveRegisterW(X"20", 2, v.rxControl.polarity);
       axilSlaveRegisterW(X"20", 3, v.rxControl.reset);
-      axilSlaveRegisterW(X"20", 4, v.clkSel);
+      if (CLKSEL_MODE_G="SELECT") then
+        axilSlaveRegisterW(X"20", 4, v.clkSel);
+      else
+        axilSlaveRegisterR(X"20", 4, v.clkSel);
+      end if;
       axilSlaveRegisterW(X"20", 5, v.rxDown);
       axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
       axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);
       axilSlaveRegisterR(X"20", 8, axilVsnErr);
       axilSlaveRegisterW(X"20",24, v.streamNoDelay);
 
+      v.messageDelayRst := '0';
       axilSlaveRegisterW(X"24", 0, v.messageDelay);
+      axilSlaveRegisterW(X"24",31, v.messageDelayRst);
+
+      if v.messageDelay/=axilR.messageDelay then
+        v.messageDelayRst := '1';
+      end if;
+      
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
@@ -252,12 +267,6 @@ begin
       axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
 
       axilSlaveDefault(AXIL_ERROR_RESP_G);
-
-      v.messageDelayRst := '0';
-      if (axilStatus.writeEnable='1' and
-          std_match(axilWriteMaster.awaddr(7 downto 0),x"24")) then
-        v.messageDelayRst := '1';
-      end if;
 
       if axilRxLinkUp='0' then
         v.rxDown := '1';

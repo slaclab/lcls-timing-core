@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2017-04-23
+-- Last update: 2018-02-15
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -81,6 +81,7 @@ package TPGPkg is
                    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
                    -- Bits(15:0)=Mask of Destinations (when Beam)
                    maxSevr : slv(1 downto 0); -- max alarm severity
+                   noTmo   : sl;  -- don't use timeout for done
                    init    : sl;
                  end record;
   constant BSADEF_INIT_C : BsaDefType := (
@@ -89,6 +90,7 @@ package TPGPkg is
     rateSel  => (others=>'0'),
     destSel  => (others=>'0'),
     maxSevr  => (others=>'0'),
+    noTmo    => '0',
     init     => '0');
   
   type BsaDefArray is array(natural range<>) of BsaDefType;
