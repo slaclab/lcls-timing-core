@@ -94,6 +94,9 @@ architecture TimingSerialDelay of TimingSerialDelay is
   attribute use_dsp48      : string;
   attribute use_dsp48 of r : signal is "yes";  
   
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";  
+  
 begin
 
    GEN_FRAME: for i in 0 to NWORDS_G-1 generate

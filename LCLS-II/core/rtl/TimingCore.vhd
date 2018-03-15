@@ -345,7 +345,7 @@ begin
        appExptBus_i.message   <= toExptMessageType(appExptFrameSlv);
      end process;
 
-     -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
+     -- Need to synchronize timingClkSelR to appTimingClk so we can use
      -- it to switch between stream and message in appTimingClk domain
      U_Synchronizer_1 : entity work.Synchronizer
        generic map (
