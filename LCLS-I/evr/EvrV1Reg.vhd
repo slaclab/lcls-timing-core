@@ -2,7 +2,7 @@
 -- File       : EvrV1Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-11
--- Last update: 2016-09-21
+-- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -26,11 +26,10 @@ use work.EvrV1Pkg.all;
 
 entity EvrV1Reg is
    generic (
-      TPD_G              : time            := 1 ns;
+      TPD_G              : time    := 1 ns;
       BUILD_INFO_G       : BuildInfoType;
-      USE_WSTRB_G        : boolean         := false;
-      LATCH_TS_LATENCY_G : natural         := 15;
-      AXI_ERROR_RESP_G   : slv(1 downto 0) := AXI_RESP_OK_C);      
+      USE_WSTRB_G        : boolean := false;
+      LATCH_TS_LATENCY_G : natural := 15);
    port (
       -- PCIe Interface
       irqActive      : in  sl;
@@ -96,7 +95,7 @@ architecture rtl of EvrV1Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       statusReg     => (others => '0'),
       controlReg    => (others => '0'),
@@ -124,7 +123,7 @@ architecture rtl of EvrV1Reg is
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
-   
+
 begin
 
    fwVersion <= "0001" & "1111" & BUILD_INFO_C.fwVersion(23 downto 0);
@@ -393,10 +392,10 @@ begin
                      v.config.outputMap(11) := axiWriteMaster.wdata(15 downto 0);
                   end if;
                when others =>
-                  axiWriteResp := AXI_ERROR_RESP_G;
+                  axiWriteResp := AXI_RESP_DECERR_C;
             end case;
          else
-            axiWriteResp := AXI_ERROR_RESP_G;
+            axiWriteResp := AXI_RESP_DECERR_C;
          end if;
          -- Send AXI response
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
@@ -623,14 +622,14 @@ begin
                      end case;
                   when others =>
                      v.axiReadSlave.rdata := x"DEADBEEF";
-                     axiReadResp          := AXI_ERROR_RESP_G;
+                     axiReadResp          := AXI_RESP_DECERR_C;
                end case;
                -- Send AXI response
                axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
             end if;
          else
             -- Send AXI response
-            axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
+            axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
          end if;
       end if;
 
@@ -672,10 +671,10 @@ begin
       config        <= r.config;
       irqEnable     <= r.pcieIntEna(0);
       irqReq        <= (r.config.intControl(31) and status.intFlag(0) and r.config.intControl(0))  -- rxLos
-                       or (r.config.intControl(31) and status.intFlag(1) and r.config.intControl(1))  -- TsFifoFull
-                       or (r.config.intControl(31) and status.intFlag(2) and r.config.intControl(2))  -- heartBeatTimeOut
-                       or (r.config.intControl(31) and status.intFlag(3) and r.config.intControl(3))  -- event
-                       or (r.config.intControl(31) and status.intFlag(5) and r.config.intControl(5));  -- databuff   
+                or (r.config.intControl(31) and status.intFlag(1) and r.config.intControl(1))  -- TsFifoFull
+                or (r.config.intControl(31) and status.intFlag(2) and r.config.intControl(2))  -- heartBeatTimeOut
+                or (r.config.intControl(31) and status.intFlag(3) and r.config.intControl(3))  -- event
+                or (r.config.intControl(31) and status.intFlag(5) and r.config.intControl(5));  -- databuff   
    end process comb;
 
    seq : process (axiClk) is

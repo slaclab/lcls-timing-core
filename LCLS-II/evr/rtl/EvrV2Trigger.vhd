@@ -83,14 +83,17 @@ architecture EvrV2Trigger of EvrV2Trigger is
    signal rin : RegType;
 
    signal fifoValid : sl;
+
    signal fifoDout  : slv(TRIG_WIDTH_C-1 downto 0);
    signal fifoCount : slv(FIFO_AWIDTH_C-1 downto 0);
    signal fifoEmpty : sl;
    signal fifoFull  : sl;
 
+
    signal fifoCountDbg : slv(6 downto 0);
    
 begin
+
 
    trigstate <= r.state;
 

@@ -1,13 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : EvrV2CoreTriggers.vhd
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
 -- Last update: 2018-02-17
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -34,9 +30,10 @@ use work.EvrV2Pkg.all;
 entity EvrV2CoreTriggers is
   generic (
     TPD_G            : time             := 1 ns;
-    NCHANNELS_G      : integer          := 1;   -- event selection channels
-    NTRIGGERS_G      : integer          := 1;   -- trigger outputs
-    TRIG_DEPTH_G     : integer          := 28;
+    NCHANNELS_G      : natural          := 1;   -- event selection channels
+    NTRIGGERS_G      : natural          := 1;   -- trigger outputs
+    TRIG_DEPTH_G     : natural          := 28;
+    TRIG_PIPE_G      : natural          := 0;  -- no trigger pipeline by default
     COMMON_CLK_G     : boolean          := false;
     AXIL_BASEADDR_G  : slv(31 downto 0) := x"00080000" );
   port (
@@ -157,7 +154,7 @@ begin  -- rtl
      U_Trig : entity work.EvrV2Trigger
        generic map ( TPD_G        => TPD_G,
                      CHANNELS_C   => NCHANNELS_G,
-                     TRIG_DEPTH_C => 0,  -- no trigger pipeline
+                     TRIG_DEPTH_C => TRIG_PIPE_G,
                      TRIG_WIDTH_C => TRIG_DEPTH_G,
                      USE_MASK_G   => false )
        port map (    clk      => evrClk,

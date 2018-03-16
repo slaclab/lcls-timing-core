@@ -128,7 +128,6 @@ package TimingPkg is
       bsaDone         : slv(63 downto 0);
       control         : slv16Array(0 to 17);
    end record;
-
    constant TIMING_MESSAGE_INIT_C : TimingMessageType := (
       version         => TIMING_MESSAGE_VERSION_C,
       pulseId         => (others => '0'),
@@ -171,7 +170,6 @@ package TimingPkg is
       edefMajor  : slv(31 downto 0);
       edefInit   : slv(31 downto 0);
    end record;
-
    constant TIMING_DATA_BUFF_INIT_C : TimingDataBuffType := (
       dtype      => (others=>'0'),
       version    => (others=>'0'),
@@ -181,7 +179,6 @@ package TimingPkg is
       edefMinor  => (others=>'0'),
       edefMajor  => (others=>'0'),
       edefInit   => (others=>'0') );
-
    type TimingDataBuffArray is array (natural range<>) of TimingDataBuffType;
    
    type TimingStreamType is record
@@ -189,7 +186,6 @@ package TimingPkg is
       eventCodes      : slv(255 downto 0);
       dbuff           : TimingDataBuffType;
    end record;
-
    constant TIMING_STREAM_INIT_C : TimingStreamType := (
       pulseId         => (others=>'0'),
       eventCodes      => (others=>'0'),
@@ -242,6 +238,7 @@ package TimingPkg is
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C,
       modesel => '0');
+
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record

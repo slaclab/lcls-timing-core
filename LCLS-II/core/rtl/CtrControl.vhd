@@ -67,6 +67,9 @@ architecture CtrControl of CtrControl is
    signal rateSel : sl;
    signal ctrlatch : sl;
    
+  attribute use_dsp48      : string;
+  attribute use_dsp48 of r : signal is "yes";   
+  
 begin
 
    count <= r.latch;
