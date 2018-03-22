@@ -97,6 +97,8 @@ architecture TPGMiniStream of TPGMiniStream is
   signal eventCodes     : slv(255 downto 0)  := (others=>'0');
   signal epicsTime      : slv(63 downto 0);
 
+  signal beamFull       : sl := '0';
+
 
   attribute use_dsp48      : string;
   attribute use_dsp48 of r : signal is "yes";
@@ -114,7 +116,7 @@ begin
   dataBuff.dmod(37 downto 32)               <= r.timeSlotBit;
   dataBuff.dmod(3*32+28 downto 38)          <= (others=>'0');
   dataBuff.dmod( 3*32+29+2 downto 3*32+29 ) <= r.timeSlot;
-  dataBuff.dmod( 5*32-1    downto 4*32 )    <= "0000000" & baseRates & edefActive;
+  dataBuff.dmod( 5*32-1    downto 4*32 )    <= "000" & beamFull & "000" & baseRates & edefActive;
   dataBuff.dmod(                  5*32+ 0 ) <= '1'; -- fake MPS_VALID in MOD6
   dataBuff.dmod( 191       downto 5*32+ 1 ) <= (others=>'0');
 
@@ -141,6 +143,9 @@ begin
   edefActive(17) <= fixedRates_i(0); -- full rate (120)
   edefActive(16) <= fixedRates_i(3); -- 10Hz
   edefActive(15) <= fixedRates_i(5); --  1Hz
+
+  -- advertise 'full-rate' beam
+  beamFull       <= fixedRates_i(0);
 
   dataBuff.edefAvgDn(17 downto 15) <= edefActive(17 downto 15);
 
