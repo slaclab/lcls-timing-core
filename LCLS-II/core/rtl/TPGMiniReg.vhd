@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2017-02-21
+-- Last update: 2018-02-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,8 +34,7 @@ entity TPGMiniReg is
    generic (
       TPD_G            : time            := 1 ns;
       NARRAYS_BSA      : integer         := 1;
-      USE_WSTRB_G      : boolean         := false;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);      
+      USE_WSTRB_G      : boolean         := false);
    port (
       -- PCIe Interface
       irqActive      : in  sl;
@@ -212,10 +211,10 @@ begin
               end if;
             when CNTINTVL   => v.config.interval    := regWrData;
                                v.config.intervalRst := '1';
-            when others  => axiWriteResp := AXI_ERROR_RESP_G;
+            when others  => axiWriteResp := AXI_RESP_DECERR_C;
           end case;
         else
-          axiWriteResp := AXI_ERROR_RESP_G;
+          axiWriteResp := AXI_RESP_DECERR_C;
         end if;
         -- Send AXI response
         axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
@@ -284,13 +283,13 @@ begin
             when CNTSYNCE   => tmpRdData := status.countSyncE;
             when CNTINTVL   => tmpRdData := r.config.interval;
             when CNTBRT     => tmpRdData := status.countBRT;
-            when others     => axiReadResp := AXI_ERROR_RESP_G;
+            when others     => axiReadResp := AXI_RESP_DECERR_C;
           end case;
           v.axiReadSlave.rdata := tmpRdData;
           -- Send AXI response
           axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
         else
-          axiSlaveReadResponse(v.axiReadSlave, AXI_ERROR_RESP_G);
+          axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
         end if;
       end if;
       

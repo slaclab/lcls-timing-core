@@ -27,7 +27,6 @@ use work.AxiLiteMasterPkg.all;
 entity GthRxAlignCheck is
    generic (
       TPD_G            : time            := 1 ns;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_DECERR_C;
       GTHE_TYPE_G      : boolean         := false;  -- false = GTHE3, true = GTHE4 
       DRP_ADDR_G       : slv(31 downto 0));
    port (
