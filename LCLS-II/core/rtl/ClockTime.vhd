@@ -25,8 +25,6 @@ use work.all;
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
 use work.StdRtlPkg.all;
 
 entity ClockTime is

@@ -22,16 +22,15 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.TPGPkg.all;
+use work.TPGMiniEdefPkg.all;
 
 entity TPGMiniCore is
    generic (
-      TPD_G           : time    := 1ns;
+      TPD_G           : time    := 1 ns;
       NARRAYSBSA      : natural := 1);
    port (
      txClk           : in  sl;
@@ -62,11 +61,12 @@ architecture rtl of TPGMiniCore is
    signal regReadSlave      : AxiLiteReadSlaveType;
    signal regWriteMaster    : AxiLiteWriteMasterType;
    signal regWriteSlave     : AxiLiteWriteSlaveType;
+   signal edefConfig        : TPGMiniEdefConfigType;
 
 begin  -- rtl
 
-   regClk <= txClk;
-   regRst <= txRst;
+   regClk     <= txClk;
+   regRst     <= txRst;
    txPolarity <= config.txPolarity;
    
    U_AxiLiteAsync : entity work.AxiLiteAsync
@@ -101,6 +101,7 @@ begin  -- rtl
          axiWriteSlave  => regWriteSlave,
          status         => status,
          config         => config,
+         edefConfig     => edefConfig,
          txReset        => txResetO,
          txLoopback     => txLoopback,
          txInhibit      => txInhibit,
@@ -110,30 +111,31 @@ begin  -- rtl
 
    TPGMini_Inst : entity work.TPGMini
       generic map (
-         TPD_G        => TPD_G,
-         NARRAYSBSA   => NARRAYSBSA )
+         TPD_G          => TPD_G,
+         NARRAYSBSA     => NARRAYSBSA )
       port map (
          -- Register Interface
-         statusO  => status,
-         configI  => config,
+         statusO        => status,
+         configI        => config,
          -- TPG Interface
-         txClk    => txClk,
-         txRst    => txRst,
-         txRdy    => txRdy,
-         txData   => txData (1),
-         txDataK  => txDataK(1) );
+         txClk          => txClk,
+         txRst          => txRst,
+         txRdy          => txRdy,
+         txData         => txData (1),
+         txDataK        => txDataK(1) );
 
    TPGMiniStream_Inst : entity work.TPGMiniStream
       generic map (
-         TPD_G    => TPD_G)   
+         TPD_G          => TPD_G)   
       port map (
          -- Register Interface
-         config   => config,
+         config         => config,
+         edefConfig     => edefConfig,
          -- TPG Interface
-         txClk    => txClk,
-         txRst    => txRst,
-         txRdy    => txRdy,
-         txData   => txData (0),
-         txDataK  => txDataK(0) );
+         txClk          => txClk,
+         txRst          => txRst,
+         txRdy          => txRdy,
+         txData         => txData (0),
+         txDataK        => txDataK(0) );
 
 end rtl;

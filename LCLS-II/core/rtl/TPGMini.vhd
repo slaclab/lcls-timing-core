@@ -24,8 +24,6 @@ use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
 use work.TPGPkg.all;
 use work.StdRtlPkg.all;
 use work.TimingPkg.all;
@@ -75,10 +73,10 @@ architecture TPGMini of TPGMini is
   signal acTSPhasen : slv(11 downto 0);
 
   constant ACRateWidth : integer := 8;
-  constant ACRateDepth : integer := ACRATEDEPTH;
+  constant ACRateDepth : integer := TPGPkg.ACRATEDEPTH;
 
   constant FixedRateWidth : integer := 20;
-  constant FixedRateDepth : integer := FIXEDRATEDEPTH;
+  constant FixedRateDepth : integer := TPGPkg.FIXEDRATEDEPTH;
 
   signal syncReset : sl;
 
