@@ -28,6 +28,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.TPGPkg.all;
+use work.TPGMiniEdefPkg.all;
 
 entity TPGMiniReg is
    generic (
@@ -47,6 +48,7 @@ entity TPGMiniReg is
       -- EVR Interface      
       status         : in  TPGStatusType;
       config         : out TPGConfigType;
+      edefConfig     : out TPGMiniEdefConfigType;
       txReset        : out sl;
       txLoopback     : out slv(2 downto 0);
       txInhibit      : out sl;
@@ -71,6 +73,8 @@ architecture rtl of TPGMiniReg is
    constant RESOURCES  : integer := 19;
    constant BSACMPLL   : integer := 20;
    constant BSACMPLU   : integer := 21;
+   constant BSA1_EDEF  : integer := 30;
+   constant BSA1_INIT  : integer := 31;
    constant BSADEF     : integer := 128;  -- 128 registers
    constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA;
    constant BSASTATUS  : integer := 256;  -- 64 registers
@@ -89,6 +93,7 @@ architecture rtl of TPGMiniReg is
                      countUpdate       : sl;
                      FixedRateDivisors : Slv20Array(9 downto 0);
                      config            : TPGConfigType;
+                     edefConfig        : TPGMiniEdefConfigType;
                      txReset           : sl;
                      txLoopback        : slv( 2 downto 0);
                      txInhibit         : sl;
@@ -105,6 +110,7 @@ architecture rtl of TPGMiniReg is
      countUpdate       => '0',
      FixedRateDivisors => TPG_CONFIG_INIT_C.FixedRateDivisors,
      config            => TPG_CONFIG_INIT_C,
+     edefConfig        => TPG_MINI_EDEF_CONFIG_INIT_C,
      txReset           => '0',
      txLoopback        => "000",
      txInhibit         => '0',
@@ -146,6 +152,7 @@ begin
       v.config.pulseIdWrEn   := '0';
       v.config.timeStampWrEn := '0';
       v.config.intervalRst   := '0';
+      v.edefConfig.wrEn      := '0';
       v.txReset              := '0';
       bsaClear               := (others=>'0');
       
@@ -188,6 +195,8 @@ begin
             when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
             when BSACMPLL   => bsaClear(31 downto  0)          := regWrData;
             when BSACMPLU   => bsaClear(63 downto 32)          := regWrData;
+            when BSA1_EDEF  => v.edefConfig                    := fromSlv( regWrData, '0' );
+            when BSA1_INIT  => v.edefConfig.wrEn               := '1';
             when BSADEF to BSADEF_END =>
               iseq               := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
@@ -255,6 +264,8 @@ begin
                                                          status.nbeamseq;
             when BSACMPLU   => tmpRdData              := r.bsaComplete(63 downto 32);
             when BSACMPLL   => tmpRdData              := r.bsaComplete(31 downto  0);
+            when BSA1_EDEF  => tmpRdData              := toSlv( r.edefConfig );
+            when BSA1_INIT  => tmpRdData              := (others => '0');
             when BSADEF to BSADEF_END =>
               iseq      := conv_integer(regAddr(8 downto 3));
               if regAddr(2)='0' then
@@ -302,6 +313,7 @@ begin
       axiWriteSlave   <= r.axiWriteSlave;
       axiReadSlave    <= r.axiReadSlave;
       config          <= r.config;
+      edefConfig      <= r.edefConfig;
       txReset         <= r.txReset;
       txLoopback      <= r.txLoopback;
       txInhibit       <= r.txInhibit;
