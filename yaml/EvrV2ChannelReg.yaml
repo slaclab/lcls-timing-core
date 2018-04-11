@@ -104,3 +104,4 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 0
       mode: RW
       description: Width of BSA sensitivity window
+    #########################################################  

@@ -162,8 +162,8 @@ TPGMiniCore: &TPGMiniCore
       lsBit: 4
       mode: RO
       description: Number of beam allow engines
-    BsaCompleteWr:
     #########################################################
+    BsaCompleteWr:
       at:
         offset: 0x0050
       class: IntField
