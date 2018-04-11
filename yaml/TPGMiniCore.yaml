@@ -24,7 +24,8 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits: 1
       lsBit: 0
-      mode: WO
+      mode: RW
+      cacheable: NOT_CACHEABLE
       description: Reset transmit link
     TxPolarity:
     #########################################################
@@ -65,10 +66,11 @@ TPGMiniCore: &TPGMiniCore
     PulseIdWr:
     #########################################################
       at:
-        offset: 0x0008
+        offset: 0x0058
       class: IntField
       sizeBits: 64
-      mode: WO
+      mode: RW
+      cacheable: NOT_CACHEABLE
       description: Pulse ID write
     PulseIdRd:
     #########################################################
@@ -81,10 +83,11 @@ TPGMiniCore: &TPGMiniCore
     TStampWr:
     #########################################################
       at:
-        offset: 0x0010
+        offset: 0x0060
       class: IntField
       sizeBits: 64
-      mode: WO
+      mode: RW
+      cacheable: NOT_CACHEABLE
       description: Time stamp write
     TStampRd:
     #########################################################
@@ -110,7 +113,8 @@ TPGMiniCore: &TPGMiniCore
         offset: 0x0040
       class: IntField
       sizeBits: 1
-      mode: WO
+      mode: RW
+      cacheable: NOT_CACHEABLE
       description: Loads cached fixed rate marker divisors
     NBeamSeq:
     #########################################################
@@ -163,8 +167,9 @@ TPGMiniCore: &TPGMiniCore
         offset: 0x0050
       class: IntField
       sizeBits: 64
-      mode: WO
-      description: BSA complete write
+      mode: RW
+      cacheable: NOT_CACHEABLE
+      description: BSA complete clear
     BsaCompleteRd:
     #########################################################
       at:
