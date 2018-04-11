@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-02-12
+-- Last update: 2018-04-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -73,6 +73,10 @@ architecture rtl of TPGMiniReg is
    constant RESOURCES  : integer := 19;
    constant BSACMPLL   : integer := 20;
    constant BSACMPLU   : integer := 21;
+   constant PULSEIDLW  : integer := 22;
+   constant PULSEIDUW  : integer := 23;
+   constant TSTAMPLW   : integer := 24;
+   constant TSTAMPUW   : integer := 25;
    constant BSA1_EDEF  : integer := 30;
    constant BSA1_INIT  : integer := 31;
    constant BSADEF     : integer := 128;  -- 128 registers
@@ -176,11 +180,11 @@ begin
                               v.txLoopback                     := regWrData(4 downto 2);
                               v.txInhibit                      := regWrData(5);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
-            when PULSEIDL  => v.config.pulseId(31 downto  0)   := regWrData;
-            when PULSEIDU  => v.config.pulseId(63 downto 32)   := regWrData;
+            when PULSEIDLW => v.config.pulseId(31 downto  0)   := regWrData;
+            when PULSEIDUW => v.config.pulseId(63 downto 32)   := regWrData;
                               v.config.pulseIdWrEn             := '1';
-            when TSTAMPL   => v.config.timeStamp(31 downto  0) := regWrData;
-            when TSTAMPU   => v.config.timeStamp(63 downto 32) := regWrData;
+            when TSTAMPLW  => v.config.timeStamp(31 downto  0) := regWrData;
+            when TSTAMPUW  => v.config.timeStamp(63 downto 32) := regWrData;
                               v.config.timeStampWrEn           := '1'                 ;
             when FIXEDRATE0+0 => v.FixedRateDivisors(0)        := regWrData(19 downto 0);
             when FIXEDRATE0+1 => v.FixedRateDivisors(1)        := regWrData(19 downto 0);
@@ -245,6 +249,10 @@ begin
             when TSTAMPL    => tmpRdData              := status.timeStamp(31 downto  0);
                                v.timeStamp            := status.timeStamp(63 downto 32);
             when TSTAMPU    => tmpRdData              := r.timeStamp;
+            when PULSEIDLW  => tmpRdData              := r.config.pulseId(31 downto  0);
+            when PULSEIDUW  => tmpRdData              := r.config.pulseId(63 downto 32);
+            when TSTAMPLW   => tmpRdData              := r.config.timeStamp(31 downto  0);
+            when TSTAMPUW   => tmpRdData              := r.config.timeStamp(63 downto 32);
             when FIXEDRATE0+0 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(0);
             when FIXEDRATE0+1 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(1);
             when FIXEDRATE0+2 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(2);
@@ -255,6 +263,7 @@ begin
             when FIXEDRATE0+7 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(7);
             when FIXEDRATE0+8 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(8);
             when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
+            when RATERELOAD   => null;
 --  Version found in common registers
 --            when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
             when RESOURCES  => tmpRdData              := status.nallowseq &
