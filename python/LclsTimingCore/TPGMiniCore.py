@@ -83,7 +83,7 @@ class TPGMiniCore(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "PulseIdWr",
             description  = "Pulse ID write",
-            offset       =  0x08,
+            offset       =  0x58,
             bitSize      =  64,
             bitOffset    =  0x00,
             base         = pr.UInt,
@@ -103,7 +103,7 @@ class TPGMiniCore(pr.Device):
         self.add(pr.RemoteVariable(    
             name         = "TStampWr",
             description  = "Time stamp Write",
-            offset       =  0x10,
+            offset       =  0x60,
             bitSize      =  64,
             bitOffset    =  0x00,
             base         = pr.UInt,
@@ -212,7 +212,96 @@ class TPGMiniCore(pr.Device):
             base         = pr.UInt,
             mode         = "RO",
         ))
+        
+        self.add(pr.RemoteVariable(    
+            name         = "Lcls1BsaNumSamples",
+            description  = "Lcls-1 BSA Number of Samples - 1",
+            offset       =  0x78,
+            bitSize      =  12,
+            bitOffset    =  0x00,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))  
 
+        self.add(pr.RemoteVariable(   
+            name         = "Lcls1BsaRate",
+            description  = "Lcls-1 BSA Rate",
+            offset       =  0x78,
+            bitSize      =  3,
+            bitOffset    =  12,
+            mode         = "RW",
+            enum         = {
+                0 : "120Hz",
+                1 : "60Hz",
+                2 : "30Hz",
+                3 : "10Hz",
+                4 : "5Hz",
+                5 : "1Hz",
+                6 : "0.5Hz",
+            },
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "Lcls1BsaTimeSlot",
+            description  = "Lcls-1 BSA Time Slot",
+            offset       =  0x78,
+            bitSize      =  3,
+            bitOffset    =  15,
+            mode         = "RW",
+            enum         = {
+                0 : "TS1",
+                1 : "TS2",
+                2 : "TS3",
+                3 : "TS4",
+                4 : "TS5",
+                5 : "TS6",
+            },
+        )) 
+
+        self.add(pr.RemoteVariable(   
+            name         = "Lcls1BsaSeverity",
+            description  = "Lcls-1 BSA Rejection Severity Threshold",
+            offset       =  0x78,
+            bitSize      =  2,
+            bitOffset    =  18,
+            mode         = "RW",
+            enum         = {
+                0 : "INVALID",
+                1 : "MAJOR",
+                2 : "MINOR",
+            },
+        ))         
+        
+        self.add(pr.RemoteVariable(    
+            name         = "Lcls1BsaEdefSlot",
+            description  = "Lcls-1 BSA EDEF Slot Number",
+            offset       =  0x78,
+            bitSize      =  4,
+            bitOffset    =  20,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))  
+
+        self.add(pr.RemoteVariable(    
+            name         = "Lcls1BsaNumAvgs",
+            description  = "Lcls-1 BSA Number of Values to Average per Sample - 1",
+            offset       =  0x78,
+            bitSize      =  8,
+            bitOffset    =  24,
+            base         = pr.UInt,
+            mode         = "RW",
+        )) 
+
+        self.add(pr.RemoteVariable(    
+            name         = "Lcls1BsaStart",
+            description  = "Lcls-1 BSA Started by Writing any Value Here",
+            offset       =  0x7C,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))         
+        
         self.addRemoteVariables(  
             name         = "BsaRateSel",
             description  = "BSA def rate selection",
