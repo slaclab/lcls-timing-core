@@ -30,15 +30,15 @@ class TPGMiniCore(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
-            name         = "TxReset",
-            description  = "Reset transmit link",
-            offset       =  0x00,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "WO",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "TxReset",
+            # description  = "Reset transmit link",
+            # offset       =  0x00,
+            # bitSize      =  1,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "WO",
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "TxPolarity",
@@ -80,15 +80,15 @@ class TPGMiniCore(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "PulseIdWr",
-            description  = "Pulse ID write",
-            offset       =  0x08,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "WO",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "PulseIdWr",
+            # description  = "Pulse ID write",
+            # offset       =  0x08,
+            # bitSize      =  64,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "WO",
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "PulseIdRd",
@@ -100,15 +100,15 @@ class TPGMiniCore(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "TStampWr",
-            description  = "Time stamp Write",
-            offset       =  0x10,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "WO",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "TStampWr",
+            # description  = "Time stamp Write",
+            # offset       =  0x10,
+            # bitSize      =  64,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "WO",
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "TStampRd",
@@ -133,15 +133,15 @@ class TPGMiniCore(pr.Device):
             hidden       =  True,
         )
 
-        self.add(pr.RemoteVariable(    
-            name         = "RateReload",
-            description  = "Loads cached fixed rate marker divisors",
-            offset       =  0x40,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "WO",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "RateReload",
+            # description  = "Loads cached fixed rate marker divisors",
+            # offset       =  0x40,
+            # bitSize      =  1,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "WO",
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "NBeamSeq",
@@ -193,15 +193,15 @@ class TPGMiniCore(pr.Device):
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "BsaCompleteWr",
-            description  = "BSA complete write",
-            offset       =  0x50,
-            bitSize      =  64,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "WO",
-        ))
+        # self.add(pr.RemoteVariable(    
+            # name         = "BsaCompleteWr",
+            # description  = "BSA complete write",
+            # offset       =  0x50,
+            # bitSize      =  64,
+            # bitOffset    =  0x00,
+            # base         = pr.UInt,
+            # mode         = "WO",
+        # ))
 
         self.add(pr.RemoteVariable(    
             name         = "BsaCompleteRd",
