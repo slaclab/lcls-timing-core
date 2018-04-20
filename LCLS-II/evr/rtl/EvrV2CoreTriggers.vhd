@@ -3,7 +3,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2018-02-17
+-- Last update: 2018-04-20
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ architecture mapping of EvrV2CoreTriggers is
   signal eventSel       : slv       (NTRIGGERS_G-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0);
   signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0);
-  signal strobe         : slv(2 downto 0);
+  signal strobe         : slv(3 downto 0);
   
 begin  -- rtl
 
@@ -146,7 +146,7 @@ begin  -- rtl
        port map    ( clk           => evrClk,
                      rst           => evrRst,
                      config        => channelConfigS(i),
-                     strobeIn      => strobe(0),
+                     strobeIn      => strobe(1),
                      dataIn        => timingMsg,
                      exptIn        => EXPT_BUS_INIT_C,
                      selectOut     => eventSel(i) );
@@ -161,7 +161,7 @@ begin  -- rtl
                      rst      => evrRst,
                      config   => triggerConfigS(i),
                      arm      => eventSel,
-                     fire     => strobe(2),
+                     fire     => strobe(3),
                      trigstate=> trigOut.trigPulse(i) );
    end generate;  -- i
 
