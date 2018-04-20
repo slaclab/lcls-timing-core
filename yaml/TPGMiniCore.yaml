@@ -26,7 +26,7 @@ TPGMiniCore: &TPGMiniCore
       sizeBits: 1
       lsBit: 0
       mode: RW
-      cacheable: NOT_CACHEABLE
+      # cacheable: NOT_CACHEABLE
       description: Reset transmit link
     #########################################################
     TxPolarity:
@@ -115,7 +115,7 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits: 1
       mode: RW
-      cacheable: NOT_CACHEABLE
+      #cacheable: NOT_CACHEABLE
       description: Loads cached fixed rate marker divisors
     #########################################################
     NBeamSeq:
