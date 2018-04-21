@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-02-15
+-- Last update: 2018-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -280,9 +280,7 @@ begin
       if config.intervalRst = '1' then
         intervalCnt <= (others => '0');
       end if;
-      if config.pulseIdWrEn = '1' then
-        pulseIdWr <= '0';
-      end if;
+      pulseIdWr <= config.pulseIdWrEn;
     end if;
   end process;
 

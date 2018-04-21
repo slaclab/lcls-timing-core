@@ -19,16 +19,6 @@ TPGMiniCore: &TPGMiniCore
     NARRAYSBSA: &NARRAYSBSA 2
   children:
     #########################################################
-    TxReset:
-      at:
-        offset: 0x0000
-      class: IntField
-      sizeBits: 1
-      lsBit: 0
-      mode: RW
-      cacheable: NOT_CACHEABLE
-      description: Reset transmit link
-    #########################################################
     TxPolarity:
       at:
         offset: 0x0000
@@ -71,7 +61,6 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits: 64
       mode: RW
-      cacheable: NOT_CACHEABLE
       description: Pulse ID write
     #########################################################
     PulseIdRd:
@@ -82,13 +71,21 @@ TPGMiniCore: &TPGMiniCore
       mode: RO
       description: Pulse ID read
     #########################################################
+    PulseIdSet:
+      at:
+        offset: 0x0070
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: Activates PulseId register value
+    #########################################################
     TStampWr:
       at:
         offset: 0x0060
       class: IntField
       sizeBits: 64
       mode: RW
-      cacheable: NOT_CACHEABLE
       description: Time stamp write
     #########################################################
     TStampRd:
@@ -98,6 +95,15 @@ TPGMiniCore: &TPGMiniCore
       sizeBits: 64
       mode: RO
       description: Time stamp read
+    #########################################################
+    TStampSet:
+      at:
+        offset: 0x0074
+      class: IntField
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: Activates Timestamp register value
     #########################################################
     FixedRateDiv:
       at:
@@ -115,42 +121,41 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits: 1
       mode: RW
-      cacheable: NOT_CACHEABLE
       description: Loads cached fixed rate marker divisors
     #########################################################
     NBeamSeq:
       at:
         offset: 0x004C
       class: IntField
-      sizeBits: 8
+      sizeBits: 6
       lsBit: 0
       mode: RO
       description: Number of beam request engines
     #########################################################
     NControlSeq:
       at:
-        offset: 0x004D
+        offset: 0x004C
       class: IntField
       sizeBits: 8
-      lsBit: 0
+      lsBit: 6
       mode: RO
       description: Number of control sequence engines
     #########################################################
     NArraysBsa:
       at:
-        offset: 0x004E
+        offset: 0x004D
       class: IntField
       sizeBits: 8
-      lsBit: 0
+      lsBit: 6
       mode: RO
       description: Number of BSA arrays
     #########################################################
     SeqAddrLen:
       at:
-        offset: 0x004F
+        offset: 0x004E
       class: IntField
       sizeBits: 4
-      lsBit: 0
+      lsBit: 6
       mode: RO
       description: Number of beam sequence engines
     #########################################################
@@ -158,27 +163,28 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x004F
       class: IntField
-      sizeBits: 4
-      lsBit: 4
+      sizeBits: 6
+      lsBit: 2
       mode: RO
       description: Number of beam allow engines
     #########################################################
-    BsaCompleteWr:
+    TxReset:
       at:
-        offset: 0x0050
+        offset: 0x0068
       class: IntField
-      sizeBits: 64
+      sizeBits: 1
+      lsBit: 0
       mode: RW
-      cacheable: NOT_CACHEABLE
-      description: BSA complete clear
+      description: Reset transmit link
     #########################################################
-    BsaCompleteRd:
+    CountIntervalReset:
       at:
-        offset: 0x0050
+        offset: 0x006C
       class: IntField
-      sizeBits: 64
-      mode: RO
-      description: BSA complete read
+      sizeBits: 1
+      lsBit: 0
+      mode: RW
+      description: Count Interval Reset
     #########################################################
     Lcls1BsaNumSamples:
       at:
@@ -261,49 +267,192 @@ TPGMiniCore: &TPGMiniCore
       mode: RW
       description: "Lcls-1 BSA Started by Writing any Value Here"
     #########################################################
-    BsaRateSel:
+    BsaCompleteWr:
       at:
-        offset: 0x0200
-        stride: 8
+        offset: 0x0050
+      class: IntField
+      sizeBits: 64
+      mode: RW
+      description: BSA complete clear
+    #########################################################
+    BsaCompleteRd:
+      at:
+        offset: 0x0050
+      class: IntField
+      sizeBits: 64
+      mode: RO
+      description: BSA complete read
+    #########################################################
+    BsaActive:
+      at:
+        offset: 0x01FC
+        stride: 1
         nelms: *NARRAYSBSA
       class: IntField
-      sizeBits: 13
+      sizeBits: 1
       lsBit: 0
       mode: RW
-      description: BSA def rate selection
+      description: Activates/Deactivates BSA EDEF
     #########################################################
-    BsaDestSel:
+    BsaRateSelMode:
       at:
-        offset: 0x0201
-        stride: 8
+        offset: 0x0200
+        stride: 16
         nelms: *NARRAYSBSA
       class: IntField
-      sizeBits: 19
-      lsBit: 5
+      sizeBits: 2
+      lsBit: 0
       mode: RW
-      description: BSA def destination selection
+      description: BSA def rate mode selection
+      enums:
+        - { name: "FixedRate", value: 0 }
+        - { name: "ACRate"   , value: 1 }
+        - { name: "Sequencer", value: 2 }
     #########################################################
-    BsaNtoAvg:
+    BsaFixedRate:
+      at:
+        offset: 0x0200
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 4
+      lsBit: 2
+      mode: RW
+      description: BSA fixed rate mode selection
+      enums:
+        - { name: "  1 MHz", value: 0 }
+        - { name: " 71 kHz", value: 1 }
+        - { name: " 10 kHz", value: 2 }
+        - { name: "  1 kHz", value: 3 }
+        - { name: "100 Hz" , value: 4 }
+        - { name: " 10 Hz" , value: 5 }
+        - { name: "  1 Hz" , value: 6 }
+    #########################################################
+    BsaACRate:
+      at:
+        offset: 0x0200
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 3
+      lsBit: 6
+      mode: RW
+      description: BSA AC rate mode selection
+      enums:
+        - { name: " 60 Hz", value: 0 }
+        - { name: " 30 Hz", value: 1 }
+        - { name: " 10 Hz", value: 2 }
+        - { name: "  5 Hz", value: 3 }
+        - { name: "  1 Hz", value: 4 }
+        - { name: "1/2 Hz" ,value: 5 }
+    #########################################################
+    BsaACTSMask:
+      at:
+        offset: 0x0201
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 6
+      lsBit: 1
+      mode: RW
+      description: BSA AC timeslot mask selection
+    #########################################################
+    BsaSequenceSelect:
+      at:
+        offset: 0x0201
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 5
+      lsBit: 7
+      mode: RW
+      description: BSA sequencer selection
+    #########################################################
+    BsaSequenceBitSelect:
+      at:
+        offset: 0x0202
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 4
+      lsBit: 4
+      mode: RW
+      description: BSA sequencer bit selection
+    #########################################################
+    BsaDestMode:
+      at:
+        offset: 0x0203
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 2
+      lsBit: 0
+      mode: RW
+      description: BSA destination mode
+      enums:
+        - { name: "Dont_Care", value: 0 }
+        - { name: "Inclusive", value: 1 }
+        - { name: "Exclusive", value: 2 }
+    #########################################################
+    BsaDestInclusiveMask:
       at:
         offset: 0x0204
-        stride: 8
+        stride: 16
         nelms: *NARRAYSBSA
       class: IntField
       sizeBits: 16
+      lsBit: 0
+      mode: RW
+      description: BSA inclusive destination mask
+    #########################################################
+    BsaDestExclusiveMask:
+      at:
+        offset: 0x0206
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 16
+      lsBit: 0
+      mode: RW
+      description: BSA exclusive destination mask
+    #########################################################
+    BsaNtoAvg:
+      at:
+        offset: 0x0208
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 13
       lsBit: 0
       mode: RW
       description: BSA def num acquisitions to average
     #########################################################
     BsaAvgToWr:
       at:
-        offset: 0x0206
-        stride: 8
+        offset: 0x020A
+        stride: 16
         nelms: *NARRAYSBSA
       class: IntField
       sizeBits: 16
       lsBit: 0
       mode: RW
       description: BSA def num averages to record
+    #########################################################
+    BsaMaxSeverity:
+      at:
+        offset: 0x0209
+        stride: 16
+        nelms: *NARRAYSBSA
+      class: IntField
+      sizeBits: 2
+      lsBit: 6
+      mode: RW
+      description: BSA def max alarm severity
+      enums:
+        - { name: "NoAlarm"  , value: 0 }
+        - { name: "Minor"    , value: 1 }
+        - { name: "Major"    , value: 2 }
+        - { name: "Invalid"  , value: 3 }
     #########################################################
     PllCnt:
       at:
