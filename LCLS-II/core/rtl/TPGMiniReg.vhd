@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-04-11
+-- Last update: 2018-04-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -77,10 +77,15 @@ architecture rtl of TPGMiniReg is
    constant PULSEIDUW  : integer := 23;
    constant TSTAMPLW   : integer := 24;
    constant TSTAMPUW   : integer := 25;
+   constant TXRST      : integer := 26;
+   constant INTVLRST   : integer := 27;
+   constant PIDSET     : integer := 28;
+   constant TSSET      : integer := 29;
    constant BSA1_EDEF  : integer := 30;
    constant BSA1_INIT  : integer := 31;
+   constant BSACTRL    : integer := 127;
    constant BSADEF     : integer := 128;  -- 128 registers
-   constant BSADEF_END : integer := BSADEF+2*NARRAYS_BSA;
+   constant BSADEF_END : integer := BSADEF+4*NARRAYS_BSA;
    constant BSASTATUS  : integer := 256;  -- 64 registers
    constant BSASTATUS_END  : integer := 319;
    constant CNTPLL     : integer := 320;
@@ -92,6 +97,18 @@ architecture rtl of TPGMiniReg is
    type RegType is record
                      pulseId           : slv(31 downto 0);
                      timeStamp         : slv(31 downto 0);
+                     bsadefRateMode    : Slv2Array (NARRAYS_BSA-1 downto 0);
+                     bsadefFixedRate   : Slv4Array (NARRAYS_BSA-1 downto 0);
+                     bsadefACRate      : Slv3Array (NARRAYS_BSA-1 downto 0);
+                     bsadefACTSMask    : Slv6Array (NARRAYS_BSA-1 downto 0);
+                     bsadefSeqSel      : Slv5Array (NARRAYS_BSA-1 downto 0);
+                     bsadefSeqBit      : Slv4Array (NARRAYS_BSA-1 downto 0);
+                     bsadefDestMode    : Slv2Array (NARRAYS_BSA-1 downto 0);
+                     bsadefDestInclM   : Slv16Array(NARRAYS_BSA-1 downto 0);
+                     bsadefDestExclM   : Slv16Array(NARRAYS_BSA-1 downto 0);
+                     bsadefNToAvg      : Slv13Array(NARRAYS_BSA-1 downto 0);
+                     bsadefAvgToWr     : Slv16Array(NARRAYS_BSA-1 downto 0);
+                     bsadefMaxSevr     : Slv2Array (NARRAYS_BSA-1 downto 0);
                      bsaComplete       : slv(63 downto 0);
                      bsaCompleteQ      : sl;
                      countUpdate       : sl;
@@ -109,6 +126,18 @@ architecture rtl of TPGMiniReg is
    constant REG_INIT_C : RegType := (
      pulseId           => (others=>'0'),
      timeStamp         => (others=>'0'),
+     bsadefRateMode    => (others=>(others=>'0')),
+     bsadefFixedRate   => (others=>(others=>'0')),
+     bsadefACRate      => (others=>(others=>'0')),
+     bsadefACTSMask    => (others=>(others=>'1')),
+     bsadefSeqSel      => (others=>(others=>'0')),
+     bsadefSeqBit      => (others=>(others=>'0')),
+     bsadefDestMode    => (others=>(others=>'0')),
+     bsadefDestInclM   => (others=>(others=>'1')),
+     bsadefDestExclM   => (others=>(others=>'1')),
+     bsadefNToAvg      => (others=>toSlv(1,13)),
+     bsadefAvgToWr     => (others=>toSlv(100,16)),
+     bsadefMaxSevr     => (others=>(others=>'1')),
      bsaComplete       => (others=>'0'),
      bsaCompleteQ      => '0',
      countUpdate       => '0',
@@ -127,6 +156,9 @@ architecture rtl of TPGMiniReg is
 
 begin
 
+   assert NARRAYS_BSA < 33
+     report "NARRAYS_BSA (" & integer'image(NARRAYS_BSA) & ") limit is 32 for TPGMini" severity failure;
+   
    -------------------------------
    -- Configuration Register
    -------------------------------  
@@ -175,17 +207,21 @@ begin
           axiWriteResp          := AXI_RESP_OK_C;
 
           case wrPntr is
+            when TXRST     => v.txReset                        := regWrData(0);
+            when INTVLRST  => v.config.intervalRst             := regWrData(0);
+            when PIDSET    => v.config.pulseIdWrEn             := regWrData(0);
+            when TSSET     => v.config.timeStampWrEn           := regWrData(0);
             when CLKSEL    => v.config.txPolarity              := regWrData(1);
-                              v.txReset                        := regWrData(0);
+--                              v.txReset                        := regWrData(0);
                               v.txLoopback                     := regWrData(4 downto 2);
                               v.txInhibit                      := regWrData(5);
             when BASE_CNTL => v.config.baseDivisor             := regWrData(15 downto 0);
             when PULSEIDLW => v.config.pulseId(31 downto  0)   := regWrData;
             when PULSEIDUW => v.config.pulseId(63 downto 32)   := regWrData;
-                              v.config.pulseIdWrEn             := '1';
+--                              v.config.pulseIdWrEn             := '1';
             when TSTAMPLW  => v.config.timeStamp(31 downto  0) := regWrData;
             when TSTAMPUW  => v.config.timeStamp(63 downto 32) := regWrData;
-                              v.config.timeStampWrEn           := '1'                 ;
+--                              v.config.timeStampWrEn           := '1'                 ;
             when FIXEDRATE0+0 => v.FixedRateDivisors(0)        := regWrData(19 downto 0);
             when FIXEDRATE0+1 => v.FixedRateDivisors(1)        := regWrData(19 downto 0);
             when FIXEDRATE0+2 => v.FixedRateDivisors(2)        := regWrData(19 downto 0);
@@ -196,25 +232,34 @@ begin
             when FIXEDRATE0+7 => v.FixedRateDivisors(7)        := regWrData(19 downto 0);
             when FIXEDRATE0+8 => v.FixedRateDivisors(8)        := regWrData(19 downto 0);
             when FIXEDRATE0+9 => v.FixedRateDivisors(9)        := regWrData(19 downto 0);
-            when RATERELOAD => v.config.FixedRateDivisors      := v.FixedRateDivisors;
+            when RATERELOAD => v.config.FixedRateDivisors      := r.FixedRateDivisors;
             when BSACMPLL   => bsaClear(31 downto  0)          := regWrData;
             when BSACMPLU   => bsaClear(63 downto 32)          := regWrData;
             when BSA1_EDEF  => v.edefConfig                    := fromSlv( regWrData, '0' );
             when BSA1_INIT  => v.edefConfig.wrEn               := '1';
+            when BSACTRL    => 
+              for i in 0 to NARRAYS_BSA-1 loop
+                v.config.bsadefv(i).init := regWrData(i);
+              end loop;
             when BSADEF to BSADEF_END =>
-              iseq               := conv_integer(regAddr(8 downto 3));
-              if regAddr(2)='0' then
-                v.config.bsadefv(iseq).rateSel  := regWrData(12 downto  0);
-                v.config.bsadefv(iseq).destSel  := regWrData(31 downto 13);
-                v.config.bsadefv(iseq).init     := '0';
-              else
-                v.config.bsadefv(iseq).nToAvg   := regWrData(12 downto  0);
-                v.config.bsadefv(iseq).avgToWr  := regWrData(31 downto 16);
-                v.config.bsadefv(iseq).maxSevr  := regWrData(15 downto 14);
-                v.config.bsadefv(iseq).init     := '1';
-              end if;
+              iseq               := conv_integer(regAddr(8 downto 4));
+              case regAddr(3 downto 2) is
+                when "00" => v.bsadefRateMode (iseq) := regWrData( 1 downto  0);
+                             v.bsaDefFixedRate(iseq) := regWrData( 5 downto  2);
+                             v.bsaDefACRate   (iseq) := regWrData( 8 downto  6);
+                             v.bsaDefACTSMask (iseq) := regWrData(14 downto  9);
+                             v.bsaDefSeqSel   (iseq) := regWrData(19 downto 15);
+                             v.bsaDefSeqBit   (iseq) := regWrData(23 downto 20);
+                             v.bsaDefDestMode (iseq) := regWrData(25 downto 24);
+                when "01" => v.bsadefDestInclM(iseq) := regWrData(15 downto  0);
+                             v.bsaDefDestExclM(iseq) := regWrData(31 downto 16);
+                when "10" => v.bsadefNToAvg   (iseq) := regWrData(12 downto  0);
+                             v.bsaDefMaxSevr  (iseq) := regWrData(15 downto 14);
+                             v.bsaDefAvgToWr  (iseq) := regWrData(31 downto 16);
+                when others => null;
+              end case;
             when CNTINTVL   => v.config.interval    := regWrData;
-                               v.config.intervalRst := '1';
+--                               v.config.intervalRst := '1';
             when others  => axiWriteResp := AXI_RESP_DECERR_C;
           end case;
         else
@@ -239,6 +284,10 @@ begin
           axiReadResp           := AXI_RESP_OK_C;
           -- Decode the read address
           case rdPntr is
+            when TXRST      => null;
+            when INTVLRST   => null;
+            when PIDSET     => null;
+            when TSSET      => null;
             when CLKSEL     => tmpRdData(1)           := r.config.txPolarity;
                                tmpRdData(4 downto 2)  := r.txLoopback;
                                tmpRdData(5)           := r.txInhibit;
@@ -253,16 +302,16 @@ begin
             when PULSEIDUW  => tmpRdData              := r.config.pulseId(63 downto 32);
             when TSTAMPLW   => tmpRdData              := r.config.timeStamp(31 downto  0);
             when TSTAMPUW   => tmpRdData              := r.config.timeStamp(63 downto 32);
-            when FIXEDRATE0+0 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(0);
-            when FIXEDRATE0+1 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(1);
-            when FIXEDRATE0+2 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(2);
-            when FIXEDRATE0+3 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(3);
-            when FIXEDRATE0+4 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(4);
-            when FIXEDRATE0+5 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(5);
-            when FIXEDRATE0+6 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(6);
-            when FIXEDRATE0+7 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(7);
-            when FIXEDRATE0+8 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(8);
-            when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.config.FixedRateDivisors(9);
+            when FIXEDRATE0+0 => tmpRdData(19 downto 0) := r.FixedRateDivisors(0);
+            when FIXEDRATE0+1 => tmpRdData(19 downto 0) := r.FixedRateDivisors(1);
+            when FIXEDRATE0+2 => tmpRdData(19 downto 0) := r.FixedRateDivisors(2);
+            when FIXEDRATE0+3 => tmpRdData(19 downto 0) := r.FixedRateDivisors(3);
+            when FIXEDRATE0+4 => tmpRdData(19 downto 0) := r.FixedRateDivisors(4);
+            when FIXEDRATE0+5 => tmpRdData(19 downto 0) := r.FixedRateDivisors(5);
+            when FIXEDRATE0+6 => tmpRdData(19 downto 0) := r.FixedRateDivisors(6);
+            when FIXEDRATE0+7 => tmpRdData(19 downto 0) := r.FixedRateDivisors(7);
+            when FIXEDRATE0+8 => tmpRdData(19 downto 0) := r.FixedRateDivisors(8);
+            when FIXEDRATE0+9 => tmpRdData(19 downto 0) := r.FixedRateDivisors(9);
             when RATERELOAD   => null;
 --  Version found in common registers
 --            when FWVERSION  => tmpRdData                      := FPGA_VERSION_C;
@@ -275,15 +324,27 @@ begin
             when BSACMPLL   => tmpRdData              := r.bsaComplete(31 downto  0);
             when BSA1_EDEF  => tmpRdData              := toSlv( r.edefConfig );
             when BSA1_INIT  => tmpRdData              := (others => '0');
+            when BSACTRL    =>
+              for i in 0 to NARRAYS_BSA-1 loop
+                tmpRdData(i) := r.config.bsadefv(i).init;
+              end loop;
             when BSADEF to BSADEF_END =>
-              iseq      := conv_integer(regAddr(8 downto 3));
-              if regAddr(2)='0' then
-                tmpRdData := r.config.bsadefv(iseq).destSel & r.config.bsadefv(iseq).rateSel;
-              else
-                tmpRdData := r.config.bsadefv(iseq).avgToWr &
-                             r.config.bsadefv(iseq).maxSevr & '0' & 
-                             r.config.bsadefv(iseq).nToAvg;
-              end if;
+              iseq      := conv_integer(regAddr(8 downto 4));
+              case regAddr(3 downto 2) is
+                when "00" => tmpRdData( 1 downto  0) := r.bsadefRateMode (iseq);
+                             tmpRdData( 5 downto  2) := r.bsaDefFixedRate(iseq);
+                             tmpRdData( 8 downto  6) := r.bsaDefACRate   (iseq);
+                             tmpRdData(14 downto  9) := r.bsaDefACTSMask (iseq); 
+                             tmpRdData(19 downto 15) := r.bsaDefSeqSel   (iseq); 
+                             tmpRdData(23 downto 20) := r.bsaDefSeqBit   (iseq); 
+                             tmpRdData(25 downto 24) := r.bsaDefDestMode (iseq); 
+                when "01" => tmpRdData(15 downto  0) := r.bsadefDestInclM(iseq); 
+                             tmpRdData(31 downto 16) := r.bsaDefDestExclM(iseq); 
+                when "10" => tmpRdData(12 downto  0) := r.bsadefNToAvg   (iseq); 
+                             tmpRdData(15 downto 14) := r.bsaDefMaxSevr  (iseq); 
+                             tmpRdData(31 downto 16) := r.bsaDefAvgToWr  (iseq); 
+                when others => null;
+              end case;
             when BSASTATUS to BSASTATUS_END =>
               iseq      := conv_integer(regAddr(7 downto 2));
               tmpRdData := status.bsastatus(iseq);
@@ -301,6 +362,28 @@ begin
           axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
         end if;
       end if;
+
+      for i in 0 to NARRAYS_BSA-1 loop
+        if (v.config.bsadefv(i).init ='1' and r.config.bsadefv(i).init='0') then
+          v.config.bsadefv(i).rateSel(12 downto 11) := r.bsadefRateMode(i);
+          case r.bsadefRateMode(i) is
+            when "00"   => v.config.bsadefv(i).rateSel( 3 downto 0) := r.bsadefFixedRate(i);
+            when "01"   => v.config.bsadefv(i).rateSel( 8 downto 3) := r.bsadefACTSMask (i);
+                           v.config.bsadefv(i).rateSel( 2 downto 0) := r.bsadefACRate   (i);
+            when others => v.config.bsadefv(i).rateSel(10 downto 6) := r.bsadefSeqSel   (i);
+                           v.config.bsadefv(i).rateSel( 3 downto 0) := r.bsadefSeqBit   (i);
+          end case;
+          v.config.bsadefv(i).destSel(17 downto 16) := r.bsadefDestMode(i);
+          case r.bsadefDestMode(i) is
+            when "00"   => v.config.bsadefv(i).destSel(15 downto 0) := r.bsadefDestInclM(i);
+            when "01"   => v.config.bsadefv(i).destSel(15 downto 0) := r.bsadefDestExclM(i);
+            when others => null;
+          end case;
+          v.config.bsadefv(i).nToAvg  := r.bsadefNToAvg (i);
+          v.config.bsadefv(i).avgToWr := r.bsadefAvgToWr(i);
+          v.config.bsadefv(i).maxSevr := r.bsadefMaxSevr(i);
+        end if;
+      end loop;
       
       -- Misc. Mapping and Logic
       v.bsaComplete := (r.bsaComplete and not bsaClear) or status.bsaComplete;
