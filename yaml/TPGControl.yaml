@@ -159,8 +159,10 @@ TPGControl: &TPGControl
         offset: 0x0068
       class: IntField
       name: RateReload
-      sizeBits: 1
+      # sizeBits: 1
       mode: WO
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
       description: Loads cached ac/fixed rate marker divisors
     #########################################################
     Sync:
