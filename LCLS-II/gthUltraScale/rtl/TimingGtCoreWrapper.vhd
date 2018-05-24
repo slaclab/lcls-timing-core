@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : TimingGthCoreWrapper.vhd
+-- File       : TimingGtCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
 -- Last update: 2018-02-12
@@ -27,7 +27,7 @@ use work.TimingPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity TimingGthCoreWrapper is
+entity TimingGtCoreWrapper is
    generic (
       TPD_G            : time    := 1 ns;
       EXTREF_G         : boolean := false;
@@ -72,9 +72,9 @@ entity TimingGthCoreWrapper is
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
-end entity TimingGthCoreWrapper;
+end entity TimingGtCoreWrapper;
 
-architecture rtl of TimingGthCoreWrapper is
+architecture rtl of TimingGtCoreWrapper is
 
    component TimingGth_fixedlat
       port (
