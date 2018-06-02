@@ -181,6 +181,16 @@ class TimingFrameRx(pr.Device):
             mode         = "RW",
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "RxPllReset",
+            description  = "Reset RX PLL",
+            offset       = 0x20,
+            bitSize      = 1,
+            bitOffset    = 0x07,
+            base         = pr.UInt,
+            mode         = "WO",
+        ))
+
         self.add(pr.RemoteVariable(    
             name         = "MsgDelay",
             description  = "LCLS-II timing frame pipeline delay (186MHz clks)",
