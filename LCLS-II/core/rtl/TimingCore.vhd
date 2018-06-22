@@ -387,10 +387,10 @@ begin
    end generate;
 
    NO_GEN_ASYNC : if not ASYNC_G generate
-      appTimingBus.stream  <= timingStream;
-      appTimingBus.message <= timingMessage;
-      appTimingBus.strobe  <= timingStrobe;
-      appTimingBus.valid   <= timingValid;
+      appTimingBus_i.stream  <= timingStream;
+      appTimingBus_i.message <= timingMessage;
+      appTimingBus_i.strobe  <= timingStrobe;
+      appTimingBus_i.valid   <= timingValid;
       appTimingBus_i.modesel <= timingClkSelR;
       appExptBus_i.valid     <= exptBus_i.valid;
       appExptBus_i.message   <= exptBus_i.message;
