@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2018-02-16
+-- Last update: 2018-07-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ use ieee.NUMERIC_STD.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.TimingPkg.all;
+use work.TimingExtnPkg.all;
 
 entity TimingRx is
    generic (
@@ -55,9 +56,8 @@ entity TimingRx is
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
-
-      exptMessage         : out ExptMessageType;
-      exptMessageValid    : out sl;
+      timingExtn          : out TimingExtnType;
+      timingExtnValid     : out sl;
       
       txClk               : in  sl;
 
@@ -142,40 +142,61 @@ architecture rtl of TimingRx is
  
 begin
 
-   U_RxLcls1 : entity work.TimingStreamRx
-       generic map (
-         TPD_G             => TPD_G,
-         AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
-       port map (
-         rxClk               => rxClk,
-         rxRst               => rxRst(0),
-         rxData              => rxData,
-         timingMessageNoDely => timingStreamNoDelayR,
-         timingMessageUser   => timingStreamUser,
-         timingMessagePrompt => timingStreamPrompt,
-         timingMessageStrobe => timingStreamStrobe,
-         timingMessageValid  => timingStreamValid,
-         timingTSEventCounter=> timingTSEventCounter,
-         rxVersion           => rxVersion(0),
-         staData             => staData  (0) );
+  NOGEN_RxLcls1 : if CLKSEL_MODE_G = "LCLSII" generate
+    timingStreamUser     <= TIMING_STREAM_INIT_C;
+    timingStreamPrompt   <= TIMING_STREAM_INIT_C;
+    timingStreamStrobe   <= '0';
+    timingStreamValid    <= '0';
+    timingTSEventCounter <= (others=>'0');
+    rxVersion(0)         <= (others=>'1');
+    staData  (0)         <= (others=>'0');
+  end generate;
+  GEN_RxLcls1 : if CLKSEL_MODE_G /= "LCLSII" generate
+    U_RxLcls1 : entity work.TimingStreamRx
+      generic map (
+        TPD_G             => TPD_G,
+        AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
+      port map (
+        rxClk               => rxClk,
+        rxRst               => rxRst(0),
+        rxData              => rxData,
+        timingMessageNoDely => timingStreamNoDelayR,
+        timingMessageUser   => timingStreamUser,
+        timingMessagePrompt => timingStreamPrompt,
+        timingMessageStrobe => timingStreamStrobe,
+        timingMessageValid  => timingStreamValid,
+        timingTSEventCounter=> timingTSEventCounter,
+        rxVersion           => rxVersion(0),
+        staData             => staData  (0) );
+  end generate;
 
-   U_RxLcls2 : entity work.TimingFrameRx
-       generic map (
-         TPD_G             => TPD_G)   
-       port map (
-         rxClk               => rxClk,
-         rxRst               => rxRst(1),
-         rxData              => rxData,
-         messageDelay        => messageDelayR,
-         messageDelayRst     => messageDelayRst,
-         timingMessage       => timingMessage,
-         timingMessageStrobe => timingMessageStrobe,
-         timingMessageValid  => timingMessageValid,
-         exptMessage         => exptMessage,
-         exptMessageValid    => exptMessageValid,
-         rxVersion           => rxVersion(1),
-         staData             => staData  (1) );
-     
+  NOGEN_RxLcls2 : if CLKSEL_MODE_G = "LCLSI" generate
+    timingMessage       <= TIMING_MESSAGE_INIT_C;
+    timingMessageStrobe <= '0';
+    timingMessageValid  <= '0';
+    timingExtn          <= TIMING_EXTN_INIT_C;
+    rxVersion(1)        <= (others=>'0');
+    staData  (1)        <= (others=>'0');
+  end generate;
+  GEN_RxLcls2 : if CLKSEL_MODE_G /= "LCLSI" generate
+    U_RxLcls2 : entity work.TimingFrameRx
+      generic map (
+        TPD_G             => TPD_G)   
+      port map (
+        rxClk               => rxClk,
+        rxRst               => rxRst(1),
+        rxData              => rxData,
+        messageDelay        => messageDelayR,
+        messageDelayRst     => messageDelayRst,
+        timingMessage       => timingMessage,
+        timingMessageStrobe => timingMessageStrobe,
+        timingMessageValid  => timingMessageValid,
+        timingExtn          => timingExtn,
+        timingExtnValid     => timingExtnValid,
+        rxVersion           => rxVersion(1),
+        staData             => staData  (1) );
+  end generate;
+   
    axilComb : process (axilR, axilReadMaster, axilRst,
                        axilRxLinkUp,
                        axilVsnErr,

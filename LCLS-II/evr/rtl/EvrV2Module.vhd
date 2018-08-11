@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2017-04-27
+-- Last update: 2018-08-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -51,7 +51,6 @@ entity EvrV2Module is
     evrClk              : in  sl;
     evrRst              : in  sl;
     evrBus              : in  TimingBusType;
-    exptBus             : in  ExptBusType;
     -- Trigger and Sync Port
     trigOut             : out slv(NTRIGGERS_G-1 downto 0);
     evrModeSel          : in  sl := '1' );
@@ -139,7 +138,6 @@ begin  -- rtl
                     config        => channelConfigS(i),
                     strobeIn      => rStrobe(4),
                     dataIn        => timingMsg,
-                    exptIn        => exptBus,
                     selectOut     => eventSel(i) );
   end generate;  -- i
 
