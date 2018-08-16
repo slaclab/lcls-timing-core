@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2017-04-14
+-- Last update: 2018-07-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.TimingPkg.all;
+use work.TimingExtnPkg.all;
 
 entity TimingFrameRx is
    generic (
@@ -42,9 +43,8 @@ entity TimingFrameRx is
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
-
-      exptMessage         : out ExptMessageType;
-      exptMessageValid    : out sl;
+      timingExtn          : out TimingExtnType;
+      timingExtnValid     : out sl;
 
       rxVersion           : out slv(31 downto 0);
       staData             : out slv(4 downto 0)
@@ -78,7 +78,7 @@ architecture rtl of TimingFrameRx is
    signal dframe0            : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
    signal dvalid0            : sl;
    signal doverflow0         : sl;
-   signal dframe1            : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
+   signal dframe1            : slv(TIMING_EXTN_BITS_C-1 downto 0);
    signal dvalid1            : sl;
    signal dstrobe            : sl;
    signal delayRst           : sl;
@@ -115,8 +115,8 @@ begin
                 valid_o    => dvalid0,
                 overflow_o => doverflow0);
 
-   U_Delay1 : entity work.TimingSerialDelay
-     generic map ( TPD_G=>TPD_G, NWORDS_G => EXPT_MESSAGE_BITS_C/16,
+   U_Extn : entity work.TimingSerialDelay
+     generic map ( TPD_G=>TPD_G, NWORDS_G => TIMING_EXTN_BITS_C/16,
                    FDEPTH_G => 100 )
      port map ( clk        => rxClk,
                 rst        => delayRst,
@@ -132,8 +132,8 @@ begin
    timingMessage       <= dmsg;
    timingMessageStrobe <= dstrobe;
    timingMessageValid  <= dvalid0 and not r.vsnErr;
-   exptMessage         <= toExptMessageType(dframe1);
-   exptMessageValid    <= dvalid1;
+   timingExtn          <= toTimingExtnType(dframe1);
+   timingExtnValid     <= dvalid1;
    rxVersion           <= r.version;
    staData             <= r.vsnErr & (crcErr or doverflow0) & fiducial & eof & sof;
 

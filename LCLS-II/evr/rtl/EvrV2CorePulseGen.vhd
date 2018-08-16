@@ -58,7 +58,7 @@ entity EvrV2CorePulseGen is
     evrClk              : in  sl;
     evrRst              : in  sl;
     evrBus              : in  TimingBusType;
-    exptBus             : in  ExptBusType;
+--    exptBus             : in  ExptBusType;
     gtxDebug            : in  slv(7 downto 0);
     -- Trigger and Sync Port
     syncL               : in  sl;
@@ -137,7 +137,7 @@ architecture mapping of EvrV2CorePulseGen is
   signal dmaFullThr     : Slv24Array (0 downto 0);
   signal dmaFullThrS    : Slv24Array (0 downto 0);
 
-  signal partitionAddr  : slv(31 downto 0);
+  signal partitionAddr  : slv(31 downto 0) := (others=>'1');
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
@@ -239,7 +239,7 @@ begin  -- rtl
                     config        => channelConfigS(i),
                     strobeIn      => rStrobe(i*STROBE_INTERVAL_C+4),
                     dataIn        => timingMsg,
-                    exptIn        => exptBus,
+--                    exptIn        => exptBus,
                     selectOut     => eventSel(i),
                     dmaOut        => dmaSel(i) );
 --    U_BsaChannel : entity work.EvrV2BsaChannel
@@ -529,11 +529,11 @@ begin  -- rtl
                   dataIn  => dmaFullThr (0),
                   dataOut => dmaFullThrS(0) );
 
-  Sync_partAddr : entity work.SynchronizerVector
-    generic map ( TPD_G   => TPD_G,
-                  WIDTH_G => partitionAddr'length )
-    port map (    clk     => axiClk,
-                  dataIn  => exptBus.message.partitionAddr,
-                  dataOut => partitionAddr );
+  --Sync_partAddr : entity work.SynchronizerVector
+  --  generic map ( TPD_G   => TPD_G,
+  --                WIDTH_G => partitionAddr'length )
+  --  port map (    clk     => axiClk,
+  --                dataIn  => exptBus.message.partitionAddr,
+  --                dataOut => partitionAddr );
 
 end mapping;
