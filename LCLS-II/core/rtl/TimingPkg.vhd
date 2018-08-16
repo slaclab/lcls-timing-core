@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-02-17
+-- Last update: 2018-07-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
+use work.TimingExtnPkg.all;
 
 package TimingPkg is
 
@@ -45,7 +46,6 @@ package TimingPkg is
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0001";
 
    constant TIMING_STREAM_ID  : slv(3 downto 0) := x"0";
-   constant EXPT_STREAM_ID    : slv(3 downto 0) := x"1";
    
    type TimingRxType is record
       data       : slv(15 downto 0);
@@ -229,6 +229,8 @@ package TimingPkg is
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
       modesel : sl;  -- LCLS-II selected
+      extn    : TimingExtnType;
+      extnValid : sl;
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
@@ -237,7 +239,9 @@ package TimingPkg is
       stream  => TIMING_STREAM_INIT_C,
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C,
-      modesel => '0');
+      modesel => '0',
+      extn    => TIMING_EXTN_INIT_C,
+      extnValid => '0' );
 
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
@@ -264,43 +268,6 @@ package TimingPkg is
       bsa        => (others=>'0'),
       dmod       => (others=>'0') );
  
-   --
-   --  Experiment timing information (appended by downstream masters)
-   --
---   constant PADDR_LEN : integer := 16;
---   constant PWORD_LEN : integer := 32;
-   constant PADDR_LEN : integer := 32;
-   constant PWORD_LEN : integer := 48;
-   constant EXPT_MESSAGE_BITS_C : integer := PADDR_LEN+8*PWORD_LEN;
-
-   --type ExptMessageType is record
-   --  partitionAddr   : slv(PADDR_LEN-1 downto 0);
-   --  partitionWord   : Slv32Array(0 to 7);
-   --end record;
-   --constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
-   --  partitionAddr  => (others=>'1'),
-   --  partitionWord  => (others=>x"80008000") );
-   type ExptMessageType is record
-     partitionAddr   : slv(31 downto 0);
-     partitionWord   : Slv48Array(0 to 7);
-   end record;
-   constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
-     partitionAddr  => (others=>'1'),
-     partitionWord  => (others=>x"800080008000") );
-   type ExptMessageArray is array (integer range<>) of ExptMessageType;
-
-   type ExptBusType is record
-     message : ExptMessageType;
-     valid   : sl;
-   end record ExptBusType;
-   constant EXPT_BUS_INIT_C : ExptBusType := (
-     message => EXPT_MESSAGE_INIT_C,
-     valid   => '0' );
-   type ExptBusArray is array (integer range<>) of ExptBusType;
-
-   function toSlv(message : ExptMessageType) return slv;
-   function toExptMessageType (vector : slv) return ExptMessageType;
-   
 end package TimingPkg;
 
 package body TimingPkg is
@@ -510,41 +477,4 @@ package body TimingPkg is
       return vector;
    end function;
 
-   function toSlv(message : ExptMessageType) return slv
-   is
-      variable vector  : slv(EXPT_MESSAGE_BITS_C-1 downto 0) := (others=>'0');
-      variable i       : integer := 0;
-   begin
-      assignSlv(i, vector, message.partitionAddr);
-      for j in message.partitionWord'range loop
-         assignSlv(i, vector, message.partitionWord(j));
-      end loop;
-      return vector;
-   end function;
-      
-   function toExptMessageType (vector : slv) return ExptMessageType
-   is
-      variable message : ExptMessageType;
-      variable i       : integer := 0;
-   begin
-      assignRecord(i, vector, message.partitionAddr);
-      for j in message.partitionWord'range loop
-         assignRecord(i, vector, message.partitionWord(j));
-      end loop;
-      return message;
-   end function;
-   
-   --function toSlv (msg : ExptMessageType) return slv
-   --is
-   --   variable vector : slv(EXPT_MESSAGE_BITS_C-1 downto 0) := (others => '0');
-   --   variable i      : integer                             := 0;
-   --begin
-   --   assignSlv(i, vector, msg.partitionAddr);
-   --   for j in msg.partitionWord'range loop
-   --      assignSlv(i, vector, msg.partitionWord(j));
-   --   end loop;
-   --   return vector;
-   --end function;
-   
-   
 end package body TimingPkg;

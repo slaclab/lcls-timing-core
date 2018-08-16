@@ -39,7 +39,6 @@ entity EvrV2EventSelect is
       config     : in  EvrV2ChannelConfig;
       strobeIn   : in  sl;
       dataIn     : in  TimingMessageType;
-      exptIn     : in  ExptBusType;
       selectOut  : out sl;
       dmaOut     : out sl );
 end EvrV2EventSelect;
@@ -68,7 +67,7 @@ begin
       end if;
    end process;
 
-   process (config, dataIn, controlWord, exptIn)
+   process (config, dataIn, controlWord)
       variable rateType : slv(1 downto 0);
    begin 
       rateType := config.rateSel(12 downto 11);
@@ -82,12 +81,6 @@ begin
                rateSel <= dataIn.acRates(conv_integer(config.rateSel(2 downto 0)));
             end if;
          when "10"   => rateSel <= controlWord(conv_integer(config.rateSel(3 downto 0)));
-         when "11"   =>
-           if exptIn.valid='1' then
-             rateSel <= exptIn.message.partitionWord(conv_integer(config.rateSel(2 downto 0)))(0);
-           else
-             rateSel <= '0';
-           end if;
          when others => rateSel <= '0';
       end case;
    end process;

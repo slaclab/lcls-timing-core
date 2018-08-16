@@ -3,7 +3,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2018-04-20
+-- Last update: 2018-08-04
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -48,7 +48,6 @@ entity EvrV2CoreTriggers is
     evrClk              : in  sl;
     evrRst              : in  sl;
     evrBus              : in  TimingBusType;
-    exptBus             : in  ExptBusType;
     -- Trigger and Sync Port
     trigOut             : out TimingTrigType;
     evrModeSel          : in  sl := '1' );
@@ -148,7 +147,6 @@ begin  -- rtl
                      config        => channelConfigS(i),
                      strobeIn      => strobe(1),
                      dataIn        => timingMsg,
-                     exptIn        => EXPT_BUS_INIT_C,
                      selectOut     => eventSel(i) );
 
      U_Trig : entity work.EvrV2Trigger

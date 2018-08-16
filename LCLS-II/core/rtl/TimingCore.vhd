@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2018-02-16
+-- Last update: 2018-07-22
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.TimingPkg.all;
+use work.TimingExtnPkg.all;
 
 entity TimingCore is
 
@@ -67,8 +68,6 @@ entity TimingCore is
       appTimingRst  : in  sl;
       appTimingBus  : out TimingBusType;
       appTimingMode : out sl;
-      -- Streams embedded within timing
-      exptBus       : out ExptBusType;
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -125,10 +124,12 @@ architecture rtl of TimingCore is
    signal timingStream        : TimingStreamType;
    signal timingStreamPrompt  : TimingStreamType;
    signal timingFrameSlv      : slv(TIMING_FRAME_LEN-1 downto 0);
-   signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
    signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others=>'0');
    signal timingFrameSlvValid : slv((TIMING_FRAME_LEN+31)/32 downto 0) := (others=>'0');
 
+   signal appTimingBus_i      : TimingBusType;
+   signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
+   
    signal clkSel              : sl;
    signal clkSelTx            : sl;
    signal timingClkSelR       : sl;
@@ -139,16 +140,15 @@ architecture rtl of TimingCore is
    
    signal itxData             : Slv16Array(1 downto 0);
    signal itxDataK            : Slv2Array (1 downto 0);
-   
-   signal appTimingBus_i  : TimingBusType;
-   signal appExptBus_i    : ExptBusType;
-   signal exptBus_i       : ExptBusType;
-   signal exptFrameSlv, appExptFrameSlv : slv(EXPT_MESSAGE_BITS_C-1 downto 0);
+
+   signal timingExtn          : TimingExtnType;
+   signal timingExtnValid     : sl;
+   signal extnSlv, appExtnSlv : slv(TIMING_EXTN_BITS_C-1 downto 0);
+   signal appExtnValid        : sl;
    
 begin
 
    appTimingBus  <= appTimingBus_i;
-   exptBus       <= appExptBus_i;
    appTimingMode <= timingClkSelApp;
 
    AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
@@ -201,8 +201,8 @@ begin
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          timingMessageValid  => timingMessageValid,
-         exptMessage         => exptBus_i.message,
-         exptMessageValid    => exptBus_i.valid,
+         timingExtn          => timingExtn,
+         timingExtnValid     => timingExtnValid,
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMaster      => locAxilReadMasters (FRAME_RX_AXIL_INDEX_C),
@@ -329,10 +329,10 @@ begin
                      timingStreamStrobe;
    timingValid    <= timingMessageValid   when timingClkSelR='1' else
                      timingStreamValid;
-   exptFrameSlv   <= toSlv(exptBus_i.message);
+   extnSlv        <= toSlv(timingExtn);
 
    GEN_ASYNC: if ASYNC_G generate
-     process (timingClkSelApp, appTimingFrameSlv, appExptFrameSlv) is
+     process (timingClkSelApp, appTimingFrameSlv, appExtnSlv, appExtnValid) is
      begin
        if timingClkSelApp='0' then
          appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
@@ -342,10 +342,12 @@ begin
          appTimingBus_i.stream  <= TIMING_STREAM_INIT_C;
        end if;
        appTimingBus_i.modesel <= timingClkSelApp;
-       appExptBus_i.message   <= toExptMessageType(appExptFrameSlv);
+
+       appTimingBus_i.extn      <= toTimingExtnType(appExtnSlv);
+       appTimingBus_i.extnValid <= appExtnValid;
      end process;
 
-     -- Need to synchronize timingClkSelR to appTimingClk so we can use
+     -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
      -- it to switch between stream and message in appTimingClk domain
      U_Synchronizer_1 : entity work.Synchronizer
        generic map (
@@ -374,26 +376,26 @@ begin
      SynchronizerFifo_2 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => EXPT_MESSAGE_BITS_C+1)
+            DATA_WIDTH_G => TIMING_EXTN_BITS_C+1)
          port map (
             rst                                => appTimingRst,
             wr_clk                             => gtRxRecClk,
             wr_en                              => timingStrobe,
-            din(EXPT_MESSAGE_BITS_C downto 1)  => exptFrameSlv,
-            din(0)                             => exptBus_i.valid,
+            din(TIMING_EXTN_BITS_C downto 1)   => extnSlv,
+            din(0)                             => timingExtnValid,
             rd_clk                             => appTimingClk,
-            dout(EXPT_MESSAGE_BITS_C downto 1) => appExptFrameSlv,
-            dout(0)                            => appExptBus_i.valid);
+            dout(TIMING_EXTN_BITS_C downto 1)  => appExtnSlv,
+            dout(0)                            => appExtnValid );
    end generate;
 
    NO_GEN_ASYNC : if not ASYNC_G generate
-      appTimingBus_i.stream  <= timingStream;
-      appTimingBus_i.message <= timingMessage;
-      appTimingBus_i.strobe  <= timingStrobe;
-      appTimingBus_i.valid   <= timingValid;
+      appTimingBus.stream  <= timingStream;
+      appTimingBus.message <= timingMessage;
+      appTimingBus.strobe  <= timingStrobe;
+      appTimingBus.valid   <= timingValid;
       appTimingBus_i.modesel <= timingClkSelR;
-      appExptBus_i.valid     <= exptBus_i.valid;
-      appExptBus_i.message   <= exptBus_i.message;
+      appTimingBus_i.extn      <= timingExtn;
+      appTimingBus_i.extnValid <= timingExtnValid;
       timingClkSelApp        <= timingClkSelR;
    end generate;
 
