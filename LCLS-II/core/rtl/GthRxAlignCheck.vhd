@@ -27,7 +27,7 @@ use work.AxiLiteMasterPkg.all;
 entity GthRxAlignCheck is
    generic (
       TPD_G            : time            := 1 ns;
-      GTHE_TYPE_G      : boolean         := false;  -- false = GTHE3, true = GTHE4 
+      GTHE_TYPE_G      : boolean         := false;  -- false = GTHE3, true = GTYE3/GTHE4/GTYE4 
       DRP_ADDR_G       : slv(31 downto 0));
    port (
       -- GTH Status/Control Interface
@@ -54,8 +54,10 @@ end entity GthRxAlignCheck;
 architecture rtl of GthRxAlignCheck is
 
    ----------------------------------------------------------------------
-   -- GTHE4 = x"0000_0940" (DRP_ADDR=0x250, see UG576 (v1.5) on page 421)
    -- GTHE3 = x"0000_0540" (DRP_ADDR=0x150, see UG576 (v1.5) on page 508)
+   -- GTYE3 = x"0000_0940" (DRP_ADDR=0x250, see UG578 (v1.3) on page 396)
+   -- GTHE4 = x"0000_0940" (DRP_ADDR=0x250, see UG576 (v1.5) on page 421)
+   -- GTYE4 = x"0000_0940" (DRP_ADDR=0x250, see UG578 (v1.3) on page 443)
    ----------------------------------------------------------------------
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite(GTHE_TYPE_G, x"0000_0940", x"0000_0540");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
