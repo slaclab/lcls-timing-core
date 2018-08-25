@@ -86,3 +86,43 @@ class GthRxAlignCheck(pr.Device):
             mode         = "RO",
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "TxClkFreqRaw",
+            offset       = 0x108, 
+            bitSize      = 32, 
+            bitOffset    = 0, 
+            mode         = 'RO', 
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "TxClkFreq",
+            units        = "MHz",
+            mode         = 'RO',
+            dependencies = [self.TxClkFreqRaw], 
+            linkedGet    = lambda: self.TxClkFreqRaw.value() * 1.0e-6,
+            disp         = '{:0.3f}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "RxClkFreqRaw",
+            offset       = 0x10C, 
+            bitSize      = 32, 
+            bitOffset    = 0, 
+            mode         = 'RO', 
+            base         = pr.UInt,
+            hidden       = True,
+            pollInterval = 1,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "RxClkFreq",
+            units        = "MHz",
+            mode         = 'RO',
+            dependencies = [self.RxClkFreqRaw], 
+            linkedGet    = lambda: self.RxClkFreqRaw.value() * 1.0e-6,
+            disp         = '{:0.3f}',
+        ))        
+        

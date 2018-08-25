@@ -2,7 +2,7 @@
 -- File       : TimingGtCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2018-02-12
+-- Last update: 2018-08-24
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTH Core
 -------------------------------------------------------------------------------
@@ -29,9 +29,10 @@ use unisim.vcomponents.all;
 
 entity TimingGtCoreWrapper is
    generic (
-      TPD_G            : time    := 1 ns;
-      EXTREF_G         : boolean := false;
-      AXIL_BASE_ADDR_G : slv(31 downto 0));
+      TPD_G             : time    := 1 ns;
+      DISABLE_TIME_GT_G : boolean := false;
+      EXTREF_G          : boolean := false;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0));
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -41,14 +42,14 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      stableClk : in  sl;
+      stableClk    : in  sl;
       -- GTH FPGA IO
-      gtRefClk  : in  sl;
-      gtRefClkDiv2  : in  sl;-- Unused in GTHE3, but used in GTHE4
-      gtRxP     : in  sl;
-      gtRxN     : in  sl;
-      gtTxP     : out sl;
-      gtTxN     : out sl;
+      gtRefClk     : in  sl;
+      gtRefClkDiv2 : in  sl;            -- Unused in GTHE3, but used in GTHE4
+      gtRxP        : in  sl;
+      gtRxN        : in  sl;
+      gtTxP        : out sl;
+      gtTxN        : out sl;
 
       -- Rx ports
       rxControl      : in  TimingPhyControlType;
@@ -230,27 +231,27 @@ architecture rtl of TimingGtCoreWrapper is
          addrBits     => 22,
          connectivity => x"FFFF"));
 
-   signal rxCtrl0Out   : slv(15 downto 0);
-   signal rxCtrl1Out   : slv(15 downto 0);
-   signal rxCtrl3Out   : slv(7 downto 0);
-   signal txoutclk_out : sl;
-   signal txoutclkb    : sl;
-   signal rxoutclk_out : sl;
-   signal rxoutclkb    : sl;
+   signal rxCtrl0Out   : slv(15 downto 0) := (others => '0');
+   signal rxCtrl1Out   : slv(15 downto 0) := (others => '0');
+   signal rxCtrl3Out   : slv(7 downto 0)  := (others => '0');
+   signal txoutclk_out : sl               := '0';
+   signal txoutclkb    : sl               := '0';
+   signal rxoutclk_out : sl               := '0';
+   signal rxoutclkb    : sl               := '0';
 
-   signal drpClk      : sl;
-   signal drpRst      : sl;
-   signal drpAddr     : slv(8 downto 0);
-   signal drpDi       : slv(15 downto 0);
-   signal drpEn       : sl;
-   signal drpWe       : sl;
-   signal drpDO       : slv(15 downto 0);
-   signal drpRdy      : sl;
-   signal txbypassrst : sl;
-   signal rxbypassrst : sl;
-   signal rxRst       : sl;
-   signal bypassdone  : sl;
-   signal bypasserr   : sl;
+   signal drpClk      : sl               := '0';
+   signal drpRst      : sl               := '0';
+   signal drpAddr     : slv(8 downto 0)  := (others => '0');
+   signal drpDi       : slv(15 downto 0) := (others => '0');
+   signal drpEn       : sl               := '0';
+   signal drpWe       : sl               := '0';
+   signal drpDO       : slv(15 downto 0) := (others => '0');
+   signal drpRdy      : sl               := '1';
+   signal txbypassrst : sl               := '0';
+   signal rxbypassrst : sl               := '0';
+   signal rxRst       : sl               := '0';
+   signal bypassdone  : sl               := '0';
+   signal bypasserr   : sl               := '0';
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
@@ -292,8 +293,12 @@ begin
    U_AlignCheck : entity work.GthRxAlignCheck
       generic map (
          TPD_G      => TPD_G,
+         GT_TYPE_G  => "GTHE3",
          DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
+         -- Clock Monitoring
+         txClk            => txoutclkb,
+         rxClk            => rxoutclkb,
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
          resetDone        => bypassdone,
@@ -343,7 +348,41 @@ begin
    drpClk <= axilClk;
    drpRst <= axilRst;
 
-   GEN_EXTREF : if EXTREF_G generate
+   GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
+
+      U_TERM : entity work.Gthe3ChannelDummy
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 1)
+         port map (
+            refClk   => axilClk,
+            gtRxP(0) => gtRxP,
+            gtRxN(0) => gtRxN,
+            gtTxP(0) => gtTxP,
+            gtTxN(0) => gtTxN);
+
+      bypassdone         <= '1';
+      bypasserr          <= '0';
+      rxCdrStable        <= '1';
+      txStatus.resetDone <= '1';
+      rxStatus.resetDone <= '1';
+      drpDo              <= (others => '0');
+      drpRdy             <= '1';
+      rxCtrl0Out         <= (others => '0');
+      rxCtrl1Out         <= (others => '0');
+      rxCtrl3Out         <= (others => '0');
+      rxData             <= txData;
+      rxDataK            <= txDataK;
+      rxDispErr          <= (others => '0');
+      rxDecErr           <= (others => '0');
+      txoutclkb          <= gtRefClkDiv2;
+      rxoutclkb          <= gtRefClkDiv2;
+      rxoutclk_out       <= gtRefClkDiv2;
+      txoutclk_out       <= gtRefClkDiv2;
+
+   end generate;
+
+   GEN_EXTREF : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = true)generate
       U_TimingGthCore : TimingGth_extref
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
@@ -404,9 +443,9 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out(0)                 => open,
+            rxpmaresetdone_out                    => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out(0)                 => open);
+            txpmaresetdone_out                    => open);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -433,7 +472,7 @@ begin
             O       => rxoutclkb);
    end generate;
 
-   LOCREF_G : if not EXTREF_G generate
+   LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false)generate
       U_TimingGthCore : TimingGth_fixedlat
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
