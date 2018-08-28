@@ -2,7 +2,7 @@
 -- File       : TimingGtCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-06-09
--- Last update: 2018-08-24
+-- Last update: 2018-08-28
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTY Core
 -------------------------------------------------------------------------------
@@ -42,7 +42,8 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      stableClk    : in  sl;
+      stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTY FPGA IO
       gtRefClk     : in  sl;
       gtRefClkDiv2 : in  sl;            -- Unused in GTYE3, but used in GTYE4
@@ -238,8 +239,6 @@ architecture rtl of TimingGtCoreWrapper is
    signal rxoutclk_out : sl               := '0';
    signal rxoutclkb    : sl               := '0';
 
-   signal drpClk      : sl               := '0';
-   signal drpRst      : sl               := '0';
    signal drpAddr     : slv(9 downto 0)  := (others => '0');
    signal drpDi       : slv(15 downto 0) := (others => '0');
    signal drpEn       : sl               := '0';
@@ -249,8 +248,18 @@ architecture rtl of TimingGtCoreWrapper is
    signal txbypassrst : sl               := '0';
    signal rxbypassrst : sl               := '0';
    signal rxRst       : sl               := '0';
-   signal bypassdone  : sl               := '0';
-   signal bypasserr   : sl               := '0';
+   signal rxRstWdt    : sl               := '0';
+   signal rxReset     : sl               := '0';
+   signal rxDone      : sl               := '0';
+   signal rxBypdone   : sl               := '0';
+   signal rxBypasserr : sl               := '0';
+   signal txBypasserr : sl               := '0';
+   signal txDone      : sl               := '0';
+   signal txBypdone   : sl               := '0';
+   signal txRstDone   : sl               := '0';
+   signal rxRstDone   : sl               := '0';
+   signal rstAll      : sl               := '0';
+   signal resetAll    : sl               := '0';
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
@@ -264,8 +273,23 @@ architecture rtl of TimingGtCoreWrapper is
 
 begin
 
-   rxStatus.bufferByDone <= bypassdone;
-   rxStatus.bufferByErr  <= bypasserr;
+   rxStatus.resetDone    <= rxDone;
+   rxStatus.bufferByDone <= rxBypdone;
+   rxStatus.bufferByErr  <= rxBypasserr;
+
+   txStatus.resetDone    <= txDone;
+   txStatus.bufferByDone <= txBypdone;
+   txStatus.bufferByErr  <= txBypasserr;
+   txStatus.locked       <= txRstDone;
+
+   rxDataK   <= rxCtrl0Out(1 downto 0);
+   rxDispErr <= rxCtrl1Out(1 downto 0);
+   rxDecErr  <= rxCtrl3Out(1 downto 0);
+
+   txoutclkb <= gtRefClkDiv2;
+
+   txOutClk <= txoutclkb;
+   rxOutClk <= rxoutclkb;
 
    U_XBAR : entity work.AxiLiteCrossbar
       generic map (
@@ -300,9 +324,9 @@ begin
          rxClk            => rxoutclkb,
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
-         resetDone        => bypassdone,
-         resetErr         => bypasserr,
-         resetOut         => rxRst,
+         resetDone        => rxBypdone,
+         resetErr         => rxBypasserr,
+         resetOut         => rxReset,
          locked           => rxStatus.locked,
          -- Clock and Reset
          axilClk          => axilClk,
@@ -321,7 +345,7 @@ begin
    U_AxiLiteToDrp : entity work.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         COMMON_CLK_G     => true,
+         COMMON_CLK_G     => false,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 10,
@@ -335,17 +359,14 @@ begin
          axilWriteMaster => axilWriteMasters(1),
          axilWriteSlave  => axilWriteSlaves(1),
          -- DRP Interface
-         drpClk          => axilClk,
-         drpRst          => axilRst,
+         drpClk          => stableClk,
+         drpRst          => stableRst,
          drpRdy          => drpRdy,
          drpEn           => drpEn,
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
          drpDo           => drpDo);
-
-   drpClk <= axilClk;
-   drpRst <= axilRst;
 
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
@@ -360,8 +381,8 @@ begin
             gtTxP(0) => gtTxP,
             gtTxN(0) => gtTxN);
 
-      bypassdone         <= '1';
-      bypasserr          <= '0';
+      rxBypdone          <= '1';
+      rxBypasserr        <= '0';
       rxCdrStable        <= '1';
       txStatus.resetDone <= '1';
       rxStatus.resetDone <= '1';
@@ -379,30 +400,30 @@ begin
    GEN_EXTREF : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = true)generate
       U_TimingGtyCore : TimingGty_extref
          port map (
-            gtwiz_userclk_tx_reset_in(0)          => txbypassrst,
-            gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
-            gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
-            gtwiz_buffbypass_tx_reset_in(0)       => txbypassrst,
+            gtwiz_userclk_tx_reset_in(0)          => '0',
+            gtwiz_userclk_tx_active_in(0)         => '1',
+            gtwiz_userclk_rx_active_in(0)         => '1',
+            gtwiz_buffbypass_tx_reset_in(0)       => '0',
             gtwiz_buffbypass_tx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_tx_done_out          => open,
-            gtwiz_buffbypass_tx_error_out         => open,
+            gtwiz_buffbypass_tx_done_out(0)       => txBypdone,
+            gtwiz_buffbypass_tx_error_out(0)      => txBypasserr,
             gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
-            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
+            gtwiz_buffbypass_rx_done_out(0)       => rxBypdone,
+            gtwiz_buffbypass_rx_error_out(0)      => rxBypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
-            gtwiz_reset_all_in(0)                 => '0',
+            gtwiz_reset_all_in(0)                 => rstAll,
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
             gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
-            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
-            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
+            gtwiz_reset_tx_done_out(0)            => txDone,
+            gtwiz_reset_rx_done_out(0)            => rxDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => drpClk,
+            drpclk_in(0)                          => stableClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
@@ -462,25 +483,25 @@ begin
             gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
             gtwiz_buffbypass_tx_reset_in(0)       => txbypassrst,
             gtwiz_buffbypass_tx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_tx_done_out          => open,
-            gtwiz_buffbypass_tx_error_out         => open,
+            gtwiz_buffbypass_tx_done_out(0)       => txBypdone,
+            gtwiz_buffbypass_tx_error_out(0)      => txBypasserr,
             gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
-            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
+            gtwiz_buffbypass_rx_done_out(0)       => rxBypdone,
+            gtwiz_buffbypass_rx_error_out(0)      => rxBypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
-            gtwiz_reset_all_in(0)                 => '0',
+            gtwiz_reset_all_in(0)                 => rstAll,
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
             gtwiz_reset_rx_datapath_in(0)         => rxRst,
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
-            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
-            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
+            gtwiz_reset_tx_done_out(0)            => txDone,
+            gtwiz_reset_rx_done_out(0)            => rxDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => drpClk,
+            drpclk_in(0)                          => stableClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
@@ -532,32 +553,34 @@ begin
 
    end generate;
 
-   rxDataK   <= rxCtrl0Out(1 downto 0);
-   rxDispErr <= rxCtrl1Out(1 downto 0);
-   rxDecErr  <= rxCtrl3Out(1 downto 0);
-
-   txoutclkb <= gtRefClkDiv2;
-
-   U_RstSyncTx : entity work.RstSync
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk      => txoutclkb,
-         asyncRst => txControl.reset,
-         syncRst  => txbypassrst);
-
    U_RstSyncRx : entity work.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk      => rxoutclkb,
+         clk      => stableClk,
          asyncRst => rxRst,
          syncRst  => rxbypassrst);
 
---   txRst    <= txControl.reset;
---   rxRst    <= rxControl.reset;
+   txRstDone <= (txBypdone and txDone) or stableRst;
+   U_TxWatchDog : entity work.WatchDogRst
+      generic map(
+         TPD_G      => TPD_G,
+         DURATION_G => integer(156.25E+6 * 30.0E-3))  -- 30 ms (based on TimingGty_fixedlat_example_init.v from IP core)
+      port map (
+         clk    => stableClk,
+         monIn  => txRstDone,
+         rstOut => resetAll);
+   rstAll <= resetAll or stableRst;
 
-   txOutClk <= txoutclkb;
-   rxOutClk <= rxoutclkb;
+   rxRstDone <= rxBypdone and rxDone;
+   U_RxWatchDog : entity work.WatchDogRst
+      generic map(
+         TPD_G      => TPD_G,
+         DURATION_G => integer(156.25E+6 * 130.0E-3))  -- 130 ms (based on TimingGty_fixedlat_example_init.v from IP core)
+      port map (
+         clk    => stableClk,
+         monIn  => rxRstDone,
+         rstOut => rxRstWdt);
+   rxRst <= (rxReset or rxRstWdt) and txRstDone;
 
 end architecture rtl;

@@ -42,10 +42,11 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      stableClk    : in  sl;
+      stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTH FPGA IO
       gtRefClk     : in  sl;
-      gtRefClkDiv2 : in  sl;            -- Unused in GTHE3, but used in GTHE4
+      gtRefClkDiv2 : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
       gtRxP        : in  sl;
       gtRxN        : in  sl;
       gtTxP        : out sl;
@@ -239,8 +240,6 @@ architecture rtl of TimingGtCoreWrapper is
    signal rxoutclk_out : sl               := '0';
    signal rxoutclkb    : sl               := '0';
 
-   signal drpClk      : sl               := '0';
-   signal drpRst      : sl               := '0';
    signal drpAddr     : slv(8 downto 0)  := (others => '0');
    signal drpDi       : slv(15 downto 0) := (others => '0');
    signal drpEn       : sl               := '0';
@@ -345,9 +344,6 @@ begin
          drpDi           => drpDi,
          drpDo           => drpDo);
 
-   drpClk <= axilClk;
-   drpRst <= axilRst;
-
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
       U_TERM : entity work.Gthe3ChannelDummy
@@ -395,7 +391,7 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_clk_freerun_in(0)         => axilClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
@@ -407,7 +403,7 @@ begin
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => drpClk,
+            drpclk_in(0)                          => axilClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
@@ -485,7 +481,7 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_clk_freerun_in(0)         => axilClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
@@ -497,7 +493,7 @@ begin
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => drpClk,
+            drpclk_in(0)                          => axilClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,

@@ -111,10 +111,11 @@ architecture rtl of GthRxAlignCheck is
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : slv(31 downto 0);
 
---   attribute dont_touch        : string;
---   attribute dont_touch of r   : signal is "TRUE";
---   attribute dont_touch of ack : signal is "TRUE";
-
+  -- attribute dont_touch              : string;
+  -- attribute dont_touch of r         : signal is "TRUE";
+  -- attribute dont_touch of ack       : signal is "TRUE";
+  -- attribute dont_touch of txClkFreq : signal is "TRUE";
+  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
 
 begin
 
