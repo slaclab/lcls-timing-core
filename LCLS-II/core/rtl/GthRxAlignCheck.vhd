@@ -2,7 +2,7 @@
 -- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-08-29
--- Last update: 2018-02-15
+-- Last update: 2018-08-22
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
@@ -26,10 +26,13 @@ use work.AxiLiteMasterPkg.all;
 
 entity GthRxAlignCheck is
    generic (
-      TPD_G            : time            := 1 ns;
-      GTHE_TYPE_G      : boolean         := false;  -- false = GTHE3, true = GTHE4 
-      DRP_ADDR_G       : slv(31 downto 0));
+      TPD_G      : time   := 1 ns;
+      GT_TYPE_G  : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4 
+      DRP_ADDR_G : slv(31 downto 0));
    port (
+      -- Clock Monitoring
+      txClk            : in  sl;
+      rxClk            : in  sl;
       -- GTH Status/Control Interface
       resetIn          : in  sl;
       resetOut         : out sl;
@@ -54,10 +57,12 @@ end entity GthRxAlignCheck;
 architecture rtl of GthRxAlignCheck is
 
    ----------------------------------------------------------------------
-   -- GTHE4 = x"0000_0940" (DRP_ADDR=0x250, see UG576 (v1.5) on page 421)
    -- GTHE3 = x"0000_0540" (DRP_ADDR=0x150, see UG576 (v1.5) on page 508)
+   -- GTYE3 = x"0000_0940" (DRP_ADDR=0x250, see UG578 (v1.3) on page 396)
+   -- GTHE4 = x"0000_0940" (DRP_ADDR=0x250, see UG576 (v1.5) on page 421)
+   -- GTYE4 = x"0000_0940" (DRP_ADDR=0x250, see UG578 (v1.3) on page 443)
    ----------------------------------------------------------------------
-   constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite(GTHE_TYPE_G, x"0000_0940", x"0000_0540");
+   constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
    constant LOCK_VALUE : integer := 16;
@@ -103,17 +108,49 @@ architecture rtl of GthRxAlignCheck is
    signal ack : AxiLiteMasterAckType;
 
 
---   attribute dont_touch        : string;
---   attribute dont_touch of r   : signal is "TRUE";
---   attribute dont_touch of ack : signal is "TRUE";
+   signal txClkFreq : slv(31 downto 0);
+   signal rxClkFreq : slv(31 downto 0);
 
+  -- attribute dont_touch              : string;
+  -- attribute dont_touch of r         : signal is "TRUE";
+  -- attribute dont_touch of ack       : signal is "TRUE";
+  -- attribute dont_touch of txClkFreq : signal is "TRUE";
+  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
 
 begin
 
-   process(ack, axilRst, r, resetDone, resetErr, resetIn, sAxilReadMaster,
-           sAxilWriteMaster) is
+   U_txClkFreq : entity work.SyncClockFreq
+      generic map (
+         TPD_G          => TPD_G,
+         REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
+         REFRESH_RATE_G => 1.0,         -- Units of Hz
+         CNT_WIDTH_G    => 32)          -- Counters' width
+      port map (
+         -- Frequency Measurement and Monitoring Outputs (locClk domain)
+         freqOut => txClkFreq,
+         -- Clocks
+         clkIn   => txClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
+
+   U_rxClkFreq : entity work.SyncClockFreq
+      generic map (
+         TPD_G          => TPD_G,
+         REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
+         REFRESH_RATE_G => 1.0,         -- Units of Hz
+         CNT_WIDTH_G    => 32)          -- Counters' width
+      port map (
+         -- Frequency Measurement and Monitoring Outputs (locClk domain)
+         freqOut => rxClkFreq,
+         -- Clocks
+         clkIn   => rxClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
+
+   process(ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
+           sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
       variable v      : RegType;
-      variable axilEp : AxiLiteStatusType;
+      variable axilEp : AxiLiteEndpointType;
       variable i      : natural;
    begin
       -- Latch the current value
@@ -123,18 +160,25 @@ begin
       v.rst    := '0';
       v.locked := '0';
 
+      ------------------------      
+      -- AXI-Lite Transactions
+      ------------------------ 
+
       -- Determine the transaction type
-      axiSlaveWaitTxn(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp);
+      axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(sAxilReadMaster, v.sAxilReadSlave, axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), v.sample(i));
+         axiSlaveRegister(axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), v.sample(i));
       end loop;
-      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 0, v.tgt);
-      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 8, v.mask);
-      axiSlaveRegister(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, toSlv(256, 9), 16, v.rstlen);
-      axiSlaveRegister(sAxilReadMaster, v.sAxilReadSlave, axilEp, toSlv(260, 9), 0, v.last);
+      axiSlaveRegister(axilEp, toSlv(256, 9), 0, v.tgt);
+      axiSlaveRegister(axilEp, toSlv(256, 9), 8, v.mask);
+      axiSlaveRegister(axilEp, toSlv(256, 9), 16, v.rstlen);
+      axiSlaveRegister(axilEp, toSlv(260, 9), 0, v.last);
+      axiSlaveRegisterR(axilEp, toSlv(264, 9), 0, txClkFreq);
+      axiSlaveRegisterR(axilEp, toSlv(268, 9), 0, rxClkFreq);
 
-      axiSlaveDefault(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axilEp, AXI_RESP_OK_C);
+      -- Close out the transaction
+      axiSlaveDefault(axilEp, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_OK_C);
 
       -- State Machine
       case r.state is
@@ -197,7 +241,7 @@ begin
       end case;
 
       -- Check for software controlled sampler reset
-      if (axilEp.writeEnable = '1') and (sAxilWriteMaster.awaddr(8 downto 0) = toSlv(256, 9)) then
+      if (axilEp.axiStatus.writeEnable = '1') and (sAxilWriteMaster.awaddr(8 downto 0) = toSlv(256, 9)) then
          v.sample := (others => (others => '0'));
       end if;
 
