@@ -119,7 +119,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "WO",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -130,7 +129,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x01,
             base         = pr.UInt,
             mode         = "RO",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -152,7 +150,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x03,
             base         = pr.UInt,
             mode         = "WO",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -196,7 +193,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    = 0x07,
             base         = pr.UInt,
             mode         = "WO",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
