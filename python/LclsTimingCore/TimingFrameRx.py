@@ -7,6 +7,7 @@
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Status of timing frame reception
+# Associated firmware: lcls-timing-core/LCLS-II/core/rtl/TimingRx.vhd
 #-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
@@ -139,7 +140,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x02,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -160,7 +160,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -182,7 +181,6 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x06,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = false,
         ))
 
         self.add(pr.RemoteVariable(
