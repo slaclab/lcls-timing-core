@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-07-20
--- Last update: 2018-08-10
+-- Last update: 2018-08-04
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -33,16 +33,12 @@ package TimingExtnPkg is
    type ExptMessageType is record
      baseRateSince1Hz : slv( 31 downto 0);
      baseRateSinceTM  : slv( 31 downto 0);
-     timeCode         : slv( 31 downto 0);
-     timeCodeHeader   : slv(  7 downto 0);
-     reserved         : slv(215 downto 0); 
+     irigTimeCode     : slv(255 downto 0);
    end record;
    constant EXPT_MESSAGE_INIT_C : ExptMessageType := (
      baseRateSince1Hz => (others=>'1'),
      baseRateSinceTM  => (others=>'1'),
-     timeCode         => (others=>'1'),
-     timeCodeHeader   => (others=>'1'),
-     reserved         => (others=>'1') );
+     irigTimeCode     => (others=>'1') );
 
    function toSlv(message : ExptMessageType) return slv;
    function toExptMessageType (vector : slv) return ExptMessageType;
@@ -65,9 +61,7 @@ package body TimingExtnPkg is
    begin
       assignSlv(i, vector, message.baseRateSince1Hz);
       assignSlv(i, vector, message.baseRateSinceTM);
-      assignSlv(i, vector, message.timeCode);
-      assignSlv(i, vector, message.timeCodeHeader);
-      assignSlv(i, vector, message.reserved);
+      assignSlv(i, vector, message.irigTimeCode);
       return vector;
    end function;
       
@@ -78,9 +72,7 @@ package body TimingExtnPkg is
    begin
       assignRecord(i, vector, message.baseRateSince1Hz);
       assignRecord(i, vector, message.baseRateSinceTM);
-      assignRecord(i, vector, message.timeCode);
-      assignRecord(i, vector, message.timeCodeHeader);
-      assignRecord(i, vector, message.reserved);
+      assignRecord(i, vector, message.irigTimeCode);
       return message;
    end function;
    
