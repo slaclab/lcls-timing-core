@@ -170,7 +170,7 @@ class TimingFrameRx(pr.Device):
             bitOffset    =  0x05,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = false,
+            verify       = False,
         ))
 
         self.add(pr.RemoteVariable(    
