@@ -22,7 +22,6 @@ use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
 
 entity GthRxAlignCheck is
    generic (
@@ -85,7 +84,7 @@ architecture rtl of GthRxAlignCheck is
       sample          : Slv8Array(39 downto 0);
       sAxilWriteSlave : AxiLiteWriteSlaveType;
       sAxilReadSlave  : AxiLiteReadSlaveType;
-      req             : AxiLiteMasterReqType;
+      req             : AxiLiteReqType;
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
@@ -99,13 +98,13 @@ architecture rtl of GthRxAlignCheck is
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      req             => AXI_LITE_MASTER_REQ_INIT_C,
+      req             => AXI_LITE_REQ_INIT_C,
       state           => READ_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ack : AxiLiteMasterAckType;
+   signal ack : AxiLiteAckType;
 
 
    signal txClkFreq : slv(31 downto 0);
