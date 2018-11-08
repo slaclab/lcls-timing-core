@@ -178,10 +178,10 @@ begin
             ssiSetUserSof(ETHMSG_AXIS_CFG_G, v.master, '0');
             if r.valid(1) = '1' then
                v.master.tLast := '0';
-               v.master.tKeep := x"FFFF";
+               v.master.tKeep := resize(x"FFFF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
             else
                v.master.tLast := '1';
-               v.master.tKeep := ETH_TKEEP;
+               v.master.tKeep := resize(ETH_TKEEP,AXI_STREAM_MAX_TKEEP_WIDTH_C);
                ssiSetUserEofe(ETHMSG_AXIS_CFG_G, v.master, '0');
             end if;
          end if;
@@ -192,7 +192,7 @@ begin
             v.master.tData(ETH_WORD_SZ-1 downto 0) := toSlv(timingStream)(ETH_WORD_SZ-1 downto 0);
             v.master.tValid                        := '1';
             v.master.tLast                         := '0';
-            v.master.tKeep                         := x"FFFF";
+            v.master.tKeep                         := resize(x"FFFF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
             ssiSetUserSof(ETHMSG_AXIS_CFG_G, v.master, '1');
          end if;
 
