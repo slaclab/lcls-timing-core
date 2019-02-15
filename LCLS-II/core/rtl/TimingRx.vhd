@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2018-07-21
+-- Last update: 2018-12-02
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -175,6 +175,7 @@ begin
     timingMessageStrobe <= '0';
     timingMessageValid  <= '0';
     timingExtn          <= TIMING_EXTN_INIT_C;
+    timingExtnValid     <= '0';
     rxVersion(1)        <= (others=>'0');
     staData  (1)        <= (others=>'0');
   end generate;

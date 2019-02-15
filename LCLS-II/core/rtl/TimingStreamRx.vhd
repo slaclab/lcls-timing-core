@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-02-16
+-- Last update: 2018-11-28
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -184,6 +184,12 @@ begin
       when others =>  null;
     end case;
 
+    --
+    --  Valid indicates nothing lost during the entire inter-fiducial period
+    --
+    if r.timingMessageStrobe = '1' then
+      v.timingMessageValid := '1';
+    end if;
     
     if (rxData.decErr /= "00" or rxData.dspErr /= X"00" or rxRst='1') then
       v := REG_INIT_C;

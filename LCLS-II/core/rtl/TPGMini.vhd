@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-04-20
+-- Last update: 2018-11-27
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ use work.TimingPkg.all;
 entity TPGMini is
   generic (
     TPD_G : time := 1 ns;
-    NARRAYSBSA   : integer := 2
+    NARRAYSBSA   : integer := 2;
+    STREAM_INTF  : boolean := false
     );
   port (
     statusO : out TPGStatusType;
@@ -41,7 +42,12 @@ entity TPGMini is
     txRst      : in  sl;
     txRdy      : in  sl;
     txData     : out slv(15 downto 0);
-    txDataK    : out slv(1 downto 0)
+    txDataK    : out slv(1 downto 0);
+    -- alternate output (STREAM_INTF=true)
+    streams    : out TimingSerialArray(0 downto 0);
+    streamIds  : out Slv4Array        (0 downto 0);
+    advance    : in  slv              (0 downto 0) := (others=>'0');
+    fiducial   : out sl
     );
 end TPGMini;
 
@@ -96,9 +102,10 @@ architecture TPGMini of TPGMini is
 
   constant TPG_ID : integer := 0;
   
-  signal streams   : TimingSerialArray(0 downto 0);
-  signal streamIds : Slv4Array(0 downto 0);
-  signal advance   : slv(0 downto 0);
+  signal istreams   : TimingSerialArray(0 downto 0);
+  signal istreamIds : Slv4Array(0 downto 0);
+  signal iadvance   : slv(0 downto 0);
+  signal iiadvance  : slv(0 downto 0);
   
   attribute use_dsp48                : string;
   attribute use_dsp48 of intervalCnt : signal is "yes";   
@@ -107,6 +114,12 @@ architecture TPGMini of TPGMini is
   
 begin
 
+  streams   <= istreams;
+  streamIds <= istreamIds;
+  iiadvance <= advance  when STREAM_INTF=true else
+               iadvance;
+  fiducial  <= baseEnabled(0);
+  
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');
 
@@ -203,9 +216,9 @@ begin
     port map ( clk       => txClk,
                rst       => txRst,
                fiducial  => baseEnabled(0),
-               streams   => streams,
-               streamIds => streamIds,
-               advance   => advance,
+               streams   => istreams,
+               streamIds => istreamIds,
+               advance   => iadvance,
                data      => txData,
                dataK     => txDataK );
   
@@ -215,9 +228,9 @@ begin
                txRst      => txRst,
                fiducial   => baseEnable,
                msg        => frame,
-               advance    => advance  (0),
-               stream     => streams  (0),
-               streamId   => streamIds(0) );
+               advance    => iiadvance (0),
+               stream     => istreams  (0),
+               streamId   => istreamIds(0) );
 
   status.irqFifoData  <= (others=>'0');
   status.irqFifoFull  <= '0';
