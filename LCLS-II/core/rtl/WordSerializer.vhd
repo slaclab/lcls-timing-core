@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-15
--- Last update: 2019-02-15
+-- Last update: 2019-02-18
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ architecture mapping of WordSerializer is
   
 begin
 
-  stream.ready  <= rin.ready;
+  stream.ready  <= r.ready;
   stream.data   <= r.word_stream(0);
   stream.offset <= (others=>'0');
   stream.last   <= '1';
@@ -86,7 +86,7 @@ begin
     elsif advance='1' then
       --  Shift out the next word
       v.word_stream  := x"0000" & r.word_stream(r.word_stream'left downto 1);
-      if (r.word_cnt=NWORDS_G) then
+      if (r.word_cnt=NWORDS_G-1) then
         v.ready := '0';
       else
         v.ready    := '1';
