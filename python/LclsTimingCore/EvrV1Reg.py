@@ -38,6 +38,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -68,6 +69,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))                        
 
         self.add(pr.RemoteVariable(    
@@ -108,6 +110,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -118,6 +121,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -138,6 +142,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -148,6 +153,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -158,6 +164,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -168,6 +175,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -178,6 +186,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -394,6 +403,7 @@ class EvrV1Reg(pr.Device):
             # bitOffset    =  0x00,
             # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,
@@ -407,6 +417,7 @@ class EvrV1Reg(pr.Device):
             # bitOffset    =  0x00,
             # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,

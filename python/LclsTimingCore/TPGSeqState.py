@@ -40,6 +40,7 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -52,6 +53,7 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -64,6 +66,7 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  64,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -76,6 +79,7 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(    
@@ -88,5 +92,6 @@ class TPGSeqState(pr.Device):
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 

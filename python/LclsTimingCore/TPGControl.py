@@ -38,6 +38,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -48,6 +49,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -58,6 +60,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -68,6 +71,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -78,6 +82,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x04,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -252,6 +257,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x01,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -262,6 +268,7 @@ class TPGControl(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.addRemoteVariables(    
@@ -321,13 +328,14 @@ class TPGControl(pr.Device):
         self.addRemoteVariables(   
             name         = "BeamDiagStat",
             description  = "Beam diagnostic latched status",
-            offset       =  0x1E8,
-            bitSize      =  32,
-            bitOffset    =  0x00,
+            offset       = 0x1E8,
+            bitSize      = 32,
+            bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  4,
-            stride       =  4,
+            number       = 4,
+            stride       = 4,
+            pollInterval = 1,
         )
 
         self.add(pr.RemoteVariable(    

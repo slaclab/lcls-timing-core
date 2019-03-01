@@ -38,6 +38,7 @@ class GthRxAlignCheck(pr.Device):
             # bitOffset    =  0x00,
             # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  128,
             # stride       =  2,
             # hidden       =  True,
@@ -51,6 +52,7 @@ class GthRxAlignCheck(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
             number       =  64,
             stride       =  4,
             hidden       =  True,
@@ -84,6 +86,7 @@ class GthRxAlignCheck(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(

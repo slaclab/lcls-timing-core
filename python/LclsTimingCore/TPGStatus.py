@@ -40,6 +40,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  64,
             stride       =  4,
+            pollInterval = 1,
         )
 
         self.add(pr.RemoteVariable(    
@@ -50,6 +51,7 @@ class TPGStatus(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -60,6 +62,7 @@ class TPGStatus(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -70,6 +73,7 @@ class TPGStatus(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -90,6 +94,7 @@ class TPGStatus(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.addRemoteVariables(   
@@ -102,6 +107,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  12,
             stride       =  4,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(    
@@ -114,6 +120,7 @@ class TPGStatus(pr.Device):
             mode         = "RO",
             number       =  64,
             stride       =  2,
+            pollInterval = 1,
         )
 
         self.add(pr.RemoteVariable(    

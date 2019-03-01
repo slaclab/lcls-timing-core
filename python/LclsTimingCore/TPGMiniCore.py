@@ -88,6 +88,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))        
         
         self.add(pr.RemoteVariable(    
@@ -118,6 +119,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))        
         
         self.add(pr.RemoteVariable(    
@@ -161,6 +163,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -171,6 +174,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))        
         
         self.add(pr.RemoteVariable(    
@@ -181,6 +185,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 14,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -191,6 +196,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 22,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -201,6 +207,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 26,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))        
         
         self.add(pr.RemoteVariable(    
@@ -331,7 +338,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
-            overlapEn    = True,            
+            overlapEn    = True,
+            pollInterval = 1,
         ))
         
         self.addRemoteVariables(  
@@ -551,6 +559,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -561,6 +570,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -571,6 +581,7 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -591,4 +602,5 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
