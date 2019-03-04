@@ -18,9 +18,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-
-from LclsTimingCore.EvrV2ChannelReg import *
-from LclsTimingCore.EvrV2TriggerReg import *
+import LclsTimingCore as timingCore
 
 class EvrV2CoreTriggers(pr.Device):
     def __init__(   self,
@@ -31,13 +29,13 @@ class EvrV2CoreTriggers(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
 
         for i in range(numTrig):
-            self.add(EvrV2ChannelReg(
+            self.add(timingCore.EvrV2ChannelReg(
                 name   = f'EvrV2ChannelReg[{i}]',
-                offset = 0x00000000 + 0x1000*i,
+                offset = (i*0x100),
             ))
 
         for i in range(numTrig):
-            self.add(EvrV2TriggerReg(
+            self.add(timingCore.EvrV2TriggerReg(
                 name   = f'EvrV2TriggerReg[{i}]',
-                offset = 0x00020000 + 0x1000*i,
+                offset = 0x1000 + (i*0x100),
             ))

@@ -98,18 +98,18 @@ begin  -- mapping
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
     for i in 0 to TRIGGERS_C-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),   0, v.triggerConfig(i).channel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  16, v.triggerConfig(i).polarity);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096,17)),  31, v.triggerConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(4+i*4096,17)),   0, v.triggerConfig(i).delay);
-      axilSlaveRegisterW(slv(conv_unsigned(8+i*4096,17)),   0, v.triggerConfig(i).width);
+      axilSlaveRegisterW(slv(conv_unsigned(i*256,17)),   0, v.triggerConfig(i).channel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*256,17)),  16, v.triggerConfig(i).polarity);
+      axilSlaveRegisterW(slv(conv_unsigned(i*256,17)),  31, v.triggerConfig(i).enabled);
+      axilSlaveRegisterW(slv(conv_unsigned(4+i*256,17)),   0, v.triggerConfig(i).delay);
+      axilSlaveRegisterW(slv(conv_unsigned(8+i*256,17)),   0, v.triggerConfig(i).width);
 
       if USE_TAP_C then
         --  Special handling of delay tap
         v.triggerConfig(i).loadTap := r.loadShift(i)(3);
         v.loadShift(i) := r.loadShift(i)(2 downto 0) & '0';
         if (axilStatus.readEnable = '1') then
-          if (std_match(axilReadMaster.araddr(16 downto 0), toSlv(12+i*4096,17))) then
+          if (std_match(axilReadMaster.araddr(16 downto 0), toSlv(12+i*256,17))) then
             v.axilReadSlave.rdata(31 downto 6) := (others=>'0');
             v.axilReadSlave.rdata( 5 downto 0) := delay_rd(i);
             axiSlaveReadResponse(v.axilReadSlave);
@@ -117,7 +117,7 @@ begin  -- mapping
         end if;
 
         if (axilStatus.writeEnable = '1') then
-          if (std_match(axilWriteMaster.awaddr(16 downto 0), toSlv(12+i*4096,17))) then
+          if (std_match(axilWriteMaster.awaddr(16 downto 0), toSlv(12+i*256,17))) then
             v.triggerConfig(i).delayTap := axilWriteMaster.wdata(5 downto 0);
             axiSlaveWriteResponse(v.axilWriteSlave);
             v.loadShift(i)(0) := '1';

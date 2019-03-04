@@ -61,12 +61,12 @@ architecture mapping of EvrV2CoreTriggers is
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CHAN_INDEX_C      => (
-      baseAddr      => x"00000000" + AXIL_BASEADDR_G,
-      addrBits      => 17,
+      baseAddr      => x"0000_0000" + AXIL_BASEADDR_G,
+      addrBits      => 12,
       connectivity  => X"FFFF"),
     TRIG_INDEX_C => (
-      baseAddr      => x"00020000" + AXIL_BASEADDR_G,
-      addrBits      => 17,
+      baseAddr      => x"0000_1000" + AXIL_BASEADDR_G,
+      addrBits      => 12,
       connectivity  => X"FFFF") );
 
   signal axiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);

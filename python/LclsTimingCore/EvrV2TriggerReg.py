@@ -27,12 +27,11 @@ class EvrV2TriggerReg(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
     #########################################################  
         self.add(pr.RemoteVariable(
-            name        = "Enable",
+            name        = "EnableTrig",
             description = "Trigger Enable",
-            offset      = 0x03,
+            offset      = 0x00,
             bitSize     = 1,
-            bitOffset   = 7,
-            base        = pr.UInt,
+            bitOffset   = 31,
             mode        = "RW",
         ))
     #########################################################
@@ -41,19 +40,21 @@ class EvrV2TriggerReg(pr.Device):
             description = "Source mask",
             offset      = 0x00,
             bitSize     = 4,
-            bitOffset   = 4,
-            base        = pr.UInt,
+            bitOffset   = 0,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "Polarity",
-            description = "Polarity",
-            offset      = 0x02,
+            description = "Signal polarity",
+            offset      = 0x00,
             bitSize     = 1,
-            bitOffset   = 0,
-            base        = pr.UInt,
+            bitOffset   = 16,
             mode        = "RW",
+            enum         = {
+                0x0: 'Falling', 
+                0x1: 'Rising', 
+            },               
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
@@ -72,7 +73,6 @@ class EvrV2TriggerReg(pr.Device):
             offset      = 0x08,
             bitSize     = 28,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
@@ -82,16 +82,16 @@ class EvrV2TriggerReg(pr.Device):
             offset      = 0x0C,
             bitSize     = 6,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "DelayTapReadback",
             description = "Delay tap readback in ticks/64",
-            offset      = 0x0E,
+            offset      = 0x0C,
             bitSize     = 6,
-            bitOffset   = 0,
-            base        = pr.UInt,
-            mode        = "RW",
+            bitOffset   = 16,
+            mode        = "RO",
+            pollInterval= 1,
         ))
+    #########################################################  

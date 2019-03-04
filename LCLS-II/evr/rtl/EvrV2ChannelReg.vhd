@@ -112,17 +112,17 @@ begin  -- mapping
     v  := r;
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
     for i in 0 to NCHANNELS_G-1 loop
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  0, v.channelConfig(i).enabled);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 4,17)),  0, v.channelConfig(i).rateSel);
-      axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 4,17)), 13, v.channelConfig(i).destSel);
-      axilSlaveRegisterR(slv(conv_unsigned(i*4096+ 8,17)),     eventCount(i));
+      axilSlaveRegisterW(slv(conv_unsigned(i*256+ 0,17)),  0, v.channelConfig(i).enabled);
+      axilSlaveRegisterW(slv(conv_unsigned(i*256+ 4,17)),  0, v.channelConfig(i).rateSel);
+      axilSlaveRegisterW(slv(conv_unsigned(i*256+ 4,17)), 13, v.channelConfig(i).destSel);
+      axilSlaveRegisterR(slv(conv_unsigned(i*256+ 8,17)),     eventCount(i));
 
       if DMA_ENABLE_G then
-        axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  1, v.channelConfig(i).bsaEnabled);
-        axilSlaveRegisterW(slv(conv_unsigned(i*4096+ 0,17)),  2, v.channelConfig(i).dmaEnabled);
-        axilSlaveRegisterW(slv(conv_unsigned(i*4096+12,17)),  0, v.channelConfig(i).bsaActiveDelay);
-        axilSlaveRegisterW(slv(conv_unsigned(i*4096+12,17)), 20, v.channelConfig(i).bsaActiveSetup);
-        axilSlaveRegisterW(slv(conv_unsigned(i*4096+16,17)),  0, v.channelConfig(i).bsaActiveWidth);
+        axilSlaveRegisterW(slv(conv_unsigned(i*256+ 0,17)),  1, v.channelConfig(i).bsaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*256+ 0,17)),  2, v.channelConfig(i).dmaEnabled);
+        axilSlaveRegisterW(slv(conv_unsigned(i*256+12,17)),  0, v.channelConfig(i).bsaActiveDelay);
+        axilSlaveRegisterW(slv(conv_unsigned(i*256+12,17)), 20, v.channelConfig(i).bsaActiveSetup);
+        axilSlaveRegisterW(slv(conv_unsigned(i*256+16,17)),  0, v.channelConfig(i).bsaActiveWidth);
       end if;
     end loop;
     

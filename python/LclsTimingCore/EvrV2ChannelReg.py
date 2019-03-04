@@ -27,52 +27,47 @@ class EvrV2ChannelReg(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
     #########################################################  
         self.add(pr.RemoteVariable(
-            name        = "Enable",
-            description = "Enable",
+            name        = "EnableReg",
+            description = "Enable Register",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "BsaEnabled",
-            description = "BSA enable register",
+            description = "BSA Enable register",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 1,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "DmaEnabled",
-            description = "DMA enable register",
+            description = "DMA Enable register",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 2,
-            base        = pr.UInt,
             mode        = "RW",
         ))
-    #########################################################  
+    ########################################################  
         self.add(pr.RemoteVariable(
             name        = "RateSel",
-            description = "Rate selection",
+            description = "Rate select",
             offset      = 0x04,
             bitSize     = 13,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "DestSel",
-            description = "Destination selection",
+            description = "Destination select",
             offset      = 0x04,
             bitSize     = 19,
             bitOffset   = 13,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
@@ -82,7 +77,6 @@ class EvrV2ChannelReg(pr.Device):
             offset      = 0x08,
             bitSize     = 32,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
@@ -92,17 +86,15 @@ class EvrV2ChannelReg(pr.Device):
             offset      = 0x0C,
             bitSize     = 20,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
     #########################################################  
         self.add(pr.RemoteVariable(
             name        = "BsaWindowSetup",
             description = "Start of BSA sensitivity window before trigger",
-            offset      = 0x0E,
+            offset      = 0x0C,
             bitSize     = 6,
-            bitOffset   = 4,
-            base        = pr.UInt,
+            bitOffset   = 20,
             mode        = "RW",
         ))
     #########################################################  
@@ -112,7 +104,7 @@ class EvrV2ChannelReg(pr.Device):
             offset      = 0x10,
             bitSize     = 20,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
         ))
+    #########################################################  
 
