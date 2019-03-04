@@ -23,36 +23,41 @@ class EvrV2ChannelReg(pr.Device):
     def __init__(   self,
             name        = "EvrV2ChannelReg",
             description = "EVR V2 Channel",
+            dmaEnable   = False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-    #########################################################  
+        #########################################################  
         self.add(pr.RemoteVariable(
             name        = "EnableReg",
             description = "Enable Register",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 0,
+            base        = pr.Bool,
             mode        = "RW",
         ))
-    #########################################################  
-        self.add(pr.RemoteVariable(
-            name        = "BsaEnabled",
-            description = "BSA Enable register",
-            offset      = 0x00,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = "RW",
-        ))
-    #########################################################  
-        self.add(pr.RemoteVariable(
-            name        = "DmaEnabled",
-            description = "DMA Enable register",
-            offset      = 0x00,
-            bitSize     = 1,
-            bitOffset   = 2,
-            mode        = "RW",
-        ))
-    ########################################################  
+        #########################################################
+        if (dmaEnable):
+            self.add(pr.RemoteVariable(
+                name        = "BsaEnabled",
+                description = "BSA Enable register (Only valid register is DMA_ENABLE_G=true)",
+                offset      = 0x00,
+                bitSize     = 1,
+                bitOffset   = 1,
+                base        = pr.Bool,
+                mode        = "RW",
+            ))
+        #########################################################  
+            self.add(pr.RemoteVariable(
+                name        = "dmaEnabled",
+                description = "DMA Enable register (Only valid register is DMA_ENABLE_G=true)",
+                offset      = 0x00,
+                bitSize     = 1,
+                bitOffset   = 2,
+                base        = pr.Bool,
+                mode        = "RW",
+            ))
+        ########################################################  
         self.add(pr.RemoteVariable(
             name        = "RateSel",
             description = "Rate select",
@@ -61,7 +66,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-    #########################################################  
+        #########################################################  
         self.add(pr.RemoteVariable(
             name        = "DestSel",
             description = "Destination select",
@@ -70,7 +75,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 13,
             mode        = "RW",
         ))
-    #########################################################  
+        #########################################################  
         self.add(pr.RemoteVariable(
             name        = "Count",
             description = "Counts",
@@ -79,32 +84,32 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-    #########################################################  
-        self.add(pr.RemoteVariable(
-            name        = "BsaWindowDelay",
-            description = "Start of BSA sensitivity window following trigger",
-            offset      = 0x0C,
-            bitSize     = 20,
-            bitOffset   = 0,
-            mode        = "RW",
-        ))
-    #########################################################  
-        self.add(pr.RemoteVariable(
-            name        = "BsaWindowSetup",
-            description = "Start of BSA sensitivity window before trigger",
-            offset      = 0x0C,
-            bitSize     = 6,
-            bitOffset   = 20,
-            mode        = "RW",
-        ))
-    #########################################################  
-        self.add(pr.RemoteVariable(
-            name        = "BsaWindowWidth",
-            description = "Width of BSA sensitivity window",
-            offset      = 0x10,
-            bitSize     = 20,
-            bitOffset   = 0,
-            mode        = "RW",
-        ))
-    #########################################################  
-
+        #########################################################  
+        if (dmaEnable):
+            self.add(pr.RemoteVariable(
+                name        = "BsaWindowDelay",
+                description = "Start of BSA sensitivity window following trigger (Only valid register is DMA_ENABLE_G=true)",
+                offset      = 0x0C,
+                bitSize     = 20,
+                bitOffset   = 0,
+                mode        = "RW",
+            ))
+        ######################################################### 
+            self.add(pr.RemoteVariable(
+                name        = "BsaWindowSetup",
+                description = "Start of BSA sensitivity window before trigger (Only valid register is DMA_ENABLE_G=true)",
+                offset      = 0x0C,
+                bitSize     = 6,
+                bitOffset   = 20,
+                mode        = "RW",
+            ))
+        #########################################################
+            self.add(pr.RemoteVariable(
+                name        = "BsaWindowWidth",
+                description = "Width of BSA sensitivity window (Only valid register is DMA_ENABLE_G=true)",
+                offset      = 0x10,
+                bitSize     = 20,
+                bitOffset   = 0,
+                mode        = "RW",
+            ))
+        #########################################################
