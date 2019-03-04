@@ -24,6 +24,7 @@ class EvrV2TriggerReg(pr.Device):
             name        = "EvrV2TriggerReg",
             description = "EVR V2 Trigger",
             useTap      = False,
+            tickUnit    = 'TBD',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         #########################################################  
@@ -65,8 +66,8 @@ class EvrV2TriggerReg(pr.Device):
             offset      = 0x04,
             bitSize     = 28,
             bitOffset   = 0,
-            base        = pr.UInt,
             mode        = "RW",
+            units       = tickUnit,
         ))
         #########################################################  
         self.add(pr.RemoteVariable(
@@ -76,6 +77,7 @@ class EvrV2TriggerReg(pr.Device):
             bitSize     = 28,
             bitOffset   = 0,
             mode        = "RW",
+            units       = tickUnit,
         ))
         #########################################################  
         if (useTap):

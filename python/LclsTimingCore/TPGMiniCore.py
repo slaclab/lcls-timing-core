@@ -36,7 +36,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x00,
             bitSize      = 1,
             bitOffset    = 1,
-            base         = pr.UInt,
             mode         = "RW",
         ))
         
@@ -46,7 +45,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x00,
             bitSize      = 3,
             bitOffset    = 2,
-            base         = pr.UInt,
             mode         = "RW",
         ))
         
@@ -56,7 +54,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x00,
             bitSize      = 1,
             bitOffset    = 5,
-            base         = pr.UInt,
             mode         = "RW",
         ))
         
@@ -66,7 +63,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x04,
             bitSize      = 16,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))
         
@@ -76,7 +72,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x58,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
         ))
         
@@ -86,7 +81,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x08,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))        
@@ -97,7 +91,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x70,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))        
         
@@ -107,7 +100,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x60,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -117,7 +109,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x10,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))        
@@ -128,7 +119,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x74,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))        
                 
@@ -138,7 +128,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x18,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
             number       = 10,
             stride       = 4,
@@ -151,7 +140,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x40,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -161,7 +149,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x4C,
             bitSize      = 6,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -172,7 +159,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x4C,
             bitSize      = 8,
             bitOffset    = 6,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))        
@@ -183,7 +169,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x4C,
             bitSize      = 8,
             bitOffset    = 14,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -194,7 +179,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x4C,
             bitSize      = 4,
             bitOffset    = 22,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -205,7 +189,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x4C,
             bitSize      = 6,
             bitOffset    = 26,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))        
@@ -216,7 +199,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x68,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
         )) 
 
@@ -226,7 +208,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x6C,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
         ))         
         
@@ -236,7 +217,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x78,
             bitSize      = 12,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))  
 
@@ -295,7 +275,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x78,
             bitSize      = 4,
             bitOffset    = 20,
-            base         = pr.UInt,
             mode         = "RW",
         ))  
 
@@ -305,7 +284,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x78,
             bitSize      = 8,
             bitOffset    = 24,
-            base         = pr.UInt,
             mode         = "RW",
         ))         
         
@@ -315,7 +293,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x7C,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))             
 
@@ -325,7 +302,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x50,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "WO",
             overlapEn    = True,            
         ))
@@ -336,7 +312,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x50,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             overlapEn    = True,
             pollInterval = 1,
@@ -348,7 +323,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x01FC,
             bitSize      = 1,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 1,
@@ -422,7 +396,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x200,
             bitSize      = 6,
             bitOffset    = 9,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -436,7 +409,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x200,
             bitSize      = 5,
             bitOffset    = 15,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -450,7 +422,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x200,
             bitSize      = 4,
             bitOffset    = 20,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -482,7 +453,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x204,
             bitSize      = 16,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -496,7 +466,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x204,
             bitSize      = 16,
             bitOffset    = 16,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -510,7 +479,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x208,
             bitSize      = 13,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 16,
@@ -524,7 +492,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x208,
             bitSize      = 16,
             bitOffset    = 16,
-            base         = pr.UInt,
             mode         = "RW",
             number       = NARRAYSBSA,
             stride       = 8,
@@ -557,7 +524,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x500,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -568,7 +534,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x504,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -579,7 +544,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x508,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -590,7 +554,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x50C,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -600,7 +563,6 @@ class TPGMiniCore(pr.Device):
             offset       = 0x510,
             bitSize      = 32,
             bitOffset    = 0,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))

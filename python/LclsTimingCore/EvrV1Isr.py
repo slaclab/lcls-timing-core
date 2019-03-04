@@ -36,7 +36,6 @@ class EvrV1Isr(pr.Device):
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 

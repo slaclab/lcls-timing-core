@@ -27,6 +27,7 @@ class EvrV2CoreTriggers(pr.Device):
             numTrig     = 1,
             dmaEnable   = False,
             useTap      = False,
+            tickUnit    = 'TBD',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
@@ -43,7 +44,8 @@ class EvrV2CoreTriggers(pr.Device):
 
         for i in range(numTrig):
             self.add(timingCore.EvrV2TriggerReg(
-                name   = f'EvrV2TriggerReg[{i}]',
-                offset = 0x1000 + (i*0x100),
-                useTap = useTap,
+                name     = f'EvrV2TriggerReg[{i}]',
+                offset   = 0x1000 + (i*0x100),
+                useTap   = useTap,
+                tickUnit = tickUnit,
             ))

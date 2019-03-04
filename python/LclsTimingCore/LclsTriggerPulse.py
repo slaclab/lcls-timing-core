@@ -36,7 +36,6 @@ class LclsTriggerPulse(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  8,
             stride       =  4,
@@ -48,7 +47,6 @@ class LclsTriggerPulse(pr.Device):
             offset       =  0x20,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -58,7 +56,6 @@ class LclsTriggerPulse(pr.Device):
             offset       =  0x24,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -68,7 +65,6 @@ class LclsTriggerPulse(pr.Device):
             offset       =  0x28,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
         
