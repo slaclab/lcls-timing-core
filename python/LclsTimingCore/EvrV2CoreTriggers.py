@@ -23,7 +23,7 @@ import LclsTimingCore as timingCore
 class EvrV2CoreTriggers(pr.Device):
     def __init__(   self,
             name        = "EvrV2CoreTriggers",
-            description = "EVR V2 Core Triggers",
+            description = "https://confluence.slac.stanford.edu/download/attachments/216713616/ConfigEvrV2CoreTriggersYaml.pdf",
             numTrig     = 1,
             dmaEnable   = False,
             useTap      = False,
