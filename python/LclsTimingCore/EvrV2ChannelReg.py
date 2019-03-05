@@ -83,6 +83,7 @@ class EvrV2ChannelReg(pr.Device):
             bitSize     = 32,
             bitOffset   = 0,
             mode        = "RO",
+            pollInterval = 1,
         ))
         #########################################################  
         if (dmaEnable):
