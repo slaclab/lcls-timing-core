@@ -40,6 +40,7 @@ class EvrV2CoreTriggers(pr.Device):
                 name      = f'EvrV2ChannelReg[{i}]',
                 offset    = (i*0x100),
                 dmaEnable = dmaEnable,
+                expand    = False,
             ))
 
         for i in range(numTrig):
@@ -48,4 +49,5 @@ class EvrV2CoreTriggers(pr.Device):
                 offset   = 0x1000 + (i*0x100),
                 useTap   = useTap,
                 tickUnit = tickUnit,
+                expand    = False,
             ))
