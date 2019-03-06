@@ -243,9 +243,13 @@ class TimingFrameRx(pr.Device):
             
     def hardReset(self):
         self.ClearRxCounters()
+        self.RxDown.set(0)  
 
     def softReset(self):
         self.ClearRxCounters()
+        self.RxDown.set(0)  
 
     def countReset(self):
         self.ClearRxCounters()
+        self.RxDown.set(0)
+        
