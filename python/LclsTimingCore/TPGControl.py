@@ -36,8 +36,8 @@ class TPGControl(pr.Device):
             offset       =  0x00,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -46,8 +46,8 @@ class TPGControl(pr.Device):
             offset       =  0x01,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -56,8 +56,8 @@ class TPGControl(pr.Device):
             offset       =  0x02,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -66,8 +66,8 @@ class TPGControl(pr.Device):
             offset       =  0x03,
             bitSize      =  4,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -76,8 +76,8 @@ class TPGControl(pr.Device):
             offset       =  0x03,
             bitSize      =  4,
             bitOffset    =  0x04,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -86,7 +86,6 @@ class TPGControl(pr.Device):
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -96,7 +95,6 @@ class TPGControl(pr.Device):
             offset       =  0x08,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -106,7 +104,6 @@ class TPGControl(pr.Device):
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -116,7 +113,6 @@ class TPGControl(pr.Device):
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -126,7 +122,6 @@ class TPGControl(pr.Device):
             offset       =  0x14,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -136,7 +131,6 @@ class TPGControl(pr.Device):
             offset       =  0x18,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -146,7 +140,6 @@ class TPGControl(pr.Device):
             offset       =  0x1C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -156,7 +149,6 @@ class TPGControl(pr.Device):
             offset       =  0x20,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  6,
             stride       =  1,
@@ -168,7 +160,6 @@ class TPGControl(pr.Device):
             offset       =  0x40,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  10,
             stride       =  4,
@@ -180,7 +171,6 @@ class TPGControl(pr.Device):
             offset       =  0x68,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -190,7 +180,6 @@ class TPGControl(pr.Device):
             offset       =  0x70,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -200,7 +189,6 @@ class TPGControl(pr.Device):
             offset       =  0x74,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -210,7 +198,6 @@ class TPGControl(pr.Device):
             offset       =  0x74,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -220,7 +207,6 @@ class TPGControl(pr.Device):
             offset       =  0x74,
             bitSize      =  1,
             bitOffset    =  0x02,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -230,7 +216,6 @@ class TPGControl(pr.Device):
             offset       =  0x77,
             bitSize      =  1,
             bitOffset    =  0x07,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -240,7 +225,6 @@ class TPGControl(pr.Device):
             offset       =  0x78,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -250,8 +234,8 @@ class TPGControl(pr.Device):
             offset       =  0x78,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -260,8 +244,8 @@ class TPGControl(pr.Device):
             offset       =  0x7C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.addRemoteVariables(    
@@ -270,7 +254,6 @@ class TPGControl(pr.Device):
             offset       =  0x80,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  16,
             stride       =  4,
@@ -282,7 +265,6 @@ class TPGControl(pr.Device):
             offset       =  0x100,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -292,7 +274,6 @@ class TPGControl(pr.Device):
             offset       =  0x104,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -302,7 +283,6 @@ class TPGControl(pr.Device):
             offset       =  0x120,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -314,20 +294,19 @@ class TPGControl(pr.Device):
             offset       =  0x1E4,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
         self.addRemoteVariables(   
             name         = "BeamDiagStat",
             description  = "Beam diagnostic latched status",
-            offset       =  0x1E8,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
+            offset       = 0x1E8,
+            bitSize      = 32,
+            bitOffset    = 0x00,
             mode         = "RO",
-            number       =  4,
-            stride       =  4,
+            number       = 4,
+            stride       = 4,
+            pollInterval = 1,
         )
 
         self.add(pr.RemoteVariable(    
@@ -336,7 +315,6 @@ class TPGControl(pr.Device):
             offset       =  0x1F8,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -346,7 +324,6 @@ class TPGControl(pr.Device):
             offset       =  0x1FC,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -356,7 +333,6 @@ class TPGControl(pr.Device):
             offset       =  0x200,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  64,
             stride       =  8,
@@ -368,7 +344,6 @@ class TPGControl(pr.Device):
             offset       =  0x204,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  64,
             stride       =  8,

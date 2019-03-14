@@ -36,8 +36,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -46,7 +46,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -56,7 +55,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -66,8 +64,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))                        
 
         self.add(pr.RemoteVariable(    
@@ -76,7 +74,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -86,7 +83,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -96,7 +92,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x14,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -106,8 +101,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x2C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -116,8 +111,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x30,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -126,7 +121,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x4C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -136,8 +130,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x5C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -146,8 +140,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x60,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -156,8 +150,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x64,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -166,8 +160,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x68,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -176,8 +170,8 @@ class EvrV1Reg(pr.Device):
             offset       =  0x6C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -186,7 +180,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0xA0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -196,7 +189,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0xA4,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -206,7 +198,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0xA8,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -216,7 +207,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0xAC,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -226,7 +216,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0xB0,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -236,7 +225,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x200,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -248,7 +236,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x210,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -260,7 +247,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x220,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -272,7 +258,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x230,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -284,7 +269,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x240,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -296,7 +280,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x250,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -308,7 +291,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x260,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -320,7 +302,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x270,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -332,7 +313,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x280,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -344,7 +324,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x290,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -356,7 +335,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x2A0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -368,7 +346,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x2B0,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  4,
             stride       =  4,
@@ -380,7 +357,6 @@ class EvrV1Reg(pr.Device):
             offset       =  0x440,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
             number       =  12,
             stride       =  4,
@@ -392,8 +368,8 @@ class EvrV1Reg(pr.Device):
             # offset       =  0x4000,
             # bitSize      =  32,
             # bitOffset    =  0x00,
-            # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,
@@ -405,8 +381,8 @@ class EvrV1Reg(pr.Device):
             # offset       =  0x6000,
             # bitSize      =  32,
             # bitOffset    =  0x00,
-            # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  1024,
             # stride       =  4,
             # hidden       =  True,

@@ -36,10 +36,10 @@ class TPGSeqState(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -48,10 +48,10 @@ class TPGSeqState(pr.Device):
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -60,10 +60,10 @@ class TPGSeqState(pr.Device):
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  64,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(   
@@ -72,10 +72,10 @@ class TPGSeqState(pr.Device):
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 
         self.addRemoteVariables(    
@@ -84,9 +84,9 @@ class TPGSeqState(pr.Device):
             offset       =  0x04,
             bitSize      =  8,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  50,
             stride       =  8,
+            pollInterval = 1,
         )
 

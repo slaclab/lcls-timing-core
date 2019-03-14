@@ -73,6 +73,12 @@ package TimingPkg is
       polarity    => '0',
       bufferByRst => '0',
       pllReset    => '0' );
+   constant TIMING_PHY_CONTROL_INHIBIT_C : TimingPhyControlType := (
+      reset       => '0',
+      inhibit     => '1',
+      polarity    => '0',
+      bufferByRst => '0',
+      pllReset    => '0' );
    type TimingPhyControlArray is array (natural range<>) of TimingPhyControlType;
 
    type TimingPhyStatusType is record
@@ -86,6 +92,11 @@ package TimingPkg is
       resetDone    => '0',
       bufferByDone => '0',
       bufferByErr  => '0' );
+   constant TIMING_PHY_STATUS_FORCE_C : TimingPhyStatusType := (
+      locked       => '1',
+      resetDone    => '1',
+      bufferByDone => '0',
+      bufferByErr  => '0' );      
    type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
 
    type TimingSerialType is record

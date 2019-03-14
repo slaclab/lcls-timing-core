@@ -82,8 +82,13 @@ package body TimingExtnPkg is
 --   end function;
    
    function toTimingExtnType (vector : slv) return TimingExtnType is
+      variable message : TimingExtnType;
+      variable i       : integer := 0;
    begin
-     return TimingExtnType(toExptMessageType(vector));
+      assignRecord(i, vector, message.baseRateSince1Hz);
+      assignRecord(i, vector, message.baseRateSinceTM);
+      assignRecord(i, vector, message.irigTimeCode);
+      return message;
    end function;
    
 end package body TimingExtnPkg;

@@ -36,8 +36,8 @@ class GthRxAlignCheck(pr.Device):
             # offset       =  0x00,
             # bitSize      =  16,
             # bitOffset    =  0x00,
-            # base         = pr.UInt,
             # mode         = "RO",
+            # pollInterval = 1,
             # number       =  128,
             # stride       =  2,
             # hidden       =  True,
@@ -49,8 +49,8 @@ class GthRxAlignCheck(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
             number       =  64,
             stride       =  4,
             hidden       =  True,
@@ -62,7 +62,6 @@ class GthRxAlignCheck(pr.Device):
             offset       =  0x100,
             bitSize      =  7,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -72,7 +71,6 @@ class GthRxAlignCheck(pr.Device):
             offset       =  0x100,
             bitSize      =  4,
             bitOffset    =  16,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -82,8 +80,8 @@ class GthRxAlignCheck(pr.Device):
             offset       =  0x104,
             bitSize      =  7,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -92,7 +90,6 @@ class GthRxAlignCheck(pr.Device):
             bitSize      = 32, 
             bitOffset    = 0, 
             mode         = 'RO', 
-            base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
         ))
@@ -112,7 +109,6 @@ class GthRxAlignCheck(pr.Device):
             bitSize      = 32, 
             bitOffset    = 0, 
             mode         = 'RO', 
-            base         = pr.UInt,
             hidden       = True,
             pollInterval = 1,
         ))

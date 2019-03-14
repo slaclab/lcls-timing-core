@@ -146,7 +146,7 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   process(ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
+   comb : process (ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
            sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
