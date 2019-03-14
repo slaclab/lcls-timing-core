@@ -8,8 +8,8 @@ if { [VersionCheck 2016.4 ] < 0 } {
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
-   if { [SubmoduleCheck {ruckus}           {1.7.3} ] < 0 } {exit -1}
-   if { [SubmoduleCheck {surf}             {1.9.5} ] < 0 } {exit -1}
+   if { [SubmoduleCheck {ruckus}           {1.7.5} ] < 0 } {exit -1}
+   if { [SubmoduleCheck {surf}             {1.9.7} ] < 0 } {exit -1}
 } else {
    puts "\n\n*********************************************************"
    puts "OVERRIDE_SUBMODULE_LOCKS != 0"

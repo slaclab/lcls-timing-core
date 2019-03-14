@@ -12,6 +12,8 @@
 #include EvrV2ChannelReg.yaml
 #include EvrV2TriggerReg.yaml
 
+## Refer to https://confluence.slac.stanford.edu/download/attachments/216713616/ConfigEvrV2CoreTriggersYaml.pdf
+
 EvrV2CoreTriggers: &EvrV2CoreTriggers
   class: MMIODev
   configPrio: 1
@@ -26,14 +28,14 @@ EvrV2CoreTriggers: &EvrV2CoreTriggers
     EvrV2ChannelReg:
       <<: *EvrV2ChannelReg
       at:
-        offset: 0x00000
+        offset: 0x0000
         nelms: *numTriggers
-        stride: 0x1000
+        stride: 0x100
     #########################################################
     EvrV2TriggerReg:
       <<: *EvrV2TriggerReg
       at:
-        offset: 0x20000
+        offset: 0x1000
         nelms: *numTriggers
-        stride: 0x1000
+        stride: 0x100
     #########################################################

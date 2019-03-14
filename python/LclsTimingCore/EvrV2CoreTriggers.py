@@ -18,26 +18,36 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-
-from LclsTimingCore.EvrV2ChannelReg import *
-from LclsTimingCore.EvrV2TriggerReg import *
+import LclsTimingCore as timingCore
 
 class EvrV2CoreTriggers(pr.Device):
     def __init__(   self,
             name        = "EvrV2CoreTriggers",
-            description = "EVR V2 Core Triggers",
-            numTrig     = 16,
+            description = "https://confluence.slac.stanford.edu/download/attachments/216713616/ConfigEvrV2CoreTriggersYaml.pdf",
+            numTrig     = 1,
+            dmaEnable   = False,
+            useTap      = False,
+            tickUnit    = 'TBD',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
+        # Check the number of lanes requested
+        if ( (numTrig<1) or (numTrig>16) ):
+            raise ValueError('numTrig must be between 1 to 16: (%i) is out of range' % (numTrig) )        
+        
         for i in range(numTrig):
-            self.add(EvrV2ChannelReg(
-                name   = f'EvrV2ChannelReg[{i}]',
-                offset = 0x00000000 + 0x1000*i,
+            self.add(timingCore.EvrV2ChannelReg(
+                name      = f'EvrV2ChannelReg[{i}]',
+                offset    = (i*0x100),
+                dmaEnable = dmaEnable,
+                expand    = False,
             ))
 
         for i in range(numTrig):
-            self.add(EvrV2TriggerReg(
-                name   = f'EvrV2TriggerReg[{i}]',
-                offset = 0x00020000 + 0x1000*i,
+            self.add(timingCore.EvrV2TriggerReg(
+                name     = f'EvrV2TriggerReg[{i}]',
+                offset   = 0x1000 + (i*0x100),
+                useTap   = useTap,
+                tickUnit = tickUnit,
+                expand    = False,
             ))

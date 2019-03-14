@@ -35,7 +35,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       sizeBits: 1
       lsBit: 1
       mode: RW
-      description: Bsa Enable Register
+      description: Bsa Enable Register (Only valid register is DMA_ENABLE_G=true)
     #########################################################  
     DmaEnabled:
       at:
@@ -45,7 +45,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       sizeBits: 1
       lsBit: 2
       mode: RW
-      description: Dma Enable Register
+      description: Dma Enable Register (Only valid register is DMA_ENABLE_G=true)
     #########################################################  
     RateSel:
       at:
@@ -83,7 +83,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       sizeBits: 20
       lsBit: 0
       mode: RW
-      description: Start of BSA sensitivity window following trigger
+      description: Start of BSA sensitivity window following trigger (Only valid register is DMA_ENABLE_G=true)
     #########################################################  
     BsaWindowSetup:
       at:
@@ -93,7 +93,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       sizeBits: 6
       lsBit: 4
       mode: RW
-      description: Start of BSA sensitivity window before trigger
+      description: Start of BSA sensitivity window before trigger (Only valid register is DMA_ENABLE_G=true)
     #########################################################  
     BsaWindowWidth:
       at:
@@ -103,5 +103,5 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       sizeBits: 20
       lsBit: 0
       mode: RW
-      description: Width of BSA sensitivity window
+      description: Width of BSA sensitivity window (Only valid register is DMA_ENABLE_G=true)
     #########################################################  

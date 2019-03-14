@@ -38,7 +38,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -49,7 +48,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -60,7 +58,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x08,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -71,7 +68,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -82,7 +78,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -93,7 +88,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x14,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -104,7 +98,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x18,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -115,7 +108,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x1C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -126,8 +118,8 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "WO",
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(    
@@ -136,7 +128,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x01,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -147,7 +138,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x02,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -157,7 +147,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x03,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -167,7 +156,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x04,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -177,7 +165,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x05,
-            base         = pr.UInt,
             mode         = "RW",
             verify       = False,
         ))
@@ -188,7 +175,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x06,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -198,7 +184,6 @@ class TimingFrameRx(pr.Device):
             offset       = 0x20,
             bitSize      = 1,
             bitOffset    = 0x07,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -208,7 +193,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x24,
             bitSize      =  20,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -218,7 +202,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x28,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -229,7 +212,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x2C,
             bitSize      =  16,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -240,7 +222,6 @@ class TimingFrameRx(pr.Device):
             offset       =  0x2C,
             bitSize      =  16,
             bitOffset    =  16,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -260,3 +241,15 @@ class TimingFrameRx(pr.Device):
             time.sleep(0.001)
             self.RxCountReset.set(0)                         
             
+    def hardReset(self):
+        self.ClearRxCounters()
+        self.RxDown.set(0)  
+
+    def softReset(self):
+        self.ClearRxCounters()
+        self.RxDown.set(0)  
+
+    def countReset(self):
+        self.ClearRxCounters()
+        self.RxDown.set(0)
+        

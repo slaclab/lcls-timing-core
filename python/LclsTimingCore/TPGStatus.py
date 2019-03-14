@@ -36,7 +36,6 @@ class TPGStatus(pr.Device):
             offset       =  0x00,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  64,
             stride       =  4,
@@ -49,7 +48,6 @@ class TPGStatus(pr.Device):
             offset       =  0x100,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -60,7 +58,6 @@ class TPGStatus(pr.Device):
             offset       =  0x104,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -71,7 +68,6 @@ class TPGStatus(pr.Device):
             offset       =  0x108,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -82,7 +78,6 @@ class TPGStatus(pr.Device):
             offset       =  0x10C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -92,7 +87,6 @@ class TPGStatus(pr.Device):
             offset       =  0x110,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -103,7 +97,6 @@ class TPGStatus(pr.Device):
             offset       =  0x114,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  12,
             stride       =  4,
@@ -116,7 +109,6 @@ class TPGStatus(pr.Device):
             offset       =  0x144,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RO",
             number       =  64,
             stride       =  2,
@@ -129,7 +121,6 @@ class TPGStatus(pr.Device):
             offset       =  0x248,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))
 
@@ -139,6 +130,5 @@ class TPGStatus(pr.Device):
             offset       =  0x24C,
             bitSize      =  32,
             bitOffset    =  0x00,
-            base         = pr.UInt,
             mode         = "RW",
         ))

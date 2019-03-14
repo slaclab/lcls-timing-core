@@ -35,6 +35,7 @@ entity EvrV2CoreTriggers is
     TRIG_DEPTH_G     : natural          := 28;
     TRIG_PIPE_G      : natural          := 0;  -- no trigger pipeline by default
     COMMON_CLK_G     : boolean          := false;
+    EVR_CARD_G       : boolean          := false; -- false = packs registers in tight 256B for small BAR0 applications, true = groups registers in 4kB boundary to "virtualize" the channels allowing separate processes to memory map the register space for their dedicated channels.
     AXIL_BASEADDR_G  : slv(31 downto 0) := x"00080000" );
   port (
     -- AXI-Lite and IRQ Interface
@@ -61,12 +62,12 @@ architecture mapping of EvrV2CoreTriggers is
 
   constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := (
     CHAN_INDEX_C      => (
-      baseAddr      => x"00000000" + AXIL_BASEADDR_G,
-      addrBits      => 17,
+      baseAddr      => x"0000_0000" + AXIL_BASEADDR_G,
+      addrBits      => ite(EVR_CARD_G,17,12),
       connectivity  => X"FFFF"),
     TRIG_INDEX_C => (
-      baseAddr      => x"00020000" + AXIL_BASEADDR_G,
-      addrBits      => 17,
+      baseAddr      => ite(EVR_CARD_G,(x"00020000" + AXIL_BASEADDR_G),(x"0000_1000" + AXIL_BASEADDR_G)),
+      addrBits      => ite(EVR_CARD_G,17,12),
       connectivity  => X"FFFF") );
 
   signal axiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
@@ -115,6 +116,7 @@ begin  -- rtl
 
   U_TrigReg : entity work.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
+                  EVR_CARD_G => EVR_CARD_G,
                   TRIGGERS_C => NTRIGGERS_G )
     port map (    axiClk              => axilClk,
                   axiRst              => axilRst,
@@ -127,6 +129,7 @@ begin  -- rtl
   
   U_EvrChanReg : entity work.EvrV2ChannelReg
     generic map ( TPD_G        => TPD_G,
+                  EVR_CARD_G   => EVR_CARD_G,
                   NCHANNELS_G  => NCHANNELS_G )
     port map (    axiClk              => axilClk,
                   axiRst              => axilRst,
