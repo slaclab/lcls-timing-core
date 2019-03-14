@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2019-03-05
+-- Last update: 2019-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ use work.EvrV2Pkg.all;
 entity EvrV2TrigReg is
    generic (
       TPD_G      : time    := 1 ns;
+      EVR_CARD_G : boolean := false;  -- false = packs registers in tight 256B for small BAR0 applications, true = groups registers in 4kB boundary to "virtualize" the channels allowing separate processes to memory map the register space for their dedicated channels.      
       TRIGGERS_C : integer := 1;
       USE_TAP_C  : boolean := false);
    port (
@@ -48,6 +49,9 @@ entity EvrV2TrigReg is
 end EvrV2TrigReg;
 
 architecture rtl of EvrV2TrigReg is
+
+   constant STRIDE_C : positive := ite(EVR_CARD_G, 17, 12);
+   constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
 
    type RegType is record
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -80,11 +84,11 @@ begin
 
       -- Loop through the channels
       for i in 0 to TRIGGERS_C-1 loop
-         axiSlaveRegister(axilEp, toSlv(i*256 + 0, 12), 0, v.triggerConfig(i).channel);
-         axiSlaveRegister(axilEp, toSlv(i*256 + 0, 12), 16, v.triggerConfig(i).polarity);
-         axiSlaveRegister(axilEp, toSlv(i*256 + 0, 12), 31, v.triggerConfig(i).enabled);
-         axiSlaveRegister(axilEp, toSlv(i*256 + 4, 12), 0, v.triggerConfig(i).delay);
-         axiSlaveRegister(axilEp, toSlv(i*256 + 8, 12), 0, v.triggerConfig(i).width);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 0, v.triggerConfig(i).channel);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 16, v.triggerConfig(i).polarity);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 31, v.triggerConfig(i).enabled);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 4, STRIDE_C), 0, v.triggerConfig(i).delay);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 8, STRIDE_C), 0, v.triggerConfig(i).width);
 
          --  Special handling of delay tap
          if USE_TAP_C then
@@ -97,7 +101,7 @@ begin
             if (axilEp.axiStatus.readEnable = '1') then
 
                -- Check the Address
-               if (StdMatch(axilReadMaster.araddr(11 downto 0), toSlv(i*256 + 12, 12))) then
+               if (StdMatch(axilReadMaster.araddr(11 downto 0), toSlv(i*GRP_C + 12, STRIDE_C))) then
                   v.axilReadSlave.rdata(31 downto 6) := (others => '0');
                   v.axilReadSlave.rdata(5 downto 0)  := delay_rd(i);
                   axiSlaveReadResponse(v.axilReadSlave);
@@ -109,7 +113,7 @@ begin
             if (axilEp.axiStatus.writeEnable = '1') then
 
                -- Check the Address
-               if (StdMatch(axilWriteMaster.awaddr(11 downto 0), toSlv(i*256 + 12, 12))) then
+               if (StdMatch(axilWriteMaster.awaddr(11 downto 0), toSlv(i*GRP_C + 12, STRIDE_C))) then
                   v.triggerConfig(i).delayTap := axilWriteMaster.wdata(5 downto 0);
                   axiSlaveWriteResponse(v.axilWriteSlave);
                   v.loadShift(i)(0)           := '1';

@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2019-03-05
+-- Last update: 2019-03-14
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ entity EvrV2ChannelReg is
    generic (
       TPD_G        : time    := 1 ns;
       NCHANNELS_G  : integer := 1;
+      EVR_CARD_G   : boolean := false;  -- false = packs registers in tight 256B for small BAR0 applications, true = groups registers in 4kB boundary to "virtualize" the channels allowing separate processes to memory map the register space for their dedicated channels.
       DMA_ENABLE_G : boolean := false);
    port (
       -- AXI-Lite and IRQ Interface
@@ -50,6 +51,9 @@ entity EvrV2ChannelReg is
 end EvrV2ChannelReg;
 
 architecture rtl of EvrV2ChannelReg is
+
+   constant STRIDE_C : positive := ite(EVR_CARD_G, 17, 12);
+   constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
 
    type RegType is record
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -80,17 +84,17 @@ begin
       -- Loop through the channels
       for i in 0 to NCHANNELS_G-1 loop
 
-         axiSlaveRegister (axilEp, toSlv(i*256+ 0, 12), 0, v.channelConfig(i).enabled);
-         axiSlaveRegister (axilEp, toSlv(i*256+ 4, 12), 0, v.channelConfig(i).rateSel);
-         axiSlaveRegister (axilEp, toSlv(i*256+ 4, 12), 13, v.channelConfig(i).destSel);
-         axiSlaveRegisterR(axilEp, toSlv(i*256+ 8, 12), 0, eventCount(i));
+         axiSlaveRegister (axilEp, toSlv(i*GRP_C+ 0, STRIDE_C), 0, v.channelConfig(i).enabled);
+         axiSlaveRegister (axilEp, toSlv(i*GRP_C+ 4, STRIDE_C), 0, v.channelConfig(i).rateSel);
+         axiSlaveRegister (axilEp, toSlv(i*GRP_C+ 4, STRIDE_C), 13, v.channelConfig(i).destSel);
+         axiSlaveRegisterR(axilEp, toSlv(i*GRP_C+ 8, STRIDE_C), 0, eventCount(i));
 
          if DMA_ENABLE_G then
-            axiSlaveRegister(axilEp, toSlv(i*256+ 0, 12), 1, v.channelConfig(i).bsaEnabled);
-            axiSlaveRegister(axilEp, toSlv(i*256+ 0, 12), 2, v.channelConfig(i).dmaEnabled);
-            axiSlaveRegister(axilEp, toSlv(i*256+12, 12), 0, v.channelConfig(i).bsaActiveDelay);
-            axiSlaveRegister(axilEp, toSlv(i*256+12, 12), 20, v.channelConfig(i).bsaActiveSetup);
-            axiSlaveRegister(axilEp, toSlv(i*256+16, 12), 0, v.channelConfig(i).bsaActiveWidth);
+            axiSlaveRegister(axilEp, toSlv(i*GRP_C+ 0, STRIDE_C), 1, v.channelConfig(i).bsaEnabled);
+            axiSlaveRegister(axilEp, toSlv(i*GRP_C+ 0, STRIDE_C), 2, v.channelConfig(i).dmaEnabled);
+            axiSlaveRegister(axilEp, toSlv(i*GRP_C+12, STRIDE_C), 0, v.channelConfig(i).bsaActiveDelay);
+            axiSlaveRegister(axilEp, toSlv(i*GRP_C+12, STRIDE_C), 20, v.channelConfig(i).bsaActiveSetup);
+            axiSlaveRegister(axilEp, toSlv(i*GRP_C+16, STRIDE_C), 0, v.channelConfig(i).bsaActiveWidth);
          end if;
 
       end loop;
