@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-02-15
+-- Last update: 2018-11-25
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ architecture TPGMiniStream of TPGMiniStream is
   ----------------------------------------------- 120, 60, 30, 10,  5,   1,  .5 Hz
   constant FixedRateDiv : IntegerArray(0 to 6) := ( 3,  6, 12, 36, 72, 360, 720 );
 
-  subtype FixedRateEvents is slv(FixedRateDiv'range);
+  subtype FixedRateEvents is slv(0 to 6);
 
   type FixedRateEventsArray is array (natural range 0 to 6) of FixedRateEvents;
 

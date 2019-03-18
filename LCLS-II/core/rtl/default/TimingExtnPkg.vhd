@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-07-20
--- Last update: 2018-08-04
+-- Last update: 2019-03-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,11 +45,21 @@ package TimingExtnPkg is
 
    -- The extended interface
    subtype TimingExtnType is ExptMessageType;
-   constant TIMING_EXTN_INIT_C : ExptMessageType := EXPT_MESSAGE_INIT_C;
-   constant TIMING_EXTN_BITS_C : integer := EXPT_MESSAGE_BITS_C;
+   constant TIMING_EXTN_INIT_C    : ExptMessageType := EXPT_MESSAGE_INIT_C;
+   constant TIMING_EXTN_BITS_C    : integer := EXPT_MESSAGE_BITS_C;
+   constant TIMING_EXTN_STREAMS_C : integer := 2;
+   constant TIMING_EXTN_WORDS_C : IntegerArray(1 downto 0) := (
+     1,
+     EXPT_MESSAGE_BITS_C/16 );
+   
 --   function toSlv(message : TimingExtnType) return slv;
    function toTimingExtnType (vector : slv) return TimingExtnType;
-   
+   procedure toTimingExtnType(stream : in    integer;
+                              vector : in    slv;
+                              validi : in    sl;
+                              extn   : inout TimingExtnType;
+                              valido : inout sl );
+
 end package TimingExtnPkg;
 
 package body TimingExtnPkg is
@@ -91,4 +101,18 @@ package body TimingExtnPkg is
       return message;
    end function;
    
+   procedure toTimingExtnType(stream : in    integer;
+                              vector : in    slv;
+                              validi : in    sl;
+                              extn   : inout TimingExtnType;
+                              valido : inout sl ) is
+   begin
+     case stream is
+       when 2 =>
+         extn   := toExptMessageType(vector);
+         valido := '1';
+       when others => null;
+     end case;
+   end procedure;
+
 end package body TimingExtnPkg;
