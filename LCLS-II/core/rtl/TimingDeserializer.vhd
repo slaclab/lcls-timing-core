@@ -183,7 +183,7 @@ begin
 
       -- On reset or error, reset the streams to invalidate accumulated data
       if (rst='1' or data.decErr/="00" or data.dspErr/="00") then
-        rin <= REG_INIT_C;
+        v := REG_INIT_C;
       end if;
 
       rin <= v;
