@@ -169,7 +169,7 @@ begin
       end case;
 
       if (rst='1') then
-        rin <= REG_INIT_C;
+        v := REG_INIT_C;
       end if;
       
       rin <= v;
