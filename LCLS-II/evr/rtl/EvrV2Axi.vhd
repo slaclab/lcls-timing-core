@@ -51,7 +51,7 @@ entity EvrV2Axi is
     dmaFullThr          : out slv(23 downto 0);
     -- status
     irqReq              : in  sl := '0';
-    partitionAddr       : in  slv(PADDR_LEN-1 downto 0) := (others=>'0');
+    -- partitionAddr       : in  slv(PADDR_LEN-1 downto 0) := (others=>'0');
     rstCount            : out sl;
     eventCount          : in  SlVectorArray(CHANNELS_C downto 0,31 downto 0);
     gtxDebug            : in  slv(7 downto 0) := (others=>'0') );
@@ -96,7 +96,8 @@ begin  -- mapping
     end if;
   end process;
 
-  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq,partitionAddr)
+  process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq)
+  -- process (r,axilReadMaster,axilWriteMaster,axiRst,gtxDebug,eventCount,irqReq,partitionAddr)
     variable v : RegType;
     variable sReg : slv(0 downto 0);
     variable axilStatus : AxiLiteStatusType;
@@ -144,7 +145,7 @@ begin  -- mapping
     if DMA_ENABLE_G then
       axilSlaveRegisterW(X"000", 0, v.irqEnable);
       axilSlaveRegisterR(X"004", sReg);
-      axilSlaveRegisterR(X"008", partitionAddr);
+      -- axilSlaveRegisterR(X"008", partitionAddr);
       axilSlaveRegisterR(X"00C", gtxDebug);
       axilSlaveRegisterW(X"018", 0, v.dmaFullThr);
       for i in 0 to CHANNELS_C-1 loop
