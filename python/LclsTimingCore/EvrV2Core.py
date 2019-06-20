@@ -49,15 +49,15 @@ class EvrV2Core(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
-            name         = "LinkAddr",
-            description  = "Physical link address",
-            offset       =  0x08,
-            bitSize      =  16,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            pollInterval = 1,
-        ))
+#        self.add(pr.RemoteVariable(    
+#            name         = "LinkAddr",
+#            description  = "Physical link address",
+#            offset       =  0x08,
+#            bitSize      =  16,
+#            bitOffset    =  0x00,
+#            mode         = "RO",
+#            pollInterval = 1,
+#        ))
 
         self.add(pr.RemoteVariable(    
             name         = "gtxDebug",
