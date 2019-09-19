@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2018-07-22
+-- Last update: 2019-09-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,28 +24,30 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+-- surf
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+
+-- lcls-timing-core
 use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
 
 entity TimingCore is
 
    generic (
-      TPD_G             : time             := 1 ns;
-      DEFAULT_CLK_SEL_G : sl               := '1';
-      CLKSEL_MODE_G     : string           := "SELECT"; -- "LCLSI","LCLSII"
-      TPGEN_G           : boolean          := false;
-      TPGMINI_G         : boolean          := true;
-      STREAM_L1_G       : boolean          := false;
+      TPD_G             : time                := 1 ns;
+      DEFAULT_CLK_SEL_G : sl                  := '1';
+      CLKSEL_MODE_G     : string              := "SELECT";  -- "LCLSI","LCLSII"
+      TPGEN_G           : boolean             := false;
+      TPGMINI_G         : boolean             := true;
+      STREAM_L1_G       : boolean             := false;
       ETHMSG_AXIS_CFG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXIL_RINGB_G      : boolean          := true;
-      ASYNC_G           : boolean          := true;
-      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      AXIL_ERROR_RESP_G : slv(1 downto 0)  := AXI_RESP_OK_C;
-      USE_TPGMINI_G     : boolean          := true);
+      AXIL_RINGB_G      : boolean             := true;
+      ASYNC_G           : boolean             := true;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)    := (others => '0');
+      AXIL_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_OK_C;
+      USE_TPGMINI_G     : boolean             := true);
    port (
 
       -- Interface to GT
@@ -80,7 +82,7 @@ entity TimingCore is
       ibEthMsgMaster  : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
       ibEthMsgSlave   : out AxiStreamSlaveType;
       obEthMsgMaster  : out AxiStreamMasterType;
-      obEthMsgSlave   : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C );
+      obEthMsgSlave   : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C);
 
 end entity TimingCore;
 
@@ -94,18 +96,18 @@ architecture rtl of TimingCore is
    constant NUM_AXIL_MASTERS_C          : integer := 4;
 
    constant AXIL_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-     FRAME_RX_AXIL_INDEX_C       => (baseAddr     => AXIL_BASE_ADDR_G + X"00000",
-                                     addrBits     => 16,
-                                     connectivity => X"FFFF"),
-     RAW_BUFFER_AXIL_INDEX_C     => (baseAddr     => AXIL_BASE_ADDR_G + X"10000",
-                                     addrBits     => 16,
-                                     connectivity => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
-     MESSAGE_BUFFER_AXIL_INDEX_C => (baseAddr     => AXIL_BASE_ADDR_G + X"20000",
-                                     addrBits     => 16,
-                                     connectivity => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
-     FRAME_TX_AXIL_INDEX_C       => (baseAddr     => AXIL_BASE_ADDR_G + X"30000",
-                                     addrBits     => 16,
-                                     connectivity => ite(USE_TPGMINI_C, X"FFFF", x"0000")) );
+      FRAME_RX_AXIL_INDEX_C                        => (baseAddr => AXIL_BASE_ADDR_G + X"00000",
+                                addrBits           => 16,
+                                connectivity       => X"FFFF"),
+      RAW_BUFFER_AXIL_INDEX_C                      => (baseAddr => AXIL_BASE_ADDR_G + X"10000",
+                                  addrBits         => 16,
+                                  connectivity     => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
+      MESSAGE_BUFFER_AXIL_INDEX_C                  => (baseAddr => AXIL_BASE_ADDR_G + X"20000",
+                                      addrBits     => 16,
+                                      connectivity => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
+      FRAME_TX_AXIL_INDEX_C                        => (baseAddr => AXIL_BASE_ADDR_G + X"30000",
+                                addrBits           => 16,
+                                connectivity       => ite(USE_TPGMINI_C, X"FFFF", x"0000")));
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0);
@@ -113,39 +115,36 @@ architecture rtl of TimingCore is
    signal locAxilReadSlaves   : AxiLiteReadSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0);
 
    signal timingRx            : TimingRxType;
-   constant TIMING_FRAME_LEN  : integer                                := TIMING_MESSAGE_BITS_C;
    signal timingStrobe        : sl;
-   signal timingValid         : sl                                     := '1';
+   signal timingValid         : sl := '1';
    signal timingMessageStrobe : sl;
-   signal timingMessageValid  : sl                                     := '1';
+   signal timingMessageValid  : sl := '1';
    signal timingStreamStrobe  : sl;
-   signal timingStreamValid   : sl                                     := '1';
+   signal timingStreamValid   : sl := '1';
    signal timingMessage       : TimingMessageType;
    signal timingStream        : TimingStreamType;
    signal timingStreamPrompt  : TimingStreamType;
-   signal timingFrameSlv      : slv(TIMING_FRAME_LEN-1 downto 0);
-   signal timingFrameSlvShift : slv(TIMING_FRAME_LEN+31 downto 0)      := (others=>'0');
-   signal timingFrameSlvValid : slv((TIMING_FRAME_LEN+31)/32 downto 0) := (others=>'0');
+   signal timingFrameSlv      : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal timingFrameSlvShift : slv(TIMING_MESSAGE_BITS_C+31 downto 0)      := (others => '0');
+   signal timingFrameSlvValid : slv((TIMING_MESSAGE_BITS_C+31)/32 downto 0) := (others => '0');
 
-   signal appTimingBus_i      : TimingBusType;
-   signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
-   
-   signal clkSel              : sl;
-   signal clkSelTx            : sl;
-   signal timingClkSelR       : sl;
-   signal timingClkSelApp     : sl;
+   signal appTimingBus_i    : TimingBusType;
+   signal appTimingFrameSlv : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
 
-   signal linkUpV1            : sl;
-   signal linkUpV2            : sl;
-   
-   signal itxData             : Slv16Array(1 downto 0);
-   signal itxDataK            : Slv2Array (1 downto 0);
+   signal clkSel          : sl;
+   signal clkSelTx        : sl;
+   signal timingClkSelR   : sl;
+   signal timingClkSelApp : sl;
 
-   signal timingExtn          : TimingExtnType;
-   signal timingExtnValid     : sl;
-   signal extnSlv, appExtnSlv : slv(TIMING_EXTN_BITS_C-1 downto 0);
-   signal appExtnValid        : sl;
-   
+   signal linkUpV1 : sl;
+   signal linkUpV2 : sl;
+
+   signal itxData  : Slv16Array(1 downto 0);
+   signal itxDataK : Slv2Array (1 downto 0);
+
+   signal timingExtension    : TimingExtensionArray;
+   signal appTimingExtension : TimingExtensionArray;
+
 begin
 
    appTimingBus  <= appTimingBus_i;
@@ -179,7 +178,7 @@ begin
    timingRx.decErr <= gtRxDecErr;
    timingRx.dspErr <= gtRxDispErr;
    timingClkSel    <= clkSel;
-   
+
    U_TimingRx : entity work.TimingRx
       generic map (
          TPD_G             => TPD_G,
@@ -201,8 +200,7 @@ begin
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          timingMessageValid  => timingMessageValid,
-         timingExtn          => timingExtn,
-         timingExtnValid     => timingExtnValid,
+         timingExtn          => timingExtension,
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMaster      => locAxilReadMasters (FRAME_RX_AXIL_INDEX_C),
@@ -242,10 +240,10 @@ begin
          if rising_edge(gtRxRecClk) then
             if timingStrobe = '1' then
                timingFrameSlvShift <= timingFrameSlv & x"deadbeef" after TPD_G;
-               timingFrameSlvValid <= (others => '1') after TPD_G;
+               timingFrameSlvValid <= (others => '1')              after TPD_G;
             else
                timingFrameSlvShift <= x"00000000" & timingFrameSlvShift(timingFrameSlvShift'left downto 32) after TPD_G;
-               timingFrameSlvValid <= '0' & timingFrameSlvValid(timingFrameSlvValid'left downto 1) after TPD_G;
+               timingFrameSlvValid <= '0' & timingFrameSlvValid(timingFrameSlvValid'left downto 1)          after TPD_G;
             end if;
          end if;
       end process;
@@ -273,11 +271,11 @@ begin
    timingPhy.control.pllReset    <= '0';
    timingPhy.control.reset       <= '0';
    timingPhy.control.bufferByRst <= '0';
-   
+
    GEN_MINICORE : if USE_TPGMINI_C generate
       TPGMiniCore_1 : entity work.TPGMiniCore
          generic map (
-            TPD_G      => TPD_G, 
+            TPD_G      => TPD_G,
             NARRAYSBSA => 2)
          port map (
             txClk          => gtTxUsrClk,
@@ -297,25 +295,27 @@ begin
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
       U_SyncClkSel : entity work.Synchronizer
-         generic map (TPD_G=> TPD_G)      
-        port map ( clk     => gtTxUsrClk,
-                   dataIn  => clkSel,
-                   dataOut => clkSelTx );
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => gtTxUsrClk,
+            dataIn  => clkSel,
+            dataOut => clkSelTx);
 
-      timingPhy.data  <= itxData(0) when clkSelTx='0' else
-                         itxData(1);
-      timingPhy.dataK <= itxDataK(0) when clkSelTx='0' else
+      timingPhy.data <= itxData(0) when clkSelTx = '0' else
+                        itxData(1);
+      timingPhy.dataK <= itxDataK(0) when clkSelTx = '0' else
                          itxDataK(1);
-                        
+
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
-      timingPhy.data     <= (others => '0');
-      timingPhy.dataK    <= "00";
+      timingPhy.data             <= (others => '0');
+      timingPhy.dataK            <= "00";
       timingPhy.control.polarity <= '0';
       timingPhy.control.inhibit  <= '0';
       gtTxReset                  <= '0';
-      gtLoopback         <= "000";
+      gtLoopback                 <= "000";
    end generate NOGEN_MINICORE;
 
    -------------------------------------------------------------------------------------------------
@@ -324,114 +324,121 @@ begin
 
 
    timingFrameSlv <= toSlv(timingMessage) when timingClkSelR = '1' else
-                     (slvZero(TIMING_FRAME_LEN-TIMING_STREAM_BITS_C) & toSlv(timingStream));
-   timingStrobe   <= timingMessageStrobe  when timingClkSelR='1' else
-                     timingStreamStrobe;
-   timingValid    <= timingMessageValid   when timingClkSelR='1' else
-                     timingStreamValid;
-   extnSlv        <= toSlv(timingExtn);
+                     (slvZero(TIMING_MESSAGE_BITS_C-TIMING_STREAM_BITS_C) & toSlv(timingStream));
+   timingStrobe <= timingMessageStrobe when timingClkSelR = '1' else
+                   timingStreamStrobe;
+   timingValid <= timingMessageValid when timingClkSelR = '1' else
+                  timingStreamValid;
 
-   GEN_ASYNC: if ASYNC_G generate
-     process (timingClkSelApp, appTimingFrameSlv, appExtnSlv, appExtnValid) is
-     begin
-       if timingClkSelApp='0' then
-         appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
-         appTimingBus_i.message <= TIMING_MESSAGE_INIT_C;
-       else
-         appTimingBus_i.message <= toTimingMessageType(appTimingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0));
-         appTimingBus_i.stream  <= TIMING_STREAM_INIT_C;
-       end if;
-       appTimingBus_i.modesel <= timingClkSelApp;
+--   extnSlv        <= toSlv(timingExtn);
 
-       appTimingBus_i.extn      <= toTimingExtnType(appExtnSlv);
-       appTimingBus_i.extnValid <= appExtnValid;
-     end process;
+   GEN_ASYNC : if ASYNC_G generate
+      process (timingClkSelApp, appTimingFrameSlv, appExtnSlv, appExtnValid) is
+      begin
+         if timingClkSelApp = '0' then
+            appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
+            appTimingBus_i.message <= TIMING_MESSAGE_INIT_C;
+         else
+            appTimingBus_i.message <= toTimingMessageType(appTimingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0));
+            appTimingBus_i.stream  <= TIMING_STREAM_INIT_C;
+         end if;
+         appTimingBus_i.modesel <= timingClkSelApp;
 
-     -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
-     -- it to switch between stream and message in appTimingClk domain
-     U_Synchronizer_1 : entity work.Synchronizer
-       generic map (
-         TPD_G => TPD_G)
-       port map (
-         clk     => appTimingClk,       -- [in]
-         rst     => appTimingRst,       -- [in]
-         dataIn  => timingClkSelR,      -- [in]
-         dataOut => timingClkSelApp);   -- [out]
+         appTimingBus_i.extension <= appTimingExtension;
+      end process;
+
+      -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
+      -- it to switch between stream and message in appTimingClk domain
+      U_Synchronizer_1 : entity work.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => appTimingClk,      -- [in]
+            rst     => appTimingRst,      -- [in]
+            dataIn  => timingClkSelR,     -- [in]
+            dataOut => timingClkSelApp);  -- [out]
 
       SynchronizerFifo_1 : entity work.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => TIMING_FRAME_LEN+1)
+            DATA_WIDTH_G => TIMING_MESSAGE_BITS_C+1)
          port map (
-            rst                             => appTimingRst,
-            wr_clk                          => gtRxRecClk,
-            wr_en                           => timingStrobe,
-            din(TIMING_FRAME_LEN downto 1)  => timingFrameSlv,
-            din(0)                          => timingValid,
-            rd_clk                          => appTimingClk,
-            dout(TIMING_FRAME_LEN downto 1) => appTimingFrameSlv,
-            dout(0)                         => appTimingBus_i.valid,
-            valid                           => appTimingBus_i.strobe);
-     
-     SynchronizerFifo_2 : entity work.SynchronizerFifo
-         generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => TIMING_EXTN_BITS_C+1)
-         port map (
-            rst                                => appTimingRst,
-            wr_clk                             => gtRxRecClk,
-            wr_en                              => timingStrobe,
-            din(TIMING_EXTN_BITS_C downto 1)   => extnSlv,
-            din(0)                             => timingExtnValid,
-            rd_clk                             => appTimingClk,
-            dout(TIMING_EXTN_BITS_C downto 1)  => appExtnSlv,
-            dout(0)                            => appExtnValid );
+            rst                                  => appTimingRst,
+            wr_clk                               => gtRxRecClk,
+            wr_en                                => timingStrobe,
+            din(TIMING_MESSAGE_BITS_C downto 1)  => timingFrameSlv,
+            din(0)                               => timingValid,
+            rd_clk                               => appTimingClk,
+            dout(TIMING_MESSAGE_BITS_C downto 1) => appTimingFrameSlv,
+            dout(0)                              => appTimingBus_i.valid,
+            valid                                => appTimingBus_i.strobe);
+
+      GEN_EXTENSION_SYNC_FIFOS : for i in 15 downto 1 generate
+         SynchronizerFifo_2 : entity work.SynchronizerFifo
+            generic map (
+               TPD_G        => TPD_G,
+               DATA_WIDTH_G => TIMING_EXTENSION_MESSAGE_BITS_C+1)
+            port map (
+               rst                                            => appTimingRst,
+               wr_clk                                         => gtRxRecClk,
+               wr_en                                          => timingStrobe,
+               din(TIMING_EXTENSION_MESSAGE_BITS_C downto 1)  => timingExtension(i).data,
+               din(0)                                         => timingExtension(i).valid,
+               rd_clk                                         => appTimingClk,
+               dout(TIMING_EXTENSION_MESSAGE_BITS_C downto 1) => appTimingExtension(i).data,
+               dout(0)                                        => appTimingExtension(i).valid);
+      end generate GEN_EXTENSION_SYNC_FIFOS;
    end generate;
 
    NO_GEN_ASYNC : if not ASYNC_G generate
-      appTimingBus.stream  <= timingStream;
-      appTimingBus.message <= timingMessage;
-      appTimingBus.strobe  <= timingStrobe;
-      appTimingBus.valid   <= timingValid;
-      appTimingBus_i.modesel <= timingClkSelR;
-      appTimingBus_i.extn      <= timingExtn;
-      appTimingBus_i.extnValid <= timingExtnValid;
-      timingClkSelApp        <= timingClkSelR;
+      appTimingBus.stream      <= timingStream;
+      appTimingBus.message     <= timingMessage;
+      appTimingBus.strobe      <= timingStrobe;
+      appTimingBus.valid       <= timingValid;
+      appTimingBus_i.modesel   <= timingClkSelR;
+      appTimingBus_i.extension <= timingExtension;
+      timingClkSelApp          <= timingClkSelR;
    end generate;
 
    U_SYNC_LinkV1 : entity work.Synchronizer
-     generic map (TPD_G => TPD_G)   
-     port map ( clk     => appTimingClk,
-                dataIn  => linkUpV1,
-                dataOut => appTimingBus_i.v1.linkUp );
-   
-   appTimingBus_i.v1.gtRxData    <= gtRxData    when(timingClkSelR = '0') else (others=>'0');
-   appTimingBus_i.v1.gtRxDataK   <= gtRxDataK   when(timingClkSelR = '0') else (others=>'0');
-   appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others=>'0');
-   appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others=>'0');
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appTimingClk,
+         dataIn  => linkUpV1,
+         dataOut => appTimingBus_i.v1.linkUp);
+
+   appTimingBus_i.v1.gtRxData    <= gtRxData    when(timingClkSelR = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDataK   <= gtRxDataK   when(timingClkSelR = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others => '0');
 
    U_SYNC_LinkV2 : entity work.Synchronizer
-     generic map (TPD_G => TPD_G)     
-     port map ( clk     => appTimingClk,
-                dataIn  => linkUpV2,
-                dataOut => appTimingBus_i.v2.linkUp );
-   
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appTimingClk,
+         dataIn  => linkUpV2,
+         dataOut => appTimingBus_i.v2.linkUp);
+
    linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
    linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
    U_EthTiming : entity work.EthTimingModule
-     generic map ( TPD_G             => TPD_G,
-                   STREAM_L1_G       => STREAM_L1_G,
-                   ETHMSG_AXIS_CFG_G => ETHMSG_AXIS_CFG_G )
-     port map ( timingClk      => gtRxRecClk,
-                timingRst      => appTimingRst,
-                timingStrobe   => timingStreamStrobe,
-                timingStream   => timingStreamPrompt,
-                ethClk         => axilClk,
-                ethRst         => axilRst,
-                ibEthMsgMaster => ibEthMsgMaster,
-                ibEthMsgSlave  => ibEthMsgSlave,
-                obEthMsgMaster => obEthMsgMaster,
-                obEthMsgSlave  => obEthMsgSlave );
-                  
+      generic map (
+         TPD_G             => TPD_G,
+         STREAM_L1_G       => STREAM_L1_G,
+         ETHMSG_AXIS_CFG_G => ETHMSG_AXIS_CFG_G)
+      port map (
+         timingClk      => gtRxRecClk,
+         timingRst      => appTimingRst,
+         timingStrobe   => timingStreamStrobe,
+         timingStream   => timingStreamPrompt,
+         ethClk         => axilClk,
+         ethRst         => axilRst,
+         ibEthMsgMaster => ibEthMsgMaster,
+         ibEthMsgSlave  => ibEthMsgSlave,
+         obEthMsgMaster => obEthMsgMaster,
+         obEthMsgSlave  => obEthMsgSlave);
+
 end rtl;

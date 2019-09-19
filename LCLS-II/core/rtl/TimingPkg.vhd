@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-07-20
+-- Last update: 2019-09-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ package TimingPkg is
    --  Added photon wavelen meta data
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0001";
 
-   constant TIMING_STREAM_ID  : slv(3 downto 0) := x"0";
+   constant TIMING_STREAM_ID_C  : slv(3 downto 0) := x"0";
    
    type TimingRxType is record
       data       : slv(15 downto 0);
@@ -232,6 +232,25 @@ package TimingPkg is
       linkUp     => '0');
    type LclsV2TimingDataArray is array (natural range<>) of LclsV2TimingDataType;
 
+   -----------------------------------------------
+   -- Timing Extension
+   -----------------------------------------------
+   constant TIMING_EXTENSION_MESSAGE_BITS_C : integer := 512;
+
+   type TimingExtensionMessageType is record
+      valid : sl;
+      data  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   end record TimingExtensionBusType;
+
+   constant TIMING_EXTENSION_MESSAGE_INIT_C : TimingExtensionBusType := (
+      valid => '0',
+      data => (others => '0'));
+
+   type TimingExtensionArray is array (15 downto 1) of TimingExtensionMessageType;
+
+   -----------------------------------------------
+   -- Main Timing Bus
+   -----------------------------------------------
    type TimingBusType is record
       strobe  : sl;                     -- 1 MHz timing strobe
       valid   : sl;
@@ -240,8 +259,7 @@ package TimingPkg is
       v1      : LclsV1TimingDataType;
       v2      : LclsV2TimingDataType;
       modesel : sl;  -- LCLS-II selected
-      extn    : TimingExtnType;
-      extnValid : sl;
+      extension    : TimingExtensionArray;
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
       strobe  => '0',
@@ -251,8 +269,7 @@ package TimingPkg is
       v1      => LCLS_V1_TIMING_DATA_INIT_C,
       v2      => LCLS_V2_TIMING_DATA_INIT_C,
       modesel => '0',
-      extn    => TIMING_EXTN_INIT_C,
-      extnValid => '0' );
+      extension => (others => TIMING_EXTENSION_MESSAGE_INIT_C);
 
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
