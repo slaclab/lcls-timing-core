@@ -96,18 +96,22 @@ architecture rtl of TimingCore is
    constant NUM_AXIL_MASTERS_C          : integer := 4;
 
    constant AXIL_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      FRAME_RX_AXIL_INDEX_C                        => (baseAddr => AXIL_BASE_ADDR_G + X"00000",
-                                addrBits           => 16,
-                                connectivity       => X"FFFF"),
-      RAW_BUFFER_AXIL_INDEX_C                      => (baseAddr => AXIL_BASE_ADDR_G + X"10000",
-                                  addrBits         => 16,
-                                  connectivity     => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
-      MESSAGE_BUFFER_AXIL_INDEX_C                  => (baseAddr => AXIL_BASE_ADDR_G + X"20000",
-                                      addrBits     => 16,
-                                      connectivity => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
-      FRAME_TX_AXIL_INDEX_C                        => (baseAddr => AXIL_BASE_ADDR_G + X"30000",
-                                addrBits           => 16,
-                                connectivity       => ite(USE_TPGMINI_C, X"FFFF", x"0000")));
+      FRAME_RX_AXIL_INDEX_C       => (
+         baseAddr                 => AXIL_BASE_ADDR_G + X"00000",
+         addrBits                 => 16,
+         connectivity             => X"FFFF"),
+      RAW_BUFFER_AXIL_INDEX_C     => (
+         baseAddr                 => AXIL_BASE_ADDR_G + X"10000",
+         addrBits                 => 16,
+         connectivity             => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
+      MESSAGE_BUFFER_AXIL_INDEX_C => (
+         baseAddr                 => AXIL_BASE_ADDR_G + X"20000",
+         addrBits                 => 16,
+         connectivity             => ite(AXIL_RINGB_G, X"FFFF", x"0000")),
+      FRAME_TX_AXIL_INDEX_C       => (
+         baseAddr                 => AXIL_BASE_ADDR_G + X"30000",
+         addrBits                 => 16,
+         connectivity             => ite(USE_TPGMINI_C, X"FFFF", x"0000")));
 
    signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0);
@@ -116,11 +120,11 @@ architecture rtl of TimingCore is
 
    signal timingRx            : TimingRxType;
    signal timingStrobe        : sl;
-   signal timingValid         : sl := '1';
+   signal timingValid         : sl                                          := '1';
    signal timingMessageStrobe : sl;
-   signal timingMessageValid  : sl := '1';
+   signal timingMessageValid  : sl                                          := '1';
    signal timingStreamStrobe  : sl;
-   signal timingStreamValid   : sl := '1';
+   signal timingStreamValid   : sl                                          := '1';
    signal timingMessage       : TimingMessageType;
    signal timingStream        : TimingStreamType;
    signal timingStreamPrompt  : TimingStreamType;
