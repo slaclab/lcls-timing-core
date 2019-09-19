@@ -204,7 +204,7 @@ begin
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          timingMessageValid  => timingMessageValid,
-         timingExtn          => timingExtension,
+         timingExtension          => timingExtension,
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMaster      => locAxilReadMasters (FRAME_RX_AXIL_INDEX_C),
@@ -334,10 +334,8 @@ begin
    timingValid <= timingMessageValid when timingClkSelR = '1' else
                   timingStreamValid;
 
---   extnSlv        <= toSlv(timingExtn);
-
    GEN_ASYNC : if ASYNC_G generate
-      process (timingClkSelApp, appTimingFrameSlv, appExtnSlv, appExtnValid) is
+      process (appTimingExtension, appTimingFrameSlv, timingClkSelApp) is
       begin
          if timingClkSelApp = '0' then
             appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
