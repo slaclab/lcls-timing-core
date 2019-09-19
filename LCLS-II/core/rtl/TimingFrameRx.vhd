@@ -61,11 +61,13 @@ architecture rtl of TimingFrameRx is
    type RegType is record
       vsnErr  : sl;
       version : slv(31 downto 0);
+      dvalid : slv(15 downto 1);
    end record;
 
    constant REG_INIT_C : RegType := (
       vsnErr  => '0',
-      version => (others => '1'));
+      version => (others => '1'),
+      dvalid => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -159,7 +161,7 @@ begin
    rxVersion <= r.version;
    staData   <= r.vsnErr & (crcErr or doverflow0) & fiducial & eof & sof;
 
-   comb : process (delayRst, iTimingMessage, dstrobe0, itimingExtn, itimingExtnValid, r) is
+   comb : process (delayRst, dframe, dstrobe, dstrobe0, dvalid, iTimingMessage, r) is
       variable v          : RegType;
       variable extensionV : TimingExtensionArray;
    begin
@@ -191,6 +193,7 @@ begin
       end loop;
 
       rin <= v;
+      timingExtension <= extensionV;
 
    end process;
 
