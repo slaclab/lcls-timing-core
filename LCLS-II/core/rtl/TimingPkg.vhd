@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2019-09-19
+-- Last update: 2019-09-25
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.StdRtlPkg.all;
-use work.TimingExtnPkg.all;
 
 package TimingPkg is
 
@@ -36,49 +35,49 @@ package TimingPkg is
    constant K_281_C : slv(7 downto 0) := "00111100";  -- K28.1, 0x3C
    constant K_EOS_C : slv(7 downto 0) := K_280_C;
 
-   constant TIMING_MESSAGE_BITS_C  : integer := 944;
+   constant TIMING_MESSAGE_BITS_C        : integer := 944;
    --  Frame without BSA, beamEnergy, version
-   constant TIMING_MESSAGE_BITS_NO_BSA_C  : integer := TIMING_MESSAGE_BITS_C-256-16;
-   constant TIMING_MESSAGE_WORDS_C : integer := TIMING_MESSAGE_BITS_C/16;
+   constant TIMING_MESSAGE_BITS_NO_BSA_C : integer := TIMING_MESSAGE_BITS_C-256-16;
+   constant TIMING_MESSAGE_WORDS_C       : integer := TIMING_MESSAGE_BITS_C/16;
 
 --   constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0000";
    --  Added photon wavelen meta data
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0001";
 
-   constant TIMING_STREAM_ID_C  : slv(3 downto 0) := x"0";
-   
+   constant TIMING_STREAM_ID_C : slv(3 downto 0) := x"0";
+
    type TimingRxType is record
-      data       : slv(15 downto 0);
-      dataK      : slv( 1 downto 0);
-      decErr     : slv( 1 downto 0);
-      dspErr     : slv( 1 downto 0);
+      data   : slv(15 downto 0);
+      dataK  : slv(1 downto 0);
+      decErr : slv(1 downto 0);
+      dspErr : slv(1 downto 0);
    end record;
    constant TIMING_RX_INIT_C : TimingRxType := (
-      data      => x"0000",
-      dataK     => "00",
-      decErr    => "00",
-      dspErr    => "00" );
+      data   => x"0000",
+      dataK  => "00",
+      decErr => "00",
+      dspErr => "00");
    type TimingRxArray is array (natural range<>) of TimingRxType;
 
    type TimingPhyControlType is record
-      reset        : sl;
-      inhibit      : sl;
-      polarity     : sl;
-      bufferByRst  : sl;
-      pllReset     : sl;
+      reset       : sl;
+      inhibit     : sl;
+      polarity    : sl;
+      bufferByRst : sl;
+      pllReset    : sl;
    end record;
    constant TIMING_PHY_CONTROL_INIT_C : TimingPhyControlType := (
       reset       => '0',
       inhibit     => '0',
       polarity    => '0',
       bufferByRst => '0',
-      pllReset    => '0' );
+      pllReset    => '0');
    constant TIMING_PHY_CONTROL_INHIBIT_C : TimingPhyControlType := (
       reset       => '0',
       inhibit     => '1',
       polarity    => '0',
       bufferByRst => '0',
-      pllReset    => '0' );
+      pllReset    => '0');
    type TimingPhyControlArray is array (natural range<>) of TimingPhyControlType;
 
    type TimingPhyStatusType is record
@@ -91,28 +90,28 @@ package TimingPkg is
       locked       => '0',
       resetDone    => '0',
       bufferByDone => '0',
-      bufferByErr  => '0' );
+      bufferByErr  => '0');
    constant TIMING_PHY_STATUS_FORCE_C : TimingPhyStatusType := (
       locked       => '1',
       resetDone    => '1',
       bufferByDone => '0',
-      bufferByErr  => '0' );      
+      bufferByErr  => '0');
    type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
 
    type TimingSerialType is record
-      ready      : sl;                -- tx: new segment ready,
-                                      -- rx: last segment valid
-      data       : slv(15 downto 0);  -- 
-      offset     : slv( 6 downto 0);  -- segment index
-      last       : sl;                -- last segment
+      ready  : sl;                      -- tx: new segment ready,
+      -- rx: last segment valid
+      data   : slv(15 downto 0);        -- 
+      offset : slv(6 downto 0);         -- segment index
+      last   : sl;                      -- last segment
    end record;
    constant TIMING_SERIAL_INIT_C : TimingSerialType := (
-      ready      => '0',
-      data       => x"0000",
-      offset     => (others=>'0'),
-      last       => '0' );
+      ready  => '0',
+      data   => x"0000",
+      offset => (others => '0'),
+      last   => '0');
    type TimingSerialArray is array (natural range<>) of TimingSerialType;
-   
+
 --   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
    type TimingMessageType is record
       version         : slv(15 downto 0);
@@ -160,76 +159,76 @@ package TimingPkg is
       bsaActive       => (others => '0'),
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
-      control         => (others => (others => '0')) );
-   type TimingMessageArray is array (natural range<>) of TimingMessageType;      
+      control         => (others => (others => '0')));
+   type TimingMessageArray is array (natural range<>) of TimingMessageType;
 
-   function toSlv  (message              : TimingMessageType) return slv;
-   function toSlv32(vector               : slv)               return Slv32Array;
-   function toSlvNoBsa(message           : TimingMessageType) return slv;
-   function toTimingMessageType(vector : slv)                 return TimingMessageType;
+   function toSlv (message             : TimingMessageType) return slv;
+   function toSlv32(vector             : slv) return Slv32Array;
+   function toSlvNoBsa(message         : TimingMessageType) return slv;
+   function toTimingMessageType(vector : slv) return TimingMessageType;
 
-   constant TIMING_DATABUFF_BITS_C  : integer := 416;
-   constant TIMING_STREAM_BITS_C  : integer := 704;
+   constant TIMING_DATABUFF_BITS_C : integer := 416;
+   constant TIMING_STREAM_BITS_C   : integer := 704;
 
    type TimingDataBuffType is record
-      dtype      : slv(15 downto 0);
-      version    : slv(15 downto 0);
-      dmod       : slv(191 downto 0);
-      epicsTime  : slv(63 downto 0);
-      edefAvgDn  : slv(31 downto 0);
-      edefMinor  : slv(31 downto 0);
-      edefMajor  : slv(31 downto 0);
-      edefInit   : slv(31 downto 0);
+      dtype     : slv(15 downto 0);
+      version   : slv(15 downto 0);
+      dmod      : slv(191 downto 0);
+      epicsTime : slv(63 downto 0);
+      edefAvgDn : slv(31 downto 0);
+      edefMinor : slv(31 downto 0);
+      edefMajor : slv(31 downto 0);
+      edefInit  : slv(31 downto 0);
    end record;
    constant TIMING_DATA_BUFF_INIT_C : TimingDataBuffType := (
-      dtype      => (others=>'0'),
-      version    => (others=>'0'),
-      dmod       => (others=>'0'),
-      epicsTime  => (others=>'0'),
-      edefAvgDn  => (others=>'0'),
-      edefMinor  => (others=>'0'),
-      edefMajor  => (others=>'0'),
-      edefInit   => (others=>'0') );
+      dtype     => (others => '0'),
+      version   => (others => '0'),
+      dmod      => (others => '0'),
+      epicsTime => (others => '0'),
+      edefAvgDn => (others => '0'),
+      edefMinor => (others => '0'),
+      edefMajor => (others => '0'),
+      edefInit  => (others => '0'));
    type TimingDataBuffArray is array (natural range<>) of TimingDataBuffType;
-   
+
    type TimingStreamType is record
-      pulseId         : slv(31 downto 0);
-      eventCodes      : slv(255 downto 0);
-      dbuff           : TimingDataBuffType;
+      pulseId    : slv(31 downto 0);
+      eventCodes : slv(255 downto 0);
+      dbuff      : TimingDataBuffType;
    end record;
    constant TIMING_STREAM_INIT_C : TimingStreamType := (
-      pulseId         => (others=>'0'),
-      eventCodes      => (others=>'0'),
-      dbuff           => TIMING_DATA_BUFF_INIT_C );
+      pulseId    => (others => '0'),
+      eventCodes => (others => '0'),
+      dbuff      => TIMING_DATA_BUFF_INIT_C);
    type TimingStreamArray is array (natural range<>) of TimingStreamType;
 
    function toTimingDataBuffType(vector : slv) return TimingDataBuffType;
-   function toTimingStreamType(vector : slv) return TimingStreamType;
-   function toSlv(stream : TimingStreamType) return slv;
-   function toSlv(dbuff  : TimingDataBuffType) return slv;
+   function toTimingStreamType(vector   : slv) return TimingStreamType;
+   function toSlv(stream                : TimingStreamType) return slv;
+   function toSlv(dbuff                 : TimingDataBuffType) return slv;
 
    -- LCLS-I Timing Data Type
    type LclsV1TimingDataType is record
-      linkUp        : sl;
-      gtRxData      : slv(15 downto 0);-- gtRxRecClk domain
-      gtRxDataK     : slv(1 downto 0);-- gtRxRecClk domain
-      gtRxDispErr   : slv(1 downto 0);-- gtRxRecClk domain
-      gtRxDecErr    : slv(1 downto 0);-- gtRxRecClk domain
+      linkUp      : sl;
+      gtRxData    : slv(15 downto 0);   -- gtRxRecClk domain
+      gtRxDataK   : slv(1 downto 0);    -- gtRxRecClk domain
+      gtRxDispErr : slv(1 downto 0);    -- gtRxRecClk domain
+      gtRxDecErr  : slv(1 downto 0);    -- gtRxRecClk domain
    end record;
    constant LCLS_V1_TIMING_DATA_INIT_C : LclsV1TimingDataType := (
-      linkUp        => '0',
-      gtRxData      => (others=>'0'),
-      gtRxDataK     => (others=>'0'),
-      gtRxDispErr   => (others=>'0'),
-      gtRxDecErr    => (others=>'0'));
+      linkUp      => '0',
+      gtRxData    => (others => '0'),
+      gtRxDataK   => (others => '0'),
+      gtRxDispErr => (others => '0'),
+      gtRxDecErr  => (others => '0'));
    type LclsV1TimingDataArray is array (natural range<>) of LclsV1TimingDataType;
 
    -- LCLS-II Timing Data Type
    type LclsV2TimingDataType is record
-      linkUp     : sl;
+      linkUp : sl;
    end record;
    constant LCLS_V2_TIMING_DATA_INIT_C : LclsV2TimingDataType := (
-      linkUp     => '0');
+      linkUp => '0');
    type LclsV2TimingDataArray is array (natural range<>) of LclsV2TimingDataType;
 
    -----------------------------------------------
@@ -239,12 +238,12 @@ package TimingPkg is
 
    type TimingExtensionMessageType is record
       valid : sl;
-      data  : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-   end record TimingExtensionBusType;
+      data  : slv(TIMING_EXTENSION_MESSAGE_BITS_C-1 downto 0);
+   end record;
 
-   constant TIMING_EXTENSION_MESSAGE_INIT_C : TimingExtensionBusType := (
+   constant TIMING_EXTENSION_MESSAGE_INIT_C : TimingExtensionMessageType := (
       valid => '0',
-      data => (others => '0'));
+      data  => (others => '0'));
 
    type TimingExtensionArray is array (15 downto 1) of TimingExtensionMessageType;
 
@@ -252,50 +251,50 @@ package TimingPkg is
    -- Main Timing Bus
    -----------------------------------------------
    type TimingBusType is record
-      strobe  : sl;                     -- 1 MHz timing strobe
-      valid   : sl;
-      message : TimingMessageType;
-      stream  : TimingStreamType;
-      v1      : LclsV1TimingDataType;
-      v2      : LclsV2TimingDataType;
-      modesel : sl;  -- LCLS-II selected
-      extension    : TimingExtensionArray;
+      strobe    : sl;                   -- 1 MHz timing strobe
+      valid     : sl;
+      message   : TimingMessageType;
+      stream    : TimingStreamType;
+      v1        : LclsV1TimingDataType;
+      v2        : LclsV2TimingDataType;
+      modesel   : sl;                   -- LCLS-II selected
+      extension : TimingExtensionArray;
    end record;
    constant TIMING_BUS_INIT_C : TimingBusType := (
-      strobe  => '0',
-      valid   => '0',
-      message => TIMING_MESSAGE_INIT_C,
-      stream  => TIMING_STREAM_INIT_C,
-      v1      => LCLS_V1_TIMING_DATA_INIT_C,
-      v2      => LCLS_V2_TIMING_DATA_INIT_C,
-      modesel => '0',
-      extension => (others => TIMING_EXTENSION_MESSAGE_INIT_C);
+      strobe    => '0',
+      valid     => '0',
+      message   => TIMING_MESSAGE_INIT_C,
+      stream    => TIMING_STREAM_INIT_C,
+      v1        => LCLS_V1_TIMING_DATA_INIT_C,
+      v2        => LCLS_V2_TIMING_DATA_INIT_C,
+      modesel   => '0',
+      extension => (others => TIMING_EXTENSION_MESSAGE_INIT_C));
 
    type TimingBusArray is array (integer range<>) of TimingBusType;
 
    type TimingPhyType is record
-      dataK      : slv(1 downto 0);
-      data       : slv(15 downto 0);
-      control    : TimingPhyControlType;
+      dataK   : slv(1 downto 0);
+      data    : slv(15 downto 0);
+      control : TimingPhyControlType;
    end record;
    constant TIMING_PHY_INIT_C : TimingPhyType := (
-      dataK      => "00",
-      data       => x"0000",
-      control    => TIMING_PHY_CONTROL_INIT_C );
+      dataK   => "00",
+      data    => x"0000",
+      control => TIMING_PHY_CONTROL_INIT_C);
    type TimingPhyArray is array (integer range<>) of TimingPhyType;
 
    type TimingTrigType is record
-      trigPulse  : slv(15 downto 0);
-      timeStamp  : slv(63 downto 0);
-      bsa        : slv(127 downto 0);  -- LCLS-I control info
-      dmod       : slv(191 downto 0);  --
+      trigPulse : slv(15 downto 0);
+      timeStamp : slv(63 downto 0);
+      bsa       : slv(127 downto 0);    -- LCLS-I control info
+      dmod      : slv(191 downto 0);    --
    end record;
    constant TIMING_TRIG_INIT_C : TimingTrigType := (
-      trigPulse  => (others=>'0'),
-      timeStamp  => (others=>'0'),
-      bsa        => (others=>'0'),
-      dmod       => (others=>'0') );
- 
+      trigPulse => (others => '0'),
+      timeStamp => (others => '0'),
+      bsa       => (others => '0'),
+      dmod      => (others => '0'));
+
 end package TimingPkg;
 
 package body TimingPkg is
@@ -309,36 +308,36 @@ package body TimingPkg is
       variable vector : slv(TIMING_MESSAGE_BITS_C-1 downto 0) := (others => '0');
       variable i      : integer                               := 0;
    begin
-      assignSlv(i, vector, message.version);           -- 1 word
-      assignSlv(i, vector, message.pulseId);           -- 4 words
-      assignSlv(i, vector, message.timeStamp);         -- 4 words
-      assignSlv(i, vector, message.fixedRates);        
-      assignSlv(i, vector, message.acRates);           -- 1 word
+      assignSlv(i, vector, message.version);      -- 1 word
+      assignSlv(i, vector, message.pulseId);      -- 4 words
+      assignSlv(i, vector, message.timeStamp);    -- 4 words
+      assignSlv(i, vector, message.fixedRates);
+      assignSlv(i, vector, message.acRates);      -- 1 word
       assignSlv(i, vector, message.acTimeSlot);
       assignSlv(i, vector, message.acTimeSlotPhase);
-      assignSlv(i, vector, message.resync);            -- 1 word
-      assignSlv(i, vector, message.beamRequest);       -- 2 words
+      assignSlv(i, vector, message.resync);       -- 1 word
+      assignSlv(i, vector, message.beamRequest);  -- 2 words
       for j in message.beamEnergy'range loop
-        assignSlv(i, vector, message.beamEnergy(j));
-      end loop;                                        -- 4 words
+         assignSlv(i, vector, message.beamEnergy(j));
+      end loop;  -- 4 words
       for j in message.photonWavelen'range loop
-        assignSlv(i, vector, message.photonWavelen(j));
-      end loop;                                        -- 2 words
-      assignSlv(i, vector, "0000000000000");           -- 13 unused bits
+         assignSlv(i, vector, message.photonWavelen(j));
+      end loop;  -- 2 words
+      assignSlv(i, vector, "0000000000000");      -- 13 unused bits
       assignSlv(i, vector, message.syncStatus);
       assignSlv(i, vector, message.mpsValid);
-      assignSlv(i, vector, message.bcsFault);          -- 1 bit
-      assignSlv(i, vector, message.mpsLimit);          -- 1 word
+      assignSlv(i, vector, message.bcsFault);     -- 1 bit
+      assignSlv(i, vector, message.mpsLimit);     -- 1 word
       for j in message.mpsClass'range loop
          assignSlv(i, vector, message.mpsClass(j));
-      end loop;                                        -- 4 words
-      assignSlv(i, vector, message.bsaInit);           -- 4 words
-      assignSlv(i, vector, message.bsaActive);         -- 4 words
-      assignSlv(i, vector, message.bsaAvgDone);        -- 4 words
-      assignSlv(i, vector, message.bsaDone);           -- 4 words
+      end loop;  -- 4 words
+      assignSlv(i, vector, message.bsaInit);      -- 4 words
+      assignSlv(i, vector, message.bsaActive);    -- 4 words
+      assignSlv(i, vector, message.bsaAvgDone);   -- 4 words
+      assignSlv(i, vector, message.bsaDone);      -- 4 words
       for j in message.control'range loop
          assignSlv(i, vector, message.control(j));
-      end loop;                                        -- 18 words
+      end loop;  -- 18 words
       return vector;
    end function;
 
@@ -347,14 +346,14 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    function toSlv32 (vector : slv) return Slv32Array
    is
-      variable vec32  : Slv32Array(vector'length/32-1 downto 0) := (others => x"00000000");
-      variable i      : integer := vector'right;
+      variable vec32 : Slv32Array(vector'length/32-1 downto 0) := (others => x"00000000");
+      variable i     : integer                                 := vector'right;
    begin
-     for j in 0 to vector'length/32-1 loop
-       vec32(j) := vector(i+31 downto i);
-       i        := i+32;
-     end loop;  -- j
-     return vec32;
+      for j in 0 to vector'length/32-1 loop
+         vec32(j) := vector(i+31 downto i);
+         i        := i+32;
+      end loop;  -- j
+      return vec32;
    end function;
 
    -------------------------------------------------------------------------------------------------
@@ -363,7 +362,7 @@ package body TimingPkg is
    function toSlvNoBsa (message : TimingMessageType) return slv
    is
       variable vector : slv(TIMING_MESSAGE_BITS_NO_BSA_C-1 downto 0) := (others => '0');
-      variable i      : integer := 0;
+      variable i      : integer                                      := 0;
    begin
 --      assignSlv(i, vector, message.version);
       assignSlv(i, vector, message.pulseId);
@@ -375,13 +374,13 @@ package body TimingPkg is
       assignSlv(i, vector, message.resync);
       assignSlv(i, vector, message.beamRequest);
       for j in message.beamEnergy'range loop
-        assignSlv(i, vector, message.beamEnergy(j));
-      end loop;                                        -- 4 words
+         assignSlv(i, vector, message.beamEnergy(j));
+      end loop;  -- 4 words
       for j in message.photonWavelen'range loop
-        assignSlv(i, vector, message.photonWavelen(j));
-      end loop;                                        -- 2 words
-      assignSlv(i, vector, message.control(16));    -- use this field to complete
-                                                    -- modifier word encoding
+         assignSlv(i, vector, message.photonWavelen(j));
+      end loop;  -- 2 words
+      assignSlv(i, vector, message.control(16));  -- use this field to complete
+                                                  -- modifier word encoding
       --assignSlv(i, vector, "0000000000000");        -- 13 unused bits
       --assignSlv(i, vector, message.syncStatus);
       --assignSlv(i, vector, message.mpsValid);
@@ -404,7 +403,9 @@ package body TimingPkg is
       variable message : TimingMessageType;
       variable i       : integer := 0;
    begin
-      assignRecord(i, vector, message.version);
+      if (vector'length = TIMING_MESSAGE_BITS_C) then
+         assignRecord(i, vector, message.version);  --
+      end if;
       assignRecord(i, vector, message.pulseId);
       assignRecord(i, vector, message.timeStamp);
       assignRecord(i, vector, message.fixedRates);
@@ -414,23 +415,30 @@ package body TimingPkg is
       assignRecord(i, vector, message.resync);
       assignRecord(i, vector, message.beamRequest);
       for j in message.beamEnergy'range loop
-        assignRecord(i, vector, message.beamEnergy(j));
-      end loop;                                        -- 4 words
+         assignRecord(i, vector, message.beamEnergy(j));
+      end loop;  -- 4 words
       for j in message.photonWavelen'range loop
-        assignRecord(i, vector, message.photonWavelen(j));
-      end loop;                                        -- 2 words
-      i := i+ 13;                        -- 13 unused bits
-      assignRecord(i, vector, message.syncStatus);
-      assignRecord(i, vector, message.mpsValid);
-      assignRecord(i, vector, message.bcsFault);
+         assignRecord(i, vector, message.photonWavelen(j));
+      end loop;  -- 2 words
+      if (vector'length = TIMING_MESSAGE_BITS_C) then
+         i := i+ 13;                                -- 13 unused bits
+         assignRecord(i, vector, message.syncStatus);
+         assignRecord(i, vector, message.mpsValid);
+         assignRecord(i, vector, message.bcsFault);
+      else
+         assignRecord(i, vector, message.control(16));
+      end if;
       assignRecord(i, vector, message.mpsLimit);
       for j in message.mpsClass'range loop
          assignRecord(i, vector, message.mpsClass(j));
       end loop;
-      assignRecord(i, vector, message.bsaInit);
-      assignRecord(i, vector, message.bsaActive);
-      assignRecord(i, vector, message.bsaAvgDone);
-      assignRecord(i, vector, message.bsaDone);
+      if (vector'length = TIMING_MESSAGE_BITS_C) then
+         -- Might be passed timing message slv without bsa
+         assignRecord(i, vector, message.bsaInit);
+         assignRecord(i, vector, message.bsaActive);
+         assignRecord(i, vector, message.bsaAvgDone);
+         assignRecord(i, vector, message.bsaDone);
+      end if;
       for j in message.control'range loop
          assignRecord(i, vector, message.control(j));
       end loop;
@@ -492,7 +500,7 @@ package body TimingPkg is
    function toSlv (dbuff : TimingDataBuffType) return slv
    is
       variable vector : slv(TIMING_DATABUFF_BITS_C-1 downto 0) := (others => '0');
-      variable i      : integer                              := 0;
+      variable i      : integer                                := 0;
    begin
       assignSlv(i, vector, dbuff.dtype);
       assignSlv(i, vector, dbuff.version);
