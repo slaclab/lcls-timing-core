@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2019-09-19
+-- Last update: 2019-09-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -47,8 +47,7 @@ entity TimingFrameRx is
       timingExtension : out TimingExtensionArray;
 
       rxVersion : out slv(31 downto 0);
-      staData   : out slv(4 downto 0)
-      );
+      staData   : out slv(4 downto 0));
 end entity TimingFrameRx;
 
 architecture rtl of TimingFrameRx is
@@ -61,13 +60,13 @@ architecture rtl of TimingFrameRx is
    type RegType is record
       vsnErr  : sl;
       version : slv(31 downto 0);
-      dvalid : slv(15 downto 1);
+      dvalid  : slv(15 downto 1);
    end record;
 
    constant REG_INIT_C : RegType := (
       vsnErr  => '0',
       version => (others => '1'),
-      dvalid => (others => '0'));
+      dvalid  => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -77,11 +76,11 @@ architecture rtl of TimingFrameRx is
    signal streamIds        : Slv4Array (15 downto 0);
    signal advance          : slv (15 downto 0);
    signal sof, eof, crcErr : sl;
-   
-   signal dframe0          : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
-   signal dvalid0          : sl;
-   signal doverflow0       : sl;
-   signal dstrobe0         : sl;
+
+   signal dframe0    : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
+   signal dvalid0    : sl;
+   signal doverflow0 : sl;
+   signal dstrobe0   : sl;
 
    signal delayRst       : sl;
    signal iTimingMessage : TimingMessageType;
@@ -152,7 +151,7 @@ begin
             fiducial_i => fiducial,
             advance_i  => advance(i),
             stream_i   => streams(i),
-            frame_o    => dframe(i),  -- might need to latch data and valid on strobe
+            frame_o    => dframe(i),    -- might need to latch data and valid on strobe
             strobe_o   => dstrobe(i),
             valid_o    => dvalid(i));
    end generate;
@@ -180,19 +179,19 @@ begin
          if (dstrobe(i) = '1') then
             v.dvalid(i) := dvalid(i);
          elsif (dstrobe0 = '1') then
-            v.dvalid(i) = '0';
+            v.dvalid(i) := '0';
          end if;
 
          extensionV(i).valid := r.dvalid(i);
-         extensionV(i).data := dframe(i);
+         extensionV(i).data  := dframe(i);
 
          if delayRst = '1' then
             extensionV(i).valid := '0';
-            extensionV(i).data := (others => '0');
+            extensionV(i).data  := (others => '0');
          end if;
       end loop;
 
-      rin <= v;
+      rin             <= v;
       timingExtension <= extensionV;
 
    end process;
