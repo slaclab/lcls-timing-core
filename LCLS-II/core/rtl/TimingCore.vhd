@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2019-09-19
+-- Last update: 2019-10-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -54,22 +54,22 @@ entity TimingCore is
       gtTxUsrClk : in sl;
       gtTxUsrRst : in sl;
 
-      gtRxRecClk    : in  sl;
-      gtRxData      : in  slv(15 downto 0);
-      gtRxDataK     : in  slv(1 downto 0);
-      gtRxDispErr   : in  slv(1 downto 0);
-      gtRxDecErr    : in  slv(1 downto 0);
-      gtRxControl   : out TimingPhyControlType;
-      gtRxStatus    : in  TimingPhyStatusType;
-      gtTxReset     : out sl;
-      gtLoopback    : out slv(2 downto 0);
-      timingPhy     : out TimingPhyType;
-      timingClkSel  : out sl;
+      gtRxRecClk       : in  sl;
+      gtRxData         : in  slv(15 downto 0);
+      gtRxDataK        : in  slv(1 downto 0);
+      gtRxDispErr      : in  slv(1 downto 0);
+      gtRxDecErr       : in  slv(1 downto 0);
+      gtRxControl      : out TimingPhyControlType;
+      gtRxStatus       : in  TimingPhyStatusType;
+      gtTxReset        : out sl;
+      gtLoopback       : out slv(2 downto 0);
+      tpgMiniTimingPhy : out TimingPhyType;
+      timingClkSel     : out sl;
       -- Decoded timing message interface
-      appTimingClk  : in  sl;
-      appTimingRst  : in  sl;
-      appTimingBus  : out TimingBusType;
-      appTimingMode : out sl;
+      appTimingClk     : in  sl;
+      appTimingRst     : in  sl;
+      appTimingBus     : out TimingBusType;
+      appTimingMode    : out sl;
 
       -- AXI Lite interface
       axilClk         : in  sl;
@@ -204,7 +204,7 @@ begin
          timingMessage       => timingMessage,
          timingMessageStrobe => timingMessageStrobe,
          timingMessageValid  => timingMessageValid,
-         timingExtension          => timingExtension,
+         timingExtension     => timingExtension,
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMaster      => locAxilReadMasters (FRAME_RX_AXIL_INDEX_C),
@@ -272,9 +272,9 @@ begin
             axilWriteSlave  => locAxilWriteSlaves (MESSAGE_BUFFER_AXIL_INDEX_C));
    end generate;
 
-   timingPhy.control.pllReset    <= '0';
-   timingPhy.control.reset       <= '0';
-   timingPhy.control.bufferByRst <= '0';
+   tpgMiniTimingPhy.control.pllReset    <= '0';
+   tpgMiniTimingPhy.control.reset       <= '0';
+   tpgMiniTimingPhy.control.bufferByRst <= '0';
 
    GEN_MINICORE : if USE_TPGMINI_C generate
       TPGMiniCore_1 : entity work.TPGMiniCore
@@ -287,10 +287,10 @@ begin
             txRdy          => '1',
             txData         => itxData,
             txDataK        => itxDataK,
-            txPolarity     => timingPhy.control.polarity,
+            txPolarity     => tpgMiniTimingPhy.control.polarity,
             txResetO       => gtTxReset,
             txLoopback     => gtLoopback,
-            txInhibit      => timingPhy.control.inhibit,
+            txInhibit      => tpgMiniTimingPhy.control.inhibit,
             axiClk         => axilClk,
             axiRst         => axilRst,
             axiReadMaster  => locAxilReadMasters (FRAME_TX_AXIL_INDEX_C),
@@ -306,20 +306,20 @@ begin
             dataIn  => clkSel,
             dataOut => clkSelTx);
 
-      timingPhy.data <= itxData(0) when clkSelTx = '0' else
-                        itxData(1);
-      timingPhy.dataK <= itxDataK(0) when clkSelTx = '0' else
-                         itxDataK(1);
+      tpgMiniTimingPhy.data <= itxData(0) when clkSelTx = '0' else
+                               itxData(1);
+      tpgMiniTimingPhy.dataK <= itxDataK(0) when clkSelTx = '0' else
+                                itxDataK(1);
 
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
-      timingPhy.data             <= (others => '0');
-      timingPhy.dataK            <= "00";
-      timingPhy.control.polarity <= '0';
-      timingPhy.control.inhibit  <= '0';
-      gtTxReset                  <= '0';
-      gtLoopback                 <= "000";
+      tpgMiniTimingPhy.data             <= (others => '0');
+      tpgMiniTimingPhy.dataK            <= "00";
+      tpgMiniTimingPhy.control.polarity <= '0';
+      tpgMiniTimingPhy.control.inhibit  <= '0';
+      gtTxReset                         <= '0';
+      gtLoopback                        <= "000";
    end generate NOGEN_MINICORE;
 
    -------------------------------------------------------------------------------------------------
