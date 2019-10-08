@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2019-09-20
+-- Last update: 2019-10-08
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -25,9 +25,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+-- surf
 use work.StdRtlPkg.all;
+
+-- lcls-timing-core
 use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
 
 entity TimingFrameRx is
    generic (
