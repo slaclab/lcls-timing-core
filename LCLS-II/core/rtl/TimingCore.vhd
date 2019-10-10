@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2019-10-07
+-- Last update: 2019-10-09
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ entity TimingCore is
       DEFAULT_CLK_SEL_G : sl                  := '1';
       CLKSEL_MODE_G     : string              := "SELECT";  -- "LCLSI","LCLSII"
       TPGEN_G           : boolean             := false;
-      TPGMINI_G         : boolean             := true;
       STREAM_L1_G       : boolean             := false;
       ETHMSG_AXIS_CFG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
       AXIL_RINGB_G      : boolean             := true;
