@@ -21,14 +21,3 @@ if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMO
 loadRuckusTcl "$::DIR_PATH/LCLS-I"  "quiet"
 loadRuckusTcl "$::DIR_PATH/LCLS-II" "quiet"
 
-# Check for submodule tagging
-puts "*********************************************************"
-if { [info exists ::env(TIMING_EXT_PKG)] != 1 || $::env(TIMING_EXT_PKG) == 0 } {
-   puts "TIMING_EXT_PKG = 0"
-   puts "Using default TimingExtnPkg.vhd in lcls-timing-core"
-   loadSource -path "$::DIR_PATH/LCLS-II/core/rtl/default/TimingExtnPkg.vhd"
-} else {
-   puts "TIMING_EXT_PKG = 1"
-   puts "Using application's defined TimingExtnPkg.vhd"
-}
-puts "*********************************************************"
