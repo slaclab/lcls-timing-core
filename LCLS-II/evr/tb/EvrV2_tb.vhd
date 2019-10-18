@@ -142,7 +142,7 @@ begin  -- rtl
    signal xData     : TimingRxType := TIMING_RX_INIT_C;
    signal fiducial  : sl;
    signal streams   : TimingSerialArray(0 downto 0);
-   signal streamIds : Slv4Array        (0 downto 0) := ( (others=>TIMING_STREAM_ID) );
+   signal streamIds : Slv4Array        (0 downto 0) := (others=>TIMING_STREAM_ID);
    signal advance   : slv              (0 downto 0);
 
    signal r   : RegType := REG_INIT_C;
