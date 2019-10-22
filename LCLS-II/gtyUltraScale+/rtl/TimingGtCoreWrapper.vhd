@@ -20,8 +20,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 use work.TimingPkg.all;
 
 library unisim;
@@ -291,7 +293,7 @@ begin
    txOutClk <= txoutclkb;
    rxOutClk <= rxoutclkb;
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 2,
@@ -342,7 +344,7 @@ begin
          sAxilWriteMaster => axilWriteMasters(0),
          sAxilWriteSlave  => axilWriteSlaves(0));
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false,
@@ -370,7 +372,7 @@ begin
 
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
-      U_TERM : entity work.Gthe4ChannelDummy
+      U_TERM : entity surf.Gthe4ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 1)
@@ -553,7 +555,7 @@ begin
 
    end generate;
 
-   U_RstSyncRx : entity work.RstSync
+   U_RstSyncRx : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -562,7 +564,7 @@ begin
          syncRst  => rxbypassrst);
 
    txRstDone <= (txBypdone and txDone) or stableRst;
-   U_TxWatchDog : entity work.WatchDogRst
+   U_TxWatchDog : entity surf.WatchDogRst
       generic map(
          TPD_G      => TPD_G,
          DURATION_G => integer(156.25E+6 * 30.0E-3))  -- 30 ms (based on TimingGty_fixedlat_example_init.v from IP core)
@@ -573,7 +575,7 @@ begin
    rstAll <= resetAll or stableRst;
 
    rxRstDone <= rxBypdone and rxDone;
-   U_RxWatchDog : entity work.WatchDogRst
+   U_RxWatchDog : entity surf.WatchDogRst
       generic map(
          TPD_G      => TPD_G,
          DURATION_G => integer(156.25E+6 * 130.0E-3))  -- 130 ms (based on TimingGty_fixedlat_example_init.v from IP core)

@@ -26,7 +26,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 -- surf
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 -- lcls-timing-core
 use work.TimingPkg.all;

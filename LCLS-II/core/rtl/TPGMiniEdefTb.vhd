@@ -24,10 +24,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 use work.TPGPkg.all;
 use work.TimingPkg.all;
-use work.TextUtilPkg.all;
+use surf.TextUtilPkg.all;
 use work.TPGMiniEdefPkg.all;
 
 entity TPGMiniEdefTb is

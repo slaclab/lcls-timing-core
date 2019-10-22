@@ -33,7 +33,9 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity TPFifo is
    generic ( TPD_G : time := 1 ns; LOGDEPTH : integer := 10);
@@ -113,7 +115,7 @@ begin
    status.trig <= '1' when (status.dwrData(16) = '1' and r.ready = '1') else
                   '0';
 
-   U_tpfifo_delay : entity work.SimpleDualPortRam
+   U_tpfifo_delay : entity surf.SimpleDualPortRam
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 19,
@@ -133,7 +135,7 @@ begin
          addrb             => r.drdAddr,
          doutb             => status.dwrData);
 
-   U_tpfifo_async : entity work.FifoAsync
+   U_tpfifo_async : entity surf.FifoAsync
       generic map (
          TPD_G        => TPD_G,
          FWFT_EN_G    => true,

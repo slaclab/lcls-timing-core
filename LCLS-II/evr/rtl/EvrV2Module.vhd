@@ -26,8 +26,10 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
@@ -102,7 +104,7 @@ begin  -- rtl
   -------------------------
   -- AXI-Lite Crossbar Core
   -------------------------  
-  AxiLiteCrossbar_Inst : entity work.AxiLiteCrossbar
+  AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
       NUM_SLAVE_SLOTS_G  => 1,
@@ -120,7 +122,7 @@ begin  -- rtl
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves);   
 
-  U_SyncChannelConfig : entity work.SynchronizerVector
+  U_SyncChannelConfig : entity surf.SynchronizerVector
     generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
     port map ( clk     => evrClk,
                dataIn  => channelConfigAV,
@@ -154,7 +156,7 @@ begin  -- rtl
     end if;
   end process;
   
-  Sync_EvtCount : entity work.SyncStatusVector
+  Sync_EvtCount : entity surf.SyncStatusVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => NCHANNELS_G+1 )
     port map    ( statusIn(NCHANNELS_G)            => evrBus.strobe,
@@ -167,7 +169,7 @@ begin  -- rtl
                   rdClk        => axiClk,
                   rdRst        => axiRst );
 
-  U_SyncTriggerConfig : entity work.SynchronizerVector
+  U_SyncTriggerConfig : entity surf.SynchronizerVector
     generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
     port map ( clk     => evrClk,
                dataIn  => triggerConfigAV,

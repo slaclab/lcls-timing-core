@@ -18,7 +18,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV1Databuff is
    generic (
@@ -44,7 +46,7 @@ begin
    GEN_RAM :
    for i in 3 downto 0 generate
       
-      SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+      SimpleDualPortRam_Inst : entity surf.SimpleDualPortRam
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 8,

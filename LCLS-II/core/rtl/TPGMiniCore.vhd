@@ -23,8 +23,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 use work.TPGPkg.all;
 use work.TPGMiniEdefPkg.all;
 
@@ -69,7 +71,7 @@ begin  -- rtl
    regRst     <= txRst;
    txPolarity <= config.txPolarity;
    
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (

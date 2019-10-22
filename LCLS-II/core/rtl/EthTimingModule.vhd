@@ -24,9 +24,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 use work.TimingPkg.all;
 
 entity EthTimingModule is
@@ -121,12 +123,12 @@ begin
    obEthMsgMaster <= intObEthMsgMaster;
 
    GEN_STREAM : if STREAM_L1_G generate
-      U_TMO : entity work.Synchronizer
+      U_TMO : entity surf.Synchronizer
          port map (clk     => timingClk,
                    dataIn  => t.tmo(t.tmo'left),
                    dataOut => tmo_s);
 
-      SynchronizerFifo_EthMsg : entity work.AxiStreamFifoV2
+      SynchronizerFifo_EthMsg : entity surf.AxiStreamFifoV2
          generic map (TPD_G               => TPD_G,
                       SLAVE_AXI_CONFIG_G  => ETHMSG_AXIS_CFG_G,
                       MASTER_AXI_CONFIG_G => ETHMSG_AXIS_CFG_G)

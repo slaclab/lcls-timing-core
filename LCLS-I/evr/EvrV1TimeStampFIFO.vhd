@@ -18,7 +18,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV1TimeStampFIFO is
    generic (
@@ -44,7 +46,7 @@ architecture mapping of EvrV1TimeStampFIFO is
 
 begin
    
-   FifoAsync_Inst : entity work.FifoAsync
+   FifoAsync_Inst : entity surf.FifoAsync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- '1' for active high rst, '0' for active low

@@ -27,7 +27,9 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity ClockTime is
    generic (
@@ -59,7 +61,7 @@ architecture ClockTime_186MHz of ClockTime is
   signal remB , remN  : slv( 4 downto 0);
   
 begin
-  U_WrFifo : entity work.SynchronizerFifo
+  U_WrFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=> TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkA,
@@ -70,7 +72,7 @@ begin
                valid  => valid,
                dout   => wrDataB );
 
-  U_RdFifo : entity work.SynchronizerFifo
+  U_RdFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=> TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkB,
