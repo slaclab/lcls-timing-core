@@ -27,7 +27,9 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity WordSerializer is
    generic ( NWORDS_G : integer := 0 );

@@ -31,7 +31,9 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingMsgAxiRingBuffer is
    generic (
@@ -66,7 +68,7 @@ architecture rtl of TimingMsgAxiRingBuffer is
 begin
 
    -- Convert to AxiStream. Easiest way to chunk the timing message into 32 bit segments
-   TimingMsgToAxiStream_1 : entity work.TimingMsgToAxiStream
+   TimingMsgToAxiStream_1 : entity lcls_timing_core.TimingMsgToAxiStream
       generic map (
          TPD_G          => TPD_G,
          COMMON_CLOCK_G => true,

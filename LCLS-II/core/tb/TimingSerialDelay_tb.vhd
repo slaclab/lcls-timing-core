@@ -28,7 +28,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 use surf.AxiLitePkg.all;
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingSerialDelayTb is end TimingSerialDelayTb;
 
@@ -107,7 +109,7 @@ begin
          rst  => rst,
          rstL => rstL);
 
-   U_Fiduial : entity work.Divider
+   U_Fiduial : entity lcls_timing_core.Divider
      generic map (TPD_G => TPD_G,
                   Width => 10 )
      port map ( sysClk   => clk,
@@ -117,7 +119,7 @@ begin
                 divisor  => toSlv(FID_PERIOD_C,10),
                 trigO    => fiducial );
 
-   U_L0Reset : entity work.Divider
+   U_L0Reset : entity lcls_timing_core.Divider
      generic map ( Width => 16 )
      port map ( sysClk   => clk,
                 sysReset => rst,
@@ -126,7 +128,7 @@ begin
                 divisor  => toSlv(FID_PERIOD_C*10,16),
                 trigO    => l0Reset );
   
-   U_DUT : entity work.TimingSerialDelay
+   U_DUT : entity lcls_timing_core.TimingSerialDelay
      generic map ( TPD_G    => TPD_G,
                    NWORDS_G => FRAME_LEN_C,
                    FDEPTH_G => 100 )

@@ -29,8 +29,10 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2ChannelReg is
    generic (

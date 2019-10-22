@@ -31,7 +31,9 @@ library surf;
 use surf.StdRtlPkg.all;
 
 -- lcls-timing-core
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingFrameRx is
    generic (
@@ -102,7 +104,7 @@ begin
       streamIds(i) <= toSlv(i, 4);
    end generate;
 
-   U_Deserializer : entity work.TimingDeserializer
+   U_Deserializer : entity lcls_timing_core.TimingDeserializer
       generic map (
          TPD_G     => TPD_G,
          STREAMS_C => 16)
@@ -119,7 +121,7 @@ begin
          crcErr    => crcErr);
 
    -- Delay for timing message on stream 0
-   U_Delay0 : entity work.TimingSerialDelay
+   U_Delay0 : entity lcls_timing_core.TimingSerialDelay
       generic map (
          TPD_G    => TPD_G,
          NWORDS_G => TIMING_MESSAGE_WORDS_C,
@@ -143,7 +145,7 @@ begin
    timingMessageValid  <= dvalid0 and not r.vsnErr;
 
    GEN_FOR : for i in 1 to 15 generate
-      U_Extn : entity work.TimingSerialDelay
+      U_Extn : entity lcls_timing_core.TimingSerialDelay
          generic map (
             TPD_G    => TPD_G,
             NWORDS_G => TIMING_EXTENSION_MESSAGE_BITS_C/16,

@@ -31,7 +31,9 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 use surf.SsiPkg.all;
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 use work.AmcCarrierPkg.all;
 
 entity BldAxiStream is

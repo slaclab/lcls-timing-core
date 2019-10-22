@@ -31,8 +31,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 --use work.SsiPciePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 --use work.PciPkg.all;
 use surf.SsiPkg.all;
 
@@ -234,7 +236,7 @@ begin  -- rtl
 --                  dmaData    => dmaData        (ReadoutChannels) );
 --
   Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
-    U_EventSel : entity work.EvrV2EventSelect
+    U_EventSel : entity lcls_timing_core.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
@@ -345,7 +347,7 @@ begin  -- rtl
                   rdRst        => axiRst );
 
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
-     U_Trig : entity work.EvrV2Trigger
+     U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G    => TPD_G,
                       CHANNELS_C => ReadoutChannels,
                       --DEBUG_C    => (i<1) )
@@ -358,7 +360,7 @@ begin  -- rtl
                       trigstate=> trigOut(i) );
   end generate Out_Trigger;
   
-  U_EvrAxi : entity work.EvrV2Axi
+  U_EvrAxi : entity lcls_timing_core.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
                   CHANNELS_C => ReadoutChannels )
     port map (    axiClk              => axiClk,
@@ -379,7 +381,7 @@ begin  -- rtl
                   eventCount          => eventCount,
                   gtxDebug            => gtxDebugS );
 
-  U_EvrTrigReg : entity work.EvrV2TrigReg
+  U_EvrTrigReg : entity lcls_timing_core.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
                   TRIGGERS_C => TriggerOutputs )
     port map (    axiClk              => axiClk,

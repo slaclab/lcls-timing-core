@@ -24,7 +24,9 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -293,7 +295,7 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_AlignCheck : entity work.GthRxAlignCheck
+   U_AlignCheck : entity lcls_timing_core.GthRxAlignCheck
       generic map (
          TPD_G      => TPD_G,
          GT_TYPE_G  => "GTHE3",

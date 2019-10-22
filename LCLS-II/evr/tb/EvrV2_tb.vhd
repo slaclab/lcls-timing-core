@@ -31,11 +31,13 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 --use work.SsiPciePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 --use work.PciPkg.all;
 use surf.SsiPkg.all;
-use work.TPGPkg.all;
+use lcls_timing_core.TPGPkg.all;
 
 entity EvrV2_tb is
 end EvrV2_tb;
@@ -158,7 +160,7 @@ begin  -- rtl
     recTimingClk <= evrClk;
     recTimingRst <= evrRst;
 
-   U_TPG : entity work.TPGMini
+   U_TPG : entity lcls_timing_core.TPGMini
       port map ( txClk    => recTimingClk,
                  txRst    => recTimingRst,
                  txRdy    => '1',
@@ -167,7 +169,7 @@ begin  -- rtl
                  statusO  => open,
                  configI  => tpgConfig );
     
-    TimingDeserializer_1 : entity work.TimingDeserializer
+    TimingDeserializer_1 : entity lcls_timing_core.TimingDeserializer
     generic map ( STREAMS_C => 1 )
     port map ( clk        => recTimingClk,
                rst        => recTimingRst,
@@ -230,7 +232,7 @@ begin  -- rtl
                   dmaData    => dmaData        (ReadoutChannels) );
 
   Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
-    U_EventSel   : entity work.EvrV2EventSelect
+    U_EventSel   : entity lcls_timing_core.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
@@ -273,7 +275,7 @@ begin  -- rtl
   end process;
 
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
-     U_Trig : entity work.EvrV2Trigger
+     U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G    => TPD_G,
                       CHANNELS_C => ReadoutChannels,
                       --DEBUG_C    => (i<1) )

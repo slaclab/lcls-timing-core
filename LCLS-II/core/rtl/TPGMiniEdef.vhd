@@ -27,7 +27,9 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TPGMiniEdefPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 use surf.TextUtilPkg.all;
 
 entity TPGMiniEdef is

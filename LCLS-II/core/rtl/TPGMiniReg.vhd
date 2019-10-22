@@ -29,8 +29,10 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.TPGPkg.all;
-use work.TPGMiniEdefPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniReg is
    generic (

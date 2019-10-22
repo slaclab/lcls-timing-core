@@ -33,7 +33,9 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 -- lcls-timing-core
-use work.TimingPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingCore is
 
@@ -184,7 +186,7 @@ begin
    timingRx.dspErr <= gtRxDispErr;
    timingClkSel    <= clkSel;
 
-   U_TimingRx : entity work.TimingRx
+   U_TimingRx : entity lcls_timing_core.TimingRx
       generic map (
          TPD_G             => TPD_G,
          DEFAULT_CLK_SEL_G => DEFAULT_CLK_SEL_G,
@@ -278,7 +280,7 @@ begin
    tpgMiniTimingPhy.control.bufferByRst <= '0';
 
    GEN_MINICORE : if USE_TPGMINI_C generate
-      TPGMiniCore_1 : entity work.TPGMiniCore
+      TPGMiniCore_1 : entity lcls_timing_core.TPGMiniCore
          generic map (
             TPD_G      => TPD_G,
             NARRAYSBSA => 2)
@@ -427,7 +429,7 @@ begin
    linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
    linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
-   U_EthTiming : entity work.EthTimingModule
+   U_EthTiming : entity lcls_timing_core.EthTimingModule
       generic map (
          TPD_G             => TPD_G,
          STREAM_L1_G       => STREAM_L1_G,
