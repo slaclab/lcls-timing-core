@@ -33,7 +33,7 @@ use surf.StdRtlPkg.all;
 
 entity ClockTime is
    generic (
-      TPD_G    : time    := 1 ns)
+      TPD_G    : time    := 1 ns);
    port ( 
       -- Clock and reset
       rst                : in  sl;
