@@ -24,7 +24,9 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.EvrV1Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.EvrV1Pkg.all;
 
 entity EvrV1Reg is
    generic (

@@ -23,7 +23,9 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.EvrV1Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.EvrV1Pkg.all;
 
 entity EvrV1EventReceiver is
    generic (
@@ -415,7 +417,7 @@ begin
       end if;
    end process;
 
-   TimeStampFIFO_Inst : entity work.EvrV1TimeStampFIFO
+   TimeStampFIFO_Inst : entity lcls_timing_core.EvrV1TimeStampFIFO
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -524,7 +526,7 @@ begin
    GEN_EVENT_RAM :
    for i in 1 downto 0 generate
       
-      EventRamReset_Inst : entity work.EvrV1EventRAM256x32
+      EventRamReset_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -543,7 +545,7 @@ begin
             dinb  => config.eventRamData,
             doutb => status.eventRamReset(i));          
 
-      EventRamSet_Inst : entity work.EvrV1EventRAM256x32
+      EventRamSet_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -562,7 +564,7 @@ begin
             dinb  => config.eventRamData,
             doutb => status.eventRamSet(i));          
 
-      EventRamPulse_Inst : entity work.EvrV1EventRAM256x32
+      EventRamPulse_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -581,7 +583,7 @@ begin
             dinb  => config.eventRamData,
             doutb => status.eventRamPulse(i));          
 
-      EventRamInt_Inst : entity work.EvrV1EventRAM256x32
+      EventRamInt_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -689,7 +691,7 @@ begin
    --------------------
    -- HeartBeat Monitor
    --------------------
-   EvrV1HeartBeat_Inst : entity work.EvrV1HeartBeat
+   EvrV1HeartBeat_Inst : entity lcls_timing_core.EvrV1HeartBeat
       generic map (
          TPD_G => TPD_G)          
       port map (

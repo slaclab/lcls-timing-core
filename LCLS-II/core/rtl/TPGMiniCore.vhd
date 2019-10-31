@@ -27,8 +27,10 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.TPGPkg.all;
-use work.TPGMiniEdefPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniCore is
    generic (
@@ -90,7 +92,7 @@ begin  -- rtl
          mAxiWriteMaster => regWriteMaster,
          mAxiWriteSlave  => regWriteSlave);     
   
-   TPGMiniReg_Inst : entity work.TPGMiniReg
+   TPGMiniReg_Inst : entity lcls_timing_core.TPGMiniReg
       generic map (
          TPD_G       => TPD_G,
          NARRAYS_BSA => NARRAYSBSA)
@@ -111,7 +113,7 @@ begin  -- rtl
          irqEnable      => open,
          irqReq         => open );
 
-   TPGMini_Inst : entity work.TPGMini
+   TPGMini_Inst : entity lcls_timing_core.TPGMini
       generic map (
          TPD_G          => TPD_G,
          NARRAYSBSA     => NARRAYSBSA )
@@ -126,7 +128,7 @@ begin  -- rtl
          txData         => txData (1),
          txDataK        => txDataK(1) );
 
-   TPGMiniStream_Inst : entity work.TPGMiniStream
+   TPGMiniStream_Inst : entity lcls_timing_core.TPGMiniStream
       generic map (
          TPD_G          => TPD_G)   
       port map (

@@ -24,11 +24,13 @@ use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.TPGPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TimingPkg.all;
+use lcls_timing_core.TimingPkg.all;
 
 entity TPGMini is
   generic (
@@ -147,7 +149,7 @@ begin
   frame.resync     <= '0';
   frame.syncStatus <= '0';
 
-  BaseEnableDivider : entity work.Divider
+  BaseEnableDivider : entity lcls_timing_core.Divider
     generic map (
       TPD_G => TPD_G,
       Width => 16)
@@ -162,7 +164,7 @@ begin
   frame.acRates <= (others=>'0');
 
   FixedDivider_loop : for i in 0 to FixedRateDepth-1 generate
-    U_FixedDivider_1 : entity work.Divider
+    U_FixedDivider_1 : entity lcls_timing_core.Divider
       generic map (
         TPD_G => TPD_G,
         Width => FixedRateWidth)
@@ -183,7 +185,7 @@ begin
   frame.beamRequest <= (others=>'0');
   
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
-    U_BsaControl : entity work.BsaControl
+    U_BsaControl : entity lcls_timing_core.BsaControl
       generic map (TPD_G => TPD_G, ASYNC_REGCLK_G => false)
       port map (
         sysclk     => txClk,
@@ -213,7 +215,7 @@ begin
     frame.bsaDone   (63 downto NARRAYSBSA) <= (others => '0');
   end generate GEN_NULL_BSA;
 
-  U_TSerializer : entity work.TimingSerializer
+  U_TSerializer : entity lcls_timing_core.TimingSerializer
     generic map ( TPD_G => TPD_G, STREAMS_C => 1 )
     port map ( clk       => txClk,
                rst       => txRst,
@@ -224,7 +226,7 @@ begin
                data      => txData,
                dataK     => txDataK );
   
-  U_TPSerializer : entity work.TPSerializer
+  U_TPSerializer : entity lcls_timing_core.TPSerializer
     generic map ( TPD_G => TPD_G, Id => TPG_ID )
     port map ( txClk      => txClk,
                txRst      => txRst,
@@ -332,7 +334,7 @@ begin
     end if;
   end process;
 
-  U_ClockTime : entity work.ClockTime
+  U_ClockTime : entity lcls_timing_core.ClockTime
     generic map (
       TPD_G =>   TPD_G)
     port map (

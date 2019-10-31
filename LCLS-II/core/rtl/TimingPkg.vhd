@@ -25,7 +25,9 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TimingExtnPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingExtnPkg.all;
 
 package TimingPkg is
 

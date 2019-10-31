@@ -31,8 +31,10 @@ use ieee.NUMERIC_STD.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TimingExtnPkg.all;
 
 entity TimingRx is
    generic (
@@ -154,7 +156,7 @@ begin
     staData  (0)         <= (others=>'0');
   end generate;
   GEN_RxLcls1 : if CLKSEL_MODE_G /= "LCLSII" generate
-    U_RxLcls1 : entity work.TimingStreamRx
+    U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
       generic map (
         TPD_G             => TPD_G,
         AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
@@ -182,7 +184,7 @@ begin
     staData  (1)        <= (others=>'0');
   end generate;
   GEN_RxLcls2 : if CLKSEL_MODE_G /= "LCLSI" generate
-    U_RxLcls2 : entity work.TimingFrameRx
+    U_RxLcls2 : entity lcls_timing_core.TimingFrameRx
       generic map (
         TPD_G             => TPD_G)   
       port map (

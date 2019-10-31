@@ -22,7 +22,9 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use work.EvrV1Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.EvrV1Pkg.all;
 
 entity EvrV1Core is
    generic (
@@ -63,7 +65,7 @@ architecture mapping of EvrV1Core is
 begin
 
    GEN_LITTLE_ENDIAN : if (ENDIAN_G = false) generate
-      EvrV1Reg_Inst : entity work.EvrV1Reg
+      EvrV1Reg_Inst : entity lcls_timing_core.EvrV1Reg
          generic map (
             TPD_G        => TPD_G,
             BUILD_INFO_G => BUILD_INFO_G,
@@ -87,7 +89,7 @@ begin
    end generate;
 
    GEN_BIG_ENDIAN : if (ENDIAN_G = true) generate
-      EvrV1Reg_Inst : entity work.EvrV1Reg
+      EvrV1Reg_Inst : entity lcls_timing_core.EvrV1Reg
          generic map (
             TPD_G        => TPD_G,
             BUILD_INFO_G => BUILD_INFO_G,
@@ -128,7 +130,7 @@ begin
             axiRst                             => axiRst);
    end generate;
 
-   EvrV1EventReceiver_Inst : entity work.EvrV1EventReceiver
+   EvrV1EventReceiver_Inst : entity lcls_timing_core.EvrV1EventReceiver
       generic map (
          TPD_G           => TPD_G,
          SYNC_POLARITY_G => SYNC_POLARITY_G)

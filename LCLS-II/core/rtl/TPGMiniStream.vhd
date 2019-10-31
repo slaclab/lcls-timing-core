@@ -26,12 +26,14 @@ use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.TPGPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.TPGMiniEdefPkg.all;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniStream is
   generic (
@@ -130,7 +132,7 @@ begin
     baseRates( i - 2 ) <= fixedRates_i( i );
   end generate;
 
-  BaseEnableDivider : entity work.Divider
+  BaseEnableDivider : entity lcls_timing_core.Divider
     generic map (
       TPD_G => TPD_G,
       Width => SbaseDivisor'length)
@@ -160,7 +162,7 @@ begin
 
   FixedDivider_loop : for i in 0 to FixedRateDiv'length-1 generate
     FixedRateDivisor(i) <= toSlv(FixedRateDiv(i),32);
-    U_FixedDivider_1 : entity work.Divider
+    U_FixedDivider_1 : entity lcls_timing_core.Divider
       generic map (
         TPD_G => TPD_G,
         Width => log2(FixedRateDiv(i)))
@@ -184,7 +186,7 @@ begin
       end generate FixedRates_loop;
   end generate FixedDivider_loop;
 
-  U_TSerializer : entity work.TimingStreamTx
+  U_TSerializer : entity lcls_timing_core.TimingStreamTx
     generic map (
       TPD_G => TPD_G)
     port map ( clk       => txClk,
@@ -244,7 +246,7 @@ begin
     end if;
   end process;
 
-  U_ClockTime : entity work.ClockTime
+  U_ClockTime : entity lcls_timing_core.ClockTime
     generic map (
       TPD_G => TPD_G)
     port map (
@@ -281,7 +283,7 @@ begin
     end process;
 
 
-    U_Edef : entity work.TPGMiniEdef
+    U_Edef : entity lcls_timing_core.TPGMiniEdef
       generic map (
         TPD_G      => TPD_G,
         EDEF_G     => slv(conv_unsigned(e, EdefType'length))

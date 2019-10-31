@@ -30,8 +30,10 @@ use work.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2FromV1 is
   generic ( TPD_G      : time := 1 ns );
