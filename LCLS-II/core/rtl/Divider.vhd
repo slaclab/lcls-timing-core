@@ -21,7 +21,9 @@
 -------------------------------------------------------------------------------
 LIBRARY ieee;
 use work.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;

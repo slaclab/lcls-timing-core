@@ -31,7 +31,9 @@ use ieee.std_logic_unsigned.all;
 
 use work.all;
 use work.TPGPkg.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 use work.TimingPkg.all;
 use work.EvrV2Pkg.all;
 
@@ -103,7 +105,7 @@ begin
    end generate;
 
    GEN_FIFO : if TRIG_DEPTH_C > 0 generate
-     U_Fifo : entity work.FifoSync
+     U_Fifo : entity surf.FifoSync
        generic map ( TPD_G        => TPD_G,
                      DATA_WIDTH_G => TRIG_WIDTH_C,
                      ADDR_WIDTH_G => FIFO_AWIDTH_C,

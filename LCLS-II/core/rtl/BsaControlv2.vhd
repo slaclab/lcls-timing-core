@@ -27,7 +27,9 @@ use work.TPGPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BsaControl is
   generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false );
@@ -123,7 +125,7 @@ begin
                 
 
    GEN_ASYNC: if ASYNC_REGCLK_G=true generate
-     U_SynchFifo : entity work.SynchronizerFifo
+     U_SynchFifo : entity surf.SynchronizerFifo
        generic map (TPD_G=>TPD_G,
                     DATA_WIDTH_G => 32,
                     ADDR_WIDTH_G => 2)

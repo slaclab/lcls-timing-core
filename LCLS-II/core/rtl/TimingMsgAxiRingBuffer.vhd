@@ -25,10 +25,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 use work.TimingPkg.all;
 
 entity TimingMsgAxiRingBuffer is
@@ -81,7 +83,7 @@ begin
          axisMaster      => axisMaster);
 
       -- Pipe into AxiRingBuffer
-      AxiLiteRingBuffer_1 : entity work.AxiLiteRingBuffer
+      AxiLiteRingBuffer_1 : entity surf.AxiLiteRingBuffer
       generic map (
          TPD_G            => TPD_G,
          BRAM_EN_G        => BRAM_EN_G,

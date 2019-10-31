@@ -24,11 +24,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
+use surf.SsiPkg.all;
 use work.TimingPkg.all;
 use work.AmcCarrierPkg.all;
 
@@ -229,7 +231,7 @@ begin
    sAxisMasters(0) <= ibEthMsgMaster;
    ibEthMsgSlave   <= sAxisSlaves(0);
 
-   U_FIFO : entity work.AxiStreamFifoV2
+   U_FIFO : entity surf.AxiStreamFifoV2
      generic map ( FIFO_ADDR_WIDTH_G   => 11,
                    FIFO_PAUSE_THRESH_G => 1900,
                    VALID_THOLD_G       => 0,   -- only when a full frame is ready
@@ -290,7 +292,7 @@ begin
    cv    <= toSlv      (c.config);
    csync <= toBldConfig(csyncv);
    
-   U_CSYNC : entity work.SynchronizerVector
+   U_CSYNC : entity surf.SynchronizerVector
      generic map ( WIDTH_G => BLD_CONFIG_BITS_C )
      port map ( clk     => diagnosticClk,
                 dataIn  => cv,
@@ -299,7 +301,7 @@ begin
    sv    <= toSlv      (r.status);
    ssync <= toBldStatus(ssyncv);
    
-   U_SSYNC : entity work.SynchronizerVector
+   U_SSYNC : entity surf.SynchronizerVector
      generic map ( WIDTH_G => BLD_STATUS_BITS_C )
      port map ( clk     => axilClk,
                 dataIn  => sv,
@@ -449,7 +451,7 @@ begin
      end if;
    end process;
 
-   U_Mux : entity work.AxiStreamMux
+   U_Mux : entity surf.AxiStreamMux
      generic map ( NUM_SLAVES_G => 2 )
      port map ( axisClk      => axilClk,
                 axisRst      => axilRst,

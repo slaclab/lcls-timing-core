@@ -20,7 +20,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 use work.EvrV1Pkg.all;
 
 entity EvrV1EventReceiver is
@@ -191,7 +193,7 @@ begin
    ---------------------
    -- Synchronize Inputs
    ---------------------
-   SyncIn_0 : entity work.SynchronizerOneShot
+   SyncIn_0 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => SYNC_POLARITY_G,
@@ -201,7 +203,7 @@ begin
          dataIn  => sync,
          dataOut => extEventPulse);    
 
-   SyncIn_1 : entity work.SynchronizerVector
+   SyncIn_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 7)          
@@ -222,7 +224,7 @@ begin
          dataOut(5) => intEventEn,
          dataOut(6) => extEventEn);
 
-   SyncIn_2 : entity work.SynchronizerOneShotVector
+   SyncIn_2 : entity surf.SynchronizerOneShotVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)          
@@ -231,7 +233,7 @@ begin
          dataIn  => config.irqClr,
          dataOut => irqClr); 
 
-   SyncIn_3 : entity work.SynchronizerFifo
+   SyncIn_3 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)          
@@ -241,7 +243,7 @@ begin
          rd_clk => evrClk,
          dout   => intEventCount); 
 
-   SyncIn_4 : entity work.SynchronizerFifo
+   SyncIn_4 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)          
@@ -251,7 +253,7 @@ begin
          rd_clk => evrClk,
          dout   => uSecDivider);  
 
-   SyncIn_5 : entity work.SynchronizerFifo
+   SyncIn_5 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 8)          
@@ -261,7 +263,7 @@ begin
          rd_clk => evrClk,
          dout   => intEventCode); 
 
-   SyncIn_6 : entity work.SynchronizerFifo
+   SyncIn_6 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 8)          
@@ -271,7 +273,7 @@ begin
          rd_clk => evrClk,
          dout   => extEventCode);         
 
-   SyncIn_7 : entity work.SynchronizerOneShot
+   SyncIn_7 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -306,7 +308,7 @@ begin
       ----------------------------      
       -- Synchronize Configuration
       ----------------------------      
-      SyncIn_pulseControl : entity work.SynchronizerFifo
+      SyncIn_pulseControl : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 32)          
@@ -316,7 +318,7 @@ begin
             rd_clk => evrClk,
             dout   => pulseControl(i));   
 
-      SyncIn_pulsePrescale : entity work.SynchronizerFifo
+      SyncIn_pulsePrescale : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 32)          
@@ -326,7 +328,7 @@ begin
             rd_clk => evrClk,
             dout   => pulsePrescale(i));  
 
-      SyncIn_pulseDelay : entity work.SynchronizerFifo
+      SyncIn_pulseDelay : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 32)          
@@ -336,7 +338,7 @@ begin
             rd_clk => evrClk,
             dout   => pulseDelay(i));   
 
-      SyncIn_pulseWidth : entity work.SynchronizerFifo
+      SyncIn_pulseWidth : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 32)          
@@ -441,7 +443,7 @@ begin
    -----------------------         
    -- FIFO Readout Control
    -----------------------     
-   Sync_WrCnt : entity work.SynchronizerFifo
+   Sync_WrCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 9)          
@@ -649,7 +651,7 @@ begin
       ----------------------------      
       -- Synchronize Configuration
       ----------------------------      
-      SyncIn_xBarReg : entity work.SynchronizerFifo
+      SyncIn_xBarReg : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)          
@@ -722,7 +724,7 @@ begin
    ----------------------
    -- Generate Interrupts
    ----------------------       
-   Sync_heartbeat : entity work.SynchronizerOneShot
+   Sync_heartbeat : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)          
       port map (
@@ -755,7 +757,7 @@ begin
       end if;
    end process;
 
-   Sync_tsFIFOfull : entity work.SynchronizerOneShot
+   Sync_tsFIFOfull : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)          
       port map (
@@ -811,7 +813,7 @@ begin
    end process;
    status.dbrdy <= dbrdy;
 
-   SyncIn_rxLinkUp : entity work.RstSync
+   SyncIn_rxLinkUp : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -857,7 +859,7 @@ begin
    ----------------------
    -- Synchronize Outputs
    ----------------------  
-   SyncOut_0 : entity work.SynchronizerVector
+   SyncOut_0 : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 2)          
@@ -868,7 +870,7 @@ begin
          dataOut(0) => status.dbInt,
          dataOut(1) => status.dbIntEna);
 
--- SyncOut_1 : entity work.SynchronizerVector
+-- SyncOut_1 : entity surf.SynchronizerVector
 -- generic map (
 -- TPD_G   => TPD_G,
 -- WIDTH_G => 32)          
@@ -878,7 +880,7 @@ begin
 -- dataOut => status.intFlag); 
    status.intFlag <= intFlag;
 
-   SyncOut_2 : entity work.SynchronizerFifo
+   SyncOut_2 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 12)          
@@ -888,7 +890,7 @@ begin
          rd_clk => axiClk,
          dout   => status.rxSize);   
 
-   SyncOut_3 : entity work.SynchronizerFifo
+   SyncOut_3 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64)          
@@ -898,7 +900,7 @@ begin
          rd_clk => axiClk,
          dout   => status.tsLatch);   
 
-   SyncOut_4 : entity work.SynchronizerFifo
+   SyncOut_4 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64)          
@@ -908,7 +910,7 @@ begin
          rd_clk => axiClk,
          dout   => status.ts);      
 
-   SyncOut_5 : entity work.SynchronizerFifo
+   SyncOut_5 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)          

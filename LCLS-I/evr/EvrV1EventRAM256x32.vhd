@@ -18,7 +18,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV1EventRAM256x32 is
    generic (
@@ -44,7 +46,7 @@ architecture mapping of EvrV1EventRAM256x32 is
 
 begin
    
-   TrueDualPortRam_Inst : entity work.TrueDualPortRam
+   TrueDualPortRam_Inst : entity surf.TrueDualPortRam
       generic map (
          TPD_G        => TPD_G,
          MODE_G       => "read-first",
