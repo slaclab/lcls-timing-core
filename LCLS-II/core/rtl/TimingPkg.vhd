@@ -26,6 +26,9 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
+library lcls_timing_core;
+use lcls_timing_core.TimingExtnPkg.all;
+
 package TimingPkg is
 
    constant D_102_C : slv(7 downto 0) := "01001010";  -- D10.2, 0x4A
