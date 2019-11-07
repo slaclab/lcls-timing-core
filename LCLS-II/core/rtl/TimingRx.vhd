@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-06-03
--- Last update: 2019-09-19
+-- Last update: 2019-11-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,10 +39,9 @@ use lcls_timing_core.TimingPkg.all;
 
 entity TimingRx is
    generic (
-      TPD_G             : time            := 1 ns;
-      DEFAULT_CLK_SEL_G : sl              := '1';
-      CLKSEL_MODE_G     : string          := "SELECT";  -- "LCLSI","LCLSII"
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
+      TPD_G             : time   := 1 ns;
+      DEFAULT_CLK_SEL_G : sl     := '1';
+      CLKSEL_MODE_G     : string := "SELECT");  -- "LCLSI","LCLSII"
    port (
       rxClk  : in sl;
       rxData : in TimingRxType;
@@ -161,8 +160,7 @@ begin
    GEN_RxLcls1 : if CLKSEL_MODE_G /= "LCLSII" generate
       U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
          generic map (
-            TPD_G             => TPD_G,
-            AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
+            TPD_G => TPD_G)
          port map (
             rxClk                => rxClk,
             rxRst                => rxRst(0),
@@ -286,7 +284,7 @@ begin
 
       axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
 
-      axilSlaveDefault(AXIL_ERROR_RESP_G);
+      axilSlaveDefault(AXI_RESP_DECERR_C);
 
       if axilRxLinkUp = '0' then
          v.rxDown := '1';
