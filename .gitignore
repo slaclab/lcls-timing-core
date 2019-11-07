@@ -32,6 +32,17 @@ build.info
 # Vivado Build
 build*
 
+# Travis Build
+doxygen/
+ghdl/
+*.o
+*.pyc
+*.db
+*.swp
+*._*
+*.db
+*.log
+
 # Only .bit.gz and .mcs.gz should be committed to git
 *.bit
 *.mcs
