@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-11-28
+-- Last update: 2019-11-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -39,9 +39,7 @@ use lcls_timing_core.TimingPkg.all;
 entity TimingStreamRx is
 
    generic (
-      TPD_G             : time            := 1 ns;
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
-
+      TPD_G             : time            := 1 ns);
    port (
       rxClk               : in  sl;
       rxRst               : in  sl;

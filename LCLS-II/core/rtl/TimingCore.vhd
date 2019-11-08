@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-25
--- Last update: 2019-10-09
+-- Last update: 2019-11-06
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -187,8 +186,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          DEFAULT_CLK_SEL_G => DEFAULT_CLK_SEL_G,
-         CLKSEL_MODE_G     => CLKSEL_MODE_G,
-         AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
+         CLKSEL_MODE_G     => CLKSEL_MODE_G)
       port map (
          txClk               => gtTxUsrClk,
          rxClk               => gtRxRecClk,
