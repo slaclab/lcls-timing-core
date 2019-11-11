@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2018-07-21
+-- Last update: 2019-11-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ architecture rtl of TimingFrameRx is
 
    signal fiducial           : sl;
    signal streams            : TimingSerialArray(1 downto 0);
-   signal streamIds          : Slv4Array        (1 downto 0) := ( x"1", x"0" );
+   signal streamIds          : Slv4Array        (1 downto 0) := ( EXPT_STREAM_ID, x"0" );
    signal advance            : slv              (1 downto 0);
    signal sof, eof, crcErr   : sl;
    signal dframe0            : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
