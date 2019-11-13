@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : TimingCore.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-25
--- Last update: 2019-11-06
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -45,7 +37,6 @@ entity TimingCore is
       AXIL_RINGB_G      : boolean             := true;
       ASYNC_G           : boolean             := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)    := (others => '0');
-      AXIL_ERROR_RESP_G : slv(1 downto 0)     := AXI_RESP_OK_C;
       USE_TPGMINI_G     : boolean             := true);
    port (
 
