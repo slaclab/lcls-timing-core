@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-07-07
--- Last update: 2018-12-21
+-- Last update: 2019-11-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -111,6 +111,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
   signal dout_msg  : slv(15 downto 0);
   signal firstW    : sl;
   signal wr_cnt    : sl;
+  signal nwordslv : slv(7 downto 0);
 
   attribute use_dsp48      : string;
   attribute use_dsp48 of r : signal is "yes";  
@@ -123,7 +124,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
   end component;
   
 begin
-
+      nwordslv <= toslv(r.nword, 8);
    GEN_DEBUG : if DEBUG_G generate
      r_state <= "00" when r.state = IDLE_S else
                 "01" when r.state = SHIFT_S else
@@ -153,7 +154,7 @@ begin
                   probe0(57)           => r.strobe,
                   probe0(58)           => r.valid,
                   probe0(60 downto 59) => r_state,
-                  probe0(68 downto 61) => toSlv(r.nword,8),
+                  probe0(68 downto 61) => nwordslv,
                   probe0(255 downto 69) => (others=>'0') );
    end generate;
    
