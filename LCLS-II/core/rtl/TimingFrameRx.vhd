@@ -25,9 +25,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TimingExtnPkg.all;
 
 entity TimingFrameRx is
    generic (
@@ -101,7 +105,7 @@ begin
      streamIds(i) <= toSlv(i,4);
    end generate;
      
-   U_Deserializer : entity work.TimingDeserializer
+   U_Deserializer : entity lcls_timing_core.TimingDeserializer
       generic map ( TPD_G=>TPD_G, STREAMS_C => streams'length )
       port map ( clk       => rxClk,
                  rst       => rxRst,
@@ -114,7 +118,7 @@ begin
                  eof       => eof,
                  crcErr    => crcErr );
 
-   U_Delay0 : entity work.TimingSerialDelay
+   U_Delay0 : entity lcls_timing_core.TimingSerialDelay
      generic map ( TPD_G=>TPD_G, NWORDS_G => TIMING_MESSAGE_WORDS_C,
                    FDEPTH_G => 100 )
      port map ( clk        => rxClk,
@@ -135,7 +139,7 @@ begin
 
    GEN_EXTN : if TIMING_EXTN_STREAMS_C > 0 generate
      GEN_FOR : for i in 1 to TIMING_EXTN_STREAMS_C generate
-       U_Extn : entity work.TimingSerialDelay
+       U_Extn : entity lcls_timing_core.TimingSerialDelay
          generic map ( TPD_G    => TPD_G,
                        NWORDS_G => TIMING_EXTN_WORDS_C(i-1),
                        FDEPTH_G => 100 )

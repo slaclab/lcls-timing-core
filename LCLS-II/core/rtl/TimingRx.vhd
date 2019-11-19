@@ -27,10 +27,14 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TimingExtnPkg.all;
 
 entity TimingRx is
    generic (
@@ -152,7 +156,7 @@ begin
     staData  (0)         <= (others=>'0');
   end generate;
   GEN_RxLcls1 : if CLKSEL_MODE_G /= "LCLSII" generate
-    U_RxLcls1 : entity work.TimingStreamRx
+    U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
       generic map (
         TPD_G             => TPD_G,
         AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
@@ -180,7 +184,7 @@ begin
     staData  (1)        <= (others=>'0');
   end generate;
   GEN_RxLcls2 : if CLKSEL_MODE_G /= "LCLSI" generate
-    U_RxLcls2 : entity work.TimingFrameRx
+    U_RxLcls2 : entity lcls_timing_core.TimingFrameRx
       generic map (
         TPD_G             => TPD_G)   
       port map (
@@ -319,7 +323,7 @@ begin
      end if;
    end process txClkCnt_seq;
    
-   SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
+   SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
      generic map (
        TPD_G          => TPD_G,
        CNT_RST_EDGE_G => true,
@@ -351,7 +355,7 @@ begin
      rxRin <= v;
    end process;
 
-   SyncStatusVector_1 : entity work.SyncStatusVector
+   SyncStatusVector_1 : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
@@ -369,7 +373,7 @@ begin
          rdClk        => axilClk,
          rdRst        => '0');
 
-   SyncStatusVector_3 : entity work.SyncStatusVector
+   SyncStatusVector_3 : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
@@ -391,13 +395,13 @@ begin
          rdClk        => axilClk,
          rdRst        => '0');
 
-   U_Version : entity work.SynchronizerVector
+   U_Version : entity surf.SynchronizerVector
      generic map ( WIDTH_G => 32 )
      port map ( clk     => axilClk,
                 dataIn  => rxVersion12,
                 dataOut => axilVersion );
    
-   U_VsnErr : entity work.Synchronizer
+   U_VsnErr : entity surf.Synchronizer
      port map ( clk     => axilClk,
                 dataIn  => staData12(4),
                 dataOut => axilVsnErr );
@@ -409,31 +413,31 @@ begin
       end if;
    end process rxClkCnt_seq;
 
-   SyncRxRst : entity work.Synchronizer
+   SyncRxRst : entity surf.Synchronizer
      generic map ( TPD_G => TPD_G )
      port map ( clk     => rxClk,
                 dataIn  => axilR.clkSel,
                 dataOut => clkSelR );
 
-   SyncDelayRst : entity work.Synchronizer
+   SyncDelayRst : entity surf.Synchronizer
      generic map ( TPD_G => TPD_G )   
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelayRst,
                 dataOut => messageDelayRst );
 
-   SyncDelay : entity work.SynchronizerVector
+   SyncDelay : entity surf.SynchronizerVector
      generic map ( TPD_G => TPD_G, WIDTH_G => axilR.messageDelay'length )
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelay,
                 dataOut => messageDelayR );
 
-   SyncStreamNoDelay : entity work.Synchronizer
+   SyncStreamNoDelay : entity surf.Synchronizer
      generic map ( TPD_G => TPD_G )    
      port map ( clk     => rxClk,
                 dataIn  => axilR.streamNoDelay,
                 dataOut => timingStreamNoDelayR );
 
-   SyncRxStatus : entity work.SyncStatusVector
+   SyncRxStatus : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "11",
@@ -450,7 +454,7 @@ begin
          rdClk        => axilClk,
          rdRst        => '0');
      
-   SyncBypassRst : entity work.Synchronizer
+   SyncBypassRst : entity surf.Synchronizer
      generic map ( TPD_G => TPD_G )     
      port map ( clk     => rxClk,
                 dataIn  => axilR.rxControl.bufferByRst,
@@ -459,7 +463,7 @@ begin
    -- gray encode event timestamp counter to bring into AXIL domain
    timingTSEvCntGray_i <= timingTSEventCounter xor '0' & timingTSEventCounter(31 downto 1);
 
-   SyncTSEvCnt : entity work.SynchronizerVector
+   SyncTSEvCnt : entity surf.SynchronizerVector
      generic map (
         TPD_G   => TPD_G,
         WIDTH_G => timingTSEvCntGray_i'length)

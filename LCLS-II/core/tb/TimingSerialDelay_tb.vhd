@@ -23,10 +23,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingSerialDelayTb is end TimingSerialDelayTb;
 
@@ -94,7 +98,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -105,7 +109,7 @@ begin
          rst  => rst,
          rstL => rstL);
 
-   U_Fiduial : entity work.Divider
+   U_Fiduial : entity lcls_timing_core.Divider
      generic map (TPD_G => TPD_G,
                   Width => 10 )
      port map ( sysClk   => clk,
@@ -115,7 +119,7 @@ begin
                 divisor  => toSlv(FID_PERIOD_C,10),
                 trigO    => fiducial );
 
-   U_L0Reset : entity work.Divider
+   U_L0Reset : entity lcls_timing_core.Divider
      generic map ( Width => 16 )
      port map ( sysClk   => clk,
                 sysReset => rst,
@@ -124,7 +128,7 @@ begin
                 divisor  => toSlv(FID_PERIOD_C*10,16),
                 trigO    => l0Reset );
   
-   U_DUT : entity work.TimingSerialDelay
+   U_DUT : entity lcls_timing_core.TimingSerialDelay
      generic map ( TPD_G    => TPD_G,
                    NWORDS_G => FRAME_LEN_C,
                    FDEPTH_G => 100 )

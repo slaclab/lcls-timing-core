@@ -23,13 +23,17 @@
 -------------------------------------------------------------------------------
 library ieee;
 use work.all;
-use work.TPGPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity CtrControl is
   generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false ); 
@@ -74,12 +78,12 @@ begin
 
    count <= r.latch;
 
-   U_Latch : entity work.SynchronizerEdge
+   U_Latch : entity surf.SynchronizerEdge
      port map ( clk        => txclk,
                 dataIn     => ctrrst,
                 risingEdge => ctrlatch);
    
-   U_Select : entity work.EventSelect
+   U_Select : entity lcls_timing_core.EventSelect
      port map ( clk       => txclk,
                 rateType  => ctrdef.rateSel(12 downto 11),
                 fxRateSel => ctrdef.rateSel( 3 downto 0),

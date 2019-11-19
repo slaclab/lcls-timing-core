@@ -25,11 +25,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
-use work.TimingPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingMsgToAxiStream is
 
@@ -125,7 +129,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_1 : entity work.AxiStreamFifoV2
+   AxiStreamFifo_1 : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,

@@ -22,9 +22,13 @@
 library ieee;
 use work.all;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.CrcPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use surf.CrcPkg.all;
 
 entity TimingSerializer is
    generic (
@@ -81,7 +85,7 @@ begin
   dataK    <= r.dataK;
   
   
-  U_CRC : entity work.Crc32Parallel
+  U_CRC : entity surf.Crc32Parallel
     generic map ( TPD_G=>TPD_G, BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
     port map ( crcOut       => crc,
                crcClk       => clk,

@@ -33,8 +33,12 @@ use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 entity TimingSerialDelay is
    generic ( TPD_G         : time    := 1 ns;
@@ -164,7 +168,7 @@ begin
    wr_cnt     <= fiducial_i and r.accept and din_rdy;
    din_rdy    <= r.accept_last;
    
-   U_CntDelay : entity work.FifoSync
+   U_CntDelay : entity surf.FifoSync
      generic map ( TPD_G        => TPD_G,
                    FWFT_EN_G    => true,
                    DATA_WIDTH_G => 21,
@@ -180,7 +184,7 @@ begin
                 valid             => valid_cnt,
                 overflow          => full_cnt );
    
-   U_MsgDelay : entity work.FifoSync
+   U_MsgDelay : entity surf.FifoSync
      generic map ( TPD_G        => TPD_G,
                    FWFT_EN_G    => true,
                    DATA_WIDTH_G => 17,

@@ -25,8 +25,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 
 entity TimingMsgDelay is
@@ -83,7 +87,7 @@ begin
 
    timingMessageSlv <= toSlv(timingMessageIn);
 
-   Fifo_Time : entity work.Fifo
+   Fifo_Time : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,
@@ -103,7 +107,7 @@ begin
          dout   => fifoReadoutTime,
          valid  => fifoValid);
 
-   Fifo_Data : entity work.Fifo
+   Fifo_Data : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,

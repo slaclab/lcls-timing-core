@@ -26,14 +26,18 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 --use work.SsiPciePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 --use work.PciPkg.all;
-use work.SsiPkg.all;
-use work.TPGPkg.all;
+use surf.SsiPkg.all;
+use lcls_timing_core.TPGPkg.all;
 
 entity EvrV2_tb is
 end EvrV2_tb;
@@ -156,7 +160,7 @@ begin  -- rtl
     recTimingClk <= evrClk;
     recTimingRst <= evrRst;
 
-   U_TPG : entity work.TPGMini
+   U_TPG : entity lcls_timing_core.TPGMini
       port map ( txClk    => recTimingClk,
                  txRst    => recTimingRst,
                  txRdy    => '1',
@@ -165,7 +169,7 @@ begin  -- rtl
                  statusO  => open,
                  configI  => tpgConfig );
     
-    TimingDeserializer_1 : entity work.TimingDeserializer
+    TimingDeserializer_1 : entity lcls_timing_core.TimingDeserializer
     generic map ( STREAMS_C => 1 )
     port map ( clk        => recTimingClk,
                rst        => recTimingRst,
@@ -228,7 +232,7 @@ begin  -- rtl
                   dmaData    => dmaData        (ReadoutChannels) );
 
   Loop_BsaCh: for i in 0 to ReadoutChannels-1 generate
-    U_EventSel   : entity work.EvrV2EventSelect
+    U_EventSel   : entity lcls_timing_core.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
@@ -271,7 +275,7 @@ begin  -- rtl
   end process;
 
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
-     U_Trig : entity work.EvrV2Trigger
+     U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G    => TPD_G,
                       CHANNELS_C => ReadoutChannels,
                       --DEBUG_C    => (i<1) )
@@ -289,7 +293,7 @@ begin  -- rtl
   -- Synchronize configurations to evrClk
   Sync_Channel: for i in 0 to ReadoutChannels-1 generate
     
-    U_SyncRate : entity work.SynchronizerVector
+    U_SyncRate : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).rateSel'length)
       port map (    clk     => evrClk,
@@ -297,7 +301,7 @@ begin  -- rtl
                     dataIn  => channelConfig (i).rateSel,
                     dataOut => channelConfigS(i).rateSel );
     
-    U_SyncDest : entity work.SynchronizerVector
+    U_SyncDest : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).destSel'length)
       port map (    clk     => evrClk,
@@ -305,21 +309,21 @@ begin  -- rtl
                     dataIn  => channelConfig (i).destSel,
                     dataOut => channelConfigS(i).destSel );
      
-    Sync_Enable : entity work.Synchronizer
+    Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
                     rst     => evrRst,
                     dataIn  => channelConfig (i).enabled,
                     dataOut => channelConfigS(i).enabled );
 
-    Sync_dmaEnable : entity work.Synchronizer
+    Sync_dmaEnable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
                     rst     => evrRst,
                     dataIn  => channelConfig (i).dmaEnabled,
                     dataOut => channelConfigS(i).dmaEnabled );
 
-    Sync_bsaEnable : entity work.Synchronizer
+    Sync_bsaEnable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
                     rst     => evrRst,
@@ -328,7 +332,7 @@ begin  -- rtl
 
     channelConfigS(i).bsaEnabled <= bsaEnabled(i);
     
-    Sync_Setup : entity work.SynchronizerVector
+    Sync_Setup : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveSetup'length)
       port map (    clk     => evrClk,
@@ -336,7 +340,7 @@ begin  -- rtl
                     dataIn  => channelConfig (i).bsaActiveSetup,
                     dataOut => channelConfigS(i).bsaActiveSetup );
     
-    Sync_Delay : entity work.SynchronizerVector
+    Sync_Delay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveDelay'length)
       port map (    clk     => evrClk,
@@ -344,7 +348,7 @@ begin  -- rtl
                     dataIn  => channelConfig (i).bsaActiveDelay,
                     dataOut => channelConfigS(i).bsaActiveDelay );
     
-    Sync_Width : entity work.SynchronizerVector
+    Sync_Width : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveWidth'length)
       port map (    clk     => evrClk,
@@ -356,21 +360,21 @@ begin  -- rtl
 
   Sync_Trigger: for i in 0 to TriggerOutputs-1 generate
     
-    Sync_Enable : entity work.Synchronizer
+    Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).enabled,
                     dataOut => triggerConfigS(i).enabled );
 
-    Sync_Polarity : entity work.Synchronizer
+    Sync_Polarity : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).polarity,
                     dataOut => triggerConfigS(i).polarity );
 
-    Sync_Channel : entity work.SynchronizerVector
+    Sync_Channel : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).channel'length)
       port map (    clk     => evrClk,
@@ -378,7 +382,7 @@ begin  -- rtl
                     dataIn  => triggerConfig (i).channel,
                     dataOut => triggerConfigS(i).channel );
     
-    U_SyncDelay : entity work.SynchronizerVector
+    U_SyncDelay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).delay'length)
       port map (    clk     => evrClk,
@@ -386,7 +390,7 @@ begin  -- rtl
                     dataIn  => triggerConfig (i).delay,
                     dataOut => triggerConfigS(i).delay );
     
-    U_SyncWidth : entity work.SynchronizerVector
+    U_SyncWidth : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).width'length)
       port map (    clk     => evrClk,
@@ -396,7 +400,7 @@ begin  -- rtl
      
   end generate Sync_Trigger;
 
-  Sync_dmaFullThr : entity work.SynchronizerVector
+  Sync_dmaFullThr : entity surf.SynchronizerVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => 24 )
     port map (    clk     => evrClk,

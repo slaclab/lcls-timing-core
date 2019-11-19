@@ -24,12 +24,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.TimingPkg.all;
-use work.TimingExtnPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TimingExtnPkg.all;
 
 entity TimingCore is
 
@@ -151,7 +155,7 @@ begin
    appTimingBus  <= appTimingBus_i;
    appTimingMode <= timingClkSelApp;
 
-   AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
+   AxiLiteCrossbar_1 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -180,7 +184,7 @@ begin
    timingRx.dspErr <= gtRxDispErr;
    timingClkSel    <= clkSel;
    
-   U_TimingRx : entity work.TimingRx
+   U_TimingRx : entity lcls_timing_core.TimingRx
       generic map (
          TPD_G             => TPD_G,
          DEFAULT_CLK_SEL_G => DEFAULT_CLK_SEL_G,
@@ -214,7 +218,7 @@ begin
       -------------------------------------------------------------------------------------------------
       -- Ring buffer to log raw GT words
       -------------------------------------------------------------------------------------------------
-      AxiLiteRingBuffer_1 : entity work.AxiLiteRingBuffer
+      AxiLiteRingBuffer_1 : entity surf.AxiLiteRingBuffer
          generic map (
             TPD_G            => TPD_G,
             BRAM_EN_G        => true,
@@ -250,7 +254,7 @@ begin
          end if;
       end process;
 
-      AxiLiteRingBuffer_2 : entity work.AxiLiteRingBuffer
+      AxiLiteRingBuffer_2 : entity surf.AxiLiteRingBuffer
          generic map (
             TPD_G            => TPD_G,
             BRAM_EN_G        => true,
@@ -275,7 +279,7 @@ begin
    timingPhy.control.bufferByRst <= '0';
    
    GEN_MINICORE : if USE_TPGMINI_C generate
-      TPGMiniCore_1 : entity work.TPGMiniCore
+      TPGMiniCore_1 : entity lcls_timing_core.TPGMiniCore
          generic map (
             TPD_G      => TPD_G, 
             NARRAYSBSA => 2)
@@ -296,7 +300,7 @@ begin
             axiWriteMaster => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
-      U_SyncClkSel : entity work.Synchronizer
+      U_SyncClkSel : entity surf.Synchronizer
          generic map (TPD_G=> TPD_G)      
         port map ( clk     => gtTxUsrClk,
                    dataIn  => clkSel,
@@ -349,7 +353,7 @@ begin
 
      -- Need to syncrhonize timingClkSelR to appTimingClk so we can use
      -- it to switch between stream and message in appTimingClk domain
-     U_Synchronizer_1 : entity work.Synchronizer
+     U_Synchronizer_1 : entity surf.Synchronizer
        generic map (
          TPD_G => TPD_G)
        port map (
@@ -358,7 +362,7 @@ begin
          dataIn  => timingClkSelR,      -- [in]
          dataOut => timingClkSelApp);   -- [out]
 
-      SynchronizerFifo_1 : entity work.SynchronizerFifo
+      SynchronizerFifo_1 : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => TIMING_FRAME_LEN+1)
@@ -373,7 +377,7 @@ begin
             dout(0)                         => appTimingBus_i.valid,
             valid                           => appTimingBus_i.strobe);
      
-     SynchronizerFifo_2 : entity work.SynchronizerFifo
+     SynchronizerFifo_2 : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => TIMING_EXTN_BITS_C+1)
@@ -399,7 +403,7 @@ begin
       timingClkSelApp        <= timingClkSelR;
    end generate;
 
-   U_SYNC_LinkV1 : entity work.Synchronizer
+   U_SYNC_LinkV1 : entity surf.Synchronizer
      generic map (TPD_G => TPD_G)   
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV1,
@@ -410,7 +414,7 @@ begin
    appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others=>'0');
    appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others=>'0');
 
-   U_SYNC_LinkV2 : entity work.Synchronizer
+   U_SYNC_LinkV2 : entity surf.Synchronizer
      generic map (TPD_G => TPD_G)     
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV2,
@@ -419,7 +423,7 @@ begin
    linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
    linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
-   U_EthTiming : entity work.EthTimingModule
+   U_EthTiming : entity lcls_timing_core.EthTimingModule
      generic map ( TPD_G             => TPD_G,
                    STREAM_L1_G       => STREAM_L1_G,
                    ETHMSG_AXIS_CFG_G => ETHMSG_AXIS_CFG_G )

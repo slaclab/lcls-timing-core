@@ -22,10 +22,14 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2CoreTriggers is
   generic (
@@ -96,7 +100,7 @@ begin  -- rtl
   -------------------------
   -- AXI-Lite Crossbar Core
   -------------------------  
-  AxiLiteCrossbar_Inst : entity work.AxiLiteCrossbar
+  AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
       NUM_SLAVE_SLOTS_G  => 1,
@@ -114,7 +118,7 @@ begin  -- rtl
       mAxiReadMasters     => axiReadMasters,
       mAxiReadSlaves      => axiReadSlaves);   
 
-  U_TrigReg : entity work.EvrV2TrigReg
+  U_TrigReg : entity lcls_timing_core.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
                   EVR_CARD_G => EVR_CARD_G,
                   TRIGGERS_C => NTRIGGERS_G )
@@ -127,7 +131,7 @@ begin  -- rtl
                   -- configuration
                   triggerConfig       => triggerConfig );
   
-  U_EvrChanReg : entity work.EvrV2ChannelReg
+  U_EvrChanReg : entity lcls_timing_core.EvrV2ChannelReg
     generic map ( TPD_G        => TPD_G,
                   EVR_CARD_G   => EVR_CARD_G,
                   NCHANNELS_G  => NCHANNELS_G )
@@ -143,7 +147,7 @@ begin  -- rtl
                   eventCount          => eventCountV(NCHANNELS_G-1 downto 0));
 
    Loop_EventSel: for i in 0 to NCHANNELS_G-1 generate
-     U_EventSel : entity work.EvrV2EventSelect
+     U_EventSel : entity lcls_timing_core.EvrV2EventSelect
        generic map ( TPD_G         => TPD_G )
        port map    ( clk           => evrClk,
                      rst           => evrRst,
@@ -152,7 +156,7 @@ begin  -- rtl
                      dataIn        => timingMsg,
                      selectOut     => eventSel(i) );
 
-     U_Trig : entity work.EvrV2Trigger
+     U_Trig : entity lcls_timing_core.EvrV2Trigger
        generic map ( TPD_G        => TPD_G,
                      CHANNELS_C   => NCHANNELS_G,
                      TRIG_DEPTH_C => TRIG_PIPE_G,
@@ -173,7 +177,7 @@ begin  -- rtl
                         evrBus.stream.dbuff.edefInit;
    trigOut.dmod      <= evrBus.stream.dbuff.dmod;
   
-   U_V2FromV1 : entity work.EvrV2FromV1
+   U_V2FromV1 : entity lcls_timing_core.EvrV2FromV1
      port map ( clk       => evrClk,
                 disable   => evrModeSel,
                 timingIn  => evrBus,
@@ -197,12 +201,12 @@ begin  -- rtl
    
    GEN_SYNC : if not COMMON_CLK_G generate
      -- Synchronize configurations to evrClk
-     U_SyncChannelConfig : entity work.SynchronizerVector
+     U_SyncChannelConfig : entity surf.SynchronizerVector
        generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
        port map ( clk     => evrClk,
                   dataIn  => channelConfigAV,
                   dataOut => channelConfigSV );
-     U_SyncTriggerConfig : entity work.SynchronizerVector
+     U_SyncTriggerConfig : entity surf.SynchronizerVector
        generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
        port map ( clk     => evrClk,
                   dataIn  => triggerConfigAV,
@@ -218,7 +222,7 @@ begin  -- rtl
        triggerConfigS(i) <= toTriggerConfig(triggerConfigSV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C));
      end generate;
 
-     Sync_EvtCount : entity work.SyncStatusVector
+     Sync_EvtCount : entity surf.SyncStatusVector
        generic map ( TPD_G   => TPD_G,
                      WIDTH_G => NCHANNELS_G )
        port map    ( statusIn     => eventSel,

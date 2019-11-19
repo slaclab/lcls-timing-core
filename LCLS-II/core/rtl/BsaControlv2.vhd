@@ -23,11 +23,15 @@
 -------------------------------------------------------------------------------
 library ieee;
 use work.all;
-use work.TPGPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity BsaControl is
   generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false );
@@ -106,7 +110,7 @@ begin
    bsaAvgDone <= r.bsaAvgDone;
    bsaDone    <= r.bsaDone;
    
-   U_Select : entity work.EventSelect
+   U_Select : entity lcls_timing_core.EventSelect
      generic map (TPD_G=>TPD_G)
      port map ( clk       => txclk,
                 rateType  => bsadef.rateSel(12 downto 11),
@@ -123,7 +127,7 @@ begin
                 
 
    GEN_ASYNC: if ASYNC_REGCLK_G=true generate
-     U_SynchFifo : entity work.SynchronizerFifo
+     U_SynchFifo : entity surf.SynchronizerFifo
        generic map (TPD_G=>TPD_G,
                     DATA_WIDTH_G => 32,
                     ADDR_WIDTH_G => 2)

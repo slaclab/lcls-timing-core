@@ -24,11 +24,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.TPGPkg.all;
-use work.TimingPkg.all;
-use work.TextUtilPkg.all;
-use work.TPGMiniEdefPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+use lcls_timing_core.TimingPkg.all;
+use surf.TextUtilPkg.all;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniEdefTb is
 end entity TPGMiniEdefTb;
@@ -109,7 +113,7 @@ begin
 		end if;
 	end process P_REP;
 
-	U_DUT_STREAM : entity work.TPGMiniStream
+	U_DUT_STREAM : entity lcls_timing_core.TPGMiniStream
 		generic map (
 			TPD_G      => 1 ns,
 			AC_PERIOD  => 2

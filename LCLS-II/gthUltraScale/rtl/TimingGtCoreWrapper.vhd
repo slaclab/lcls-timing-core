@@ -20,9 +20,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -269,7 +273,7 @@ begin
    rxStatus.bufferByDone <= bypassdone;
    rxStatus.bufferByErr  <= bypasserr;
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 2,
@@ -291,7 +295,7 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_AlignCheck : entity work.GthRxAlignCheck
+   U_AlignCheck : entity lcls_timing_core.GthRxAlignCheck
       generic map (
          TPD_G      => TPD_G,
          GT_TYPE_G  => "GTHE3",
@@ -320,7 +324,7 @@ begin
          sAxilWriteMaster => axilWriteMasters(0),
          sAxilWriteSlave  => axilWriteSlaves(0));
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,
@@ -348,7 +352,7 @@ begin
 
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
-      U_TERM : entity work.Gthe3ChannelDummy
+      U_TERM : entity surf.Gthe3ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 1)
@@ -560,13 +564,13 @@ begin
             O       => rxoutclkb);
    end generate;
 
-   U_RstSyncTx : entity work.RstSync
+   U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
       port map (clk      => txoutclkb,
                 asyncRst => txControl.reset,
                 syncRst  => txbypassrst);
 
-   U_RstSyncRx : entity work.RstSync
+   U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
       port map (clk      => rxoutclkb,
                 asyncRst => rxRst,
