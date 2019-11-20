@@ -1,13 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : TimingRx.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-03
--- Last update: 2018-12-02
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 --   Common module to parse both LCLS-I and LCLS-II timing streams.
@@ -359,7 +353,6 @@ begin
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
-         USE_DSP48_G    => "no",
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
@@ -377,7 +370,6 @@ begin
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => "1111",
-         USE_DSP48_G    => "no",
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
          WIDTH_G        => 4 )
