@@ -208,7 +208,7 @@ begin
       AxiLiteRingBuffer_1 : entity surf.AxiLiteRingBuffer
          generic map (
             TPD_G            => TPD_G,
-            BRAM_EN_G        => true,
+            MEMORY_TYPE_G    => "block",
             REG_EN_G         => true,
             DATA_WIDTH_G     => 18,
             RAM_ADDR_WIDTH_G => 13)
@@ -244,7 +244,7 @@ begin
       AxiLiteRingBuffer_2 : entity surf.AxiLiteRingBuffer
          generic map (
             TPD_G            => TPD_G,
-            BRAM_EN_G        => true,
+            MEMORY_TYPE_G    => "block",
             REG_EN_G         => true,
             DATA_WIDTH_G     => 32,
             RAM_ADDR_WIDTH_G => 13)

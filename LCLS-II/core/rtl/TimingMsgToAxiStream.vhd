@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2016-03-11
+-- Last update: 2019-11-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -42,11 +42,11 @@ entity TimingMsgToAxiStream is
       COMMON_CLOCK_G : boolean             := false;  -- Set true if timingClk=axisClk
       SHIFT_SIZE_G   : integer range 16 to 128;
       AXIS_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
-      VECTOR_SIZE_G  : integer );
+      VECTOR_SIZE_G  : integer);
 
    port (
-      timingClk       : in sl;
-      timingRst       : in sl;
+      timingClk           : in sl;
+      timingRst           : in sl;
       timingMessage       : in slv(VECTOR_SIZE_G-1 downto 0);
       timingMessageStrobe : in sl;
 
@@ -69,14 +69,14 @@ architecture rtl of TimingMsgToAxiStream is
 
    type RegType is record
       ssiMaster : SsiMasterType;
-      message       : slv(VECTOR_SIZE_G-1 downto 0);
+      message   : slv(VECTOR_SIZE_G-1 downto 0);
       active    : sl;
       count     : slv(COUNT_SIZE_C-1 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
       ssiMaster => ssiMasterInit(INT_AXIS_CONFIG_C),
-      message       => (others => '0'),
+      message   => (others => '0'),
       active    => '0',
       count     => (others => '0'));
 
@@ -95,8 +95,8 @@ begin
       v.count := (others => '0');
 
       if (timingMessageStrobe = '1') then
-         v.message    := timingMessage;
-         v.active := '1';
+         v.message := timingMessage;
+         v.active  := '1';
       end if;
 
       v.ssiMaster     := ssiMasterInit(INT_AXIS_CONFIG_C);
@@ -108,7 +108,7 @@ begin
 
          v.ssiMaster.valid := '1';
          v.active          := not v.ssiMaster.eof;
-         v.message             := slvZero(SHIFT_SIZE_G) & r.message(VECTOR_SIZE_G-1 downto SHIFT_SIZE_G);
+         v.message         := slvZero(SHIFT_SIZE_G) & r.message(VECTOR_SIZE_G-1 downto SHIFT_SIZE_G);
       end if;
 
 
@@ -133,7 +133,7 @@ begin
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
-         BRAM_EN_G           => false,
+         MEMORY_TYPE_G       => "distributed",
          USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => COMMON_CLOCK_G,
          FIFO_ADDR_WIDTH_G   => 4,
