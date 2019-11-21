@@ -5,7 +5,7 @@
 -- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2014-05-02
--- Last update: 2019-11-20
+-- Last update: 2019-11-21
 -- Platform   : Vivado 2013.3
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -93,8 +93,6 @@ begin
          GEN_SYNC_FIFO_G => false,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => 32,
          ADDR_WIDTH_G    => 9)
       port map (
@@ -113,8 +111,6 @@ begin
          GEN_SYNC_FIFO_G => false,
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => TIMING_MESSAGE_BITS_C,
          ADDR_WIDTH_G    => 9)
       port map (

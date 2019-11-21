@@ -20,7 +20,6 @@
 -- 09/15/2015: created.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
