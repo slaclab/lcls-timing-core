@@ -2,7 +2,6 @@
 -- Title         : EvrV2Trigger
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EvrV2Trigger.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 01/23/2016
 -------------------------------------------------------------------------------

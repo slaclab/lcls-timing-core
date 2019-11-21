@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TPSerializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.

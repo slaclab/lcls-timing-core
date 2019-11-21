@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClockTime.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Increments a 64-bit nanosecond timestamp in programmable steps

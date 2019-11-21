@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TimingSerialDelay.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Delays a 16b serialized frame

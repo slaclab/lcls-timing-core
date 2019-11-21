@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TimingMsgToAxiStream.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Convert timing messages into an (SSI) AxiStream

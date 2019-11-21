@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TPFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO for caching timing messages with triggering/sparsification.

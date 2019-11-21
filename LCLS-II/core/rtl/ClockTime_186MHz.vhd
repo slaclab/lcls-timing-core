@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : ClockTime_186MHz.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Increments a 64-bit nanosecond timestamp in 1300/7 MHz steps

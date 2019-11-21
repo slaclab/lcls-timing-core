@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1HeartBeat.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: EvrHeartBeat LED output

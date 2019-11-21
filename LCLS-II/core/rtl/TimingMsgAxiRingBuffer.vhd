@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TimingMsgAxiRingBuffer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 

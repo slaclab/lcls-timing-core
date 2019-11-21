@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TimingGtCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTH Core

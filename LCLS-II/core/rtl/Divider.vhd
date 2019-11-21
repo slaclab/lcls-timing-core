@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Divider.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generates a single clk pulse at a prescaled rate of sysClk.

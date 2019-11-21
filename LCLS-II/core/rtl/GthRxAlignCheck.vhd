@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module

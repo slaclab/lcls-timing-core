@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TPGPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Package of constants and record definitions for the Timing Geneartor.
