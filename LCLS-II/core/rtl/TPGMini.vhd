@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-11-09
--- Last update: 2018-11-27
+-- Last update: 2019-11-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -24,12 +24,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library lcls_timing_core;
-use lcls_timing_core.TPGPkg.all;
-
 library surf;
 use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TPGPkg.all;
 
 entity TPGMini is
   generic (
@@ -82,10 +82,10 @@ architecture TPGMini of TPGMini is
   signal acTSPhasen : slv(11 downto 0);
 
   constant ACRateWidth : integer := 8;
-  constant ACRateDepth : integer := TPGPkg.ACRATEDEPTH;
+  constant ACRateDepth : integer := lcls_timing_core.TPGPkg.ACRATEDEPTH;
 
   constant FixedRateWidth : integer := 20;
-  constant FixedRateDepth : integer := TPGPkg.FIXEDRATEDEPTH;
+  constant FixedRateDepth : integer := lcls_timing_core.TPGPkg.FIXEDRATEDEPTH;
 
   signal syncReset : sl;
 
