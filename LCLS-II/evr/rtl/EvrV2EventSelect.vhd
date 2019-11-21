@@ -2,7 +2,6 @@
 -- Title         : EvrV2EventSelect
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EvrV2EventSelect.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 07/17/2015
 -------------------------------------------------------------------------------

@@ -2,7 +2,6 @@
 -- Title         : BsaControl
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : BsaControl.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 07/17/2015
 -------------------------------------------------------------------------------

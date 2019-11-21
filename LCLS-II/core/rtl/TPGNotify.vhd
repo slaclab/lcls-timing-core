@@ -2,7 +2,6 @@
 -- Title         : Timing pattern generator
 -- Project       : LCLS-II Timing System
 -------------------------------------------------------------------------------
--- File          : TPGNotify.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 05/19/2016
 -------------------------------------------------------------------------------
