@@ -2,7 +2,6 @@
 -- Title         : CtrControl
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : CtrControl.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 07/17/2015
 -------------------------------------------------------------------------------

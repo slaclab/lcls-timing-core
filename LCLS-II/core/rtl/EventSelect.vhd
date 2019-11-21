@@ -2,7 +2,6 @@
 -- Title         : EventSelect
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EventSelect.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 03/07/2016
 -------------------------------------------------------------------------------
