@@ -1,15 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : TimingMsgAxiRingBuffer.vhd
--- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2019-11-20
--- Platform   : Vivado 2013.3
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
---
+-- Description: 
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
