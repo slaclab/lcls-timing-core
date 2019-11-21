@@ -21,7 +21,6 @@
 -- 03/07/2016: created.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TPGPkg.all;

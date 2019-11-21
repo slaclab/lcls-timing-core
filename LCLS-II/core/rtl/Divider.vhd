@@ -20,7 +20,6 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
-use work.all;
 
 library surf;
 use surf.StdRtlPkg.all;
