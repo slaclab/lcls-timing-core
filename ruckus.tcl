@@ -13,7 +13,7 @@ if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMO
 } else {
    puts "\n\n*********************************************************"
    puts "OVERRIDE_SUBMODULE_LOCKS != 0"
-   puts "Ignoring the submodule locks in amc-carrier-core/ruckus.tcl"
+   puts "Ignoring the submodule locks in lcls-timing-core/ruckus.tcl"
    puts "*********************************************************\n\n"
 }
 
