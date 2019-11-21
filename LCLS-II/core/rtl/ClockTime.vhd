@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : ClockTime
--------------------------------------------------------------------------------
--- File       : ClockTime.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2016-07-12
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Increments a 64-bit nanosecond timestamp in programmable steps
 -------------------------------------------------------------------------------
@@ -20,12 +12,13 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
-use work.all;
 
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity ClockTime is
    generic (
@@ -68,7 +61,7 @@ begin
   urem   <= '0' & remainder;
   udiv   <= '0' & divisor;
   
-  U_WrFifo : entity work.SynchronizerFifo
+  U_WrFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=>TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkA,
@@ -79,7 +72,7 @@ begin
                valid  => valid,
                dout   => wrDataB );
 
-  U_RdFifo : entity work.SynchronizerFifo
+  U_RdFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=>TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkB,

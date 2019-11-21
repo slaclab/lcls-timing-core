@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1CoreIsrCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-03
--- Last update: 2018-02-12
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -20,11 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 
 entity EvrV1CoreIsrCtrl is
    generic (
@@ -37,7 +35,7 @@ entity EvrV1CoreIsrCtrl is
       TDEST_HEARTBEAT_MSG_G : slv(7 downto 0)     := x"F2";
       TDEST_FIFOFULL_MSG_G  : slv(7 downto 0)     := x"F1";
       TDEST_VIOLATION_MSG_G : slv(7 downto 0)     := x"F0";
-      BRAM_EN_G             : boolean             := true;
+      MEMORY_TYPE_G         : string              := "block";
       FIFO_ADDR_WIDTH_G     : positive            := 9;
       REM_BASE_ADDR_G       : slv(31 downto 0)    := (others => '0');
       AXIS_CONFIG_G         : AxiStreamConfigType := ssiAxiStreamConfig(4));
@@ -163,7 +161,7 @@ architecture rtl of EvrV1CoreIsrCtrl is
       isrSelect      => DEFAULT_ISR_SEL_G,
       cnt            => (others => '0'),
       dbufSize       => (others => '0'),
-      irqCnt         => (others => '1'),-- preset such that 1st IRQ event is irqCnt=0x0
+      irqCnt         => (others => '1'),  -- preset such that 1st IRQ event is irqCnt=0x0
       irqflags       => (others => '0'),
       isrCnt         => (others => '0'),
       irqActive      => '0',
@@ -739,7 +737,7 @@ begin
       end if;
    end process seq;
 
-   U_AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -752,14 +750,14 @@ begin
          axilReadMaster  => mAxilReadMaster,
          axilReadSlave   => mAxilReadSlave);
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          -- AXI Stream Port Configurations

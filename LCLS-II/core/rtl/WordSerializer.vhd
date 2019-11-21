@@ -16,43 +16,36 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library lcls_timing_core;
-use lcls_timing_core.TPGPkg.all;
-
 library surf;
 use surf.StdRtlPkg.all;
-use lcls_timing_core.TimingPkg.all;
-use surf.CrcPkg.all;
 
-entity TPSerializer is
-   generic (
-      TPD_G : time := 1 ns;
-      Id : integer := 0
-      );
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+
+entity WordSerializer is
+   generic ( NWORDS_G : integer := 0 );
    port (
       -- Clock and reset
       txClk      : in  sl;
       txRst      : in  sl;
       fiducial   : in  sl;
-      msg        : in  TimingMessageType;
+      words      : in  slv(16*NWORDS_G-1 downto 0);
+      ready      : in  sl;
       advance    : in  sl;
-      stream     : out TimingSerialType;
-      streamId   : out slv(3 downto 0)
+      stream     : out TimingSerialType
       );
-end TPSerializer;
+end WordSerializer;
 
 -- Define architecture for top level module
-architecture TPSerializer of TPSerializer is
+architecture mapping of WordSerializer is
 
-   constant NWORDS_C : slv(7 downto 0) := slv(conv_unsigned((TIMING_MESSAGE_BITS_C-1)/16,8));
-   
    type RegType is record
-      word_stream  : slv(TIMING_MESSAGE_BITS_C+15 downto 0);
-      word_cnt     : slv(11 downto 0);
+      word_stream  : Slv16Array(words'range);
+      word_cnt     : slv(bitSize(NWORDS_G)-1 downto 0);
       ready        : sl;
    end record;
    constant REG_INIT_C : RegType := (
-      word_stream  => (others => '0'),
+      word_stream  => (others => x"0000"),
       word_cnt     => (others => '0'),
       ready        => '0');
 
@@ -64,46 +57,51 @@ architecture TPSerializer of TPSerializer is
   
 begin
 
-  streamId      <= toSlv(Id,streamId'length);
   stream.ready  <= r.ready;
-  stream.data   <= r.word_stream(15 downto 0);
+  stream.data   <= r.word_stream(0);
   stream.offset <= (others=>'0');
   stream.last   <= '1';
   
-  comb: process (r, msg, txRst, fiducial, advance)
+  comb: process (r, words, ready, txRst, fiducial, advance)
     variable v    : RegType;
   begin 
-      v := r;
+    v := r;
 
-      if fiducial='1' then
-         --  Latch the timing frame into a shift register
-         v.word_stream(TIMING_MESSAGE_BITS_C-1 downto 0)              := toSlv(msg);
-         v.word_cnt := (others=>'0');
-         v.ready    := '1';
-      elsif advance='1' then
-         --  Shift out the next word
-         v.word_stream  := x"0000" & r.word_stream(r.word_stream'left downto 16);
-         if (r.word_cnt=NWORDS_C) then
-           v.ready := '0';
-         else
-           v.ready    := '1';
-           v.word_cnt := r.word_cnt+1;
-         end if;
+    if fiducial='1' then
+      --  Latch the timing frame into a shift register
+      for i in 0 to NWORDS_G-1 loop
+        v.word_stream(i) := words(16*i+15 downto 16*i);
+      end loop;
+      v.word_cnt    := (others=>'0');
+      if ready = '0' then 
+        v.ready := '0';
+      else
+        v.ready := '1';
       end if;
-
-      if txRst='1' then
-        v := REG_INIT_C;
+    elsif advance='1' then
+      --  Shift out the next word
+      v.word_stream  := x"0000" & r.word_stream(r.word_stream'left downto 1);
+      if (r.word_cnt=NWORDS_G-1) then
+        v.ready := '0';
+      else
+        v.ready    := '1';
+        v.word_cnt := r.word_cnt+1;
       end if;
-      
-      rin <= v;
+    end if;
 
-   end process;
+    if txRst='1' then
+      v := REG_INIT_C;
+    end if;
+    
+    rin <= v;
 
-   process (txClk)
-   begin  -- process
-      if rising_edge(txClk) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
+  end process;
 
-end TPSerializer;
+  process (txClk)
+  begin  -- process
+    if rising_edge(txClk) then
+      r <= rin;
+    end if;
+  end process;
+
+end mapping;

@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : TPGMiniEdef
--------------------------------------------------------------------------------
--- File       : TPGMiniEdef.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-03-08
--- Last update: 2018-03-08
--- Platform   :
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
@@ -24,9 +16,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.TPGMiniEdefPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGMiniEdefPkg.all;
+use surf.TextUtilPkg.all;
 
 entity TPGMiniEdef is
    generic (

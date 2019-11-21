@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : TimingStreamTx
--------------------------------------------------------------------------------
--- File       : TimingStreamTx.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2017-02-02
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
@@ -20,13 +12,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.CrcPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use surf.CrcPkg.all;
 
 entity TimingStreamTx is
   generic (
@@ -145,7 +140,7 @@ begin
       end case;
 
       if (rst='1') then
-        rin <= REG_INIT_C;
+        v := REG_INIT_C;
       end if;
       
       rin <= v;

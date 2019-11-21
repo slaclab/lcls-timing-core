@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : EvrV2Cache.vhd
--- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-01-04
--- Last update: 2016-01-24
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -25,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV2Cache is
   generic ( TPD_G : time := 1 ns);
@@ -65,7 +59,7 @@ begin  -- mapping
   
   weaq <= wea and not ra.done;
   
-  U_RAM : entity work.SimpleDualPortRam
+  U_RAM : entity surf.SimpleDualPortRam
     generic map ( DATA_WIDTH_G => 192,
                   ADDR_WIDTH_G =>  10 )
     port map ( clka  => clka,

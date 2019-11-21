@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1HeartBeat.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-18
--- Last update: 2015-10-27
 -------------------------------------------------------------------------------
 -- Description: EvrHeartBeat LED output
 -------------------------------------------------------------------------------
@@ -20,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV1HeartBeat is
    generic (

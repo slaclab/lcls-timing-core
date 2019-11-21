@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1TimeStampFIFO.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-17
--- Last update: 2015-10-27
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -18,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EvrV1TimeStampFIFO is
    generic (
@@ -43,12 +42,12 @@ end EvrV1TimeStampFIFO;
 architecture mapping of EvrV1TimeStampFIFO is
 
 begin
-   
-   FifoAsync_Inst : entity work.FifoAsync
+
+   FifoAsync_Inst : entity surf.FifoAsync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- '1' for active high rst, '0' for active low
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          FWFT_EN_G      => true,
          DATA_WIDTH_G   => 72,
          ADDR_WIDTH_G   => 9)

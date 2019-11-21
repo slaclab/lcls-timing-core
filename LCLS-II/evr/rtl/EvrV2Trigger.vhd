@@ -2,7 +2,6 @@
 -- Title         : EvrV2Trigger
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EvrV2Trigger.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 01/23/2016
 -------------------------------------------------------------------------------
@@ -29,11 +28,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.all;
-use work.TPGPkg.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2Trigger is
   generic ( TPD_G        : time := 1 ns;
@@ -103,7 +104,7 @@ begin
    end generate;
 
    GEN_FIFO : if TRIG_DEPTH_C > 0 generate
-     U_Fifo : entity work.FifoSync
+     U_Fifo : entity surf.FifoSync
        generic map ( TPD_G        => TPD_G,
                      DATA_WIDTH_G => TRIG_WIDTH_C,
                      ADDR_WIDTH_G => FIFO_AWIDTH_C,

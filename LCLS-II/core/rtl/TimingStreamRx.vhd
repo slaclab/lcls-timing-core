@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : TimingStreamRx.vhd
--- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-01
--- Last update: 2018-02-16
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 --   Need to fix:  some eventcodes start before x70,x71,x7d sequence
@@ -27,9 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 
 entity TimingStreamRx is
@@ -184,6 +180,12 @@ begin
       when others =>  null;
     end case;
 
+    --
+    --  Valid indicates nothing lost during the entire inter-fiducial period
+    --
+    if r.timingMessageStrobe = '1' then
+      v.timingMessageValid := '1';
+    end if;
     
     if (rxData.decErr /= "00" or rxData.dspErr /= X"00" or rxRst='1') then
       v := REG_INIT_C;

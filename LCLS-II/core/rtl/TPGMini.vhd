@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : TPGMini.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-11-09
--- Last update: 2018-04-20
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -20,18 +12,22 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.TPGPkg.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.TPGPkg.all;
 
 entity TPGMini is
   generic (
     TPD_G : time := 1 ns;
-    NARRAYSBSA   : integer := 2
+    NARRAYSBSA   : integer := 2;
+    STREAM_INTF  : boolean := false
     );
   port (
     statusO : out TPGStatusType;
@@ -41,7 +37,12 @@ entity TPGMini is
     txRst      : in  sl;
     txRdy      : in  sl;
     txData     : out slv(15 downto 0);
-    txDataK    : out slv(1 downto 0)
+    txDataK    : out slv(1 downto 0);
+    -- alternate output (STREAM_INTF=true)
+    streams    : out TimingSerialArray(0 downto 0);
+    streamIds  : out Slv4Array        (0 downto 0);
+    advance    : in  slv              (0 downto 0) := (others=>'0');
+    fiducial   : out sl
     );
 end TPGMini;
 
@@ -73,10 +74,10 @@ architecture TPGMini of TPGMini is
   signal acTSPhasen : slv(11 downto 0);
 
   constant ACRateWidth : integer := 8;
-  constant ACRateDepth : integer := TPGPkg.ACRATEDEPTH;
+  constant ACRateDepth : integer := lcls_timing_core.TPGPkg.ACRATEDEPTH;
 
   constant FixedRateWidth : integer := 20;
-  constant FixedRateDepth : integer := TPGPkg.FIXEDRATEDEPTH;
+  constant FixedRateDepth : integer := lcls_timing_core.TPGPkg.FIXEDRATEDEPTH;
 
   signal syncReset : sl;
 
@@ -96,9 +97,10 @@ architecture TPGMini of TPGMini is
 
   constant TPG_ID : integer := 0;
   
-  signal streams   : TimingSerialArray(0 downto 0);
-  signal streamIds : Slv4Array(0 downto 0);
-  signal advance   : slv(0 downto 0);
+  signal istreams   : TimingSerialArray(0 downto 0);
+  signal istreamIds : Slv4Array(0 downto 0);
+  signal iadvance   : slv(0 downto 0);
+  signal iiadvance  : slv(0 downto 0);
   
   attribute use_dsp48                : string;
   attribute use_dsp48 of intervalCnt : signal is "yes";   
@@ -107,6 +109,12 @@ architecture TPGMini of TPGMini is
   
 begin
 
+  streams   <= istreams;
+  streamIds <= istreamIds;
+  iiadvance <= advance  when STREAM_INTF=true else
+               iadvance;
+  fiducial  <= baseEnabled(0);
+  
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');
 
@@ -132,7 +140,7 @@ begin
   frame.resync     <= '0';
   frame.syncStatus <= '0';
 
-  BaseEnableDivider : entity work.Divider
+  BaseEnableDivider : entity lcls_timing_core.Divider
     generic map (
       TPD_G => TPD_G,
       Width => 16)
@@ -147,7 +155,7 @@ begin
   frame.acRates <= (others=>'0');
 
   FixedDivider_loop : for i in 0 to FixedRateDepth-1 generate
-    U_FixedDivider_1 : entity work.Divider
+    U_FixedDivider_1 : entity lcls_timing_core.Divider
       generic map (
         TPD_G => TPD_G,
         Width => FixedRateWidth)
@@ -168,7 +176,7 @@ begin
   frame.beamRequest <= (others=>'0');
   
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
-    U_BsaControl : entity work.BsaControl
+    U_BsaControl : entity lcls_timing_core.BsaControl
       generic map (TPD_G => TPD_G, ASYNC_REGCLK_G => false)
       port map (
         sysclk     => txClk,
@@ -198,26 +206,26 @@ begin
     frame.bsaDone   (63 downto NARRAYSBSA) <= (others => '0');
   end generate GEN_NULL_BSA;
 
-  U_TSerializer : entity work.TimingSerializer
+  U_TSerializer : entity lcls_timing_core.TimingSerializer
     generic map ( TPD_G => TPD_G, STREAMS_C => 1 )
     port map ( clk       => txClk,
                rst       => txRst,
                fiducial  => baseEnabled(0),
-               streams   => streams,
-               streamIds => streamIds,
-               advance   => advance,
+               streams   => istreams,
+               streamIds => istreamIds,
+               advance   => iadvance,
                data      => txData,
                dataK     => txDataK );
   
-  U_TPSerializer : entity work.TPSerializer
+  U_TPSerializer : entity lcls_timing_core.TPSerializer
     generic map ( TPD_G => TPD_G, Id => TPG_ID )
     port map ( txClk      => txClk,
                txRst      => txRst,
                fiducial   => baseEnable,
                msg        => frame,
-               advance    => advance  (0),
-               stream     => streams  (0),
-               streamId   => streamIds(0) );
+               advance    => iiadvance (0),
+               stream     => istreams  (0),
+               streamId   => istreamIds(0) );
 
   status.irqFifoData  <= (others=>'0');
   status.irqFifoFull  <= '0';
@@ -317,7 +325,7 @@ begin
     end if;
   end process;
 
-  U_ClockTime : entity work.ClockTime
+  U_ClockTime : entity lcls_timing_core.ClockTime
     generic map (
       TPD_G =>   TPD_G)
     port map (

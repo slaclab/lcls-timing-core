@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : GthRxAlignCheck.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-08-29
--- Last update: 2018-08-22
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity GthRxAlignCheck is
    generic (
@@ -118,7 +117,7 @@ architecture rtl of GthRxAlignCheck is
 
 begin
 
-   U_txClkFreq : entity work.SyncClockFreq
+   U_txClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
@@ -132,7 +131,7 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   U_rxClkFreq : entity work.SyncClockFreq
+   U_rxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
          REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
@@ -278,7 +277,7 @@ begin
       end if;
    end process seq;
 
-   U_AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (

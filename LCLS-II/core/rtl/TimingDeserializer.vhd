@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : TimingDeserializer
--------------------------------------------------------------------------------
--- File       : TimingDeserializer.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2016-04-28
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
@@ -20,13 +12,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.CrcPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use surf.CrcPkg.all;
 
 entity TimingDeserializer is
    generic (
@@ -94,7 +89,7 @@ begin
   eof      <= r.eof;
   crcErr   <= r.crcErr;
   
-  U_CRC : entity work.Crc32Parallel
+  U_CRC : entity surf.Crc32Parallel
     generic map ( TPD_G=>TPD_G, BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
     port map ( crcOut       => crc,
                crcClk       => clk,
@@ -183,7 +178,7 @@ begin
 
       -- On reset or error, reset the streams to invalidate accumulated data
       if (rst='1' or data.decErr/="00" or data.dspErr/="00") then
-        rin <= REG_INIT_C;
+        v := REG_INIT_C;
       end if;
 
       rin <= v;

@@ -1,15 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : TimingMsgDelay.vhd
--- Author     : 
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2016-01-11
--- Platform   : Vivado 2013.3
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
---
+-- Description: 
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -25,15 +17,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
 
 
 entity TimingMsgDelay is
    generic (
       -- General Configurations
       TPD_G             : time                        := 1 ns;
-      BRAM_EN_G         : boolean                     := true;
+      MEMORY_TYPE_G     : boolean                     := true;
       FIFO_ADDR_WIDTH_G : positive range 1 to (2**24) := 7);
 
    port (
@@ -83,14 +79,12 @@ begin
 
    timingMessageSlv <= toSlv(timingMessageIn);
 
-   Fifo_Time : entity work.Fifo
+   Fifo_Time : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => 32,
          ADDR_WIDTH_G    => 9)
       port map (
@@ -103,14 +97,12 @@ begin
          dout   => fifoReadoutTime,
          valid  => fifoValid);
 
-   Fifo_Data : entity work.Fifo
+   Fifo_Data : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => false,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         USE_DSP48_G     => "no",
-         USE_BUILT_IN_G  => false,
          DATA_WIDTH_G    => TIMING_MESSAGE_BITS_C,
          ADDR_WIDTH_G    => 9)
       port map (

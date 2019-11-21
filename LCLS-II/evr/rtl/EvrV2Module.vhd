@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : EvrV2Module.vhd
--- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-01-04
--- Last update: 2018-08-04
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -26,10 +18,14 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.NUMERIC_STD.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2Module is
   generic (
@@ -102,7 +98,7 @@ begin  -- rtl
   -------------------------
   -- AXI-Lite Crossbar Core
   -------------------------  
-  AxiLiteCrossbar_Inst : entity work.AxiLiteCrossbar
+  AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
       NUM_SLAVE_SLOTS_G  => 1,
@@ -120,7 +116,7 @@ begin  -- rtl
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves);   
 
-  U_SyncChannelConfig : entity work.SynchronizerVector
+  U_SyncChannelConfig : entity surf.SynchronizerVector
     generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
     port map ( clk     => evrClk,
                dataIn  => channelConfigAV,
@@ -131,7 +127,7 @@ begin  -- rtl
       <= toSlv(channelConfig(i));
     channelConfigS(i) <= toChannelConfig(channelConfigSV((i+1)*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto i*EVRV2_CHANNEL_CONFIG_BITS_C));
 
-    U_EventSel : entity work.EvrV2EventSelect
+    U_EventSel : entity lcls_timing_core.EvrV2EventSelect
       generic map ( TPD_G         => TPD_G )
       port map    ( clk           => evrClk,
                     rst           => evrRst,
@@ -141,7 +137,7 @@ begin  -- rtl
                     selectOut     => eventSel(i) );
   end generate;  -- i
 
-  U_V2FromV1 : entity work.EvrV2FromV1
+  U_V2FromV1 : entity lcls_timing_core.EvrV2FromV1
     port map ( clk       => evrClk,
                disable   => evrModeSel,
                timingIn  => evrBus,
@@ -154,7 +150,7 @@ begin  -- rtl
     end if;
   end process;
   
-  Sync_EvtCount : entity work.SyncStatusVector
+  Sync_EvtCount : entity surf.SyncStatusVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => NCHANNELS_G+1 )
     port map    ( statusIn(NCHANNELS_G)            => evrBus.strobe,
@@ -167,7 +163,7 @@ begin  -- rtl
                   rdClk        => axiClk,
                   rdRst        => axiRst );
 
-  U_SyncTriggerConfig : entity work.SynchronizerVector
+  U_SyncTriggerConfig : entity surf.SynchronizerVector
     generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
     port map ( clk     => evrClk,
                dataIn  => triggerConfigAV,
@@ -178,7 +174,7 @@ begin  -- rtl
       <= toSlv(triggerConfig(i));
      triggerConfigS(i) <= toTriggerConfig(triggerConfigSV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C));
 
-     U_Trig : entity work.EvrV2Trigger
+     U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G        => TPD_G,
                       CHANNELS_C   => NCHANNELS_G,
                       TRIG_DEPTH_C => TRIG_DEPTH_G,
@@ -191,7 +187,7 @@ begin  -- rtl
                       trigstate  => trigOut(i) );
   end generate Out_Trigger;
   
-  U_EvrAxi : entity work.EvrV2Axi
+  U_EvrAxi : entity lcls_timing_core.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
                   CHANNELS_C => NCHANNELS_G )
     port map (    axiClk              => axiClk,
@@ -206,7 +202,7 @@ begin  -- rtl
                   rstCount            => rstCount,
                   eventCount          => eventCount );
 
-  U_EvrTrigReg : entity work.EvrV2TrigReg
+  U_EvrTrigReg : entity lcls_timing_core.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
                   TRIGGERS_C => NTRIGGERS_G )
     port map (    axiClk              => axiClk,

@@ -2,7 +2,6 @@
 -- Title         : Timing pattern generator
 -- Project       : LCLS-II Timing System
 -------------------------------------------------------------------------------
--- File          : TPGNotify.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 05/19/2016
 -------------------------------------------------------------------------------
@@ -20,12 +19,13 @@
 -- 09/15/2015: created.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity TPGNotify is
   generic (
@@ -65,7 +65,7 @@ begin
   
   irq <= irqEnable and irqReq;
   
-  U_SyncIrq : entity work.SynchronizerOneShot
+  U_SyncIrq : entity surf.SynchronizerOneShot
     port map ( clk     => txClk,
                rst     => txRst,
                dataIn  => irq,

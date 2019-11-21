@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : TPGMiniEdefPkg
--------------------------------------------------------------------------------
--- File       : TPGMiniEdefPkg.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-03-08
--- Last update: 2018-03-08
--- Platform   :
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
@@ -23,7 +15,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package TPGMiniEdefPkg is
 

@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : Divider
--------------------------------------------------------------------------------
--- File       : Divider.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2016-04-19
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Generates a single clk pulse at a prescaled rate of sysClk.
 -------------------------------------------------------------------------------
@@ -20,8 +12,9 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
-use work.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;

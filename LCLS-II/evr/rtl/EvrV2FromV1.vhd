@@ -2,7 +2,6 @@
 -- Title         : EvrV2FromV1
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EvrV2FromV1.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 01/23/2016
 -------------------------------------------------------------------------------
@@ -26,10 +25,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2FromV1 is
   generic ( TPD_G      : time := 1 ns );

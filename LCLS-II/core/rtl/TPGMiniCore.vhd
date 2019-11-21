@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : TPGMiniCore.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-11-09
--- Last update: 2016-07-09
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -23,10 +15,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.TPGPkg.all;
-use work.TPGMiniEdefPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniCore is
    generic (
@@ -69,7 +65,7 @@ begin  -- rtl
    regRst     <= txRst;
    txPolarity <= config.txPolarity;
    
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -88,7 +84,7 @@ begin  -- rtl
          mAxiWriteMaster => regWriteMaster,
          mAxiWriteSlave  => regWriteSlave);     
   
-   TPGMiniReg_Inst : entity work.TPGMiniReg
+   TPGMiniReg_Inst : entity lcls_timing_core.TPGMiniReg
       generic map (
          TPD_G       => TPD_G,
          NARRAYS_BSA => NARRAYSBSA)
@@ -109,7 +105,7 @@ begin  -- rtl
          irqEnable      => open,
          irqReq         => open );
 
-   TPGMini_Inst : entity work.TPGMini
+   TPGMini_Inst : entity lcls_timing_core.TPGMini
       generic map (
          TPD_G          => TPD_G,
          NARRAYSBSA     => NARRAYSBSA )
@@ -124,7 +120,7 @@ begin  -- rtl
          txData         => txData (1),
          txDataK        => txDataK(1) );
 
-   TPGMiniStream_Inst : entity work.TPGMiniStream
+   TPGMiniStream_Inst : entity lcls_timing_core.TPGMiniStream
       generic map (
          TPD_G          => TPD_G)   
       port map (

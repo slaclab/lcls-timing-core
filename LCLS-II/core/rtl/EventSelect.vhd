@@ -2,7 +2,6 @@
 -- Title         : EventSelect
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EventSelect.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 03/07/2016
 -------------------------------------------------------------------------------
@@ -21,12 +20,15 @@
 -- 03/07/2016: created.
 -------------------------------------------------------------------------------
 library ieee;
-use work.all;
-use work.TPGPkg.all;
+
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity EventSelect is
    generic (

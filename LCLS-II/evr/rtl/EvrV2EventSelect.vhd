@@ -2,7 +2,6 @@
 -- Title         : EvrV2EventSelect
 -- Project       : LCLS-II Timing Pattern Generator
 -------------------------------------------------------------------------------
--- File          : EvrV2EventSelect.vhd
 -- Author        : Matt Weaver, weaver@slac.stanford.edu
 -- Created       : 07/17/2015
 -------------------------------------------------------------------------------
@@ -25,11 +24,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.all;
-use work.TPGPkg.all;
-use work.StdRtlPkg.all;
-use work.TimingPkg.all;
-use work.EvrV2Pkg.all;
+library lcls_timing_core;
+use lcls_timing_core.TPGPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use lcls_timing_core.TimingPkg.all;
+use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2EventSelect is
   generic ( TPD_G : time := 1 ns );

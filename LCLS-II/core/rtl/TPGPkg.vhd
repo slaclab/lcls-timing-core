@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : TPGPkg
--------------------------------------------------------------------------------
--- File       : TPGPkg.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2018-02-15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Package of constants and record definitions for the Timing Geneartor.
 -------------------------------------------------------------------------------
@@ -23,7 +15,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 use ieee.math_real.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package TPGPkg is
 

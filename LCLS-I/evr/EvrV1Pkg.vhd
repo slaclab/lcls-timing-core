@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EvrV1Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-17
--- Last update: 2015-10-27
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -18,8 +15,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 package EvrV1Pkg is
 

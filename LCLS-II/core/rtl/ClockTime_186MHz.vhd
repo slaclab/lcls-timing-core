@@ -1,13 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : ClockTime_186MHz
--------------------------------------------------------------------------------
--- File       : ClockTime_186MHz.vhd
--- Author     : Matt Weaver  <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-15
--- Last update: 2015/09/15
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Increments a 64-bit nanosecond timestamp in 1300/7 MHz steps
 -------------------------------------------------------------------------------
@@ -20,18 +12,19 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
-use work.all;
 
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity ClockTime is
    generic (
-      TPD_G    : time    := 1 ns)
+      TPD_G    : time    := 1 ns);
    port ( 
       -- Clock and reset
       rst                : in  sl;
@@ -59,7 +52,7 @@ architecture ClockTime_186MHz of ClockTime is
   signal remB , remN  : slv( 4 downto 0);
   
 begin
-  U_WrFifo : entity work.SynchronizerFifo
+  U_WrFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=> TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkA,
@@ -70,7 +63,7 @@ begin
                valid  => valid,
                dout   => wrDataB );
 
-  U_RdFifo : entity work.SynchronizerFifo
+  U_RdFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=> TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
                wr_clk => clkB,
