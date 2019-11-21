@@ -5,7 +5,7 @@
 -- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-09-01
--- Last update: 2019-11-20
+-- Last update: 2019-11-21
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -134,11 +134,9 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => false,
          MEMORY_TYPE_G       => "distributed",
-         USE_BUILT_IN_G      => false,
          GEN_SYNC_FIFO_G     => COMMON_CLOCK_G,
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,
---         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => INT_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
