@@ -196,34 +196,7 @@ begin
                        axilVersion, axilVsnErr, axilWriteMaster, rxStatusCount, timingTSEvCntGray_o, txClkCntS) is
 
       variable v          : AxilRegType;
-      variable axilStatus : AxiLiteStatusType;
-
-      -- Wrapper procedures to make calls cleaner.
-      procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout slv; cA : in boolean := false; cV : in slv := "0") is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, addr, offset, reg, cA, cV);
-      end procedure;
-
-      procedure axilSlaveRegisterR (addr : in slv; offset : in integer; reg : in slv) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axilStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axilSlaveRegisterW (addr : in slv; offset : in integer; reg : inout sl) is
-      begin
-         axiSlaveRegister(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axilSlaveRegisterR (addr : in slv; offset : in integer; reg : in sl) is
-      begin
-         axiSlaveRegister(axilReadMaster, v.axilReadSlave, axilStatus, addr, offset, reg);
-      end procedure;
-
-      procedure axilSlaveDefault (
-         axilResp : in slv(1 downto 0)) is
-      begin
-         axiSlaveDefault(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus, axilResp);
-      end procedure;
+      variable axilEp : AxiLiteEndpointType;
 
    begin
       -- Latch the current value
@@ -231,50 +204,50 @@ begin
       v.axilReadSlave.rdata := (others => '0');
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Status Counters
-      axilSlaveRegisterR(X"00", 0, muxSlVectorArray(axilStatusCounters12, 0));
-      axilSlaveRegisterR(X"04", 0, muxSlVectorArray(axilStatusCounters12, 1));
-      axilSlaveRegisterR(X"08", 0, muxSlVectorArray(axilStatusCounters12, 2));
-      axilSlaveRegisterR(X"0C", 0, muxSlVectorArray(axilStatusCounters12, 3));
-      axilSlaveRegisterR(X"10", 0, muxSlVectorArray(axilStatusCounters3, 0));
-      axilSlaveRegisterR(X"14", 0, muxSlVectorArray(axilStatusCounters3, 1));
-      axilSlaveRegisterR(X"18", 0, muxSlVectorArray(axilStatusCounters3, 2));
-      axilSlaveRegisterR(X"1C", 0, muxSlVectorArray(axilStatusCounters3, 3));
+      axiSlaveRegisterR(axilEp, X"00", 0, muxSlVectorArray(axilStatusCounters12, 0));
+      axiSlaveRegisterR(axilEp, X"04", 0, muxSlVectorArray(axilStatusCounters12, 1));
+      axiSlaveRegisterR(axilEp, X"08", 0, muxSlVectorArray(axilStatusCounters12, 2));
+      axiSlaveRegisterR(axilEp, X"0C", 0, muxSlVectorArray(axilStatusCounters12, 3));
+      axiSlaveRegisterR(axilEp, X"10", 0, muxSlVectorArray(axilStatusCounters3, 0));
+      axiSlaveRegisterR(axilEp, X"14", 0, muxSlVectorArray(axilStatusCounters3, 1));
+      axiSlaveRegisterR(axilEp, X"18", 0, muxSlVectorArray(axilStatusCounters3, 2));
+      axiSlaveRegisterR(axilEp, X"1C", 0, muxSlVectorArray(axilStatusCounters3, 3));
 
-      axilSlaveRegisterW(X"20", 0, v.cntRst);
-      axilSlaveRegisterR(X"20", 1, axilRxLinkUp);
-      axilSlaveRegisterW(X"20", 2, v.rxControl.polarity);
-      axilSlaveRegisterW(X"20", 3, v.rxControl.reset);
+      axiSlaveRegister(axilEp, X"20", 0, v.cntRst);
+      axiSlaveRegisterR(axilEp, X"20", 1, axilRxLinkUp);
+      axiSlaveRegister(axilEp, X"20", 2, v.rxControl.polarity);
+      axiSlaveRegister(axilEp, X"20", 3, v.rxControl.reset);
       if (CLKSEL_MODE_G = "SELECT") then
-         axilSlaveRegisterW(X"20", 4, v.clkSel);
+         axiSlaveRegister(axilEp, X"20", 4, v.clkSel);
       else
-         axilSlaveRegisterR(X"20", 4, v.clkSel);
+         axiSlaveRegisterR(axilEp, X"20", 4, axilR.clkSel);
       end if;
-      axilSlaveRegisterW(X"20", 5, v.rxDown);
-      axilSlaveRegisterW(X"20", 6, v.rxControl.bufferByRst);
-      axilSlaveRegisterW(X"20", 7, v.rxControl.pllReset);
-      axilSlaveRegisterR(X"20", 8, axilVsnErr);
-      axilSlaveRegisterW(X"20", 24, v.streamNoDelay);
+      axiSlaveRegister(axilEp, X"20", 5, v.rxDown);
+      axiSlaveRegister(axilEp, X"20", 6, v.rxControl.bufferByRst);
+      axiSlaveRegister(axilEp, X"20", 7, v.rxControl.pllReset);
+      axiSlaveRegisterR(axilEp, X"20", 8, axilVsnErr);
+      axiSlaveRegister(axilEp, X"20", 24, v.streamNoDelay);
 
       v.messageDelayRst := '0';
-      axilSlaveRegisterW(X"24", 0, v.messageDelay);
-      axilSlaveRegisterW(X"24", 31, v.messageDelayRst);
+      axiSlaveRegister(axilEp, X"24", 0, v.messageDelay);
+      axiSlaveRegister(axilEp, X"24", 31, v.messageDelayRst);
 
       if v.messageDelay /= axilR.messageDelay then
          v.messageDelayRst := '1';
       end if;
 
-      axilSlaveRegisterR(X"28", 0, txClkCntS);
+      axiSlaveRegisterR(axilEp, X"28", 0, txClkCntS);
 
-      axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount, 0));
-      axilSlaveRegisterR(X"2C", 16, muxSlVectorArray(rxStatusCount, 1));
-      axilSlaveRegisterR(X"30", 0, axilVersion);
+      axiSlaveRegisterR(axilEp, X"2C", 0, muxSlVectorArray(rxStatusCount, 0));
+      axiSlaveRegisterR(axilEp, X"2C", 16, muxSlVectorArray(rxStatusCount, 1));
+      axiSlaveRegisterR(axilEp, X"30", 0, axilVersion);
 
-      axilSlaveRegisterR(X"40", 0, timingTSEvCntGray_o(0));
+      axiSlaveRegisterR(axilEp, X"40", 0, timingTSEvCntGray_o(0));
 
-      axilSlaveDefault(AXI_RESP_DECERR_C);
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       if axilRxLinkUp = '0' then
          v.rxDown := '1';
