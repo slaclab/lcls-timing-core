@@ -150,8 +150,7 @@ begin
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          DEC_ERROR_RESP_G   => AXI_RESP_DECERR_C,
-         MASTERS_CONFIG_G   => AXIL_MASTERS_CONFIG_C,
-         DEBUG_G            => true)
+         MASTERS_CONFIG_G   => AXIL_MASTERS_CONFIG_C)
       port map (
          axiClk              => axilClk,
          axiClkRst           => axilRst,
