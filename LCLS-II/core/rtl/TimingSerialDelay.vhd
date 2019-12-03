@@ -73,6 +73,8 @@ architecture TimingSerialDelay of TimingSerialDelay is
       strobe      : sl;
       valid       : sl;
       fifoRst     : sl;
+      advanceLast : sl;
+      lastWord    : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -88,7 +90,9 @@ architecture TimingSerialDelay of TimingSerialDelay is
       rd_msg      => '0',
       strobe      => '0',
       valid       => '0',
-      fifoRst     => '1');
+      fifoRst     => '1',
+      advanceLast => '0',
+      lastWord    => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -104,6 +108,9 @@ architecture TimingSerialDelay of TimingSerialDelay is
    signal firstW    : sl;
    signal wr_cnt    : sl;
    signal nwordslv  : slv(7 downto 0);
+
+   signal msgFifoWr : sl;
+   signal lastWord  : sl;
 
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
@@ -180,29 +187,38 @@ begin
          valid             => valid_cnt,
          overflow          => full_cnt);
 
+   msgFifoWr <= advance_i or r.lastWord;
    U_MsgDelay : entity surf.FifoSync
       generic map (
          TPD_G        => TPD_G,
          FWFT_EN_G    => true,
-         DATA_WIDTH_G => 17,
+         DATA_WIDTH_G => 18,
          ADDR_WIDTH_G => MADDR_WIDTH_C)
       port map (
          rst               => r.fifoRst,
          clk               => clk,
-         wr_en             => advance_i,
+         wr_en             => msgFifoWr,
          din(15 downto 0)  => stream_i.data,
          din(16)           => r.firstW,
+         din(17)           => r.lastWord,
          rd_en             => rin.rd_msg,
          dout(15 downto 0) => dout_msg,
          dout(16)          => firstW,
+         dout(17)          => lastWord,
          valid             => valid_msg,
          overflow          => full_msg);
 
-   process (advance_i, delay, dout_cnt, dout_msg, dout_rdy, fiducial_i, firstW, r, rst, stream_i,
-            valid_cnt, valid_msg) is
+   process (advance_i, delay, dout_cnt, dout_msg, dout_rdy, fiducial_i, firstW, lastWord, r, rst,
+            stream_i, valid_cnt, valid_msg) is
       variable v : RegType;
    begin
       v := r;
+
+      v.lastWord    := '0';
+      v.advanceLast := advance_i;
+      if (advance_i = '0' and r.advanceLast = '1') then
+         v.lastWord := '1';
+      end if;
 
       v.count   := r.count+1;
       v.target  := r.count+5+delay;     -- need extra fixed delay for cntdelay fifo
@@ -243,8 +259,9 @@ begin
                v.state  := SHIFT_S;
             end if;
          when SHIFT_S =>
-            if r.nword = NWORDS_G then                   -- complete
-               v.state := ARMED_S;
+            if (valid_msg = '1' and lastWord = '1') then  -- Last word of frame reached
+               v.state  := ARMED_S;
+               v.rd_msg := '1';
             elsif valid_msg = '1' and firstW = '1' then  -- short frame
                v.valid := '0';
                v.state := ARMED_S;
