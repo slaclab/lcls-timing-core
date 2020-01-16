@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
---   Need to fix:  some eventcodes start before x70,x71,x7d sequence
+--   Need to fix:  some event codes start before x70,x71,x7d sequence
 --                 
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.

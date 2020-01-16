@@ -7,10 +7,10 @@
 --   fiducial_i : delay start marker
 --   advance_i  : accept stream input word (precedes fiducial)
 --   stream_i   : input stream; ready tested on fiducial
---   frame_o    : deserialized output
+--   frame_o    : Deserialized output
 --   strobe_o   : delay expiring
 --   valid_o    : output is valid
---   overflow_o : delay fifo overrun
+--   overflow_o : delay FIFO overrun
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

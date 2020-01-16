@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: FIFO for caching timing messages with triggering/sparsification.
+-- Description: FIFO for caching timing messages with triggering/scarification.
 --
 -- Triggering is specified by 'trig' input which indicates the selection bit
--- Sparsification is done by comparing 'wrDataWord' input against mask 'wsel'.
+-- Scarification is done by comparing 'wrDataWord' input against mask 'wsel'.
 -- The 'wsel' selection mask is written as the first word (along with sof marker).
 -- The last word written is eof marker.  The FIFO full signal is latched until
 -- reset, so the FIFO never records a partial frame or drops frames between resets.

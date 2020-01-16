@@ -1,9 +1,5 @@
 -------------------------------------------------------------------------------
--- Title         : BsaControl
--- Project       : LCLS-II Timing Pattern Generator
--------------------------------------------------------------------------------
--- Author        : Matt Weaver, weaver@slac.stanford.edu
--- Created       : 07/17/2015
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Translation of BSA DEF to control bits in timing pattern
@@ -16,9 +12,6 @@
 -- No part of 'LCLS2 Timing Core', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 07/17/2015: created.
 -------------------------------------------------------------------------------
 library ieee;
 

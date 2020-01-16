@@ -1,9 +1,5 @@
-------------------------------------------------------------------------------
--- Title         : Timing pattern generator
--- Project       : LCLS-II Timing System
 -------------------------------------------------------------------------------
--- Author        : Matt Weaver, weaver@slac.stanford.edu
--- Created       : 05/19/2016
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
@@ -14,9 +10,6 @@
 -- No part of 'LCLS2 Timing Core', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 09/15/2015: created.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
