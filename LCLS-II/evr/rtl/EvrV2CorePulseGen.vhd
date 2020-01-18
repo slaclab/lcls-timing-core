@@ -135,7 +135,6 @@ architecture mapping of EvrV2CorePulseGen is
   signal dmaFullThr     : Slv24Array (0 downto 0);
   signal dmaFullThrS    : Slv24Array (0 downto 0);
 
-  signal partitionAddr  : slv(31 downto 0) := (others=>'1');
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
@@ -370,7 +369,6 @@ begin  -- rtl
                   dmaFullThr          => dmaFullThr(0),
                   -- status
                   irqReq              => irqRequest,
-                  partitionAddr       => partitionAddr,
                   rstCount            => rstCount,
                   eventCount          => eventCount,
                   gtxDebug            => gtxDebugS );
@@ -526,12 +524,5 @@ begin  -- rtl
                   rst     => evrRst,
                   dataIn  => dmaFullThr (0),
                   dataOut => dmaFullThrS(0) );
-
-  --Sync_partAddr : entity surf.SynchronizerVector
-  --  generic map ( TPD_G   => TPD_G,
-  --                WIDTH_G => partitionAddr'length )
-  --  port map (    clk     => axiClk,
-  --                dataIn  => exptBus.message.partitionAddr,
-  --                dataOut => partitionAddr );
 
 end mapping;
