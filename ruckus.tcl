@@ -8,8 +8,8 @@ if { [VersionCheck 2016.4 ] < 0 } {
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
-   if { [SubmoduleCheck {ruckus} {2.0.1}  ] < 0 } {exit -1}
-   if { [SubmoduleCheck {surf}   {2.0.0}  ] < 0 } {exit -1}
+   if { [SubmoduleCheck {ruckus} {2.0.4}  ] < 0 } {exit -1}
+   if { [SubmoduleCheck {surf}   {2.0.4}  ] < 0 } {exit -1}
 } else {
    puts "\n\n*********************************************************"
    puts "OVERRIDE_SUBMODULE_LOCKS != 0"
@@ -21,14 +21,3 @@ if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMO
 loadRuckusTcl "$::DIR_PATH/LCLS-I"  "quiet"
 loadRuckusTcl "$::DIR_PATH/LCLS-II" "quiet"
 
-# Check for submodule tagging
-puts "*********************************************************"
-if { [info exists ::env(TIMING_EXT_PKG)] != 1 || $::env(TIMING_EXT_PKG) == 0 } {
-   puts "TIMING_EXT_PKG = 0"
-   puts "Using default TimingExtnPkg.vhd in lcls-timing-core"
-   loadSource -lib lcls_timing_core -path "$::DIR_PATH/LCLS-II/core/rtl/default/TimingExtnPkg.vhd"
-} else {
-   puts "TIMING_EXT_PKG = 1"
-   puts "Using application's defined TimingExtnPkg.vhd"
-}
-puts "*********************************************************"

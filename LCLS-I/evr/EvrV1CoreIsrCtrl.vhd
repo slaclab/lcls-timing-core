@@ -154,7 +154,7 @@ architecture rtl of EvrV1CoreIsrCtrl is
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       txMaster       : AxiStreamMasterType;
-      req            : AxiLiteMasterReqType;
+      req            : AxiLiteReqType;
       state          : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
@@ -168,14 +168,14 @@ architecture rtl of EvrV1CoreIsrCtrl is
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       txMaster       => AXI_STREAM_MASTER_INIT_C,
-      req            => AXI_LITE_MASTER_REQ_INIT_C,
+      req            => AXI_LITE_REQ_INIT_C,
       state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal txSlave : AxiStreamSlaveType;
-   signal ack     : AxiLiteMasterAckType;
+   signal ack     : AxiLiteAckType;
 
 begin
 

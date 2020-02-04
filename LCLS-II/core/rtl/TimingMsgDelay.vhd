@@ -29,7 +29,7 @@ entity TimingMsgDelay is
    generic (
       -- General Configurations
       TPD_G             : time                        := 1 ns;
-      MEMORY_TYPE_G     : boolean                     := true;
+      MEMORY_TYPE_G     : string                      := "block";   
       FIFO_ADDR_WIDTH_G : positive range 1 to (2**24) := 7);
 
    port (

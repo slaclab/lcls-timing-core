@@ -8,6 +8,10 @@ loadRuckusTcl "$::DIR_PATH/evr"
 # Get the family type
 set family [getFpgaFamily]
 
+if { ${family} == "kintex7" } {
+   loadRuckusTcl "$::DIR_PATH/gtx7"
+}
+
 if { ${family} == "kintexu" } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }

@@ -1,13 +1,9 @@
 -------------------------------------------------------------------------------
--- Title         : EvrV2FromV1
--- Project       : LCLS-II Timing Pattern Generator
--------------------------------------------------------------------------------
--- Author        : Matt Weaver, weaver@slac.stanford.edu
--- Created       : 01/23/2016
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Reformats LCLS timing stream into LCLS2 timing frame.  Only data buffer and
--- sequencer eventcodes are reformatted.
+-- sequencer event codes are reformatted.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -16,9 +12,6 @@
 -- No part of 'LCLS2 Timing Core', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 01/23/2016: created.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;

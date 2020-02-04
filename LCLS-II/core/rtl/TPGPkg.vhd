@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Package of constants and record definitions for the Timing Geneartor.
+-- Description: Package of constants and record definitions for the Timing Generator.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 

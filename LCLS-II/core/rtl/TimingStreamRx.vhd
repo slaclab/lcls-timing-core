@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
---   Need to fix:  some eventcodes start before x70,x71,x7d sequence
+--   Need to fix:  some event codes start before x70,x71,x7d sequence
 --                 
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
@@ -31,9 +31,7 @@ use lcls_timing_core.TimingPkg.all;
 entity TimingStreamRx is
 
    generic (
-      TPD_G             : time            := 1 ns;
-      AXIL_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_OK_C);
-
+      TPD_G             : time            := 1 ns);
    port (
       rxClk               : in  sl;
       rxRst               : in  sl;
