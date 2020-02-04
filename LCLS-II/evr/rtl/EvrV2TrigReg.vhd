@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2019-03-14
+-- Last update: 2020-02-03
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -50,8 +50,8 @@ end EvrV2TrigReg;
 
 architecture rtl of EvrV2TrigReg is
 
-   constant STRIDE_C : positive := ite(EVR_CARD_G, 17, 12);
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   constant STRIDE_C : positive := bitSize(TRIGGERS_C*GRP_C-1);
 
    type RegType is record
       axilReadSlave  : AxiLiteReadSlaveType;
