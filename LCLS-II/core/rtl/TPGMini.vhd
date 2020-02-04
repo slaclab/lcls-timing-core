@@ -113,7 +113,7 @@ begin
   streamIds <= istreamIds;
   iiadvance <= advance  when STREAM_INTF=true else
                iadvance;
-  fiducial  <= baseEnabled(0);
+  fiducial  <= baseEnable;
   
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');

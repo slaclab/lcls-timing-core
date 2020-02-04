@@ -1,9 +1,5 @@
 -------------------------------------------------------------------------------
--- Title         : EvrV2Trigger
--- Project       : LCLS-II Timing Pattern Generator
--------------------------------------------------------------------------------
--- Author        : Matt Weaver, weaver@slac.stanford.edu
--- Created       : 01/23/2016
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Pipeline of trigger output state.  The trigger output activates config.delay
@@ -19,9 +15,6 @@
 -- No part of 'LCLS2 Timing Core', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
--- Modification history:
--- 01/23/2016: created.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
