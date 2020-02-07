@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-----------------------------------------------------------------------------
 # Title      : Release notes generation
 # ----------------------------------------------------------------------------
@@ -22,11 +21,11 @@
 #       > git push --tags
 #    - Create release using tag on github.com, use this script to generate notes
 # ----------------------------------------------------------------------------
-# This file is part of the 'SLAC Firmware Standard Library'. It is subject to 
+# This file is part of the 'LCLS Timing Core'. It is subject to 
 # the license terms in the LICENSE.txt file found in the top-level directory 
 # of this distribution and at: 
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of the 'SLAC Firmware Standard Library', including this file, may be 
+# No part of the 'LCLS Timing Core', including this file, may be 
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 # ----------------------------------------------------------------------------
