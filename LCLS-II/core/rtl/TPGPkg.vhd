@@ -138,13 +138,15 @@ package TPGPkg is
     buffered : sl;
     index    : slv(1 downto 0);        -- last buffer latched
     buffers  : Slv32Array(3 downto 0); -- tags and latch source
+    count    : slv(31 downto 0);
   end record;
 
   constant BEAM_DIAG_STATUS_INIT_C : BeamDiagStatusType := (
     latch    => '0',
     buffered => '0',
     index    => (others=>'0'),
-    buffers  => (others=>(others=>'0')) );
+    buffers  => (others=>(others=>'0')),
+    count    => (others=>'0') );
   
   type TPGStatusType is record
                           -- implemented resources
@@ -223,10 +225,12 @@ package TPGPkg is
   type BeamDiagControlType is record
     manfault   : sl;
     clear      : slv(30 downto 0);
+    holdoff    : slv(15 downto 0);
   end record;
   constant BEAM_DIAG_CONTROL_INIT_C : BeamDiagControlType := (
     manfault   => '0',
-    clear      => (others=>'0') );
+    clear      => (others=>'0'),
+    holdoff    => (others=>'0') );
   
   type TPGConfigType is record
                           clock_step      : slv( 4 downto 0);
