@@ -4,6 +4,11 @@ sudo: true
 # Setup for Ubuntu Bionic (18.04)
 dist: bionic
 
+# Blacklist
+branches:
+  except:
+    - gh-pages
+
 language:
   - python
 
@@ -13,17 +18,33 @@ python:
 # Environment variables
 env:
   global:
+    - GH_REPO_NAME: lcls-timing-core
     - PACKAGE_DIR: $HOME/packages
     - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
+    - GH_REPO_REF: github.com/slaclab/lcls-timing-core.git
     - MINICONDA_DIR: $PACKAGE_DIR/miniconda
 
 # Install dependencies
 addons:
   apt:
     packages:
+      - doxygen
+      - doxygen-doc
+      - doxygen-latex
+      - doxygen-gui
+      - graphviz
       - python3
+      # - ghdl
 
 stages:
+    # On master branch (but not on PRs to master) or in tagged releases
+    # generate and deploy the documentation
+    - name: generate_and_deploy
+      if: (branch = master AND NOT (type = pull_request)) OR tag IS present
+    # On all other branches or PRs, but not on tagged releases
+    # only try to generate the documentation
+    - name: generate
+      if: (branch != master OR (type == pull_request)) AND tag IS blank
     - name: deploy_dev
       if: branch = pre-release AND tag IS blank AND NOT (type = pull_request)
     - name: deploy_tag
@@ -32,6 +53,28 @@ stages:
 # Generate and deploy documentation
 jobs:
   include:
+    # Stage to only generate the documentation
+    - &documentation_stage
+      stage: generate
+      name: "Generate Documentation"
+      before_script:
+        - cd $TRAVIS_BUILD_DIR
+        - chmod +x generateDocumentationAndDeploy.sh
+        - chmod +x ghdl-travis-install.sh
+        - ./ghdl-travis-install.sh > /dev/null 2>&1
+        - make
+        - rm -rf ghdl-build
+        - python3 -m compileall -f python/
+      script:
+        - ./generateDocumentationAndDeploy.sh 0
+
+    # Stage to generate and deploy the documentation
+    - <<: *documentation_stage
+      stage: generate_and_deploy
+      name: "Generate and Deploy Documentation"
+      script: 
+        - ./generateDocumentationAndDeploy.sh 1
+
     - &deploy-conda-stage       # Conda for linux
       stage: deploy_dev
       name: "Deploy Conda"
