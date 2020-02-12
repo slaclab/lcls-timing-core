@@ -111,7 +111,8 @@ architecture rtl of TimingGtCoreWrapper is
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
-
+   
+   signal iTxPowerDown : slv(1 downto 0);
 
 begin
 
@@ -320,7 +321,7 @@ begin
          txPolarityIn     => txControl.polarity,
          -- Misc.
          loopbackIn       => loopback,
-         txPowerDown      => (others => txControl.inhibit),
+         txPowerDown      => iTxPowerDown,
          rxPowerDown      => (others => '0'),
          -- DRP Interface (drpClk Domain)      
          drpClk           => axilClk,
@@ -330,7 +331,9 @@ begin
          drpAddr          => drpAddr,
          drpDi            => drpDi,
          drpDo            => drpDo);
-
+   
+   iTxPowerDown <= (others => txControl.inhibit);
+   
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
