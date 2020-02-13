@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 from LclsTimingCore.EvrV1Isr import *
 from LclsTimingCore.EvrV1Reg import *

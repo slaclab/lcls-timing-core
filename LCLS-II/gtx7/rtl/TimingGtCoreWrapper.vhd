@@ -3,11 +3,11 @@
 -------------------------------------------------------------------------------
 -- Description: Wrapper for GTX7 Core
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS2 Timing Core'.
+-- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
+-- No part of 'LCLS Timing Core', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ entity TimingGtCoreWrapper is
    generic (
       TPD_G             : time       := 1 ns;
       CPLL_REFCLK_SEL_G : bit_vector := "001";
+      REFCLK_G          : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
       GT_CONFIG_G       : boolean    := true);  -- V1 = false, V2 = true    
    port (
       -- AXI-Lite Port
@@ -41,12 +42,15 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- GT Ports
-      gtRefClkP       : in  sl;  -- GT_CONFIG_G=true(371 MHz), GT_CONFIG_G=false(238 MHz)
-      gtRefClkN       : in  sl;
+      gtRefClkP       : in  sl := '0';  -- GT_CONFIG_G=true(371 MHz), GT_CONFIG_G=false(238 MHz)
+      gtRefClkN       : in  sl := '1';
       gtRxP           : in  sl;
       gtRxN           : in  sl;
       gtTxP           : out sl;
       gtTxN           : out sl;
+      gtRefClkIn      : in  sl := '0';  -- used with REFCLK_G = true
+      stableClk       : in  sl := '0';  -- used with REFCLK_G = true
+      stableRst       : in  sl := '0';  -- used with REFCLK_G = true
       -- Rx ports
       rxControl       : in  TimingPhyControlType;
       rxStatus        : out TimingPhyStatusType;
@@ -83,8 +87,8 @@ architecture rtl of TimingGtCoreWrapper is
 
    signal gtRefClk      : sl               := '0';
    signal gtRefClkDiv2  : sl               := '0';
-   signal stableClk     : sl               := '0';
-   signal stableRst     : sl               := '0';
+   signal iStableClk    : sl               := '0';
+   signal iStableRst    : sl               := '0';
    signal rxRst         : sl               := '0';
    signal gtRxResetDone : sl               := '0';
    signal dataValid     : sl               := '0';
@@ -107,7 +111,8 @@ architecture rtl of TimingGtCoreWrapper is
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
-
+   
+   signal iTxPowerDown : slv(1 downto 0);
 
 begin
 
@@ -140,26 +145,40 @@ begin
          clk      => txUsrClk,
          asyncRst => txResetDone,
          syncRst  => txOutRst);
+   
+   INT_REFCLK : if (REFCLK_G = false) generate
+   
+      U_IBUFDS_GTE2 : IBUFDS_GTE2
+         port map (
+            I     => gtRefClkP,
+            IB    => gtRefClkN,
+            CEB   => '0',
+            ODIV2 => gtRefClkDiv2,
+            O     => gtRefClk);
 
-   U_IBUFDS_GTE2 : IBUFDS_GTE2
-      port map (
-         I     => gtRefClkP,
-         IB    => gtRefClkN,
-         CEB   => '0',
-         ODIV2 => gtRefClkDiv2,
-         O     => gtRefClk);
+      U_BUFG : BUFG
+         port map (
+            I => gtRefClkDiv2,
+            O => iStableClk);
+      
+      U_PwrUpRst : entity surf.PwrUpRst
+         generic map(
+            TPD_G => TPD_G)
+         port map (
+            clk    => iStableClk,
+            rstOut => iStableRst);
+      
+   end generate;
+   
+   EXT_REFCLK : if (REFCLK_G = true) generate
+   
+      iStableClk <= stableClk;
+      iStableRst <= stableRst;
+      gtRefClk <= gtRefClkIn;
+   
+   end generate;
 
-   U_BUFG : BUFG
-      port map (
-         I => gtRefClkDiv2,
-         O => stableClk);
-
-   U_PwrUpRst : entity surf.PwrUpRst
-      generic map(
-         TPD_G => TPD_G)
-      port map (
-         clk    => stableClk,
-         rstOut => stableRst);
+   
 
    U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
@@ -181,7 +200,7 @@ begin
    rxDecErr  <= dispErr when(linkUp = '1') else (others => '0');
    dataValid <= not (uOr(decErr) or uOr(dispErr));
 
-   rxRst <= stableRst or rxControl.reset;
+   rxRst <= iStableRst or rxControl.reset;
 
    process(gtRxRecClk, gtRxResetDone)
    begin
@@ -246,7 +265,7 @@ begin
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
          FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused         
       port map (
-         stableClkIn      => stableClk,
+         stableClkIn      => iStableClk,
          cPllRefClkIn     => gtRefClk,
          cPllLockOut      => open,
          qPllRefClkIn     => '0',
@@ -254,7 +273,7 @@ begin
          qPllLockIn       => '1',
          qPllRefClkLostIn => '0',
          qPllResetOut     => open,
-         gtRxRefClkBufg   => stableClk,
+         gtRxRefClkBufg   => iStableClk,
          -- Serial IO
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,
@@ -292,7 +311,7 @@ begin
          txMmcmResetOut   => open,
          txMmcmLockedIn   => '1',
          -- Tx User Reset signals
-         txUserResetIn    => stableRst,
+         txUserResetIn    => iStableRst,
          --txResetDoneOut   => open,
          txResetDoneOut   => txResetDone,
          -- Tx Data
@@ -302,7 +321,7 @@ begin
          txPolarityIn     => txControl.polarity,
          -- Misc.
          loopbackIn       => loopback,
-         txPowerDown      => (others => txControl.inhibit),
+         txPowerDown      => iTxPowerDown,
          rxPowerDown      => (others => '0'),
          -- DRP Interface (drpClk Domain)      
          drpClk           => axilClk,
@@ -312,7 +331,9 @@ begin
          drpAddr          => drpAddr,
          drpDi            => drpDi,
          drpDo            => drpDo);
-
+   
+   iTxPowerDown <= (others => txControl.inhibit);
+   
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
