@@ -1,27 +1,24 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Status of timing frame reception
 #-----------------------------------------------------------------------------
-# File       : TimingFrameRx.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Status of timing frame reception
 # Associated firmware: lcls-timing-core/LCLS-II/core/rtl/TimingRx.vhd
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time 
+import time
 
 class TimingFrameRx(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TimingFrameRx",
             description = "Status of timing frame reception",
             **kwargs):
@@ -31,7 +28,7 @@ class TimingFrameRx(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "sofCount",
             description  = "Start of frame count",
             offset       =  0x00,
@@ -41,7 +38,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "eofCount",
             description  = "End of frame count",
             offset       =  0x04,
@@ -51,7 +48,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "FidCount",
             description  = "Valid frame count",
             offset       =  0x08,
@@ -61,7 +58,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CrcErrCount",
             description  = "CRC error count",
             offset       =  0x0C,
@@ -71,7 +68,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxClkCount",
             description  = "Recovered clock count div 16",
             offset       =  0x10,
@@ -81,7 +78,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxRstCount",
             description  = "Receive link reset count",
             offset       =  0x14,
@@ -91,7 +88,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxDecErrCount",
             description  = "Receive 8b/10b decode error count",
             offset       =  0x18,
@@ -101,7 +98,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxDspErrCount",
             description  = "Receive disparity error count",
             offset       =  0x1C,
@@ -111,7 +108,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxCountReset",
             description  = "Reset receive counters",
             offset       =  0x20,
@@ -121,7 +118,7 @@ class TimingFrameRx(pr.Device):
             hidden       = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxLinkUp",
             description  = "Receive link status",
             offset       =  0x20,
@@ -131,7 +128,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxPolarity",
             description  = "Invert receive link polarity",
             offset       =  0x20,
@@ -140,7 +137,7 @@ class TimingFrameRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxReset",
             description  = "Reset receive link",
             offset       =  0x20,
@@ -149,7 +146,7 @@ class TimingFrameRx(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ClkSel",
             description  = "Select LCLS-I/LCLS-II Timing",
             offset       =  0x20,
@@ -158,7 +155,7 @@ class TimingFrameRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RxDown",
             description  = "Rx down latch status",
             offset       =  0x20,
@@ -168,7 +165,7 @@ class TimingFrameRx(pr.Device):
             verify       = False,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BypassRst",
             description  = "Buffer bypass reset status",
             offset       =  0x20,
@@ -186,7 +183,7 @@ class TimingFrameRx(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "MsgDelay",
             description  = "LCLS-II timing frame pipeline delay (186MHz clks)",
             offset       =  0x24,
@@ -195,7 +192,7 @@ class TimingFrameRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxClkCount",
             description  = "Transmit clock counter div 16",
             offset       =  0x28,
@@ -205,7 +202,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BypassDoneCount",
             description  = "Buffer bypass done count",
             offset       =  0x2C,
@@ -215,7 +212,7 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BypassResetCount",
             description  = "Buffer bypass reset count",
             offset       =  0x2C,
@@ -232,23 +229,22 @@ class TimingFrameRx(pr.Device):
         def C_RxReset():
             self.RxReset.set(1)
             time.sleep(0.001)
-            self.RxReset.set(0)    
+            self.RxReset.set(0)
 
         @self.command(name="ClearRxCounters", description="Clear the Rx status counters",)
         def ClearRxCounters():
             self.RxCountReset.set(1)
             time.sleep(0.001)
-            self.RxCountReset.set(0)                         
-            
+            self.RxCountReset.set(0)
+
     def hardReset(self):
         self.ClearRxCounters()
-        self.RxDown.set(0)  
+        self.RxDown.set(0)
 
     def softReset(self):
         self.ClearRxCounters()
-        self.RxDown.set(0)  
+        self.RxDown.set(0)
 
     def countReset(self):
         self.ClearRxCounters()
         self.RxDown.set(0)
-        

@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue LCLS-II Timing Receiver module
 #-----------------------------------------------------------------------------
-# File       : Device.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue LCLS-II Timing Receiver module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,7 +16,7 @@
 import pyrogue as pr
 
 class EvrV2Core(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "EvrV2Core",
             description = "LCLS-II Timing Receiver module",
             **kwargs):
@@ -29,7 +26,7 @@ class EvrV2Core(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqEnable",
             description  = "Interrupt Enable",
             offset       =  0x00,
@@ -38,7 +35,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqStatus",
             description  = "Interrupt Pending",
             offset       =  0x04,
@@ -48,7 +45,7 @@ class EvrV2Core(pr.Device):
             pollInterval = 1,
         ))
 
-#        self.add(pr.RemoteVariable(    
+#        self.add(pr.RemoteVariable(
 #            name         = "LinkAddr",
 #            description  = "Physical link address",
 #            offset       =  0x08,
@@ -58,7 +55,7 @@ class EvrV2Core(pr.Device):
 #            pollInterval = 1,
 #        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "gtxDebug",
             description  = "Debug bits from link",
             offset       =  0x0C,
@@ -68,7 +65,7 @@ class EvrV2Core(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountReset",
             description  = "Counter reset",
             offset       =  0x10,
@@ -77,7 +74,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ModeSel",
             description  = "Select LCLS-I/LCLS-II Trigger outputs (0/1)",
             offset       =  0x14,
@@ -86,7 +83,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "DmaFullThr",
             description  = "Set threshold in bytes for asserting readout full",
             offset       =  0x18,
@@ -95,7 +92,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ChannelEnable",
             description  = "Enable readout channel",
             offset       =  0x20,
@@ -104,7 +101,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "ChannelBsaEnable",
             description  = "Enable BSA channel",
             offset       =  0x20,
@@ -115,7 +112,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.addRemoteVariables( 
+        self.addRemoteVariables(
             name         = "ChannelDmaEnable",
             description  = "",
             offset       =  0x20,
@@ -126,7 +123,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ChannelRateSel",
             description  = "",
             offset       =  0x24,
@@ -135,7 +132,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ChannelDestSel",
             description  = "Channel event destination selection",
             offset       =  0x25,
@@ -146,7 +143,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ChannelEventCnt",
             description  = "Channel event counts",
             offset       =  0x28,
@@ -157,7 +154,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "ChannelBsaDelay",
             description  = "Channel BSA active delay",
             offset       =  0x2C,
@@ -168,7 +165,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "ChannelBsaSetup",
             description  = "Channel BSA active setup",
             offset       =  0x2E,
@@ -179,7 +176,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "ChannelBsaWidth",
             description  = "Channel BSA active width",
             offset       =  0x30,
@@ -190,7 +187,7 @@ class EvrV2Core(pr.Device):
             stride       =  32,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "GlobalEventCnt",
             description  = "Global Event count",
             offset       =  0x1A8,
@@ -199,7 +196,7 @@ class EvrV2Core(pr.Device):
             mode         = "RW",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "TriggerChannel",
             description  = "Channel used for event selection",
             offset       =  0x200,
@@ -210,7 +207,7 @@ class EvrV2Core(pr.Device):
             stride       =  16,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "TriggerPolarity",
             description  = "Trigger polarity (0=negative, 1=positive)",
             offset       =  0x202,
@@ -221,7 +218,7 @@ class EvrV2Core(pr.Device):
             stride       =  16,
         )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "TriggerEnable",
             description  = "Trigger enable",
             offset       =  0x203,
@@ -232,7 +229,7 @@ class EvrV2Core(pr.Device):
             stride       =  16,
         )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "TriggerDelay",
             description  = "Trigger width (186MHz clocks)",
             offset       =  0x208,
@@ -243,7 +240,7 @@ class EvrV2Core(pr.Device):
             stride       =  16,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "TriggerFineDelay",
             description  = "Trigger fine delay (82.2 ps steps)",
             offset       =  0x20C,
@@ -253,4 +250,3 @@ class EvrV2Core(pr.Device):
             number       =  12,
             stride       =  16,
         )
-        

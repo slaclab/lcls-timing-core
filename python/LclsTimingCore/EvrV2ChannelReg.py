@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue LCLS-II EVR V2 Channel Registers
 #-----------------------------------------------------------------------------
-# File       : Device.py
-# Created    : 2018-09-17
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue LCLS-II EVR V2 Channel Registers
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -25,7 +22,7 @@ class EvrV2ChannelReg(pr.Device):
             dmaEnable   = False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "EnableReg",
             description = "Enable Register",
@@ -46,7 +43,7 @@ class EvrV2ChannelReg(pr.Device):
                 base        = pr.Bool,
                 mode        = "RW",
             ))
-        #########################################################  
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "dmaEnabled",
                 description = "DMA Enable register (Only valid register is DMA_ENABLE_G=true)",
@@ -56,7 +53,7 @@ class EvrV2ChannelReg(pr.Device):
                 base        = pr.Bool,
                 mode        = "RW",
             ))
-        ########################################################  
+        ########################################################
         self.add(pr.RemoteVariable(
             name        = "RateSel",
             description = "Rate select",
@@ -65,7 +62,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "DestSel",
             description = "Destination select",
@@ -74,7 +71,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 13,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Count",
             description = "Counts",
@@ -84,7 +81,7 @@ class EvrV2ChannelReg(pr.Device):
             mode        = "RO",
             pollInterval = 1,
         ))
-        #########################################################  
+        #########################################################
         if (dmaEnable):
             self.add(pr.RemoteVariable(
                 name        = "BsaWindowDelay",
@@ -94,7 +91,7 @@ class EvrV2ChannelReg(pr.Device):
                 bitOffset   = 0,
                 mode        = "RW",
             ))
-        ######################################################### 
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "BsaWindowSetup",
                 description = "Start of BSA sensitivity window before trigger (Only valid register is DMA_ENABLE_G=true)",
@@ -112,4 +109,3 @@ class EvrV2ChannelReg(pr.Device):
                 bitOffset   = 0,
                 mode        = "RW",
             ))
-        #########################################################
