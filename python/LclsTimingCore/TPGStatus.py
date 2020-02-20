@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Timing pattern generator status
 #-----------------------------------------------------------------------------
-# File       : TPGStatus.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing pattern generator status
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,7 +16,7 @@
 import pyrogue as pr
 
 class TPGStatus(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGStatus",
             description = "Timing pattern generator status",
             **kwargs):
@@ -29,7 +26,7 @@ class TPGStatus(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "BsaStat",
             description  = "BSA status num averaged/written",
             offset       =  0x00,
@@ -41,7 +38,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountPLL",
             description  = "PLL Status changes",
             offset       =  0x100,
@@ -51,7 +48,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Count186M",
             description  = "186MHz clock counts / 16",
             offset       =  0x104,
@@ -61,7 +58,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountSyncE",
             description  = "Sync error counts",
             offset       =  0x108,
@@ -71,7 +68,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountIntv",
             description  = "Interval timer",
             offset       =  0x10C,
@@ -80,7 +77,7 @@ class TPGStatus(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountBRT",
             description  = "Base rate trigger count in interval",
             offset       =  0x110,
@@ -90,7 +87,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "CountTrig",
             description  = "External trigger count in interval",
             offset       =  0x114,
@@ -102,7 +99,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "CountSeq",
             description  = "Sequence requests in interval",
             offset       =  0x144,
@@ -114,7 +111,7 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountRxClks",
             description  = "Recovered clock count / 16",
             offset       =  0x248,
@@ -123,7 +120,7 @@ class TPGStatus(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountRxDV",
             description  = "Received data valid count",
             offset       =  0x24C,
