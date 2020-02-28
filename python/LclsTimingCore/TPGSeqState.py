@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Timing pattern sequencer state
 #-----------------------------------------------------------------------------
-# File       : TPGSeqState.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing pattern sequencer state
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,7 +16,7 @@
 import pyrogue as pr
 
 class TPGSeqState(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGSeqState",
             description = "Timing pattern sequencer state",
             **kwargs):
@@ -29,7 +26,7 @@ class TPGSeqState(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "SeqIndex",
             description  = "Sequencer instruction at offset",
             offset       =  0x00,
@@ -41,7 +38,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondACount",
             description  = "BSA condition A counter",
             offset       =  0x04,
@@ -53,7 +50,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondBCount",
             description  = "BSA condition B counter",
             offset       =  0x04,
@@ -65,7 +62,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondCCount",
             description  = "BSA condition C counter",
             offset       =  0x04,
@@ -77,7 +74,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "SeqCondDCount",
             description  = "BSA condition D counter",
             offset       =  0x04,
@@ -88,4 +85,3 @@ class TPGSeqState(pr.Device):
             stride       =  8,
             pollInterval = 1,
         )
-

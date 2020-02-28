@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue LCLS-II EVR V2 Trigger Registers
 #-----------------------------------------------------------------------------
-# File       : Device.py
-# Created    : 2018-09-17
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue LCLS-II EVR V2 Trigger Registers
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -26,7 +23,7 @@ class EvrV2TriggerReg(pr.Device):
             tickUnit    = 'TBD',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "EnableTrig",
             description = "Trigger Enable",
@@ -45,7 +42,7 @@ class EvrV2TriggerReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Polarity",
             description = "Signal polarity",
@@ -54,11 +51,11 @@ class EvrV2TriggerReg(pr.Device):
             bitOffset   = 16,
             mode        = "RW",
             enum         = {
-                0x0: 'Falling', 
-                0x1: 'Rising', 
-            },               
+                0x0: 'Falling',
+                0x1: 'Rising',
+            },
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Delay",
             description = "Delay in ticks",
@@ -68,7 +65,7 @@ class EvrV2TriggerReg(pr.Device):
             mode        = "RW",
             units       = tickUnit,
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Width",
             description = "Width in ticks",
@@ -78,7 +75,7 @@ class EvrV2TriggerReg(pr.Device):
             mode        = "RW",
             units       = tickUnit,
         ))
-        #########################################################  
+        #########################################################
         if (useTap):
             self.add(pr.RemoteVariable(
                 name        = "DelayTap",
@@ -88,7 +85,7 @@ class EvrV2TriggerReg(pr.Device):
                 bitOffset   = 0,
                 mode        = "RW",
             ))
-        #########################################################  
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "DelayTapReadback",
                 description = "Delay tap readback in ticks/64 (Only valid register is USE_TAP_C=true)",
@@ -98,5 +95,4 @@ class EvrV2TriggerReg(pr.Device):
                 mode        = "RO",
                 pollInterval= 1,
             ))
-        #########################################################  
-
+        #########################################################

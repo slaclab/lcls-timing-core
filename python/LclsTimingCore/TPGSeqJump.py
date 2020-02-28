@@ -1,17 +1,14 @@
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Timing pattern sequencer jump programming
 #-----------------------------------------------------------------------------
-# File       : TPGSeqJump.py
-# Created    : 2017-04-12
-#-----------------------------------------------------------------------------
 # Description:
 # PyRogue Timing pattern sequencer jump programming
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'LCLS Timing Core'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'LCLS Timing Core', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,7 +16,7 @@
 import pyrogue as pr
 
 class TPGSeqJump(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGSeqJump",
             description = "Timing pattern sequencer jump programming",
             **kwargs):
@@ -29,7 +26,7 @@ class TPGSeqJump(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "StartAddr",
             description  = "Sequence start offset",
             offset       =  0x00,
@@ -40,7 +37,7 @@ class TPGSeqJump(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables( 
+        self.addRemoteVariables(
             name         = "Class",
             description  = "Sequence power class",
             offset       =  0x01,
@@ -51,7 +48,7 @@ class TPGSeqJump(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "StartSync",
             description  = "Start synchronization condition",
             offset       =  0x02,
@@ -61,4 +58,3 @@ class TPGSeqJump(pr.Device):
             number       =  1024,
             stride       =  4,
         )
-
