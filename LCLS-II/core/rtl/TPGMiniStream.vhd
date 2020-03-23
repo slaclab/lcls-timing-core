@@ -29,7 +29,8 @@ use lcls_timing_core.TPGMiniEdefPkg.all;
 entity TPGMiniStream is
   generic (
     TPD_G     : time    := 1 ns;
-    AC_PERIOD : integer := 119000000/360;
+--    AC_PERIOD : integer := 119000000/360;
+    AC_PERIOD : integer := 200*1666;    -- a subharmonic of 71kHz
     NUM_EDEFS : natural := 4
     );
   port (
