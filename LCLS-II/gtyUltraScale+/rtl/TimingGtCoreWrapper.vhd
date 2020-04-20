@@ -33,7 +33,9 @@ entity TimingGtCoreWrapper is
       TPD_G             : time    := 1 ns;
       DISABLE_TIME_GT_G : boolean := false;
       EXTREF_G          : boolean := false;
-      AXIL_BASE_ADDR_G  : slv(31 downto 0));
+      AXIL_BASE_ADDR_G  : slv(31 downto 0);
+      ADDR_BITS_G       : positive := 22;
+      GTH_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -225,11 +227,11 @@ architecture rtl of TimingGtCoreWrapper is
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
       0               => (
          baseAddr     => (AXIL_BASE_ADDR_G+x"00000000"),
-         addrBits     => 22,
+         addrBits     => ADDR_BITS_G,
          connectivity => x"FFFF"),
       1               => (
-         baseAddr     => (AXIL_BASE_ADDR_G+x"00400000"),
-         addrBits     => 22,
+         baseAddr     => (AXIL_BASE_ADDR_G+GTH_DRP_OFFSET_G),
+         addrBits     => ADDR_BITS_G,
          connectivity => x"FFFF"));
 
    signal rxCtrl0Out   : slv(15 downto 0) := (others => '0');
