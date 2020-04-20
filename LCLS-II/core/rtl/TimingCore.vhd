@@ -72,7 +72,7 @@ entity TimingCore is
       ibEthMsgMaster  : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
       ibEthMsgSlave   : out AxiStreamSlaveType;
       obEthMsgMaster  : out AxiStreamMasterType;
-      obEthMsgSlave   : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C);
+      obEthMsgSlave   : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C);
 
 end entity TimingCore;
 
