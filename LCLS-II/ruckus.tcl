@@ -19,6 +19,7 @@ if { ${family} == "kintexu" } {
 if { ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} ||
+     ${family} eq {qzynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
