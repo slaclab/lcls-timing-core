@@ -21,6 +21,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
@@ -33,7 +34,7 @@ entity TimingCore is
       CLKSEL_MODE_G     : string              := "SELECT";  -- "LCLSI","LCLSII"
       TPGEN_G           : boolean             := false;
       STREAM_L1_G       : boolean             := false;
-      ETHMSG_AXIS_CFG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      ETHMSG_AXIS_CFG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
       AXIL_RINGB_G      : boolean             := true;
       ASYNC_G           : boolean             := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0)    := (others => '0');
