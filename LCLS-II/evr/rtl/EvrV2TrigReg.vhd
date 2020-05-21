@@ -5,7 +5,7 @@
 -- Author     : Matt Weaver <weaver@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-01-04
--- Last update: 2020-02-03
+-- Last update: 2020-05-19
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -86,6 +86,8 @@ begin
       for i in 0 to TRIGGERS_C-1 loop
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 0, v.triggerConfig(i).channel);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 16, v.triggerConfig(i).polarity);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 28, v.triggerConfig(i).complEn);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 29, v.triggerConfig(i).complAnd);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 31, v.triggerConfig(i).enabled);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 4, STRIDE_C), 0, v.triggerConfig(i).delay);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 8, STRIDE_C), 0, v.triggerConfig(i).width);
