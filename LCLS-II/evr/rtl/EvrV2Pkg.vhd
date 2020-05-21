@@ -68,11 +68,13 @@ package EvrV2Pkg is
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
   constant EVRV2_TRIG_WIDTH_C : integer := 28;
-  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 29+2*EVRV2_TRIG_WIDTH_C;
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 31+2*EVRV2_TRIG_WIDTH_C;
   
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
+    complEn  : sl;
+    complAnd : sl;
     delay    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     channel  : slv( 3 downto 0);
@@ -84,6 +86,8 @@ package EvrV2Pkg is
   constant EVRV2_TRIGGER_CONFIG_INIT_C : EvrV2TriggerConfigType := (
     enabled   => '0',
     polarity  => '1',
+    complEn   => '0',
+    complAnd  => '0',
     delay     => (others=>'0'),
     width     => (others=>'0'),
     channel   => (others=>'0'),
@@ -213,6 +217,8 @@ package body EvrV2Pkg is
   begin
     assignSlv(i, vector, cfg.enabled);
     assignSlv(i, vector, cfg.polarity);
+    assignSlv(i, vector, cfg.complEn);
+    assignSlv(i, vector, cfg.complAnd);
     assignSlv(i, vector, cfg.delay);
     assignSlv(i, vector, cfg.width);
     assignSlv(i, vector, cfg.channel);
@@ -243,6 +249,8 @@ package body EvrV2Pkg is
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.polarity);
+    assignRecord(i, vector, cfg.complEn);
+    assignRecord(i, vector, cfg.complAnd);
     assignRecord(i, vector, cfg.delay);
     assignRecord(i, vector, cfg.width);
     assignRecord(i, vector, cfg.channel);

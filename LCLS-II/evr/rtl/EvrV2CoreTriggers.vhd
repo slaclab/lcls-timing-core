@@ -90,7 +90,8 @@ architecture mapping of EvrV2CoreTriggers is
   signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0);
   signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0);
   signal strobe         : slv(3 downto 0);
-  
+  signal trigPulse      : slv(NCHANNELS_G-1 downto 0);  
+
 begin  -- rtl
 
   -------------------------
@@ -163,9 +164,19 @@ begin  -- rtl
                      config   => triggerConfigS(i),
                      arm      => eventSel,
                      fire     => strobe(3),
-                     trigstate=> trigOut.trigPulse(i) );
+                     trigstate=> trigPulse(i) );
    end generate;  -- i
 
+   Loop_Compl: for i in 0 to NCHANNELS_G/2-1 generate
+      U_Trig : entity lcls_timing_core.EvrV2TriggerCompl
+         generic map ( REG_OUT_G => false )
+         port map ( clk     => evrClk,
+                    rst     => evrRst,
+                    config  => triggerConfigS(2*i+1 downto 2*i),
+                    trigIn  => trigPulse(2*i+1 downto 2*i),
+                    trigOut => trigOut.trigPulse(2*i+1 downto 2*i) );
+   end generate;
+    
    trigOut.timeStamp <= timingMsg.timeStamp;
    trigOut.bsa       <= evrBus.stream.dbuff.edefAvgDn &
                         evrBus.stream.dbuff.edefMinor &
