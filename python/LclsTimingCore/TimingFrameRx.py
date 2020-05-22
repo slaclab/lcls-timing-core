@@ -184,6 +184,32 @@ class TimingFrameRx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = "ModeSel",
+            description  = "Select timing mode",
+            offset       = 0x20,
+            bitSize      = 1,
+            bitOffset    = 0x09,
+            mode         = "RW",
+            enum         = {
+                0x0: 'Lcls1Protocol',
+                0x1: 'Lcls2Protocol',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "ModeSelEn",
+            description  = "Enable ModeSel register",
+            offset       = 0x20,
+            bitSize      = 1,
+            bitOffset    = 0x0A,
+            mode         = "RW",
+            enum         = {
+                0x0: 'UseClkSel',
+                0x1: 'UseModeSel',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(    
             name         = "MsgDelay",
             description  = "LCLS-II timing frame pipeline delay (186MHz clks)",
             offset       =  0x24,
