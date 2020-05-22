@@ -56,6 +56,33 @@ EvrV2TriggerReg: &EvrV2TriggerReg
 #        { name: Rising , value: 1 }
       description: Signal polarity
     #########################################################  
+    ComplEn:
+      at:
+        offset: 0x03
+      class: IntField
+      name: ComplEn
+      sizeBits: 1
+      lsBit: 5
+      mode: RW
+      description: Enable complementary trigger outputs
+    #########################################################  
+    ComplAnd:
+      at:
+        offset: 0x03
+      class: IntField
+      name: ComplAnd
+      sizeBits: 1
+      lsBit: 6
+      mode: RW
+      enums:
+        - name: LogicOR
+          class: Enum
+          value: 0
+        - name: LogicAND
+          class: Enum
+          value: 1
+      description: Complementary trigger logic
+    #########################################################  
     Delay:
       at:
         offset: 0x04
