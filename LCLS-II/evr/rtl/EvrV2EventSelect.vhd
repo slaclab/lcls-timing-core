@@ -80,8 +80,10 @@ begin
    end process;
 
    destSel <= '1' when ((config.destSel(17 downto 16) = "10") or
-                        (config.destSel(17 downto 16) = "01" and not (dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
-                        (config.destSel(17 downto 16) = "00" and      dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
+                        (config.destSel(17 downto 16) = "01" and
+                         not (dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
+                        (config.destSel(17 downto 16) = "00" and
+                         dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
               '0';
 
 end EvrV2EventSelect;
