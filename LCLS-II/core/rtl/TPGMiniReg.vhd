@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity TPGMiniReg is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-      -- EVR Interface      
+      -- EVR Interface
       status         : in  TPGStatusType;
       config         : out TPGConfigType;
       edefConfig     : out TPGMiniEdefConfigType;
@@ -89,7 +89,7 @@ architecture rtl of TPGMiniReg is
    constant CNTSYNCE   : integer := 322;
    constant CNTINTVL   : integer := 323;
    constant CNTBRT     : integer := 324;
-  
+
    type RegType is record
                      pulseId           : slv(31 downto 0);
                      timeStamp         : slv(31 downto 0);
@@ -118,7 +118,7 @@ architecture rtl of TPGMiniReg is
                      axiReadSlave      : AxiLiteReadSlaveType;
                      axiWriteSlave     : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
      pulseId           => (others=>'0'),
      timeStamp         => (others=>'0'),
@@ -154,10 +154,10 @@ begin
 
    assert NARRAYS_BSA < 33
      report "NARRAYS_BSA (" & integer'image(NARRAYS_BSA) & ") limit is 32 for TPGMini" severity failure;
-   
+
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, irqActive, r, status) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -179,7 +179,7 @@ begin
       wrPntr := conv_integer(axiWriteMaster.awaddr(10 downto 2));
       rdPntr := conv_integer(axiReadMaster .araddr(10 downto 2));
       regWrData := axiWriteMaster.wdata;
-      
+
       -- Reset strobing signals
       v.config.pulseIdWrEn   := '0';
       v.config.timeStampWrEn := '0';
@@ -187,12 +187,12 @@ begin
       v.edefConfig.wrEn      := '0';
       v.txReset              := '0';
       bsaClear               := (others=>'0');
-      
+
       -- Determine the transaction type
 
       -----------------------------
       -- AXI-Lite Write Logic
-      -----------------------------      
+      -----------------------------
       axiSlaveWaitWriteTxn(axiWriteMaster,v.axiWriteSlave,axiStatus.writeEnable);
 
       if (axiStatus.writeEnable = '1') then
@@ -233,7 +233,7 @@ begin
             when BSACMPLU   => bsaClear(63 downto 32)          := regWrData;
             when BSA1_EDEF  => v.edefConfig                    := fromSlv( regWrData, '0' );
             when BSA1_INIT  => v.edefConfig.wrEn               := '1';
-            when BSACTRL    => 
+            when BSACTRL    =>
               for i in 0 to NARRAYS_BSA-1 loop
                 v.config.bsadefv(i).init := regWrData(i);
               end loop;
@@ -264,10 +264,10 @@ begin
         -- Send AXI response
         axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       end if;
-      
+
       -----------------------------
       -- AXI-Lite Read Logic
-      -----------------------------      
+      -----------------------------
 
       axiSlaveWaitReadTxn(axiReadMaster,v.axiReadSlave,axiStatus.readEnable);
 
@@ -330,15 +330,15 @@ begin
                 when "00" => tmpRdData( 1 downto  0) := r.bsadefRateMode (iseq);
                              tmpRdData( 5 downto  2) := r.bsaDefFixedRate(iseq);
                              tmpRdData( 8 downto  6) := r.bsaDefACRate   (iseq);
-                             tmpRdData(14 downto  9) := r.bsaDefACTSMask (iseq); 
-                             tmpRdData(19 downto 15) := r.bsaDefSeqSel   (iseq); 
-                             tmpRdData(23 downto 20) := r.bsaDefSeqBit   (iseq); 
-                             tmpRdData(25 downto 24) := r.bsaDefDestMode (iseq); 
-                when "01" => tmpRdData(15 downto  0) := r.bsadefDestInclM(iseq); 
-                             tmpRdData(31 downto 16) := r.bsaDefDestExclM(iseq); 
-                when "10" => tmpRdData(12 downto  0) := r.bsadefNToAvg   (iseq); 
-                             tmpRdData(15 downto 14) := r.bsaDefMaxSevr  (iseq); 
-                             tmpRdData(31 downto 16) := r.bsaDefAvgToWr  (iseq); 
+                             tmpRdData(14 downto  9) := r.bsaDefACTSMask (iseq);
+                             tmpRdData(19 downto 15) := r.bsaDefSeqSel   (iseq);
+                             tmpRdData(23 downto 20) := r.bsaDefSeqBit   (iseq);
+                             tmpRdData(25 downto 24) := r.bsaDefDestMode (iseq);
+                when "01" => tmpRdData(15 downto  0) := r.bsadefDestInclM(iseq);
+                             tmpRdData(31 downto 16) := r.bsaDefDestExclM(iseq);
+                when "10" => tmpRdData(12 downto  0) := r.bsadefNToAvg   (iseq);
+                             tmpRdData(15 downto 14) := r.bsaDefMaxSevr  (iseq);
+                             tmpRdData(31 downto 16) := r.bsaDefAvgToWr  (iseq);
                 when others => null;
               end case;
             when BSASTATUS to BSASTATUS_END =>
@@ -380,7 +380,7 @@ begin
           v.config.bsadefv(i).maxSevr := r.bsadefMaxSevr(i);
         end if;
       end loop;
-      
+
       -- Misc. Mapping and Logic
       v.bsaComplete := (r.bsaComplete and not bsaClear) or status.bsaComplete;
       if allBits(r.bsaComplete,'0') then
@@ -405,7 +405,7 @@ begin
       txReset         <= r.txReset;
       txLoopback      <= r.txLoopback;
       txInhibit       <= r.txInhibit;
-      
+
       irqEnable       <= '0';
       irqReq          <= '0';
    end process comb;
