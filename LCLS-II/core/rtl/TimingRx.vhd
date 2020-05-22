@@ -89,8 +89,6 @@ architecture rtl of TimingRx is
                              ite(CLKSEL_MODE_G="LCLSII" or CLKSEL_MODE_G="LCLSIIPIC",'1',
                                  DEFAULT_CLK_SEL_G)),
       modeSelEn       => ite(CLKSEL_MODE_G="SELECT" ,'0','1'),
-      clkSel          => ite(CLKSEL_MODE_G = "SELECT", DEFAULT_CLK_SEL_G,
-                             ite(CLKSEL_MODE_G = "LCLSI", '0', '1')),
       cntRst          => '0',
       rxControl       => TIMING_PHY_CONTROL_INIT_C,
       rxDown          => '0',
@@ -156,8 +154,7 @@ begin
    GEN_RxLcls1 : if not (CLKSEL_MODE_G = "LCLSII" or CLKSEL_MODE_G = "LCLSIIPIC") generate
       U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
          generic map (
-            TPD_G             => TPD_G,
-            AXIL_ERROR_RESP_G => AXI_RESP_DECERR_C)
+            TPD_G             => TPD_G )
          port map (
             rxClk               => rxClk,
             rxRst               => rxRst(0),
@@ -176,8 +173,7 @@ begin
       timingMessage       <= TIMING_MESSAGE_INIT_C;
       timingMessageStrobe <= '0';
       timingMessageValid  <= '0';
-      timingExtn          <= TIMING_EXTN_INIT_C;
-      timingExtnValid     <= '0';
+      timingExtension     <= (others => TIMING_EXTENSION_MESSAGE_INIT_C);
       rxVersion(1)        <= (others=>'0');
       staData  (1)        <= (others=>'0');
    end generate;
@@ -194,8 +190,7 @@ begin
             timingMessage       => timingMessage,
             timingMessageStrobe => timingMessageStrobe,
             timingMessageValid  => timingMessageValid,
-            timingExtn          => timingExtn,
-            timingExtnValid     => timingExtnValid,
+            timingExtension     => timingExtension,
             rxVersion           => rxVersion(1),
             staData             => staData  (1) );
    end generate;

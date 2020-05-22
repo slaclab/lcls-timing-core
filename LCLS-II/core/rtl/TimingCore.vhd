@@ -328,7 +328,7 @@ begin
                      timingStreamValid;
 
    GEN_ASYNC : if ASYNC_G generate
-      process (modeSelApp, appTimingFrameSlv) is
+      process (appTimingExtension,appTimingFrameSlv,modeSelApp) is
       begin
          if modeSelApp = '0' then
             appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
@@ -391,7 +391,6 @@ begin
       appTimingBus_i.valid     <= timingValid;
       appTimingBus_i.modesel   <= modeSelRx;
       appTimingBus_i.extension <= timingExtension;
-      timingClkSelApp          <= modeSelRx;
    end generate;
 
    U_SYNC_LinkV1 : entity surf.Synchronizer
