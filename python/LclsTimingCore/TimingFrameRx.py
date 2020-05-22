@@ -209,7 +209,7 @@ class TimingFrameRx(pr.Device):
             },
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "MsgDelay",
             description  = "LCLS-II timing frame pipeline delay (186MHz clks)",
             offset       =  0x24,
