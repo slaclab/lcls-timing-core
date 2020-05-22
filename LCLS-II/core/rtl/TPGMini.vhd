@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -60,7 +60,7 @@ architecture TPGMini of TPGMini is
 
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
-  
+
   signal frame : TimingMessageType := TIMING_MESSAGE_INIT_C;
 
   signal baseEnable  : sl;
@@ -96,17 +96,17 @@ architecture TPGMini of TPGMini is
   signal config : TPGConfigType;
 
   constant TPG_ID : integer := 0;
-  
+
   signal istreams   : TimingSerialArray(0 downto 0);
   signal istreamIds : Slv4Array(0 downto 0);
   signal iadvance   : slv(0 downto 0);
   signal iiadvance  : slv(0 downto 0);
-  
+
   attribute use_dsp48                : string;
-  attribute use_dsp48 of intervalCnt : signal is "yes";   
-  attribute use_dsp48 of pllChanged  : signal is "yes";   
-  attribute use_dsp48 of countSyncE  : signal is "yes";   
-  
+  attribute use_dsp48 of intervalCnt : signal is "yes";
+  attribute use_dsp48 of pllChanged  : signal is "yes";
+  attribute use_dsp48 of countSyncE  : signal is "yes";
+
 begin
 
   streams   <= istreams;
@@ -114,7 +114,7 @@ begin
   iiadvance <= advance  when STREAM_INTF=true else
                iadvance;
   fiducial  <= baseEnable;
-  
+
   -- Dont know about these inputs yet
   frame.bcsFault <= (others => '0');
 
@@ -174,7 +174,7 @@ begin
 
   frame.control     <= (others=>(others=>'0'));
   frame.beamRequest <= (others=>'0');
-  
+
   BsaLoop : for i in 0 to NARRAYSBSA-1 generate
     U_BsaControl : entity lcls_timing_core.BsaControl
       generic map (TPD_G => TPD_G, ASYNC_REGCLK_G => false)
@@ -216,7 +216,7 @@ begin
                advance   => iadvance,
                data      => txData,
                dataK     => txDataK );
-  
+
   U_TPSerializer : entity lcls_timing_core.TPSerializer
     generic map ( TPD_G => TPD_G, Id => TPG_ID )
     port map ( txClk      => txClk,
@@ -311,7 +311,7 @@ begin
     if txRst='1' then
       v := REG_INIT_C;
     end if;
-    
+
     rin <= v;
 
     status.bsaComplete <= r.bsaComplete;
@@ -340,5 +340,5 @@ begin
 
   statusO <= status;
   config  <= configI;
-  
+
 end TPGMini;

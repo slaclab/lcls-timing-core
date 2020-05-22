@@ -6,11 +6,11 @@
 -- sequencer event codes are reformatted.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -34,7 +34,7 @@ entity EvrV2FromV1 is
 end EvrV2FromV1;
 
 architecture EvrV2FromV1 of EvrV2FromV1 is
-  
+
 begin
 
   process (clk)
@@ -96,5 +96,5 @@ begin
       end if;
     end if;
   end process;
-  
+
 end EvrV2FromV1;

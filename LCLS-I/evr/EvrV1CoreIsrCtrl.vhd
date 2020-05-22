@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity EvrV1CoreIsrCtrl is
       REM_BASE_ADDR_G       : slv(31 downto 0)    := (others => '0');
       AXIS_CONFIG_G         : AxiStreamConfigType := ssiAxiStreamConfig(4));
    port (
-      -- AXI-Lite and 
+      -- AXI-Lite and
       axilClk          : in  sl;
       axilRst          : in  sl;
       axilReadMaster   : in  AxiLiteReadMasterType;
@@ -187,7 +187,7 @@ begin
       -- Latch the current value
       v := gtR;
 
-      -- Check if valid data 
+      -- Check if valid data
       dataValid := not (uOr(gtRxDispErr) or uOr(gtRxDecErr));
 
       -- Check the counter
@@ -208,7 +208,7 @@ begin
       -- Register the variable for next clock cycle
       gtRin <= v;
 
-      -- Outputs 
+      -- Outputs
       rxLinkUp <= gtR.rxLinkUp;
       rxError  <= not(dataValid) and gtR.rxLinkUp;
       rxData   <= gtR.rxData;
@@ -239,9 +239,9 @@ begin
          v.txMaster.tKeep  := x"000F";  -- --32-bit interface
       end if;
 
-      ------------------------------      
+      ------------------------------
       -- Slave AXI-Lite Transactions
-      ------------------------------      
+      ------------------------------
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -410,7 +410,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_DBUF0_S =>
-            -- AXI-Lite transaction handshaking and if ready to move data            
+            -- AXI-Lite transaction handshaking and if ready to move data
             if (ack.done = '1') and (v.txMaster.tValid = '0') then
                -- Reset the flag
                v.req.request                 := '0';
@@ -437,7 +437,7 @@ begin
                -- Get the DBUF CTRL register
                v.req.request := '1';
                v.req.rnw     := RD_C;
-               -- Check for first buffer read transaction 
+               -- Check for first buffer read transaction
                if (r.cnt = 0) then
                   -- Initialize
                   v.req.address := DATA_BUF_ADDR_C;
@@ -450,7 +450,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_DBUF2_S =>
-            -- AXI-Lite transaction handshaking and if ready to move data            
+            -- AXI-Lite transaction handshaking and if ready to move data
             if (ack.done = '1') and (v.txMaster.tValid = '0') then
                -- Reset the flag
                v.req.request                 := '0';
@@ -501,7 +501,7 @@ begin
                v.req.rnw        := WR_C;
                v.req.address    := DBUF_CTRL_ADDR_C;
                v.req.wrData     := ack.rdData;
-               v.req.wrData(15) := '1';  -- C_EVR_DATABUF_LOAD             
+               v.req.wrData(15) := '1';  -- C_EVR_DATABUF_LOAD
                -- Next state
                v.state          := IRQ_DBUF6_S;
             end if;
@@ -559,7 +559,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_EVENT0_S =>
-            -- AXI-Lite transaction handshaking and if ready to move data            
+            -- AXI-Lite transaction handshaking and if ready to move data
             if (ack.done = '1') and (v.txMaster.tValid = '0') then
                -- Reset the flag
                v.req.request                 := '0';
@@ -582,7 +582,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_EVENT2_S =>
-            -- AXI-Lite transaction handshaking and if ready to move data            
+            -- AXI-Lite transaction handshaking and if ready to move data
             if (ack.done = '1') and (v.txMaster.tValid = '0') then
                -- Reset the flag
                v.req.request                 := '0';
@@ -605,7 +605,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_EVENT4_S =>
-            -- AXI-Lite transaction handshaking and if ready to move data            
+            -- AXI-Lite transaction handshaking and if ready to move data
             if (ack.done = '1') and (v.txMaster.tValid = '0') then
                -- Reset the flag
                v.req.request                 := '0';
@@ -627,7 +627,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IRQ_EVENT6_S =>
-            -- AXI-Lite transaction handshaking (AXIS already ready from  state = IRQ_EVENT4_S)          
+            -- AXI-Lite transaction handshaking (AXIS already ready from  state = IRQ_EVENT4_S)
             if (ack.done = '1') then
                -- Reset the flag
                v.req.request     := '0';
@@ -635,7 +635,7 @@ begin
                v.txMaster.tValid := '1';
                -- Increment the counter
                v.cnt             := r.cnt + 1;
-               -- Check if not IRQ bit or packet limit 
+               -- Check if not IRQ bit or packet limit
                if (ack.rdData(IRQFLAG_EVENT_C) = '0') or (r.cnt = (FIFO_EVENT_LIMIT_C-1)) then
                   -- Reset the counter
                   v.cnt            := (others => '0');
@@ -724,7 +724,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
 

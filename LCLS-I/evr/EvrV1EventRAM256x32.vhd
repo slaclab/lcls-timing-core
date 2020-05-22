@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ entity EvrV1EventRAM256x32 is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Port A     
+      -- Port A
       clka  : in  sl;
       ena   : in  sl;
       wea   : in  sl;
@@ -36,13 +36,13 @@ entity EvrV1EventRAM256x32 is
       web   : in  sl;
       addrb : in  slv(7 downto 0);
       dinb  : in  slv(31 downto 0);
-      doutb : out slv(31 downto 0));   
+      doutb : out slv(31 downto 0));
 end EvrV1EventRAM256x32;
 
 architecture mapping of EvrV1EventRAM256x32 is
 
 begin
-   
+
    TrueDualPortRam_Inst : entity surf.TrueDualPortRam
       generic map (
          TPD_G        => TPD_G,
@@ -50,7 +50,7 @@ begin
          DATA_WIDTH_G => 32,
          ADDR_WIDTH_G => 8)
       port map (
-         -- Port A     
+         -- Port A
          clka  => clka,
          ena   => ena,
          wea   => wea,
@@ -63,6 +63,6 @@ begin
          web   => web,
          addrb => addrb,
          dinb  => dinb,
-         doutb => doutb);   
+         doutb => doutb);
 
 end mapping;

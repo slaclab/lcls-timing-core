@@ -4,11 +4,11 @@
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -45,7 +45,7 @@ end TimingDeserializer;
 architecture TimingDeserializer of TimingDeserializer is
 
    type StateType is (IDLE_S, SOS_S, SEGMENT_S, SINK_S, CRC1_S, CRC2_S, EOF_S);
-   
+
    type RegType is
    record
       state        : StateType;
@@ -79,7 +79,7 @@ architecture TimingDeserializer of TimingDeserializer is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   signal crc : slv(31 downto 0);
-  
+
 begin
 
   fiducial <= r.fiducial;
@@ -88,7 +88,7 @@ begin
   sof      <= r.sof;
   eof      <= r.eof;
   crcErr   <= r.crcErr;
-  
+
   U_CRC : entity surf.Crc32Parallel
     generic map ( TPD_G=>TPD_G, BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
     port map ( crcOut       => crc,
@@ -97,11 +97,11 @@ begin
                crcDataWidth => "001",
                crcIn        => data.data,
                crcReset     => r.crcReset );
-  
+
   comb: process (rst, r, crc, streamIds, data)
     variable v    : RegType;
     variable istr : integer;
-  begin 
+  begin
       v := r;
 
       v.fiducial := '0';
@@ -114,9 +114,9 @@ begin
       --for i in 0 to STREAMS_C-1 loop
       --  v.streams(i).ready := '0';
       --end loop;
-      
+
       case (r.state) is
-        when IDLE_S => 
+        when IDLE_S =>
           if (data.dataK="01" and data.data=(D_215_C & K_SOF_C)) then
              for i in 0 to STREAMS_C-1 loop
                v.streams(i).ready := r.served(i);

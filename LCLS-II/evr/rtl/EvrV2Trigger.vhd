@@ -9,11 +9,11 @@
 -- pipelining is not exceeded.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -72,7 +72,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
      fifoDin    => (others=>'0'));
 
    constant FIFO_AWIDTH_C : natural := bitSize( TRIG_DEPTH_C );
-   
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
@@ -85,7 +85,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
 
    signal fifoCountDbg : slv(6 downto 0);
-   
+
 begin
 
 
@@ -116,7 +116,7 @@ begin
 
    process (r, arm, fire, rst, config, fifoValid, fifoDout, fifoEmpty)
       variable v : RegType;
-   begin 
+   begin
       v := r;
 
       v.state     := not config.polarity;
@@ -138,7 +138,7 @@ begin
       else
         v.delay  := r.delay-1;
       end if;
-      
+
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
          v.fifoWr     := '1';
@@ -159,7 +159,7 @@ begin
       if rst='1' or config.enabled='0' then
          v := REG_INIT_C;
       end if;
-      
+
       rin <= v;
    end process;
 
