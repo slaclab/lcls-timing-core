@@ -55,19 +55,43 @@ class EvrV2ChannelReg(pr.Device):
             ))
         ########################################################
         self.add(pr.RemoteVariable(
+            name = 'RateType',
+            offset = 0x04,
+            bitSize = 2,
+            bitOffset = 11,
+            base = pr.UInt,
+            enum = {
+                0: 'FixedRates',
+                1: 'AcRates',
+                2: 'ControlWord',
+                3: 'INVALID'}))
+        
+        self.add(pr.RemoteVariable(
             name        = "RateSel",
             description = "Rate select",
             offset      = 0x04,
-            bitSize     = 13,
+            bitSize     = 11,
             bitOffset   = 0,
             mode        = "RW",
         ))
         #########################################################
         self.add(pr.RemoteVariable(
+            name = 'DestType',
+            offset = 0x04,
+            bitOffset = 29,
+            bitSize = 2,
+            base = pr.UInt,
+            enum = {
+                2: 'All',
+                0: 'BeamRequest',
+                1: 'NotBeamRequest',
+                3: 'Invalid'}))
+        
+        self.add(pr.RemoteVariable(
             name        = "DestSel",
             description = "Destination select",
             offset      = 0x04,
-            bitSize     = 19,
+            bitSize     = 16,
             bitOffset   = 13,
             mode        = "RW",
         ))
