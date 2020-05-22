@@ -4,11 +4,11 @@
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -66,7 +66,7 @@ architecture TimingSerializer of TimingSerializer is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   signal crc : slv(31 downto 0);
-  
+
 begin
 
   advance  <= rin.advance;
@@ -74,8 +74,8 @@ begin
               crc(31 downto 16) when r.state=CRC3_S else
               r.data;
   dataK    <= r.dataK;
-  
-  
+
+
   U_CRC : entity surf.Crc32Parallel
     generic map ( TPD_G=>TPD_G, BYTE_WIDTH_G => 2, CRC_INIT_G => x"FFFFFFFF" )
     port map ( crcOut       => crc,
@@ -84,19 +84,19 @@ begin
                crcDataWidth => "001",
                crcIn        => rin.data,
                crcReset     => r.crcReset );
-  
+
   comb: process (rst, fiducial, streams, streamIds, r)
     variable v    : RegType;
     variable istr : integer;
-  begin 
+  begin
       v := r;
 
       v.crcReset := '0';
       v.crcValid := '0';
       v.advance  := (others=>'0');
-      
+
       case (r.state) is
-        when IDLE_S => 
+        when IDLE_S =>
           if fiducial = '1' then
             v.data  := D_215_C & K_281_C; -- special 4-byte alignment comma
             v.state := SOF_S;
@@ -166,7 +166,7 @@ begin
       if (rst='1') then
         v := REG_INIT_C;
       end if;
-      
+
       rin <= v;
 
    end process;

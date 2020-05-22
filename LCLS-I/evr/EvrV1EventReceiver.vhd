@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ architecture rtl of EvrV1EventReceiver is
          trigger      : out sl;
          setPulse     : in  sl;
          resetPulse   : in  sl;
-         channelDebug : out slv(102 downto 0));  
+         channelDebug : out slv(102 downto 0));
    end component EvrV1EventReceiverChannel;
 
    component EvrV1TimeofDayReceiver is
@@ -196,16 +196,16 @@ begin
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => SYNC_POLARITY_G,
-         OUT_POLARITY_G => '1')          
+         OUT_POLARITY_G => '1')
       port map (
          clk     => evrClk,
          dataIn  => sync,
-         dataOut => extEventPulse);    
+         dataOut => extEventPulse);
 
    SyncIn_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 7)          
+         WIDTH_G => 7)
       port map (
          clk        => evrClk,
          dataIn(0)  => config.dbena,
@@ -226,51 +226,51 @@ begin
    SyncIn_2 : entity surf.SynchronizerOneShotVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 32)          
+         WIDTH_G => 32)
       port map (
          clk     => evrClk,
          dataIn  => config.irqClr,
-         dataOut => irqClr); 
+         dataOut => irqClr);
 
    SyncIn_3 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)          
+         DATA_WIDTH_G => 32)
       port map (
          wr_clk => axiClk,
          din    => config.intEventCount,
          rd_clk => evrClk,
-         dout   => intEventCount); 
+         dout   => intEventCount);
 
    SyncIn_4 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)          
+         DATA_WIDTH_G => 32)
       port map (
          wr_clk => axiClk,
          din    => config.uSecDivider,
          rd_clk => evrClk,
-         dout   => uSecDivider);  
+         dout   => uSecDivider);
 
    SyncIn_5 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 8)          
+         DATA_WIDTH_G => 8)
       port map (
          wr_clk => axiClk,
          din    => config.intEventCode,
          rd_clk => evrClk,
-         dout   => intEventCode); 
+         dout   => intEventCode);
 
    SyncIn_6 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 8)          
+         DATA_WIDTH_G => 8)
       port map (
          wr_clk => axiClk,
          din    => config.extEventCode,
          rd_clk => evrClk,
-         dout   => extEventCode);         
+         dout   => extEventCode);
 
    SyncIn_7 : entity surf.SynchronizerOneShot
       generic map (
@@ -278,10 +278,10 @@ begin
       port map (
          clk     => evrClk,
          dataIn  => config.latchTs,
-         dataOut => latchTs);          
+         dataOut => latchTs);
 
    ------------------------
-   -- Generate enable dbInt     
+   -- Generate enable dbInt
    ------------------------
    process(evrClk)
    begin
@@ -304,48 +304,48 @@ begin
    GEN_EVENT_RX_CH :
    for i in 11 downto 0 generate
 
-      ----------------------------      
+      ----------------------------
       -- Synchronize Configuration
-      ----------------------------      
+      ----------------------------
       SyncIn_pulseControl : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32)          
+            DATA_WIDTH_G => 32)
          port map (
             wr_clk => axiClk,
             din    => config.pulseControl(i),
             rd_clk => evrClk,
-            dout   => pulseControl(i));   
+            dout   => pulseControl(i));
 
       SyncIn_pulsePrescale : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32)          
+            DATA_WIDTH_G => 32)
          port map (
             wr_clk => axiClk,
             din    => config.pulsePrescale(i),
             rd_clk => evrClk,
-            dout   => pulsePrescale(i));  
+            dout   => pulsePrescale(i));
 
       SyncIn_pulseDelay : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32)          
+            DATA_WIDTH_G => 32)
          port map (
             wr_clk => axiClk,
             din    => config.pulseDelay(i),
             rd_clk => evrClk,
-            dout   => pulseDelay(i));   
+            dout   => pulseDelay(i));
 
       SyncIn_pulseWidth : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 32)          
+            DATA_WIDTH_G => 32)
          port map (
             wr_clk => axiClk,
             din    => config.pulseWidth(i),
             rd_clk => evrClk,
-            dout   => pulseWidth(i));              
+            dout   => pulseWidth(i));
 
       -------------------------
       -- Event Receiver Channel
@@ -379,7 +379,7 @@ begin
          EventStream  => eventStream,
          TimeStamp    => timeStamp,
          timeDebug    => open,
-         secondsShift => secondsShift); 
+         secondsShift => secondsShift);
 
    -----------------------------
    -- Debug Time Stamp Generator
@@ -388,7 +388,7 @@ begin
       port map (
          Clock     => evrClk,
          Reset     => evrRst,
-         TimeStamp => intTimeStamp);          
+         TimeStamp => intTimeStamp);
 
    -------------------------------------------------------------------
    -- Delay EventStream and TimeStamp by one clock for writing in FIFO
@@ -434,24 +434,24 @@ begin
          dout(39 downto 8)  => status.tsFifoTsHigh,
          dout(7 downto 0)   => status.tsFifoEventCode,
          rd_data_count      => open,
-         empty              => tsFIFOempty);         
+         empty              => tsFIFOempty);
 
    fifoRst  <= evrRst or not(evrEnable) or not(rxLinkUp);
    fifoWrEn <= eventRamIntDataInt(31) and rxLinkUp and evrEnable;
 
-   -----------------------         
+   -----------------------
    -- FIFO Readout Control
-   -----------------------     
+   -----------------------
    Sync_WrCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 9)          
+         DATA_WIDTH_G => 9)
       port map (
          rst    => fifoRst,
          wr_clk => evrClk,
          din    => tsFifoWrCntInt,
          rd_clk => axiClk,
-         dout   => tsFifoWrCnt);       
+         dout   => tsFifoWrCnt);
 
    process(axiClk)
       variable i : natural;
@@ -522,12 +522,12 @@ begin
    ---------------------
    GEN_EVENT_RAM :
    for i in 1 downto 0 generate
-      
+
       EventRamReset_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
-            -- Port A     
+            -- Port A
             clka  => evrClk,
             ena   => '1',
             wea   => '0',
@@ -540,13 +540,13 @@ begin
             web   => config.eventRamWe(i)(3),
             addrb => config.eventRamAddr,
             dinb  => config.eventRamData,
-            doutb => status.eventRamReset(i));          
+            doutb => status.eventRamReset(i));
 
       EventRamSet_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
-            -- Port A     
+            -- Port A
             clka  => evrClk,
             ena   => '1',
             wea   => '0',
@@ -559,13 +559,13 @@ begin
             web   => config.eventRamWe(i)(2),
             addrb => config.eventRamAddr,
             dinb  => config.eventRamData,
-            doutb => status.eventRamSet(i));          
+            doutb => status.eventRamSet(i));
 
       EventRamPulse_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
-            -- Port A     
+            -- Port A
             clka  => evrClk,
             ena   => '1',
             wea   => '0',
@@ -578,13 +578,13 @@ begin
             web   => config.eventRamWe(i)(1),
             addrb => config.eventRamAddr,
             dinb  => config.eventRamData,
-            doutb => status.eventRamPulse(i));          
+            doutb => status.eventRamPulse(i));
 
       EventRamInt_Inst : entity lcls_timing_core.EvrV1EventRAM256x32
          generic map (
             TPD_G => TPD_G)
          port map (
-            -- Port A     
+            -- Port A
             clka  => evrClk,
             ena   => '1',
             wea   => '0',
@@ -597,7 +597,7 @@ begin
             web   => config.eventRamWe(i)(0),
             addrb => config.eventRamAddr,
             dinb  => config.eventRamData,
-            doutb => status.eventRamInt(i)); 
+            doutb => status.eventRamInt(i));
 
    end generate GEN_EVENT_RAM;
 
@@ -642,23 +642,23 @@ begin
       end if;
    end process;
 
-   ---------------------------------------            
+   ---------------------------------------
    -- Loop through Output Trigger Channels
-   ---------------------------------------            
+   ---------------------------------------
    GEN_TRIG_OUTPUT :
    for i in 11 downto 0 generate
-      ----------------------------      
+      ----------------------------
       -- Synchronize Configuration
-      ----------------------------      
+      ----------------------------
       SyncIn_xBarReg : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            DATA_WIDTH_G => 16)          
+            DATA_WIDTH_G => 16)
          port map (
             wr_clk => axiClk,
             din    => config.outputMap(i),
             rd_clk => evrClk,
-            dout   => outputMap(i));     
+            dout   => outputMap(i));
       --------------------------
       -- Output Trigger Crossbar
       --------------------------
@@ -690,13 +690,13 @@ begin
    --------------------
    EvrV1HeartBeat_Inst : entity lcls_timing_core.EvrV1HeartBeat
       generic map (
-         TPD_G => TPD_G)          
+         TPD_G => TPD_G)
       port map (
          reset            => evrRst,
          uSecDividerReg   => uSecDivider,
          eventCode        => eventStream,
          eventClk         => evrClk,
-         heartBeatTimeOut => heartBeat);      
+         heartBeatTimeOut => heartBeat);
 
    --------------
    -- Data Buffer
@@ -722,14 +722,14 @@ begin
 
    ----------------------
    -- Generate Interrupts
-   ----------------------       
+   ----------------------
    Sync_heartbeat : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)          
+         TPD_G => TPD_G)
       port map (
          clk     => axiClk,
          dataIn  => heartBeat,
-         dataOut => heartBeatPulse);    
+         dataOut => heartBeatPulse);
 
    process(axiClk)
    begin
@@ -758,11 +758,11 @@ begin
 
    Sync_tsFIFOfull : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)          
+         TPD_G => TPD_G)
       port map (
          clk     => axiClk,
          dataIn  => tsFIFOfull,
-         dataOut => tsFIFOfullPulse);    
+         dataOut => tsFIFOfullPulse);
 
    process(axiClk)
    begin
@@ -820,7 +820,7 @@ begin
       port map (
          clk      => axiClk,
          asyncRst => rxLinkUp,
-         syncRst  => rxLinkUpSync);    
+         syncRst  => rxLinkUpSync);
 
    process(axiClk)
    begin
@@ -857,11 +857,11 @@ begin
 
    ----------------------
    -- Synchronize Outputs
-   ----------------------  
+   ----------------------
    SyncOut_0 : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 2)          
+         WIDTH_G => 2)
       port map (
          clk        => axiClk,
          dataIn(0)  => intFlag(5),
@@ -872,51 +872,51 @@ begin
 -- SyncOut_1 : entity surf.SynchronizerVector
 -- generic map (
 -- TPD_G   => TPD_G,
--- WIDTH_G => 32)          
+-- WIDTH_G => 32)
 -- port map (
 -- clk     => axiClk,
 -- dataIn  => intFlag,
--- dataOut => status.intFlag); 
+-- dataOut => status.intFlag);
    status.intFlag <= intFlag;
 
    SyncOut_2 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 12)          
+         DATA_WIDTH_G => 12)
       port map (
          wr_clk => evrClk,
          din    => rxSize,
          rd_clk => axiClk,
-         dout   => status.rxSize);   
+         dout   => status.rxSize);
 
    SyncOut_3 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 64)          
+         DATA_WIDTH_G => 64)
       port map (
          wr_clk => evrClk,
          din    => tsLatch,
          rd_clk => axiClk,
-         dout   => status.tsLatch);   
+         dout   => status.tsLatch);
 
    SyncOut_4 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 64)          
+         DATA_WIDTH_G => 64)
       port map (
          wr_clk => evrClk,
          din    => timeStampDly,
          rd_clk => axiClk,
-         dout   => status.ts);      
+         dout   => status.ts);
 
    SyncOut_5 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         DATA_WIDTH_G => 32)          
+         DATA_WIDTH_G => 32)
       port map (
          wr_clk => evrClk,
          din    => secondsShift,
          rd_clk => axiClk,
-         dout   => status.secondsShift);               
+         dout   => status.secondsShift);
 
 end rtl;
