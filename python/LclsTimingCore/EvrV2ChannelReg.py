@@ -65,7 +65,7 @@ class EvrV2ChannelReg(pr.Device):
                 1: 'AcRates',
                 2: 'ControlWord',
                 3: 'INVALID'}))
-        
+
         self.add(pr.RemoteVariable(
             name        = "RateSel",
             description = "Rate select",
@@ -86,7 +86,7 @@ class EvrV2ChannelReg(pr.Device):
                 0: 'BeamRequest',
                 1: 'NotBeamRequest',
                 3: 'Invalid'}))
-        
+
         self.add(pr.RemoteVariable(
             name        = "DestSel",
             description = "Destination select",
