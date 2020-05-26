@@ -110,14 +110,13 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = "RxCountReset",
+        self.add(pr.RemoteCommand(
+            name         = "ClearRxCounters",
             description  = "Reset receive counters",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x00,
-            mode         = "WO",
-            hidden       = True,
+            function     = pr.RemoteCommand.toggle
         ))
 
         self.add(pr.RemoteVariable(
@@ -139,13 +138,13 @@ class TimingFrameRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = "RxReset",
+        self.add(pr.RemoteCommand(
+            name         = "C_RxReset",
             description  = "Reset receive link",
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x03,
-            mode         = "WO",
+            function     = pr.RemoteCommand.toggle
         ))
 
         self.add(pr.RemoteVariable(
@@ -252,21 +251,6 @@ class TimingFrameRx(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
-
-        ##############################
-        # Commands
-        ##############################
-        @self.command(name="C_RxReset", description="Reset Rx Link",)
-        def C_RxReset():
-            self.RxReset.set(1)
-            time.sleep(0.001)
-            self.RxReset.set(0)
-
-        @self.command(name="ClearRxCounters", description="Clear the Rx status counters",)
-        def ClearRxCounters():
-            self.RxCountReset.set(1)
-            time.sleep(0.001)
-            self.RxCountReset.set(0)
 
     def hardReset(self):
         self.ClearRxCounters()
