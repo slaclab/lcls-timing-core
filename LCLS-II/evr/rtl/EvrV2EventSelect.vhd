@@ -5,11 +5,11 @@
 -- Translation of BSA DEF to control bits in timing pattern
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -63,7 +63,7 @@ begin
 
    process (config, dataIn, controlWord)
       variable rateType : slv(1 downto 0);
-   begin 
+   begin
       rateType := config.rateSel(12 downto 11);
       case rateType is
          when "00" => rateSel <= dataIn.fixedRates(conv_integer(config.rateSel(3 downto 0)));
@@ -80,8 +80,10 @@ begin
    end process;
 
    destSel <= '1' when ((config.destSel(17 downto 16) = "10") or
-                        (config.destSel(17 downto 16) = "01" and not (dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
-                        (config.destSel(17 downto 16) = "00" and      dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
+                        (config.destSel(17 downto 16) = "01" and
+                         not (dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) or
+                        (config.destSel(17 downto 16) = "00" and
+                         dataIn.beamRequest(0)='1' and config.destSel(conv_integer(dataIn.beamRequest(7 downto 4))) = '1')) else
               '0';
 
 end EvrV2EventSelect;

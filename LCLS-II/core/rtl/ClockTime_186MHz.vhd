@@ -4,11 +4,11 @@
 -- Description: Increments a 64-bit nanosecond timestamp in 1300/7 MHz steps
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
@@ -25,14 +25,14 @@ use surf.StdRtlPkg.all;
 entity ClockTime is
    generic (
       TPD_G    : time    := 1 ns);
-   port ( 
+   port (
       -- Clock and reset
       rst                : in  sl;
       clkA               : in  sl;
       wrEnA              : in  sl;
       wrData             : in  slv(63 downto 0);
       rdData             : out slv(63 downto 0);
-      
+
       clkB               : in  sl;
       wrEnB              : in  sl;
       dataO              : out slv(63 downto 0)
@@ -40,7 +40,7 @@ entity ClockTime is
 end ClockTime;
 
 -- Define architecture for top level module
-architecture ClockTime_186MHz of ClockTime is 
+architecture ClockTime_186MHz of ClockTime is
 
   constant remainder : slv( 4 downto 0)  := slv(conv_unsigned( 5,5));
   constant divisor   : slv( 4 downto 0)  := slv(conv_unsigned(13,5));
@@ -50,7 +50,7 @@ architecture ClockTime_186MHz of ClockTime is
   signal dataSL, dataNL, dataNU : slv(31 downto 0);
   signal wrDataB, dataB : slv(wrData'range);
   signal remB , remN  : slv( 4 downto 0);
-  
+
 begin
   U_WrFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=> TPD_G, DATA_WIDTH_G => 64 )
@@ -88,7 +88,7 @@ begin
   remN  <= (others=>'0')    when (valid='1' and wrEnB='1') else
            (remB+remainder) when (remB+remainder < divisor) else
            (remB+remainder-divisor);
-  
+
   process (clkB, rst)
   begin
     if rst='1' then
@@ -100,5 +100,5 @@ begin
   end process;
 
   dataO <= dataB;
-  
+
 end ClockTime_186MHz;

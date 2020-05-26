@@ -5,11 +5,11 @@
 -- Translation of BSA DEF to control bits in timing pattern
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -64,7 +64,7 @@ begin
 
   process (rateType, fxRateSel, acRateSel, acTSmask,
            fixedRate, acTS, acRate, expSeqWord, seqbit)
-  begin 
+  begin
     case rateType is
       when "00" => rateSel <= fixedRate(conv_integer(fxRateSel));
       when "01" =>

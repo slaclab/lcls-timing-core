@@ -5,11 +5,11 @@
 --   Common module to parse both LCLS-I and LCLS-II timing streams.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,36 +29,36 @@ entity TimingRx is
    generic (
       TPD_G             : time   := 1 ns;
       DEFAULT_CLK_SEL_G : sl     := '1';
-      CLKSEL_MODE_G     : string := "SELECT");  -- "LCLSI","LCLSII"
+      CLKSEL_MODE_G     : string          := "SELECT"); -- "LCLSI","LCLSII","LCLSIIPIC","LCLSIPIIC"
    port (
-      rxClk  : in sl;
-      rxData : in TimingRxType;
+      rxClk               : in  sl;
+      rxData              : in  TimingRxType;
 
-      rxControl : out TimingPhyControlType;
-      rxStatus  : in  TimingPhyStatusType;
-
-      timingClkSel  : out sl;           -- '0'=LCLS1, '1'=LCLS2
-      timingClkSelR : out sl;
-
-      timingStreamUser   : out TimingStreamType;
-      timingStreamPrompt : out TimingStreamType;
-      timingStreamStrobe : out sl;
-      timingStreamValid  : out sl;
-
+      rxControl           : out TimingPhyControlType;
+      rxStatus            : in  TimingPhyStatusType;
+      
+      timingClkSel        : out sl; -- '0'=LCLS1, '1'=LCLS2
+      timingModeSel       : out sl;
+      
+      timingStreamUser    : out TimingStreamType;
+      timingStreamPrompt  : out TimingStreamType;
+      timingStreamStrobe  : out sl;
+      timingStreamValid   : out sl;
+      
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
 
-      timingExtension : out TimingExtensionArray;
+      timingExtension     : out TimingExtensionArray;
 
-      txClk : in sl;
+      txClk               : in sl;
 
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType
+      axilClk             : in  sl;
+      axilRst             : in  sl;
+      axilReadMaster      : in  AxiLiteReadMasterType;
+      axilReadSlave       : out AxiLiteReadSlaveType;
+      axilWriteMaster     : in  AxiLiteWriteMasterType;
+      axilWriteSlave      : out AxiLiteWriteSlaveType
       );
 
 end entity TimingRx;
@@ -70,6 +70,8 @@ architecture rtl of TimingRx is
    -------------------------------------------------------------------------------------------------
    type AxilRegType is record
       clkSel          : sl;
+      modeSel         : sl;
+      modeSelEn       : sl;
       cntRst          : sl;
       rxControl       : TimingPhyControlType;
       rxDown          : sl;
@@ -81,8 +83,12 @@ architecture rtl of TimingRx is
    end record AxilRegType;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
-      clkSel          => ite(CLKSEL_MODE_G = "SELECT", DEFAULT_CLK_SEL_G,
-                    ite(CLKSEL_MODE_G = "LCLSI", '0', '1')),
+      clkSel          => ite(CLKSEL_MODE_G="SELECT",DEFAULT_CLK_SEL_G,
+                             ite(CLKSEL_MODE_G="LCLSI" or CLKSEL_MODE_G="LCLSIIPIC",'0','1')),
+      modeSel         => ite(CLKSEL_MODE_G="LCLSI" or CLKSEL_MODE_G="LCLSIPIIC",'0',
+                             ite(CLKSEL_MODE_G="LCLSII" or CLKSEL_MODE_G="LCLSIIPIC",'1',
+                                 DEFAULT_CLK_SEL_G)),
+      modeSelEn       => ite(CLKSEL_MODE_G="SELECT" ,'0','1'),
       cntRst          => '0',
       rxControl       => TIMING_PHY_CONTROL_INIT_C,
       rxDown          => '0',
@@ -108,74 +114,73 @@ architecture rtl of TimingRx is
 
    signal rxR   : RxRegType := RX_REG_INIT_C;
    signal rxRin : RxRegType;
+   
+   signal staData            : Slv5Array(1 downto 0);
+   signal staData12          : slv(4 downto 0);
+   
+   signal rxVersion          : Slv32Array(1 downto 0);
+   signal rxVersion12        : slv(31 downto 0);
 
-   signal staData   : Slv5Array(1 downto 0);
-   signal staData12 : slv(4 downto 0);
-
-   signal rxVersion   : Slv32Array(1 downto 0);
-   signal rxVersion12 : slv(31 downto 0);
-
-   signal stv                  : slv(3 downto 0);
-   signal axilRxLinkUp         : sl;
-   signal axilVsnErr           : sl;
-   signal axilVersion          : slv(31 downto 0);
-   signal axilStatusCounters12 : SlVectorArray(3 downto 0, 31 downto 0);
-   signal axilStatusCounters3  : SlVectorArray(3 downto 0, 31 downto 0);
-   signal txClkCnt             : slv(3 downto 0) := (others => '0');
-   signal txClkCntS            : slv(31 downto 0);
-   signal rxRst                : slv(1 downto 0);
-   signal clkSelR              : sl;
-   signal messageDelayR        : slv(19 downto 0);
-   signal messageDelayRst      : sl;
-   signal timingStreamNoDelayR : sl;
-   signal rxStatusCount        : SlVectorArray(1 downto 0, 15 downto 0);
-   signal timingTSEventCounter : slv(31 downto 0);
-   signal timingTSEvCntGray_i  : slv(31 downto 0);
-   signal timingTSEvCntGray_o  : Slv32Array(5 downto 0);
-
+   signal stv                : slv(3 downto 0);
+   signal axilRxLinkUp       : sl;
+   signal axilVsnErr         : sl;
+   signal axilVersion        : slv(31 downto 0);
+   signal axilStatusCounters12,
+          axilStatusCounters3 : SlVectorArray(3 downto 0, 31 downto 0);
+   signal txClkCnt            : slv( 3 downto 0) := (others=>'0');
+   signal txClkCntS           : slv(31 downto 0);
+   signal rxRst               : slv( 1 downto 0);
+   signal clkSelR             : sl;
+   signal modeSelR            : sl;
+   signal messageDelayR       : slv(19 downto 0);
+   signal messageDelayRst     : sl;
+   signal timingStreamNoDelayR: sl;
+   signal rxStatusCount       : SlVectorArray(1 downto 0, 15 downto 0);
+   signal timingTSEventCounter: slv(31 downto 0);
+   signal timingTSEvCntGray_i : slv(31 downto 0);
+   signal timingTSEvCntGray_o : Slv32Array(5 downto 0);
+ 
 begin
 
-   NOGEN_RxLcls1 : if CLKSEL_MODE_G = "LCLSII" generate
+   NOGEN_RxLcls1 : if (CLKSEL_MODE_G = "LCLSII" or CLKSEL_MODE_G = "LCLSIIPIC") generate
       timingStreamUser     <= TIMING_STREAM_INIT_C;
       timingStreamPrompt   <= TIMING_STREAM_INIT_C;
       timingStreamStrobe   <= '0';
       timingStreamValid    <= '0';
-      timingTSEventCounter <= (others => '0');
-      rxVersion(0)         <= (others => '1');
-      staData (0)          <= (others => '0');
+      timingTSEventCounter <= (others=>'0');
+      rxVersion(0)         <= (others=>'1');
+      staData  (0)         <= (others=>'0');
    end generate;
-
-   GEN_RxLcls1 : if CLKSEL_MODE_G /= "LCLSII" generate
+   GEN_RxLcls1 : if not (CLKSEL_MODE_G = "LCLSII" or CLKSEL_MODE_G = "LCLSIIPIC") generate
       U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
          generic map (
-            TPD_G => TPD_G)
+            TPD_G             => TPD_G )
          port map (
-            rxClk                => rxClk,
-            rxRst                => rxRst(0),
-            rxData               => rxData,
-            timingMessageNoDely  => timingStreamNoDelayR,
-            timingMessageUser    => timingStreamUser,
-            timingMessagePrompt  => timingStreamPrompt,
-            timingMessageStrobe  => timingStreamStrobe,
-            timingMessageValid   => timingStreamValid,
-            timingTSEventCounter => timingTSEventCounter,
-            rxVersion            => rxVersion(0),
-            staData              => staData (0));
+            rxClk               => rxClk,
+            rxRst               => rxRst(0),
+            rxData              => rxData,
+            timingMessageNoDely => timingStreamNoDelayR,
+            timingMessageUser   => timingStreamUser,
+            timingMessagePrompt => timingStreamPrompt,
+            timingMessageStrobe => timingStreamStrobe,
+            timingMessageValid  => timingStreamValid,
+            timingTSEventCounter=> timingTSEventCounter,
+            rxVersion           => rxVersion(0),
+            staData             => staData  (0) );
    end generate;
 
-   NOGEN_RxLcls2 : if CLKSEL_MODE_G = "LCLSI" generate
+   NOGEN_RxLcls2 : if (CLKSEL_MODE_G = "LCLSI" or CLKSEL_MODE_G = "LCLSIPIIC") generate
       timingMessage       <= TIMING_MESSAGE_INIT_C;
       timingMessageStrobe <= '0';
       timingMessageValid  <= '0';
       timingExtension     <= (others => TIMING_EXTENSION_MESSAGE_INIT_C);
-      rxVersion(1)        <= (others => '0');
-      staData (1)         <= (others => '0');
+      rxVersion(1)        <= (others=>'0');
+      staData  (1)        <= (others=>'0');
    end generate;
-
-   GEN_RxLcls2 : if CLKSEL_MODE_G /= "LCLSI" generate
+   GEN_RxLcls2 : if not (CLKSEL_MODE_G = "LCLSI" or CLKSEL_MODE_G = "LCLSIPIIC") generate
       U_RxLcls2 : entity lcls_timing_core.TimingFrameRx
          generic map (
-            TPD_G => TPD_G)
+            TPD_G             => TPD_G)   
          port map (
             rxClk               => rxClk,
             rxRst               => rxRst(1),
@@ -187,13 +192,21 @@ begin
             timingMessageValid  => timingMessageValid,
             timingExtension     => timingExtension,
             rxVersion           => rxVersion(1),
-            staData             => staData (1));
+            staData             => staData  (1) );
    end generate;
-
-   axilComb : process (axilR, axilReadMaster, axilRxLinkUp, axilStatusCounters12, axilStatusCounters3,
-                       axilVersion, axilVsnErr, axilWriteMaster, rxStatusCount, timingTSEvCntGray_o, txClkCntS) is
-
-      variable v          : AxilRegType;
+   
+   axilComb : process (axilR, axilReadMaster, axilRst,
+                       axilRxLinkUp,
+                       axilVsnErr,
+                       axilVersion,
+                       axilStatusCounters12,
+                       axilStatusCounters3,
+                       rxStatusCount,
+                       axilWriteMaster, txClkCntS,
+                       rxStatusCount,
+                       timingTSEvCntGray_o(0)) is
+                 
+      variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
 
    begin
@@ -220,8 +233,12 @@ begin
       axiSlaveRegister(axilEp, X"20", 3, v.rxControl.reset);
       if (CLKSEL_MODE_G = "SELECT") then
          axiSlaveRegister(axilEp, X"20", 4, v.clkSel);
+         axiSlaveRegister(axilEp, X"20", 9, v.modeSel);
+         axiSlaveRegister(axilEp, X"20",10, v.modeSelEn);
       else
          axiSlaveRegisterR(axilEp, X"20", 4, axilR.clkSel);
+         axiSlaveRegisterR(axilEp, X"20", 9, axilR.modeSel);
+         axiSlaveRegisterR(axilEp, X"20",10, axilR.modeSelEn);
       end if;
       axiSlaveRegister(axilEp, X"20", 5, v.rxDown);
       axiSlaveRegister(axilEp, X"20", 6, v.rxControl.bufferByRst);
@@ -246,6 +263,10 @@ begin
       axiSlaveRegisterR(axilEp, X"40", 0, timingTSEvCntGray_o(0));
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      if axilR.modeSelEn = '0' then
+        v.modeSel := axilR.clkSel;
+      end if;
 
       if axilRxLinkUp = '0' then
          v.rxDown := '1';
@@ -293,11 +314,11 @@ begin
          rdRst      => axilRst);
 
    axilRxLinkUp <= stv(1);
-   rxVersion12  <= rxVersion(0) when clkSelR = '0' else
-                  rxVersion(1);
-   staData12 <= staData(0) when clkSelR = '0' else
-                staData(1);
-
+   rxVersion12  <= rxVersion(0) when modeSelR='0' else
+                   rxVersion(1);
+   staData12    <= staData(0) when modeSelR='0' else
+                   staData(1);
+   
    rxcomb : process(rxR, rxData) is
       variable v : RxRegType;
    begin
@@ -367,13 +388,17 @@ begin
       end if;
    end process rxClkCnt_seq;
 
-   SyncRxRst : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => rxClk,
-         dataIn  => axilR.clkSel,
-         dataOut => clkSelR);
+   SyncClkSel : entity surf.Synchronizer
+     generic map ( TPD_G => TPD_G )
+     port map ( clk     => rxClk,
+                dataIn  => axilR.clkSel,
+                dataOut => clkSelR );
+
+   SyncModeSel : entity surf.Synchronizer
+     generic map ( TPD_G => TPD_G )
+     port map ( clk     => rxClk,
+                dataIn  => axilR.modeSel,
+                dataOut => modeSelR );
 
    SyncDelayRst : entity surf.Synchronizer
       generic map (
@@ -448,11 +473,11 @@ begin
    rxControl.inhibit  <= '0';
    rxControl.polarity <= axilR.rxControl.polarity;
    rxControl.pllReset <= axilR.rxControl.pllReset;
-
-   rxRst(0)      <= '1' when (rxStatus.resetDone = '0' or clkSelR = '1') else '0';
-   rxRst(1)      <= '1' when (rxStatus.resetDone = '0' or clkSelR = '0') else '0';
+   
+   rxRst(0)      <= '1' when (rxStatus.resetDone='0' or modeSelR='1') else '0';
+   rxRst(1)      <= '1' when (rxStatus.resetDone='0' or modeSelR='0') else '0';
    timingClkSel  <= axilR.clkSel;
-   timingClkSelR <= clkSelR;
-
+   timingModeSel <= axilR.modeSel;
+  
 end architecture rtl;
 

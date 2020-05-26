@@ -4,11 +4,11 @@
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -67,27 +67,27 @@ architecture TimingStreamTx of TimingStreamTx is
       dataK         => "10");
 
    constant NDATABUFF_WORDS : slv(7 downto 0) := toSlv(TIMING_DATABUFF_BITS_C/8,8);
-   
+
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   signal crc : slv(31 downto 0);
-  
+
 begin
 
   data     <= r.dbufData & r.ecodData;
   dataK    <= r.dataK;
-  
+
   comb: process (rst, fiducial, pulseId, eventCodes, dataBuff, r)
     variable v    : RegType;
     variable istr : integer;
-  begin 
+  begin
       v := r;
 
       v.dataBuffEn := not r.dataBuffEn;
       v.dbufData   := D_215_C;
       v.ecodData   := K_COM_C;
       v.dataK      := "01";
-      
+
       case (r.state) is
         when IDLE_S =>
           v.wordCount := (others=>'0');
@@ -142,7 +142,7 @@ begin
       if (rst='1') then
         v := REG_INIT_C;
       end if;
-      
+
       rin <= v;
 
    end process;
