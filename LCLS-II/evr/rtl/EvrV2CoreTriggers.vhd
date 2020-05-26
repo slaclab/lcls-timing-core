@@ -86,11 +86,11 @@ architecture mapping of EvrV2CoreTriggers is
   signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0) := (others => '0');
 
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
-  signal eventSel       : slv       (NTRIGGERS_G-1 downto 0) := (others=>'0');
+  signal eventSel       : slv          (NCHANNELS_G-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0);
   signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0);
   signal strobe         : slv(3 downto 0);
-  signal trigPulse      : slv(NCHANNELS_G-1 downto 0);
+  signal trigPulse      : slv(NTRIGGERS_G-1 downto 0);
 
 begin  -- rtl
 
@@ -152,7 +152,9 @@ begin  -- rtl
                      strobeIn      => strobe(1),
                      dataIn        => timingMsg,
                      selectOut     => eventSel(i) );
-
+   end generate;
+  
+   Loop_Triggers: for i in 0 to NTRIGGERS_G-1 generate
      U_Trig : entity lcls_timing_core.EvrV2Trigger
        generic map ( TPD_G        => TPD_G,
                      CHANNELS_C   => NCHANNELS_G,
@@ -167,7 +169,7 @@ begin  -- rtl
                      trigstate=> trigPulse(i) );
    end generate;  -- i
 
-   Loop_Compl: for i in 0 to NCHANNELS_G/2-1 generate
+   Loop_Compl: for i in 0 to NTRIGGERS_G/2-1 generate
       U_Trig : entity lcls_timing_core.EvrV2TriggerCompl
          generic map ( REG_OUT_G => false )
          port map ( clk     => evrClk,
@@ -176,7 +178,11 @@ begin  -- rtl
                     trigIn  => trigPulse(2*i+1 downto 2*i),
                     trigOut => trigOut.trigPulse(2*i+1 downto 2*i) );
    end generate;
-    
+
+   Odd_Compl : if (NTRIGGERS_G mod 2) = 1 generate
+      trigOut(NTRIGGERS_G-1) <= trigPulse(NTRIGGERS_G-1);
+   end generate;
+  
    trigOut.timeStamp <= timingMsg.timeStamp;
    trigOut.bsa       <= evrBus.stream.dbuff.edefAvgDn &
                         evrBus.stream.dbuff.edefMinor &
