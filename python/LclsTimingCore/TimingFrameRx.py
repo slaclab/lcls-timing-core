@@ -18,9 +18,11 @@ import pyrogue as pr
 import time
 
 class TimingFrameRx(pr.Device):
-    def __init__(   self,
+    def __init__(
+            self,
             name        = "TimingFrameRx",
             description = "Status of timing frame reception",
+            clkselMode  = 'SELECT',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
@@ -152,7 +154,10 @@ class TimingFrameRx(pr.Device):
             offset       =  0x20,
             bitSize      =  1,
             bitOffset    =  0x04,
-            mode         = "RW",
+            mode         = "RW" if clkselMode == 'SELECT' else 'RO',
+            enum         = {
+                0: 'LCLS-I Clock',
+                1: 'LCLS-II Clock'}
         ))
 
         self.add(pr.RemoteVariable(
@@ -189,7 +194,7 @@ class TimingFrameRx(pr.Device):
             offset       = 0x20,
             bitSize      = 1,
             bitOffset    = 0x09,
-            mode         = "RW",
+            mode         = "RW" if clkselMode == 'SELECT' else 'RO',
             enum         = {
                 0x0: 'Lcls1Protocol',
                 0x1: 'Lcls2Protocol',
@@ -202,7 +207,7 @@ class TimingFrameRx(pr.Device):
             offset       = 0x20,
             bitSize      = 1,
             bitOffset    = 0x0A,
-            mode         = "RW",
+            mode         = "RW" if clkselMode == 'SELECT' else 'RO',
             enum         = {
                 0x0: 'UseClkSel',
                 0x1: 'UseModeSel',
