@@ -50,7 +50,7 @@ entity EvrV2CoreTriggers is
     evrRst              : in  sl;
     evrBus              : in  TimingBusType;
     -- Trigger and Sync Port
-    trigOut             : out TimingTrigType;
+    trigOut             : out TimingTrigType := TIMING_TRIG_INIT_C;
     evrModeSel          : in  sl := '1' );
 end EvrV2CoreTriggers;
 
@@ -77,13 +77,13 @@ architecture mapping of EvrV2CoreTriggers is
 
   signal channelConfig    : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   signal channelConfigS   : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
-  signal channelConfigAV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
-  signal channelConfigSV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
+  signal channelConfigAV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0) := (others => '0');
+  signal channelConfigSV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0) := (others => '0');
 
   signal triggerConfig    : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
   signal triggerConfigS   : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
-  signal triggerConfigAV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
-  signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
+  signal triggerConfigAV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0) := (others => '0');
+  signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0) := (others => '0');
 
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv       (NTRIGGERS_G-1 downto 0) := (others=>'0');

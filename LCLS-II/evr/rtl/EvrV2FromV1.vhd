@@ -30,7 +30,7 @@ entity EvrV2FromV1 is
   port ( clk        : in  sl;
          disable    : in  sl;
          timingIn   : in  TimingBusType;
-         timingOut  : out TimingMessageType );
+         timingOut  : out TimingMessageType := TIMING_MESSAGE_INIT_C );
 end EvrV2FromV1;
 
 architecture EvrV2FromV1 of EvrV2FromV1 is
