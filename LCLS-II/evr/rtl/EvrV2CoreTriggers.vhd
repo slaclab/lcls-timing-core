@@ -180,7 +180,7 @@ begin  -- rtl
    end generate;
 
    Odd_Compl : if (NTRIGGERS_G mod 2) = 1 generate
-      trigOut(NTRIGGERS_G-1) <= trigPulse(NTRIGGERS_G-1);
+      trigOut.trigPulse(NTRIGGERS_G-1) <= trigPulse(NTRIGGERS_G-1);
    end generate;
   
    trigOut.timeStamp <= timingMsg.timeStamp;
