@@ -46,8 +46,8 @@ end EvrV2TrigReg;
 
 architecture rtl of EvrV2TrigReg is
 
-   constant STRIDE_C : positive := ite(EVR_CARD_G, 17, 12);
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   constant STRIDE_C : positive := bitSize(TRIGGERS_C*GRP_C-1);
 
    type RegType is record
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -82,6 +82,8 @@ begin
       for i in 0 to TRIGGERS_C-1 loop
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 0, v.triggerConfig(i).channel);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 16, v.triggerConfig(i).polarity);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 28, v.triggerConfig(i).complEn);
+         axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 29, v.triggerConfig(i).complAnd);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 0, STRIDE_C), 31, v.triggerConfig(i).enabled);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 4, STRIDE_C), 0, v.triggerConfig(i).delay);
          axiSlaveRegister(axilEp, toSlv(i*GRP_C + 8, STRIDE_C), 0, v.triggerConfig(i).width);

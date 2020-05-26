@@ -48,8 +48,8 @@ end EvrV2ChannelReg;
 
 architecture rtl of EvrV2ChannelReg is
 
-   constant STRIDE_C : positive := ite(EVR_CARD_G, 17, 12);
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   constant STRIDE_C : positive := bitSize(NCHANNELS_G*GRP_C-1);
 
    type RegType is record
       axilReadSlave  : AxiLiteReadSlaveType;
