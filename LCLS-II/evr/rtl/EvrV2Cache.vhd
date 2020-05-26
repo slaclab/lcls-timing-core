@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -51,14 +51,14 @@ architecture mapping of EvrV2Cache is
   signal rin_a, rin_b : RegType;
   signal weaq : sl;
   signal doutb : slv(191 downto 0);
-  
+
 begin  -- mapping
 
   dout  <= doutb(conv_integer(rb.sel)*32+31 downto conv_integer(rb.sel)*32);
   empty <= rb.done;
-  
+
   weaq <= wea and not ra.done;
-  
+
   U_RAM : entity surf.SimpleDualPortRam
     generic map ( DATA_WIDTH_G => 192,
                   ADDR_WIDTH_G =>  10 )
@@ -69,13 +69,13 @@ begin  -- mapping
                clkb  => clkb,
                addrb => rb.addr,
                doutb => doutb );
-      
+
   process (ra, wea, rsta)
     variable v : RegType;
   begin  -- process
     v := ra;
 
-    if allBits(ra.addr,'1') then 
+    if allBits(ra.addr,'1') then
       v.done := '1';
     elsif wea='1' then
       v.addr := ra.addr+1;
@@ -93,7 +93,7 @@ begin  -- mapping
   begin  -- process
     v := rb;
 
-    if allBits(rb.addr,'1') then 
+    if allBits(rb.addr,'1') then
       v.done := '1';
     elsif enb='1' then
       if rb.sel="101" then
@@ -107,7 +107,7 @@ begin  -- mapping
     if rstb='1' then
       v := REG_TYPE_INIT_C;
     end if;
-    
+
     rin_b <= v;
   end process;
 
@@ -117,12 +117,12 @@ begin  -- mapping
       ra <= rin_a;
     end if;
   end process;
-  
+
   process (clkb)
   begin
     if rising_edge(clkb) then
       rb <= rin_b;
     end if;
   end process;
-  
+
 end mapping;

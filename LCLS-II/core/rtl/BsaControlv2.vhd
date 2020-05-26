@@ -6,11 +6,11 @@
 -- Status updates:  nToAvgOut, avgToWrOut count up
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -90,7 +90,7 @@ architecture BsaControl of BsaControl is
    signal rin : RegType;
 
    signal rateSel : sl;
-   
+
    -- Register delay for simulation
    constant tpd : time := 0.5 ns;
 
@@ -100,7 +100,7 @@ begin
    bsaActive  <= r.bsaActive;
    bsaAvgDone <= r.bsaAvgDone;
    bsaDone    <= r.bsaDone;
-   
+
    U_Select : entity lcls_timing_core.EventSelect
      generic map (TPD_G=>TPD_G)
      port map ( clk       => txclk,
@@ -115,7 +115,7 @@ begin
                 acTS      => acTS,
                 expSeq    => expSeq,
                 rateSel   => rateSel );
-                
+
 
    GEN_ASYNC: if ASYNC_REGCLK_G=true generate
      U_SynchFifo : entity surf.SynchronizerFifo
@@ -139,7 +139,7 @@ begin
      nToAvgOut  <= "000" & r.nToAvg;
      avgToWrOUt <= r.avgToWr;
    end generate GEN_SYNC;
-   
+
    comb: process (r, txrst, enable, bsadef, beamSeq, rateSel, fixedRate, tmocnt) is
      variable v : RegType;
      variable destSel : sl;
@@ -158,9 +158,9 @@ begin
      else
        v.lastWr := '0';
      end if;
-     
+
      v.fifoRst := r.initq and not r.initd;
-     
+
      if enable='1' then
 
        if ((bsadef.destSel(17 downto 16)="10") or
@@ -189,7 +189,7 @@ begin
            v.bsaAvgDone := '0';
          end if;
        end if;
-       
+
        if v.bsaInit='1' then
          v.done    := '0';
        else
@@ -199,7 +199,7 @@ begin
        end if;
 
        v.bsaDone := (v.done and not r.done);
-       
+
        if (v.bsaInit='1' or v.bsaAvgDone='1') then
          v.nToAvg  := (others=>'0');
        elsif v.bsaActive='1' then
@@ -229,7 +229,7 @@ begin
        elsif r.bsaInit = '0' and r.bsaAvgDone = '1' then
          v.tmoactive := not bsadef.noTmo;
        end if;
-       
+
      end if;
 
      if bsadef.init='0' then
@@ -241,11 +241,11 @@ begin
          v.persist := '1';
        end if;
      end if;
-     
+
      if txrst='1' then
        v := REG_INIT_C;
      end if;
-     
+
      rin <= v;
    end process;
 
@@ -255,6 +255,6 @@ begin
        r <= rin after TPD_G;
      end if;
    end process;
-   
+
 end BsaControl;
 

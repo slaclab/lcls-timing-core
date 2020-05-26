@@ -4,11 +4,11 @@
 -- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -48,22 +48,22 @@ architecture TPGNotify of TPGNotify is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   signal irq, irqS : sl;
-  
+
   attribute use_dsp48      : string;
-  attribute use_dsp48 of r : signal is "yes";   
-  
+  attribute use_dsp48 of r : signal is "yes";
+
 begin
 
   obDebugMaster <= r.master;
-  
+
   irq <= irqEnable and irqReq;
-  
+
   U_SyncIrq : entity surf.SynchronizerOneShot
     port map ( clk     => txClk,
                rst     => txRst,
                dataIn  => irq,
                dataOut => irqS );
-  
+
   process ( r, irqS ) is
     variable v : RegType;
   begin

@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -- Till's version of EvrV2Core
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -88,21 +88,21 @@ architecture mapping of EvrV2CorePulseGen is
 ---   addrBits      => 10,
 ---   connectivity  => X"0001")
   );
-  
+
   signal mAxiWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
-  
+
   constant STROBE_INTERVAL_C : integer := 12;
-  
+
   signal bsaControl       : EvrV2BsaControlType;
   signal bsaChannel       : EvrV2BsaChannelArray   (ReadoutChannels-1 downto 0);
   signal channelConfig    : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0);
   signal channelConfigS   : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>EVRV2_CHANNEL_CONFIG_INIT_C);
   signal triggerConfig    : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0);
   signal triggerConfigS   : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>EVRV2_TRIGGER_CONFIG_INIT_C);
-  
+
   signal gtxDebugS   : slv(7 downto 0);
 
   signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C+34 downto 0) := (others=>'0');
@@ -112,12 +112,12 @@ architecture mapping of EvrV2CorePulseGen is
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(ReadoutChannels downto 0,31 downto 0);
   signal rstCount : sl;
-  
+
   signal dmaCtrl    : AxiStreamCtrlType;
   signal dmaData    : EvrV2DmaDataArray(ReadoutChannels+1 downto 0);
 
   constant SAXIS_MASTER_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
-  
+
   signal dmaMaster : AxiStreamMasterType;
   signal dmaSlave  : AxiStreamSlaveType;
 
@@ -129,7 +129,7 @@ architecture mapping of EvrV2CorePulseGen is
 
   signal bsaEnabled : slv(ReadoutChannels-1 downto 0);
   signal anyBsaEnabled : sl;
-  
+
   signal irqRequest : sl;
 
   signal dmaFullThr     : Slv24Array (0 downto 0);
@@ -138,13 +138,13 @@ architecture mapping of EvrV2CorePulseGen is
   signal modeSel        : sl;
   signal delay_wrb      : Slv6Array(11 downto 0) := (others=>(others=>'0'));
   signal delay_ldb      : slv      (11 downto 0) := (others=>'1');
-  
+
 begin  -- rtl
 
   assert (rStrobe'length <= 200)
     report "rStrobe'length exceeds clocks per cycle"
     severity failure;
-  
+
   pciClk <= axiClk;
   pciRst <= axiRst;
   irqReq <= irqRequest;
@@ -157,7 +157,7 @@ begin  -- rtl
 
   -------------------------
   -- AXI-Lite Crossbar Core
-  -------------------------  
+  -------------------------
   AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
@@ -174,8 +174,8 @@ begin  -- rtl
       mAxiWriteMasters    => mAxiWriteMasters,
       mAxiWriteSlaves     => mAxiWriteSlaves,
       mAxiReadMasters     => mAxiReadMasters,
-      mAxiReadSlaves      => mAxiReadSlaves);   
-  
+      mAxiReadSlaves      => mAxiReadSlaves);
+
 --  U_PciRxDesc : entity work.EvrV2PcieRxDesc
 --    generic map ( DMA_SIZE_G       => 1 )
 --    port map (    dmaDescToPci  (0)=> rxDescToPci,
@@ -218,7 +218,7 @@ begin  -- rtl
 --                  dmaData    => dmaData,
 --                  dmaMaster  => dmaMaster,
 --                  dmaSlave   => dmaSlave );
---  
+--
 --  U_BsaControl : entity work.EvrV2BsaControl
 --    generic map ( TPD_G      => TPD_G )
 --    port map (    evrClk     => evrClk,
@@ -260,7 +260,7 @@ begin  -- rtl
 --                  eventSel   => dmaSel,
 --                  eventData  => eventMsg,
 --                  dmaData    => dmaData   (ReadoutChannels+1) );
---    
+--
   process (evrClk)
     variable acrate : integer;
     variable destn  : integer;
@@ -308,7 +308,7 @@ begin  -- rtl
                                    evrBus.stream.dbuff.epicsTime(63 downto 32) &
                                    resize(evrBus.stream.pulseId,64);
 
-                                   
+
         else
           timingMsg <= evrBus.message;
           eventMsg  <= toSlvNoBsa(evrBus.message);
@@ -352,7 +352,7 @@ begin  -- rtl
                       fire     => evrBus.strobe,
                       trigstate=> trigOut(i) );
   end generate Out_Trigger;
-  
+
   U_EvrAxi : entity lcls_timing_core.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
                   CHANNELS_C => ReadoutChannels )
@@ -391,7 +391,7 @@ begin  -- rtl
 
   -- Synchronize configurations to evrClk
   Sync_Channel: for i in 0 to ReadoutChannels-1 generate
-    
+
     U_SyncRate : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).rateSel'length)
@@ -399,7 +399,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).rateSel,
                     dataOut => channelConfigS(i).rateSel );
-    
+
     U_SyncDest : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).destSel'length)
@@ -407,7 +407,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).destSel,
                     dataOut => channelConfigS(i).destSel );
-     
+
     Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
@@ -430,7 +430,7 @@ begin  -- rtl
                     dataOut => bsaEnabled(i) );
 
     channelConfigS(i).bsaEnabled <= bsaEnabled(i);
-    
+
     Sync_Setup : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveSetup'length)
@@ -438,7 +438,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveSetup,
                     dataOut => channelConfigS(i).bsaActiveSetup );
-    
+
     Sync_Delay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveDelay'length)
@@ -446,7 +446,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveDelay,
                     dataOut => channelConfigS(i).bsaActiveDelay );
-    
+
     Sync_Width : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveWidth'length)
@@ -454,11 +454,11 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveWidth,
                     dataOut => channelConfigS(i).bsaActiveWidth );
-  
+
   end generate Sync_Channel;
 
   Sync_Trigger: for i in 0 to TriggerOutputs-1 generate
-    
+
     Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
@@ -480,7 +480,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).channel,
                     dataOut => triggerConfigS(i).channel );
-    
+
     U_SyncDelay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).delay'length)
@@ -488,7 +488,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).delay,
                     dataOut => triggerConfigS(i).delay );
-    
+
     U_SyncWidth : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).width'length)

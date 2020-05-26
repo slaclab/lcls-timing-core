@@ -4,11 +4,11 @@
 -- Description: Wrapper for GTX7 Core
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ entity TimingGtCoreWrapper is
       TPD_G             : time       := 1 ns;
       CPLL_REFCLK_SEL_G : bit_vector := "001";
       REFCLK_G          : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
-      GT_CONFIG_G       : boolean    := true);  -- V1 = false, V2 = true    
+      GT_CONFIG_G       : boolean    := true);  -- V1 = false, V2 = true
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -67,7 +67,7 @@ entity TimingGtCoreWrapper is
       txOutRst        : out sl;
       txData          : in  slv(15 downto 0);
       txDataK         : in  slv(1 downto 0);
-      -- Misc. 
+      -- Misc.
       loopback        : in  slv(2 downto 0));
 end entity TimingGtCoreWrapper;
 
@@ -111,7 +111,7 @@ architecture rtl of TimingGtCoreWrapper is
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
-   
+
    signal iTxPowerDown : slv(1 downto 0);
 
 begin
@@ -145,9 +145,9 @@ begin
          clk      => txUsrClk,
          asyncRst => txResetDone,
          syncRst  => txOutRst);
-   
+
    INT_REFCLK : if (REFCLK_G = false) generate
-   
+
       U_IBUFDS_GTE2 : IBUFDS_GTE2
          port map (
             I     => gtRefClkP,
@@ -160,25 +160,25 @@ begin
          port map (
             I => gtRefClkDiv2,
             O => iStableClk);
-      
+
       U_PwrUpRst : entity surf.PwrUpRst
          generic map(
             TPD_G => TPD_G)
          port map (
             clk    => iStableClk,
             rstOut => iStableRst);
-      
+
    end generate;
-   
+
    EXT_REFCLK : if (REFCLK_G = true) generate
-   
+
       iStableClk <= stableClk;
       iStableRst <= stableRst;
       gtRefClk <= gtRefClkIn;
-   
+
    end generate;
 
-   
+
 
    U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
@@ -263,7 +263,7 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused         
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
       port map (
          stableClkIn      => iStableClk,
          cPllRefClkIn     => gtRefClk,
@@ -323,7 +323,7 @@ begin
          loopbackIn       => loopback,
          txPowerDown      => iTxPowerDown,
          rxPowerDown      => (others => '0'),
-         -- DRP Interface (drpClk Domain)      
+         -- DRP Interface (drpClk Domain)
          drpClk           => axilClk,
          drpRdy           => drpRdy,
          drpEn            => drpEn,
@@ -331,9 +331,9 @@ begin
          drpAddr          => drpAddr,
          drpDi            => drpDi,
          drpDo            => drpDo);
-   
+
    iTxPowerDown <= (others => txControl.inhibit);
-   
+
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,

@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ package EvrV2Pkg is
   constant TriggerOutputs  : integer := 12;
 --  constant ReadoutChannels : integer := 10;
   constant ReadoutChannels : integer := 12;
-  
+
   -- pipeline depth of frames for integrating BSA active signals:
   -- BSA active signals are integrating from <BsaActiveSetup> frames
   -- prior to the <eventSelect> until <BsaActiveDelay> + <BsaActiveWidth> after
@@ -35,7 +35,7 @@ package EvrV2Pkg is
 --  constant BsaActiveSetup : integer := 108;
 
   constant EVRV2_CHANNEL_CONFIG_BITS_C : integer  := 81;
-  
+
   type EvrV2ChannelConfig is record
     enabled          : sl;
     -- EventSelection
@@ -68,11 +68,13 @@ package EvrV2Pkg is
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
   constant EVRV2_TRIG_WIDTH_C : integer := 28;
-  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 29+2*EVRV2_TRIG_WIDTH_C;
-  
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 31+2*EVRV2_TRIG_WIDTH_C;
+
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
+    complEn  : sl;
+    complAnd : sl;
     delay    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     channel  : slv( 3 downto 0);
@@ -84,6 +86,8 @@ package EvrV2Pkg is
   constant EVRV2_TRIGGER_CONFIG_INIT_C : EvrV2TriggerConfigType := (
     enabled   => '0',
     polarity  => '1',
+    complEn   => '0',
+    complAnd  => '0',
     delay     => (others=>'0'),
     width     => (others=>'0'),
     channel   => (others=>'0'),
@@ -98,7 +102,7 @@ package EvrV2Pkg is
     bsaInit    : slv(63 downto 0);
     bsaDone    : slv(63 downto 0);
   end record;
-  
+
   constant EVRV2_BSA_CONTROL_INIT_C : EvrV2BsaControlType := (
     timeStamp  => (others=>'0'),
     bsaInit    => (others=>'0'),
@@ -120,7 +124,7 @@ package EvrV2Pkg is
     bsaDone   => (others=>'0') );
 
   type EvrV2BsaChannelArray is array (natural range<>) of EvrV2BsaChannelType;
-  
+
   type EvrV2DataType is record
     strobe      : sl;
     timingFrame : TimingMessageType;
@@ -136,9 +140,9 @@ package EvrV2Pkg is
     reset   => '0',
     rdclk   => '0',
     advance => '0' );
-  
+
   type EvrV2CacheControlArray is array (natural range<>) of EvrV2CacheControlType;
-  
+
   type EvrV2CacheDataType is record
     empty       : sl;
     count       : slv(31 downto 0);
@@ -189,7 +193,7 @@ package EvrV2Pkg is
   function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType;
 
 end EvrV2Pkg;
-  
+
 package body EvrV2Pkg is
 
   function toSlv( cfg : EvrV2ChannelConfig) return slv is
@@ -213,6 +217,8 @@ package body EvrV2Pkg is
   begin
     assignSlv(i, vector, cfg.enabled);
     assignSlv(i, vector, cfg.polarity);
+    assignSlv(i, vector, cfg.complEn);
+    assignSlv(i, vector, cfg.complAnd);
     assignSlv(i, vector, cfg.delay);
     assignSlv(i, vector, cfg.width);
     assignSlv(i, vector, cfg.channel);
@@ -236,13 +242,15 @@ package body EvrV2Pkg is
     assignRecord(i, vector, cfg.dmaEnabled);
     return cfg;
   end function;
-  
+
   function toTriggerConfig( vector : slv ) return EvrV2TriggerConfigType is
     variable cfg : EvrV2TriggerConfigType := EVRV2_TRIGGER_CONFIG_INIT_C;
     variable i      : integer := vector'right;
   begin
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.polarity);
+    assignRecord(i, vector, cfg.complEn);
+    assignRecord(i, vector, cfg.complAnd);
     assignRecord(i, vector, cfg.delay);
     assignRecord(i, vector, cfg.width);
     assignRecord(i, vector, cfg.channel);
@@ -252,5 +260,5 @@ package body EvrV2Pkg is
     return cfg;
   end function;
 end package body;
-  
-    
+
+

@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -31,7 +31,7 @@ entity TimingCore is
    generic (
       TPD_G             : time                := 1 ns;
       DEFAULT_CLK_SEL_G : sl                  := '1';
-      CLKSEL_MODE_G     : string              := "SELECT";  -- "LCLSI","LCLSII"
+      CLKSEL_MODE_G     : string              := "SELECT"; -- "LCLSI","LCLSII","LCLSIPIIC","LCLSIIPIC"
       TPGEN_G           : boolean             := false;
       STREAM_L1_G       : boolean             := false;
       ETHMSG_AXIS_CFG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C;
@@ -127,9 +127,10 @@ architecture rtl of TimingCore is
    signal appTimingFrameSlv : slv(TIMING_MESSAGE_BITS_C-1 downto 0);
 
    signal clkSel          : sl;
-   signal clkSelTx        : sl;
-   signal timingClkSelR   : sl;
-   signal timingClkSelApp : sl;
+   signal modeSel             : sl;
+   signal modeSelRx           : sl;
+   signal modeSelTx           : sl;
+   signal modeSelApp          : sl;
 
    signal linkUpV1 : sl;
    signal linkUpV2 : sl;
@@ -143,7 +144,7 @@ architecture rtl of TimingCore is
 begin
 
    appTimingBus  <= appTimingBus_i;
-   appTimingMode <= timingClkSelApp;
+   appTimingMode <= modeSelApp;
 
    AxiLiteCrossbar_1 : entity surf.AxiLiteCrossbar
       generic map (
@@ -185,7 +186,7 @@ begin
          rxControl           => gtRxControl,
          rxData              => timingRx,
          timingClkSel        => clkSel,
-         timingClkSelR       => timingClkSelR,
+         timingModeSel       => modeSel,
          timingStreamUser    => timingStream,
          timingStreamPrompt  => timingStreamPrompt,
          timingStreamStrobe  => timingStreamStrobe,
@@ -287,19 +288,17 @@ begin
             axiWriteMaster => locAxilWriteMasters(FRAME_TX_AXIL_INDEX_C),
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
-      U_SyncClkSel : entity surf.Synchronizer
-         generic map (
-            TPD_G => TPD_G)
-         port map (
-            clk     => gtTxUsrClk,
-            dataIn  => clkSel,
-            dataOut => clkSelTx);
+      U_SyncModeSel : entity surf.Synchronizer
+         generic map (TPD_G=> TPD_G)      
+        port map ( clk     => gtTxUsrClk,
+                   dataIn  => modeSel,
+                   dataOut => modeSelTx );
 
-      tpgMiniTimingPhy.data <= itxData(0) when clkSelTx = '0' else
-                               itxData(1);
-      tpgMiniTimingPhy.dataK <= itxDataK(0) when clkSelTx = '0' else
+      tpgMiniTimingPhy.data  <= itxData(0) when modeSelTx='0' else
+                                itxData(1);
+      tpgMiniTimingPhy.dataK <= itxDataK(0) when modeSelTx='0' else
                                 itxDataK(1);
-
+                        
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
@@ -311,30 +310,34 @@ begin
       gtLoopback                        <= "000";
    end generate NOGEN_MINICORE;
 
+   U_SyncModeSel : entity surf.Synchronizer
+     generic map (TPD_G=> TPD_G)      
+     port map ( clk     => gtRxRecClk,
+                dataIn  => modeSel,
+                dataOut => modeSelRx );
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize timing message to appTimingClk
    -------------------------------------------------------------------------------------------------
 
-
-   timingFrameSlv <= toSlv(timingMessage) when timingClkSelR = '1' else
+   timingFrameSlv <= toSlv(timingMessage) when modeSelRx = '1' else
                      (slvZero(TIMING_MESSAGE_BITS_C-TIMING_STREAM_BITS_C) & toSlv(timingStream));
-   timingStrobe <= timingMessageStrobe when timingClkSelR = '1' else
-                   timingStreamStrobe;
-   timingValid <= timingMessageValid when timingClkSelR = '1' else
-                  timingStreamValid;
+   timingStrobe   <= timingMessageStrobe when modeSelRx = '1' else
+                     timingStreamStrobe;
+   timingValid    <= timingMessageValid when modeSelRx = '1' else
+                     timingStreamValid;
 
    GEN_ASYNC : if ASYNC_G generate
-      process (appTimingExtension, appTimingFrameSlv, timingClkSelApp) is
+      process (appTimingExtension,appTimingFrameSlv,modeSelApp) is
       begin
-         if timingClkSelApp = '0' then
+         if modeSelApp = '0' then
             appTimingBus_i.stream  <= toTimingStreamType(appTimingFrameSlv(TIMING_STREAM_BITS_C-1 downto 0));
             appTimingBus_i.message <= TIMING_MESSAGE_INIT_C;
          else
             appTimingBus_i.message <= toTimingMessageType(appTimingFrameSlv(TIMING_MESSAGE_BITS_C-1 downto 0));
             appTimingBus_i.stream  <= TIMING_STREAM_INIT_C;
          end if;
-         appTimingBus_i.modesel <= timingClkSelApp;
-
+         appTimingBus_i.modesel   <= modeSelApp;
          appTimingBus_i.extension <= appTimingExtension;
       end process;
 
@@ -346,8 +349,8 @@ begin
          port map (
             clk     => appTimingClk,      -- [in]
             rst     => appTimingRst,      -- [in]
-            dataIn  => timingClkSelR,     -- [in]
-            dataOut => timingClkSelApp);  -- [out]
+            dataIn  => modeSel,           -- [in]
+            dataOut => modeSelApp);       -- [out]
 
       SynchronizerFifo_1 : entity surf.SynchronizerFifo
          generic map (
@@ -386,9 +389,8 @@ begin
       appTimingBus_i.message   <= timingMessage;
       appTimingBus_i.strobe    <= timingStrobe;
       appTimingBus_i.valid     <= timingValid;
-      appTimingBus_i.modesel   <= timingClkSelR;
+      appTimingBus_i.modesel   <= modeSelRx;
       appTimingBus_i.extension <= timingExtension;
-      timingClkSelApp          <= timingClkSelR;
    end generate;
 
    U_SYNC_LinkV1 : entity surf.Synchronizer
@@ -399,10 +401,10 @@ begin
          dataIn  => linkUpV1,
          dataOut => appTimingBus_i.v1.linkUp);
 
-   appTimingBus_i.v1.gtRxData    <= gtRxData    when(timingClkSelR = '0') else (others => '0');
-   appTimingBus_i.v1.gtRxDataK   <= gtRxDataK   when(timingClkSelR = '0') else (others => '0');
-   appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others => '0');
-   appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxData    <= gtRxData    when(modeSelRx = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDataK   <= gtRxDataK   when(modeSelRx = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(modeSelRx = '0') else (others => '0');
+   appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(modeSelRx = '0') else (others => '0');
 
    U_SYNC_LinkV2 : entity surf.Synchronizer
       generic map (
@@ -412,8 +414,8 @@ begin
          dataIn  => linkUpV2,
          dataOut => appTimingBus_i.v2.linkUp);
 
-   linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
-   linkUpV2 <= gtRxStatus.locked and timingClkSelR;
+   linkUpV1 <= gtRxStatus.locked and not modeSelRx;
+   linkUpV2 <= gtRxStatus.locked and modeSelRx;
 
    U_EthTiming : entity lcls_timing_core.EthTimingModule
       generic map (
