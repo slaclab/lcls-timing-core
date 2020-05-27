@@ -15,7 +15,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time
 
 class TimingFrameRx(pr.Device):
     def __init__(
