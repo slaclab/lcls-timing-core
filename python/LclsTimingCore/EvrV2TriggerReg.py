@@ -57,6 +57,32 @@ class EvrV2TriggerReg(pr.Device):
         ))
         #########################################################
         self.add(pr.RemoteVariable(
+            name        = "ComplEn",
+            description = "Enable complementary trigger outputs",
+            offset      = 0x00,
+            bitSize     = 1,
+            bitOffset   = 29,
+            mode        = "RW",
+            enum         = {
+                0x0: 'Disabled',
+                0x1: 'Enabled',
+            },
+        ))
+        #########################################################
+        self.add(pr.RemoteVariable(
+            name        = "ComplAnd",
+            description = "Complementary trigger logic",
+            offset      = 0x00,
+            bitSize     = 1,
+            bitOffset   = 30,
+            mode        = "RW",
+            enum         = {
+                0x0: 'LogicOR',
+                0x1: 'LogicAND',
+            },
+        ))
+        #########################################################
+        self.add(pr.RemoteVariable(
             name        = "Delay",
             description = "Delay in ticks",
             offset      = 0x04,
