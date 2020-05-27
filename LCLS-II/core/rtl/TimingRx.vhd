@@ -121,12 +121,12 @@ architecture rtl of TimingRx is
    signal rxVersion   : Slv32Array(1 downto 0);
    signal rxVersion12 : slv(31 downto 0);
 
-   signal stv          : slv(3 downto 0);
-   signal axilRxLinkUp : sl;
-   signal axilVsnErr   : sl;
-   signal axilVersion  : slv(31 downto 0);
-   signal axilStatusCounters12,
-      axilStatusCounters3 : SlVectorArray(3 downto 0, 31 downto 0);
+   signal stv                  : slv(3 downto 0);
+   signal axilRxLinkUp         : sl;
+   signal axilVsnErr           : sl;
+   signal axilVersion          : slv(31 downto 0);
+   signal axilStatusCounters12 : SlVectorArray(3 downto 0, 31 downto 0);
+   signal axilStatusCounters3  : SlVectorArray(3 downto 0, 31 downto 0);
    signal txClkCnt             : slv(3 downto 0) := (others => '0');
    signal txClkCntS            : slv(31 downto 0);
    signal rxRst                : slv(1 downto 0);
@@ -148,8 +148,8 @@ begin
       timingStreamStrobe   <= '0';
       timingStreamValid    <= '0';
       timingTSEventCounter <= (others => '0');
-      rxVersion(0) <= (others => '1');
-      staData (0)  <= (others => '0');
+      rxVersion(0)         <= (others => '1');
+      staData (0)          <= (others => '0');
    end generate;
    GEN_RxLcls1 : if not (CLKSEL_MODE_G = "LCLSII" or CLKSEL_MODE_G = "LCLSIIPIC") generate
       U_RxLcls1 : entity lcls_timing_core.TimingStreamRx
@@ -174,8 +174,8 @@ begin
       timingMessageStrobe <= '0';
       timingMessageValid  <= '0';
       timingExtension     <= (others => TIMING_EXTENSION_MESSAGE_INIT_C);
-      rxVersion(1) <= (others => '0');
-      staData (1)  <= (others => '0');
+      rxVersion(1)        <= (others => '0');
+      staData (1)         <= (others => '0');
    end generate;
    GEN_RxLcls2 : if not (CLKSEL_MODE_G = "LCLSI" or CLKSEL_MODE_G = "LCLSIPIIC") generate
       U_RxLcls2 : entity lcls_timing_core.TimingFrameRx
