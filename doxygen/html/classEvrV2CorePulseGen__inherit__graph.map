@@ -1,0 +1,7 @@
+<map id="EvrV2CorePulseGen" name="EvrV2CorePulseGen">
+<area shape="rect" id="node1" title=" " alt="" coords="203,80,353,107"/>
+<area shape="rect" id="node2" href="$classEvrV2EventSelect.html" title=" " alt="" coords="5,5,143,32"/>
+<area shape="rect" id="node3" href="$classEvrV2Trigger.html" title=" " alt="" coords="167,5,271,32"/>
+<area shape="rect" id="node4" href="$classEvrV2Axi.html" title=" " alt="" coords="296,5,377,32"/>
+<area shape="rect" id="node5" href="$classEvrV2TrigReg.html" title=" " alt="" coords="401,5,509,32"/>
+</map>
