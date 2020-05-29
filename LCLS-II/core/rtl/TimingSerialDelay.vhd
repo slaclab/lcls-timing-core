@@ -109,6 +109,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
    signal wr_cnt    : sl;
    signal nwordslv  : slv(7 downto 0);
 
+   signal msgFifoRd : sl;
    signal msgFifoWr : sl;
    signal lastWord  : sl;
 
@@ -201,7 +202,7 @@ begin
          din(15 downto 0)  => stream_i.data,
          din(16)           => r.firstW,
          din(17)           => r.lastWord,
-         rd_en             => rin.rd_msg,
+         rd_en             => msgFifoRd,
          dout(15 downto 0) => dout_msg,
          dout(16)          => firstW,
          dout(17)          => lastWord,
@@ -280,6 +281,8 @@ begin
          when others => null;
       end case;
 
+      msgFifoRd <= v.rd_msg;
+      
       if (rst = '1') then
          v := REG_INIT_C;
       end if;

@@ -32,8 +32,6 @@ library surf;
 use surf.StdRtlPkg.all;
 
 library lcls_timing_core;
-use lcls_timing_core.TPGPkg.all;
-use lcls_timing_core.TimingPkg.all;
 use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2TriggerCompl is
