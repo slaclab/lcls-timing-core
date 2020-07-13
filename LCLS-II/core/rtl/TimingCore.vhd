@@ -289,7 +289,7 @@ begin
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
       U_SyncModeSel : entity surf.Synchronizer
-         generic map (TPD_G=> TPD_G)      
+         generic map (TPD_G=> TPD_G)
         port map ( clk     => gtTxUsrClk,
                    dataIn  => modeSel,
                    dataOut => modeSelTx );
@@ -298,7 +298,7 @@ begin
                                 itxData(1);
       tpgMiniTimingPhy.dataK <= itxDataK(0) when modeSelTx='0' else
                                 itxDataK(1);
-                        
+
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
@@ -311,7 +311,7 @@ begin
    end generate NOGEN_MINICORE;
 
    U_SyncModeSel : entity surf.Synchronizer
-     generic map (TPD_G=> TPD_G)      
+     generic map (TPD_G=> TPD_G)
      port map ( clk     => gtRxRecClk,
                 dataIn  => modeSel,
                 dataOut => modeSelRx );

@@ -153,7 +153,7 @@ begin  -- rtl
                      dataIn        => timingMsg,
                      selectOut     => eventSel(i) );
    end generate;
-  
+
    Loop_Triggers: for i in 0 to NTRIGGERS_G-1 generate
      U_Trig : entity lcls_timing_core.EvrV2Trigger
        generic map ( TPD_G        => TPD_G,
@@ -182,7 +182,7 @@ begin  -- rtl
    Odd_Compl : if (NTRIGGERS_G mod 2) = 1 generate
       trigOut.trigPulse(NTRIGGERS_G-1) <= trigPulse(NTRIGGERS_G-1);
    end generate;
-  
+
    trigOut.timeStamp <= timingMsg.timeStamp;
    trigOut.bsa       <= evrBus.stream.dbuff.edefAvgDn &
                         evrBus.stream.dbuff.edefMinor &

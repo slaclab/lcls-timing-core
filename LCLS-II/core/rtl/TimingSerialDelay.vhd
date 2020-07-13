@@ -282,7 +282,7 @@ begin
       end case;
 
       msgFifoRd <= v.rd_msg;
-      
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
