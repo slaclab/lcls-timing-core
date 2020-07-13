@@ -265,9 +265,16 @@ begin
          v.rxDown := '1';
       end if;
 
-      --if (axilRst = '1') then
-      --   v := AXIL_REG_INIT_C;
-      --end if;
+      if (axilRst = '1') then
+         v := AXIL_REG_INIT_C;
+         -- Don't touch register configurations
+         v.clkSel        := r.clkSel;
+         v.modeSel       := r.modeSel;
+         v.modeSelEn     := r.modeSelEn;
+         v.rxControl     := r.rxControl;
+         v.streamNoDelay := r.streamNoDelay;
+         v.messageDelay  := r.messageDelay;
+      end if;
 
       axilRin <= v;
 
