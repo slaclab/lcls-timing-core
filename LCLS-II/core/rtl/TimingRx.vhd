@@ -205,7 +205,6 @@ begin
    begin
       -- Latch the current value
       v                     := axilR;
-      v.axilReadSlave.rdata := (others => '0');
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
