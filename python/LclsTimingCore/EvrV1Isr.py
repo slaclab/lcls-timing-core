@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class EvrV1Isr(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "EvrV1Isr",
             description = "LCLS-I EVR ISR Controller",
             **kwargs):
@@ -30,7 +30,7 @@ class EvrV1Isr(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IsrSelect",
             description  = "0x1 = Software ISR, 0x0 = Firmware ISR",
             offset       =  0x00,

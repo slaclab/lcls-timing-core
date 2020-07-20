@@ -4,11 +4,11 @@
 -- Description: Generates a single clk pulse at a prescaled rate of sysClk.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
@@ -22,7 +22,7 @@ use ieee.std_logic_unsigned.all;
 
 entity Divider is
    generic ( TPD_G    : time    := 1 ns; Width    : integer := 4 );
-   port ( 
+   port (
       -- Clock and reset
       sysClk             : in  std_logic;
       sysReset           : in  std_logic;
@@ -34,7 +34,7 @@ entity Divider is
 end Divider;
 
 -- Define architecture for top level module
-architecture Divider of Divider is 
+architecture Divider of Divider is
 
   type RegType is record
     count    : slv(Width-1 downto 0);
@@ -50,7 +50,7 @@ architecture Divider of Divider is
 begin
 
   trigO <= r.trig;
-  
+
   comb: process (r, enable, clear, divisor, sysReset) is
     variable v : RegType;
   begin
@@ -72,7 +72,7 @@ begin
       v.count   := toSlv(1,Width);
       v.trig    := '0';
     end if;
-    
+
     rin <= v;
   end process comb;
 

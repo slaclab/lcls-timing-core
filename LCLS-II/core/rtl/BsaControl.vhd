@@ -9,11 +9,11 @@
 -- Translation of BSA DEF to control bits in timing pattern
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
@@ -33,7 +33,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity BsaControl is
-  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false ); 
+  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false );
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
@@ -91,7 +91,7 @@ begin
                 acTS      => acTS,
                 expSeq    => expSeq,
                 rateSel   => rateSel );
-                
+
    process (txclk)
    begin
       if rising_edge(txclk) then
@@ -152,7 +152,7 @@ begin
      nToAvgOut  <= '0' & nToAvg;
      avgToWrOUt <= avgToWr;
    end generate GEN_SYNC;
-   
+
    process (txclk, txrst)
    begin  -- process
       if txrst = '1' then

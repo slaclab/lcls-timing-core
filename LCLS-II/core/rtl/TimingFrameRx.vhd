@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ entity TimingFrameRx is
 
       messageDelay        : in  slv(19 downto 0);
       messageDelayRst     : in  sl;
-      
+
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
@@ -90,13 +90,13 @@ begin
 
    timingExtn      <= itimingExtn;
    timingExtnValid <= itimingExtnValid;
-   
+
    delayRst <= rxRst or messageDelayRst;
 
    GEN_STREAM_IDS : for i in 0 to TIMING_EXTN_STREAMS_C generate
      streamIds(i) <= toSlv(i,4);
    end generate;
-     
+
    U_Deserializer : entity lcls_timing_core.TimingDeserializer
       generic map ( TPD_G=>TPD_G, STREAMS_C => streams'length )
       port map ( clk       => rxClk,
@@ -188,7 +188,7 @@ begin
        extn  := TIMING_EXTN_INIT_C;
        extnv := '0';
      end if;
-     
+
      rin <= v;
 
      itimingExtn      <= extn;
@@ -201,6 +201,6 @@ begin
        r <= rin;
      end if;
    end process;
-     
+
 end architecture rtl;
 

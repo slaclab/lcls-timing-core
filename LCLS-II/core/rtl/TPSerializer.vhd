@@ -4,11 +4,11 @@
 -- Description: Generates a 16b serial stream of the LCLS-II timing message.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -45,7 +45,7 @@ end TPSerializer;
 architecture TPSerializer of TPSerializer is
 
    constant NWORDS_C : slv(7 downto 0) := slv(conv_unsigned((TIMING_MESSAGE_BITS_C-1)/16,8));
-   
+
    type RegType is record
       word_stream  : slv(TIMING_MESSAGE_BITS_C+15 downto 0);
       word_cnt     : slv(11 downto 0);
@@ -58,10 +58,10 @@ architecture TPSerializer of TPSerializer is
 
   signal r : RegType := REG_INIT_C;
   signal rin : RegType;
-  
+
   attribute use_dsp48      : string;
-  attribute use_dsp48 of r : signal is "yes";   
-  
+  attribute use_dsp48 of r : signal is "yes";
+
 begin
 
   streamId      <= toSlv(Id,streamId'length);
@@ -69,10 +69,10 @@ begin
   stream.data   <= r.word_stream(15 downto 0);
   stream.offset <= (others=>'0');
   stream.last   <= '1';
-  
+
   comb: process (r, msg, txRst, fiducial, advance)
     variable v    : RegType;
-  begin 
+  begin
       v := r;
 
       if fiducial='1' then
@@ -94,7 +94,7 @@ begin
       if txRst='1' then
         v := REG_INIT_C;
       end if;
-      
+
       rin <= v;
 
    end process;

@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ begin  -- rtl
    regClk     <= txClk;
    regRst     <= txRst;
    txPolarity <= config.txPolarity;
-   
+
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
@@ -82,8 +82,8 @@ begin  -- rtl
          mAxiReadMaster  => regReadMaster,
          mAxiReadSlave   => regReadSlave,
          mAxiWriteMaster => regWriteMaster,
-         mAxiWriteSlave  => regWriteSlave);     
-  
+         mAxiWriteSlave  => regWriteSlave);
+
    TPGMiniReg_Inst : entity lcls_timing_core.TPGMiniReg
       generic map (
          TPD_G       => TPD_G,
@@ -122,7 +122,7 @@ begin  -- rtl
 
    TPGMiniStream_Inst : entity lcls_timing_core.TPGMiniStream
       generic map (
-         TPD_G          => TPD_G)   
+         TPD_G          => TPD_G)
       port map (
          -- Register Interface
          config         => config,

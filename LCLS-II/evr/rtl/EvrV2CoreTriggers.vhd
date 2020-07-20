@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ architecture mapping of EvrV2CoreTriggers is
   signal axiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal axiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal axiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
-  
+
   signal channelConfig    : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   signal channelConfigS   : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   signal channelConfigAV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
@@ -84,18 +84,18 @@ architecture mapping of EvrV2CoreTriggers is
   signal triggerConfigS   : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
   signal triggerConfigAV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
   signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
-  
+
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv       (NTRIGGERS_G-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0);
   signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0);
   signal strobe         : slv(3 downto 0);
-  
+
 begin  -- rtl
 
   -------------------------
   -- AXI-Lite Crossbar Core
-  -------------------------  
+  -------------------------
   AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
@@ -112,7 +112,7 @@ begin  -- rtl
       mAxiWriteMasters    => axiWriteMasters,
       mAxiWriteSlaves     => axiWriteSlaves,
       mAxiReadMasters     => axiReadMasters,
-      mAxiReadSlaves      => axiReadSlaves);   
+      mAxiReadSlaves      => axiReadSlaves);
 
   U_TrigReg : entity lcls_timing_core.EvrV2TrigReg
     generic map ( TPD_G      => TPD_G,
@@ -126,7 +126,7 @@ begin  -- rtl
                   axilReadSlave       => axiReadSlaves   (TRIG_INDEX_C),
                   -- configuration
                   triggerConfig       => triggerConfig );
-  
+
   U_EvrChanReg : entity lcls_timing_core.EvrV2ChannelReg
     generic map ( TPD_G        => TPD_G,
                   EVR_CARD_G   => EVR_CARD_G,
@@ -172,7 +172,7 @@ begin  -- rtl
                         evrBus.stream.dbuff.edefMajor &
                         evrBus.stream.dbuff.edefInit;
    trigOut.dmod      <= evrBus.stream.dbuff.dmod;
-  
+
    U_V2FromV1 : entity lcls_timing_core.EvrV2FromV1
      port map ( clk       => evrClk,
                 disable   => evrModeSel,
@@ -194,7 +194,7 @@ begin  -- rtl
        end if;
      end process;
    end generate;
-   
+
    GEN_SYNC : if not COMMON_CLK_G generate
      -- Synchronize configurations to evrClk
      U_SyncChannelConfig : entity surf.SynchronizerVector
@@ -234,7 +234,7 @@ begin  -- rtl
      end generate;
    end generate;
 
-   
+
    process (evrClk)
    begin
      if rising_edge(evrClk) then

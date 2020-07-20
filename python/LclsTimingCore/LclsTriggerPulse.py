@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class LclsTriggerPulse(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "LclsTriggerPulse",
             description = "Timing trigger pulse configuration",
             **kwargs):
@@ -30,7 +30,7 @@ class LclsTriggerPulse(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "OpCodeMask",
             description  = "Opcode mask 256 bits to connect the pulse to any combination of opcodes",
             offset       =  0x00,
@@ -41,7 +41,7 @@ class LclsTriggerPulse(pr.Device):
             stride       =  4,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PulseDelay",
             description  = "Pulse delay (Number of recovered clock cycles)",
             offset       =  0x20,
@@ -50,7 +50,7 @@ class LclsTriggerPulse(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PulseWidth",
             description  = "Pulse Width (Number of recovered clock cycles)",
             offset       =  0x24,
@@ -59,7 +59,7 @@ class LclsTriggerPulse(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PulsePolarity",
             description  = "Pulse polarity: 0-Normal. 1-Inverted",
             offset       =  0x28,
@@ -67,4 +67,3 @@ class LclsTriggerPulse(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
         ))
-        

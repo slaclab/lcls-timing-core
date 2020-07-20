@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -16,7 +16,7 @@ EvrV1Reg: &EvrV1Reg
   description: LCLS-I EVR Registers
   size: 0x8000
   children:
-    #########################################################  
+    #########################################################
     Status:
       at:
         offset: 0x00 # address(14 downto 2) = 0
@@ -24,7 +24,7 @@ EvrV1Reg: &EvrV1Reg
       name: Status
       mode: RO
       description: Status Register
-    #########################################################  
+    #########################################################
     Control:
       at:
         offset: 0x04 # address(14 downto 2) = 1
@@ -32,7 +32,7 @@ EvrV1Reg: &EvrV1Reg
       name: Control
       mode: RW
       description: Control Register
-    #########################################################  
+    #########################################################
     IrqFlag:
       at:
         offset: 0x08 # address(14 downto 2) = 2
@@ -40,7 +40,7 @@ EvrV1Reg: &EvrV1Reg
       name: IrqFlag
       mode: RW
       description: Interrupt Flag Register
-    #########################################################  
+    #########################################################
     IrqEnable:
       at:
         offset: 0x0C # address(14 downto 2) = 3
@@ -48,7 +48,7 @@ EvrV1Reg: &EvrV1Reg
       name: IrqEnable
       mode: RW
       description: Interrupt Enable Register
-    #########################################################  
+    #########################################################
     PulseIrqMap:
       at:
         offset: 0x010 # address(14 downto 2) = 4
@@ -56,7 +56,7 @@ EvrV1Reg: &EvrV1Reg
       name: PulseIrqMap
       mode: RW
       description: Mapping register for pulse interrupt
-    #########################################################  
+    #########################################################
     PcieIntEna:
       at:
         offset: 0x014 # address(14 downto 2) = 5
@@ -64,9 +64,9 @@ EvrV1Reg: &EvrV1Reg
       name: PcieIntEna
       mode: RW
       description: PCIe interrupt Enable and state status
-##############################################################  
+##############################################################
 ## Controlled by ISR (not generic register interface)
-##############################################################  
+##############################################################
 #    DataBufCtrl:
 #      at:
 #        offset: 0x020 # address(14 downto 2) = 8
@@ -74,7 +74,7 @@ EvrV1Reg: &EvrV1Reg
 #      name: DataBufCtrl
 #      mode: RW
 #      description: Data Buffer Control and Status Register
-############################################################## 
+##############################################################
     FWVersion:
       at:
         offset: 0x02C # address(14 downto 2) = 11
@@ -82,7 +82,7 @@ EvrV1Reg: &EvrV1Reg
       name: FWVersion
       mode: RO
       description: Firmware Version Register
-    #########################################################  
+    #########################################################
     FWVersionUnmasked:
       at:
         offset: 0x030 # address(14 downto 2) = 12
@@ -90,7 +90,7 @@ EvrV1Reg: &EvrV1Reg
       name: FWVersionUnmasked
       mode: RO
       description: Firmware Version without 0x1F mask and byte swapped
-    #########################################################  
+    #########################################################
     UsecDivider:
       at:
         offset: 0x04C # address(14 downto 2) = 19
@@ -98,7 +98,7 @@ EvrV1Reg: &EvrV1Reg
       name: UsecDivider
       mode: RW
       description: Divider to get from Event Clock to 1 MHz
-    #########################################################  
+    #########################################################
     SecSR:
       at:
         offset: 0x05C # address(14 downto 2) = 23
@@ -106,7 +106,7 @@ EvrV1Reg: &EvrV1Reg
       name: SecSR
       mode: RO
       description: Seconds Shift Register
-    #########################################################  
+    #########################################################
     SecCounter:
       at:
         offset: 0x060 # address(14 downto 2) = 24
@@ -114,7 +114,7 @@ EvrV1Reg: &EvrV1Reg
       name: SecCounter
       mode: RO
       description: Timestamp Seconds Counter
-    #########################################################  
+    #########################################################
     EventCounter:
       at:
         offset: 0x064 # address(14 downto 2) = 25
@@ -122,7 +122,7 @@ EvrV1Reg: &EvrV1Reg
       name: EventCounter
       mode: RO
       description: Timestamp Event Counter
-    #########################################################  
+    #########################################################
     SecLatch:
       at:
         offset: 0x068 # address(14 downto 2) = 26
@@ -130,7 +130,7 @@ EvrV1Reg: &EvrV1Reg
       name: SecLatch
       mode: RO
       description: Timestamp Seconds Counter Latch
-    #########################################################  
+    #########################################################
     EvCntLatch:
       at:
         offset: 0x06C # address(14 downto 2) = 27
@@ -138,9 +138,9 @@ EvrV1Reg: &EvrV1Reg
       name: EvCntLatch
       mode: RO
       description: Timestamp Event Counter Latch
-##############################################################  
+##############################################################
 ## Controlled by ISR (not generic register interface)
-##############################################################  
+##############################################################
 #    EvFIFOSec:
 #      at:
 #        offset: 0x070 # address(14 downto 2) = 28
@@ -148,9 +148,9 @@ EvrV1Reg: &EvrV1Reg
 #      name: EvFIFOSec
 #      mode: RW
 #      description: Event FIFO Seconds Register
-##############################################################  
+##############################################################
 ## Controlled by ISR (not generic register interface)
-##############################################################  
+##############################################################
 #    EvFIFOEvCnt:
 #      at:
 #        offset: 0x074 # address(14 downto 2) = 29
@@ -158,9 +158,9 @@ EvrV1Reg: &EvrV1Reg
 #      name: EvFIFOEvCnt
 #      mode: RW
 #      description: Event FIFO Event Counter Register
-##############################################################  
+##############################################################
 ## Controlled by ISR (not generic register interface)
-##############################################################  
+##############################################################
 #    EvFIFOCode:
 #      at:
 #        offset: 0x078 # address(14 downto 2) = 30
@@ -169,7 +169,7 @@ EvrV1Reg: &EvrV1Reg
 #      sizeBits: 16
 #      mode: RW
 #      description: Event FIFO Event Code Register
-##############################################################  
+##############################################################
     IntEventEn:
       at:
         offset: 0x0A0 # address(14 downto 2) = 40
@@ -177,7 +177,7 @@ EvrV1Reg: &EvrV1Reg
       name: IntEventEn
       mode: RW
       description: Internal Event Enable
-    #########################################################  
+    #########################################################
     IntEventCount:
       at:
         offset: 0x0A4 # address(14 downto 2) = 41
@@ -186,7 +186,7 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 1
       mode: RW
       description: Internal Event Count
-    #########################################################  
+    #########################################################
     IntEventCode:
       at:
         offset: 0x0A8 # address(14 downto 2) = 42
@@ -195,7 +195,7 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 8
       mode: RW
       description: Internal Event Code
-    #########################################################  
+    #########################################################
     ExtEventEn:
       at:
         offset: 0x0AC # address(14 downto 2) = 43
@@ -204,7 +204,7 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 1
       mode: RW
       description: External Event Enable
-    #########################################################  
+    #########################################################
     ExtEventCode:
       at:
         offset: 0x0B0 # address(14 downto 2) = 44
@@ -213,7 +213,7 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 8
       mode: RW
       description: External Event Code
-    #########################################################  
+    #########################################################
     Pulse00:
       at:
         offset: 0x200 # address(14 downto 2) = [131:128]
@@ -222,7 +222,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse00
       mode: RW
       description: Pulse 0 Registers
-    #########################################################  
+    #########################################################
     Pulse01:
       at:
         offset: 0x210 # address(14 downto 2) = [135:132]
@@ -231,7 +231,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse01
       mode: RW
       description: Pulse 1 Registers
-    #########################################################  
+    #########################################################
     Pulse02:
       at:
         offset: 0x220 # address(14 downto 2) = [139:136]
@@ -240,7 +240,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse02
       mode: RW
       description: Pulse 2 Registers
-    #########################################################  
+    #########################################################
     Pulse03:
       at:
         offset: 0x230 # address(14 downto 2) = [143:140]
@@ -249,7 +249,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse03
       mode: RW
       description: Pulse 3 Registers
-    #########################################################  
+    #########################################################
     Pulse04:
       at:
         offset: 0x240 # address(14 downto 2) = [147:144]
@@ -258,7 +258,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse04
       mode: RW
       description: Pulse 4 Registers
-    #########################################################  
+    #########################################################
     Pulse05:
       at:
         offset: 0x250 # address(14 downto 2) = [151:148]
@@ -267,7 +267,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse05
       mode: RW
       description: Pulse 5 Registers
-    #########################################################  
+    #########################################################
     Pulse06:
       at:
         offset: 0x260 # address(14 downto 2) = [155:152]
@@ -276,7 +276,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse06
       mode: RW
       description: Pulse 6 Registers
-    #########################################################  
+    #########################################################
     Pulse07:
       at:
         offset: 0x270 # address(14 downto 2) = [159:156]
@@ -285,7 +285,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse07
       mode: RW
       description: Pulse 7 Registers
-    #########################################################  
+    #########################################################
     Pulse08:
       at:
         offset: 0x280 # address(14 downto 2) = [163:160]
@@ -294,7 +294,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse08
       mode: RW
       description: Pulse 8 Registers
-    #########################################################  
+    #########################################################
     Pulse09:
       at:
         offset: 0x290 # address(14 downto 2) = [167:164]
@@ -303,7 +303,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse09
       mode: RW
       description: Pulse 9 Registers
-    #########################################################  
+    #########################################################
     Pulse10:
       at:
         offset: 0x2A0 # address(14 downto 2) = [171:168]
@@ -312,7 +312,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse10
       mode: RW
       description: Pulse 10 Registers
-    #########################################################  
+    #########################################################
     Pulse11:
       at:
         offset: 0x2B0 # address(14 downto 2) = [175:172]
@@ -321,7 +321,7 @@ EvrV1Reg: &EvrV1Reg
       name: Pulse11
       mode: RW
       description: Pulse 11 Registers
-    #########################################################  
+    #########################################################
     OutputMap:
       at:
         offset: 0x440 # address(14 downto 2) = [277:272]
@@ -331,9 +331,9 @@ EvrV1Reg: &EvrV1Reg
       sizeBits: 16
       mode: RW
       description: Front Panel Output Map Registers [11:0]
-##############################################################  
+##############################################################
 ## Controlled by ISR (not generic register interface)
-##############################################################  
+##############################################################
 #    DataBuf:
 #      at:
 #        offset: 0x800 # address(14 downto 2) = [1023:512]
@@ -342,7 +342,7 @@ EvrV1Reg: &EvrV1Reg
 #      name: DataBuf
 #      mode: RO
 #      description: Data Buffer Receive Memory [511:0]
-##############################################################  
+##############################################################
     MapRam1:
       at:
         offset: 0x4000 # address(14 downto 2) = [5119:4096]
@@ -351,7 +351,7 @@ EvrV1Reg: &EvrV1Reg
       name: MapRam1
       mode: RO
       description: Event Mapping RAM 1 [1023:0]
-    #########################################################  
+    #########################################################
     MapRam2:
       at:
         offset: 0x6000 # address(14 downto 2) = [6143:5120]
@@ -360,4 +360,4 @@ EvrV1Reg: &EvrV1Reg
       name: MapRam2
       mode: RO
       description: Event Mapping RAM 2 [1023:0]
-    #########################################################  
+    #########################################################

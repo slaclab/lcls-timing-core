@@ -4,11 +4,11 @@
 -- Description: GTH RX Byte Alignment Checker module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ use surf.AxiLitePkg.all;
 entity GthRxAlignCheck is
    generic (
       TPD_G      : time   := 1 ns;
-      GT_TYPE_G  : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4 
+      GT_TYPE_G  : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
       DRP_ADDR_G : slv(31 downto 0));
    port (
       -- Clock Monitoring
@@ -154,13 +154,13 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the flags      
+      -- Reset the flags
       v.rst    := '0';
       v.locked := '0';
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
-      ------------------------ 
+      ------------------------
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
@@ -216,7 +216,7 @@ begin
                v.req.request := '0';
                -- Get the index pointer
                i             := conv_integer(ack.rdData(6 downto 0));
-               -- Increment the counter 
+               -- Increment the counter
                v.sample(i)   := r.sample(i)+1;
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
@@ -227,7 +227,7 @@ begin
                else
                   -- Set the flag
                   v.rst   := '1';
-                  -- Next state      
+                  -- Next state
                   v.state := RESET_S;
                end if;
             end if;
@@ -262,7 +262,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       sAxilReadSlave  <= r.sAxilReadSlave;
       sAxilWriteSlave <= r.sAxilWriteSlave;
       locked          <= r.locked;

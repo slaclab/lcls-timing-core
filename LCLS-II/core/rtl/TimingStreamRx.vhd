@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Description:
 --   Need to fix:  some eventcodes start before x70,x71,x7d sequence
---                 
+--
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity TimingStreamRx is
       rxData              : in  TimingRxType;
 
       timingMessageNoDely : in  sl := '0';
-      
+
       timingMessageUser   : out TimingStreamType;
       timingMessagePrompt : out TimingStreamType;
       timingMessageStrobe : out sl;
@@ -96,7 +96,7 @@ architecture rtl of TimingStreamRx is
       timingTSEventCounter=> (others=>'0') );
 
    constant FRAME_LEN : slv(19 downto 0) := x"036b0";  -- end of EVG stream
-   
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
@@ -186,14 +186,14 @@ begin
     if r.timingMessageStrobe = '1' then
       v.timingMessageValid := '1';
     end if;
-    
+
     if (rxData.decErr /= "00" or rxData.dspErr /= X"00" or rxRst='1') then
       v := REG_INIT_C;
     end if;
 
     rin              <= v;
   end process comb;
-  
+
   timingMessageUser   <= r.timingStream;
   timingMessageStrobe <= r.timingMessageStrobe;
   timingMessageValid  <= r.timingMessageValid;

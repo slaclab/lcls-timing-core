@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class GthRxAlignCheck(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "GthRxAlignCheck",
             description = "Timing frame phase lock",
             **kwargs):
@@ -30,7 +30,7 @@ class GthRxAlignCheck(pr.Device):
         # Variables
         ##############################
 
-        # self.addRemoteVariables(   
+        # self.addRemoteVariables(
             # name         = "PhaseCount",
             # description  = "Timing frame phase",
             # offset       =  0x00,
@@ -42,8 +42,8 @@ class GthRxAlignCheck(pr.Device):
             # stride       =  2,
             # hidden       =  True,
         # )
-                        
-        self.addRemoteVariables(   
+
+        self.addRemoteVariables(
             name         = "PhaseCount",
             description  = "Timing frame phase",
             offset       =  0x00,
@@ -54,9 +54,9 @@ class GthRxAlignCheck(pr.Device):
             number       =  64,
             stride       =  4,
             hidden       =  True,
-        )                       
+        )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PhaseTarget",
             description  = "Timing frame phase lock target",
             offset       =  0x100,
@@ -65,7 +65,7 @@ class GthRxAlignCheck(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ResetLen",
             description  = "Reset length",
             offset       =  0x100,
@@ -74,7 +74,7 @@ class GthRxAlignCheck(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "LastPhase",
             description  = "Last timing frame phase seen",
             offset       =  0x104,
@@ -86,10 +86,10 @@ class GthRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxClkFreqRaw",
-            offset       = 0x108, 
-            bitSize      = 32, 
-            bitOffset    = 0, 
-            mode         = 'RO', 
+            offset       = 0x108,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
             hidden       = True,
             pollInterval = 1,
         ))
@@ -98,17 +98,17 @@ class GthRxAlignCheck(pr.Device):
             name         = "TxClkFreq",
             units        = "MHz",
             mode         = 'RO',
-            dependencies = [self.TxClkFreqRaw], 
+            dependencies = [self.TxClkFreqRaw],
             linkedGet    = lambda: self.TxClkFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
         ))
 
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw",
-            offset       = 0x10C, 
-            bitSize      = 32, 
-            bitOffset    = 0, 
-            mode         = 'RO', 
+            offset       = 0x10C,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
             hidden       = True,
             pollInterval = 1,
         ))
@@ -117,8 +117,7 @@ class GthRxAlignCheck(pr.Device):
             name         = "RxClkFreq",
             units        = "MHz",
             mode         = 'RO',
-            dependencies = [self.RxClkFreqRaw], 
+            dependencies = [self.RxClkFreqRaw],
             linkedGet    = lambda: self.RxClkFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
-        ))        
-        
+        ))

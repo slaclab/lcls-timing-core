@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -45,7 +45,7 @@ package TimingExtnPkg is
    constant TIMING_EXTN_WORDS_C : IntegerArray(1 downto 0) := (
      1,
      EXPT_MESSAGE_BITS_C/16 );
-   
+
 --   function toSlv(message : TimingExtnType) return slv;
    function toTimingExtnType (vector : slv) return TimingExtnType;
    procedure toTimingExtnType(stream : in    integer;
@@ -68,7 +68,7 @@ package body TimingExtnPkg is
       assignSlv(i, vector, message.irigTimeCode);
       return vector;
    end function;
-      
+
    function toExptMessageType (vector : slv) return ExptMessageType
    is
       variable message : ExptMessageType;
@@ -79,12 +79,12 @@ package body TimingExtnPkg is
       assignRecord(i, vector, message.irigTimeCode);
       return message;
    end function;
-   
+
 --   function toSlv(message : TimingExtnType) return slv is
 --   begin
 --     return toSlv(ExptMessageType(message));
 --   end function;
-   
+
    function toTimingExtnType (vector : slv) return TimingExtnType is
       variable message : TimingExtnType;
       variable i       : integer := 0;
@@ -94,7 +94,7 @@ package body TimingExtnPkg is
       assignRecord(i, vector, message.irigTimeCode);
       return message;
    end function;
-   
+
    procedure toTimingExtnType(stream : in    integer;
                               vector : in    slv;
                               validi : in    sl;

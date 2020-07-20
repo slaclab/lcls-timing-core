@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -125,7 +125,7 @@ architecture rtl of TimingCore is
 
    signal appTimingBus_i      : TimingBusType;
    signal appTimingFrameSlv   : slv(TIMING_FRAME_LEN-1 downto 0);
-   
+
    signal clkSel              : sl;
    signal clkSelTx            : sl;
    signal timingClkSelR       : sl;
@@ -133,7 +133,7 @@ architecture rtl of TimingCore is
 
    signal linkUpV1            : sl;
    signal linkUpV2            : sl;
-   
+
    signal itxData             : Slv16Array(1 downto 0);
    signal itxDataK            : Slv2Array (1 downto 0);
 
@@ -141,7 +141,7 @@ architecture rtl of TimingCore is
    signal timingExtnValid     : sl;
    signal extnSlv, appExtnSlv : slv(TIMING_EXTN_BITS_C-1 downto 0);
    signal appExtnValid        : sl;
-   
+
 begin
 
    appTimingBus  <= appTimingBus_i;
@@ -175,7 +175,7 @@ begin
    timingRx.decErr <= gtRxDecErr;
    timingRx.dspErr <= gtRxDispErr;
    timingClkSel    <= clkSel;
-   
+
    U_TimingRx : entity lcls_timing_core.TimingRx
       generic map (
          TPD_G             => TPD_G,
@@ -269,11 +269,11 @@ begin
    timingPhy.control.pllReset    <= '0';
    timingPhy.control.reset       <= '0';
    timingPhy.control.bufferByRst <= '0';
-   
+
    GEN_MINICORE : if USE_TPGMINI_C generate
       TPGMiniCore_1 : entity lcls_timing_core.TPGMiniCore
          generic map (
-            TPD_G      => TPD_G, 
+            TPD_G      => TPD_G,
             NARRAYSBSA => 2)
          port map (
             txClk          => gtTxUsrClk,
@@ -293,7 +293,7 @@ begin
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
       U_SyncClkSel : entity surf.Synchronizer
-         generic map (TPD_G=> TPD_G)      
+         generic map (TPD_G=> TPD_G)
         port map ( clk     => gtTxUsrClk,
                    dataIn  => clkSel,
                    dataOut => clkSelTx );
@@ -302,7 +302,7 @@ begin
                          itxData(1);
       timingPhy.dataK <= itxDataK(0) when clkSelTx='0' else
                          itxDataK(1);
-                        
+
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
@@ -368,7 +368,7 @@ begin
             dout(TIMING_FRAME_LEN downto 1) => appTimingFrameSlv,
             dout(0)                         => appTimingBus_i.valid,
             valid                           => appTimingBus_i.strobe);
-     
+
      SynchronizerFifo_2 : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
@@ -396,22 +396,22 @@ begin
    end generate;
 
    U_SYNC_LinkV1 : entity surf.Synchronizer
-     generic map (TPD_G => TPD_G)   
+     generic map (TPD_G => TPD_G)
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV1,
                 dataOut => appTimingBus_i.v1.linkUp );
-   
+
    appTimingBus_i.v1.gtRxData    <= gtRxData    when(timingClkSelR = '0') else (others=>'0');
    appTimingBus_i.v1.gtRxDataK   <= gtRxDataK   when(timingClkSelR = '0') else (others=>'0');
    appTimingBus_i.v1.gtRxDispErr <= gtRxDispErr when(timingClkSelR = '0') else (others=>'0');
    appTimingBus_i.v1.gtRxDecErr  <= gtRxDecErr  when(timingClkSelR = '0') else (others=>'0');
 
    U_SYNC_LinkV2 : entity surf.Synchronizer
-     generic map (TPD_G => TPD_G)     
+     generic map (TPD_G => TPD_G)
      port map ( clk     => appTimingClk,
                 dataIn  => linkUpV2,
                 dataOut => appTimingBus_i.v2.linkUp );
-   
+
    linkUpV1 <= gtRxStatus.locked and not timingClkSelR;
    linkUpV2 <= gtRxStatus.locked and timingClkSelR;
 
@@ -429,5 +429,5 @@ begin
                 ibEthMsgSlave  => ibEthMsgSlave,
                 obEthMsgMaster => obEthMsgMaster,
                 obEthMsgSlave  => obEthMsgSlave );
-                  
+
 end rtl;

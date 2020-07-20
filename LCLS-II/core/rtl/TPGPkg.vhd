@@ -4,11 +4,11 @@
 -- Description: Package of constants and record definitions for the Timing Geneartor.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library IEEE;
@@ -62,7 +62,7 @@ package TPGPkg is
 
   type CtrDefArray is array(natural range<>) of CtrDefType;
 
-  
+
   type BsaDefType is record
                    nToAvg  : slv(12 downto 0);
                    avgToWr : slv(15 downto 0);
@@ -86,18 +86,18 @@ package TPGPkg is
     maxSevr  => (others=>'0'),
     noTmo    => '0',
     init     => '0');
-  
+
   type BsaDefArray is array(natural range<>) of BsaDefType;
 
   --  Address into BRAM for sequence engines
   type SeqAddrType is array(SEQADDRLEN-1 downto 0) of sl;
   type SeqAddrArray is array(natural range<>) of SeqAddrType;
-  
+
   type L1TrigConfig is record
                          evcode : slv(7 downto 0);
                          delay  : slv(31 downto 0);
                        end record;
-  
+
   constant L1TRIGCONFIG_INIT_C : L1TrigConfig := (
     evcode => (others=>'1'),
     delay  => (others=>'1') );
@@ -145,7 +145,7 @@ package TPGPkg is
     buffered => '0',
     index    => (others=>'0'),
     buffers  => (others=>(others=>'0')) );
-  
+
   type TPGStatusType is record
                           -- implemented resources
                           nbeamseq      : slv (5 downto 0);
@@ -186,7 +186,7 @@ package TPGPkg is
     index   => (others=>'0'),
     count   => (others=>(others=>'0'))
     );
-  
+
   constant TPG_STATUS_INIT_C : TPGStatusType := (
     nbeamseq      => (others=>'0'),
     nexptseq      => (others=>'0'),
@@ -227,7 +227,7 @@ package TPGPkg is
   constant BEAM_DIAG_CONTROL_INIT_C : BeamDiagControlType := (
     manfault   => '0',
     clear      => (others=>'0') );
-  
+
   type TPGConfigType is record
                           clock_step      : slv( 4 downto 0);
                           clock_remainder : slv( 7 downto 0);
@@ -357,7 +357,7 @@ package TPGPkg is
     strobe60  => '0',
     strobe1Hz => '0',
     strobe    => '0' );
-  
+
 end TPGPkg;
 
 package body TPGPkg is

@@ -88,7 +88,7 @@ begin
 
 			cnt <= ncnt;
 		end if;
-		
+
 	end process P_CNT;
 
 	P_REP : process (clk) is

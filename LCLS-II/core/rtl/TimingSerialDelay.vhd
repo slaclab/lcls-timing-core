@@ -13,11 +13,11 @@
 --   overflow_o : delay fifo overrun
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -57,7 +57,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
   constant MADDR_WIDTH_C : integer := log2(NWORDS_G*FDEPTH_G);
 
   type StateType is ( IDLE_S, SHIFT_S, ARMED_S, ERR_S );
-  
+
   type RegType is record
     count  : slv(19 downto 0);
     target : slv(19 downto 0);
@@ -91,7 +91,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
 
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
-  
+
   signal valid_cnt : sl;
   signal valid_msg : sl;
   signal full_cnt  : sl;
@@ -104,15 +104,15 @@ architecture TimingSerialDelay of TimingSerialDelay is
   signal wr_cnt    : sl;
 
   attribute use_dsp48      : string;
-  attribute use_dsp48 of r : signal is "yes";  
+  attribute use_dsp48 of r : signal is "yes";
 
   signal r_state : slv(1 downto 0);
-  
+
   component ila_0
     port ( clk : in sl;
            probe0 : in slv(255 downto 0) );
   end component;
-  
+
 begin
 
    GEN_DEBUG : if DEBUG_G generate
@@ -147,7 +147,7 @@ begin
                   probe0(68 downto 61) => toSlv(r.nword,8),
                   probe0(255 downto 69) => (others=>'0') );
    end generate;
-   
+
    GEN_FRAME: for i in 0 to NWORDS_G-1 generate
      frame_o(16*i+15 downto 16*i) <= r.frame(i);
    end generate;
@@ -155,10 +155,10 @@ begin
    strobe_o   <= r.strobe;
    valid_o    <= r.valid;
    overflow_o <= full_cnt or full_msg;
-   
+
    wr_cnt     <= fiducial_i and r.accept and din_rdy;
    din_rdy    <= r.accept_last;
-   
+
    U_CntDelay : entity surf.FifoSync
      generic map ( TPD_G        => TPD_G,
                    FWFT_EN_G    => true,
@@ -174,7 +174,7 @@ begin
                 dout(20)          => dout_rdy,
                 valid             => valid_cnt,
                 overflow          => full_cnt );
-   
+
    U_MsgDelay : entity surf.FifoSync
      generic map ( TPD_G        => TPD_G,
                    FWFT_EN_G    => true,
@@ -212,7 +212,7 @@ begin
          v.accept_last := '1';
        end if;
      end if;
-     
+
      if fiducial_i='1' and stream_i.last='1' then
        v.firstW := '1';
      elsif advance_i='1' then
@@ -223,7 +223,7 @@ begin
        when ERR_S =>
          if fiducial_i='1' then
            v.state := IDLE_S;
-         else 
+         else
            v.fifoRst := '1';
          end if;
        when IDLE_S  =>
@@ -258,7 +258,7 @@ begin
      if (rst='1') then
        v := REG_INIT_C;
      end if;
-     
+
      rin <= v;
    end process;
 

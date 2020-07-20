@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -42,7 +42,7 @@ package TimingPkg is
    constant TIMING_MESSAGE_VERSION_C : slv(15 downto 0) := x"0001";
 
    constant TIMING_STREAM_ID  : slv(3 downto 0) := x"0";
-   
+
    type TimingRxType is record
       data       : slv(15 downto 0);
       dataK      : slv( 1 downto 0);
@@ -92,13 +92,13 @@ package TimingPkg is
       locked       => '1',
       resetDone    => '1',
       bufferByDone => '0',
-      bufferByErr  => '0' );      
+      bufferByErr  => '0' );
    type TimingPhyStatusArray is array (natural range<>) of TimingPhyStatusType;
 
    type TimingSerialType is record
       ready      : sl;                -- tx: new segment ready,
                                       -- rx: last segment valid
-      data       : slv(15 downto 0);  -- 
+      data       : slv(15 downto 0);  --
       offset     : slv( 6 downto 0);  -- segment index
       last       : sl;                -- last segment
    end record;
@@ -108,7 +108,7 @@ package TimingPkg is
       offset     => (others=>'0'),
       last       => '0' );
    type TimingSerialArray is array (natural range<>) of TimingSerialType;
-   
+
 --   type TimingMessageSlv is slv(TIMING_MESSAGE_BITS_C-1 downto 0);
    type TimingMessageType is record
       version         : slv(15 downto 0);
@@ -157,7 +157,7 @@ package TimingPkg is
       bsaAvgDone      => (others => '0'),
       bsaDone         => (others => '0'),
       control         => (others => (others => '0')) );
-   type TimingMessageArray is array (natural range<>) of TimingMessageType;      
+   type TimingMessageArray is array (natural range<>) of TimingMessageType;
 
    function toSlv  (message              : TimingMessageType) return slv;
    function toSlv32(vector               : slv)               return Slv32Array;
@@ -187,7 +187,7 @@ package TimingPkg is
       edefMajor  => (others=>'0'),
       edefInit   => (others=>'0') );
    type TimingDataBuffArray is array (natural range<>) of TimingDataBuffType;
-   
+
    type TimingStreamType is record
       pulseId         : slv(31 downto 0);
       eventCodes      : slv(255 downto 0);
@@ -274,7 +274,7 @@ package TimingPkg is
       timeStamp  => (others=>'0'),
       bsa        => (others=>'0'),
       dmod       => (others=>'0') );
- 
+
 end package TimingPkg;
 
 package body TimingPkg is
@@ -291,7 +291,7 @@ package body TimingPkg is
       assignSlv(i, vector, message.version);           -- 1 word
       assignSlv(i, vector, message.pulseId);           -- 4 words
       assignSlv(i, vector, message.timeStamp);         -- 4 words
-      assignSlv(i, vector, message.fixedRates);        
+      assignSlv(i, vector, message.fixedRates);
       assignSlv(i, vector, message.acRates);           -- 1 word
       assignSlv(i, vector, message.acTimeSlot);
       assignSlv(i, vector, message.acTimeSlotPhase);

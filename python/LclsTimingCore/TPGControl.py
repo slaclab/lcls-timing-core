@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class TPGControl(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGControl",
             description = "Timing pattern generator control",
             **kwargs):
@@ -30,7 +30,7 @@ class TPGControl(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NBeamSeq",
             description  = "Number of beam control sequences",
             offset       =  0x00,
@@ -40,7 +40,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NControlSeq",
             description  = "Number of experiment control sequences",
             offset       =  0x01,
@@ -50,7 +50,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NArraysBSA",
             description  = "Number of BSA arrays",
             offset       =  0x02,
@@ -60,7 +60,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SeqAddrLen",
             description  = "Sequence instruction at offset bus width",
             offset       =  0x03,
@@ -70,7 +70,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NAllowSeq",
             description  = "Number of allow table sequences",
             offset       =  0x03,
@@ -80,7 +80,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ClockPeriod",
             description  = "Period of beam synchronous clock (ns/cycle)",
             offset       =  0x04,
@@ -89,7 +89,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BaseControl",
             description  = "Base rate control divisor",
             offset       =  0x08,
@@ -98,7 +98,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ACDelay",
             description  = "Adjustable delay for power line crossing measurement",
             offset       =  0x0C,
@@ -107,7 +107,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PulseIdL",
             description  = "Pulse ID lower word",
             offset       =  0x10,
@@ -116,7 +116,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PulseIdU",
             description  = "Pulse ID upper word",
             offset       =  0x14,
@@ -125,7 +125,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TStampL",
             description  = "Time stamp lower word",
             offset       =  0x18,
@@ -134,7 +134,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TStampU",
             description  = "Time stamp upper word",
             offset       =  0x1C,
@@ -143,7 +143,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "ACRateDiv",
             description  = "Power line synch rate marker divisors",
             offset       =  0x20,
@@ -154,7 +154,7 @@ class TPGControl(pr.Device):
             stride       =  1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       =  0x40,
@@ -165,7 +165,7 @@ class TPGControl(pr.Device):
             stride       =  4,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RateReload",
             description  = "Loads cached ac/fixed rate marker divisors",
             offset       =  0x68,
@@ -174,7 +174,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Sync",
             description  = "Sync status with 71kHz",
             offset       =  0x70,
@@ -183,7 +183,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqFifoEnable",
             description  = "Enable sequence checkpoint interrupt",
             offset       =  0x74,
@@ -192,7 +192,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqIntvEnable",
             description  = "Enable interval counter interrupt",
             offset       =  0x74,
@@ -201,7 +201,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqBsaEnable",
             description  = "Enable BSA complete interrupt",
             offset       =  0x74,
@@ -210,7 +210,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqEnable",
             description  = "Enable interrupts",
             offset       =  0x77,
@@ -219,7 +219,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqIntvStatus",
             description  = "Interval counters updated",
             offset       =  0x78,
@@ -228,7 +228,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "IrqBsaStatus",
             description  = "BSA complete updated",
             offset       =  0x78,
@@ -238,7 +238,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SeqFifoData",
             description  = "Sequence checkpoint data",
             offset       =  0x7C,
@@ -248,7 +248,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         ))
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "BeamSeqCntl",
             description  = "Beam sequence arbitration control",
             offset       =  0x80,
@@ -259,7 +259,7 @@ class TPGControl(pr.Device):
             stride       =  4,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SeqResetL",
             description  = "Sequence restart lower word",
             offset       =  0x100,
@@ -268,7 +268,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SeqResetU",
             description  = "Sequence restart upper word",
             offset       =  0x104,
@@ -277,7 +277,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "BeamEnergy",
             description  = "Beam energy meta data",
             offset       =  0x120,
@@ -288,7 +288,7 @@ class TPGControl(pr.Device):
             stride       =  4,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BeamDiagCntl",
             description  = "Beam diagnostic buffer control",
             offset       =  0x1E4,
@@ -297,7 +297,7 @@ class TPGControl(pr.Device):
             mode         = "WO",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "BeamDiagStat",
             description  = "Beam diagnostic latched status",
             offset       = 0x1E8,
@@ -309,7 +309,7 @@ class TPGControl(pr.Device):
             pollInterval = 1,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BsaCompleteL",
             description  = "Bsa buffers complete lower word",
             offset       =  0x1F8,
@@ -318,7 +318,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BsaCompleteU",
             description  = "Bsa buffers complete upper word",
             offset       =  0x1FC,
@@ -327,7 +327,7 @@ class TPGControl(pr.Device):
             mode         = "RW",
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "BsaEventSel",
             description  = "Bsa definition rate/destination selection",
             offset       =  0x200,
@@ -338,7 +338,7 @@ class TPGControl(pr.Device):
             stride       =  8,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "BsaStatSel",
             description  = "Bsa definition samples to average/acquire",
             offset       =  0x204,

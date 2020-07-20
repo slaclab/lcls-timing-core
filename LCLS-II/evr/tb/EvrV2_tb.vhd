@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ end EvrV2_tb;
 architecture mapping of EvrV2_tb is
 
   constant TPD_G : time := 1 ns;
-  
+
   signal evrClk              : sl;
   signal evrRst              : sl;
   signal evrBus              : TimingBusType;
@@ -51,7 +51,7 @@ architecture mapping of EvrV2_tb is
   signal ledRedL             : sl;
   signal ledGreenL           : sl;
   signal ledBlueL            : sl;
-  
+
   constant STROBE_INTERVAL_C : integer := 10;
 
   constant MY_CHANNEL_CONFIG_INIT_C : EvrV2ChannelConfig := (
@@ -61,27 +61,27 @@ architecture mapping of EvrV2_tb is
 
   constant MY_TRIGGER_CONFIG_INIT_C : EvrV2TriggerConfigType := (
     enabled => '1', polarity => '1', delay => x"0007590", width => x"0000080", channel => (others=>'0') );
-  
+
   signal channelConfig    : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>MY_CHANNEL_CONFIG_INIT_C);
   signal channelConfigS   : EvrV2ChannelConfigArray(ReadoutChannels-1 downto 0) := (others=>MY_CHANNEL_CONFIG_INIT_C);
   signal triggerConfig    : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>MY_TRIGGER_CONFIG_INIT_C);
   signal triggerConfigS   : EvrV2TriggerConfigArray(TriggerOutputs-1 downto 0) := (others=>MY_TRIGGER_CONFIG_INIT_C);
-  
+
   signal rStrobe        : slv(ReadoutChannels*STROBE_INTERVAL_C downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv(ReadoutChannels-1 downto 0) := (others=>'0');
-  
+
   signal dmaControl : EvrV2DmaControlArray(ReadoutChannels+1 downto 0) := (others=>EVRV2_DMA_CONTROL_INIT_C);
   signal dmaData    : EvrV2DmaDataArray(ReadoutChannels+1 downto 0);
 
   constant SAXIS_MASTER_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
-  
+
   signal dmaMaster : AxiStreamMasterType;
   signal dmaSlave  : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
 
   signal bsaEnabled : slv(ReadoutChannels-1 downto 0);
   signal anyBsaEnabled : sl;
-  
+
   signal dmaFullThr     : Slv24Array (0 downto 0) := (others=>x"000000");
   signal dmaFullThrS    : Slv24Array (0 downto 0) := (others=>x"000000");
 
@@ -90,7 +90,7 @@ begin  -- rtl
   txPhyClk <= evrClk;
   txPhyRst <= evrRst;
   cardRst  <= '0';
-  
+
   process is
   begin
     evrClk <= '1';
@@ -148,7 +148,7 @@ begin  -- rtl
   begin
 
     evrBus       <= r.tbus;
-    
+
     recTimingClk <= evrClk;
     recTimingRst <= evrRst;
 
@@ -160,7 +160,7 @@ begin  -- rtl
                  txDataK  => data.dataK,
                  statusO  => open,
                  configI  => tpgConfig );
-    
+
     TimingDeserializer_1 : entity lcls_timing_core.TimingDeserializer
     generic map ( STREAMS_C => 1 )
     port map ( clk        => recTimingClk,
@@ -181,7 +181,7 @@ begin  -- rtl
       if advance(0)='1' then
         v.shift       := streams(0).data & r.shift(r.shift'left downto 16);
       end if;
-      
+
       if (fiducial='1') then
         v.tbus.strobe  := '1';
         v.tbus.valid   := streams(0).ready;
@@ -190,7 +190,7 @@ begin  -- rtl
 
       rin <= v;
    end process comb;
-  
+
    seq: process (recTimingClk) is
    begin
       if rising_edge(recTimingClk) then
@@ -198,12 +198,12 @@ begin  -- rtl
       end if;
    end process seq;
   end block;
-  
+
   -- Undefined signals
   ledRedL    <= '1';
   ledGreenL  <= '1';
   ledBlueL   <= '1';
-  
+
   U_Dma : entity work.EvrV2Dma
     generic map ( CHANNELS_C    => ReadoutChannels+2,
                   AXIS_CONFIG_C => SAXIS_MASTER_CONFIG_C )
@@ -212,7 +212,7 @@ begin  -- rtl
                   dmaData    => dmaData,
                   dmaMaster  => dmaMaster,
                   dmaSlave   => dmaSlave );
-  
+
   U_BsaControl : entity work.EvrV2BsaControl
     generic map ( TPD_G      => TPD_G )
     port map (    evrClk     => evrClk,
@@ -255,7 +255,7 @@ begin  -- rtl
                   eventData  => timingMsg,
                   dmaCntl    => dmaControl(ReadoutChannels+1),
                   dmaData    => dmaData   (ReadoutChannels+1) );
-    
+
   process (evrClk)
   begin  -- process
     if rising_edge(evrClk) then
@@ -279,12 +279,12 @@ begin  -- rtl
                       fire     => evrBus.strobe,
                       trigstate=> trigOut(i) );
   end generate Out_Trigger;
-  
+
   anyBsaEnabled <= uOr(bsaEnabled);
 
   -- Synchronize configurations to evrClk
   Sync_Channel: for i in 0 to ReadoutChannels-1 generate
-    
+
     U_SyncRate : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).rateSel'length)
@@ -292,7 +292,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).rateSel,
                     dataOut => channelConfigS(i).rateSel );
-    
+
     U_SyncDest : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).destSel'length)
@@ -300,7 +300,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).destSel,
                     dataOut => channelConfigS(i).destSel );
-     
+
     Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
@@ -323,7 +323,7 @@ begin  -- rtl
                     dataOut => bsaEnabled(i) );
 
     channelConfigS(i).bsaEnabled <= bsaEnabled(i);
-    
+
     Sync_Setup : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveSetup'length)
@@ -331,7 +331,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveSetup,
                     dataOut => channelConfigS(i).bsaActiveSetup );
-    
+
     Sync_Delay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveDelay'length)
@@ -339,7 +339,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveDelay,
                     dataOut => channelConfigS(i).bsaActiveDelay );
-    
+
     Sync_Width : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => channelConfig (i).bsaActiveWidth'length)
@@ -347,11 +347,11 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => channelConfig (i).bsaActiveWidth,
                     dataOut => channelConfigS(i).bsaActiveWidth );
-  
+
   end generate Sync_Channel;
 
   Sync_Trigger: for i in 0 to TriggerOutputs-1 generate
-    
+
     Sync_Enable : entity surf.Synchronizer
       generic map ( TPD_G   => TPD_G )
       port map (    clk     => evrClk,
@@ -373,7 +373,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).channel,
                     dataOut => triggerConfigS(i).channel );
-    
+
     U_SyncDelay : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).delay'length)
@@ -381,7 +381,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).delay,
                     dataOut => triggerConfigS(i).delay );
-    
+
     U_SyncWidth : entity surf.SynchronizerVector
       generic map ( TPD_G   => TPD_G,
                     WIDTH_G => triggerConfig (i).width'length)
@@ -389,7 +389,7 @@ begin  -- rtl
                     rst     => evrRst,
                     dataIn  => triggerConfig (i).width,
                     dataOut => triggerConfigS(i).width );
-     
+
   end generate Sync_Trigger;
 
   Sync_dmaFullThr : entity surf.SynchronizerVector

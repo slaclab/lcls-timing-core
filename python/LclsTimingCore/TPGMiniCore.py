@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class TPGMiniCore(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGMiniCore",
             description = "Embedded timing pattern generator",
             NARRAYSBSA  = 2,
@@ -30,7 +30,7 @@ class TPGMiniCore(pr.Device):
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TxPolarity",
             description  = "Invert transmit link polarity",
             offset       = 0x00,
@@ -38,8 +38,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 1,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "TxLoopback",
             description  = "Set transmit link loopback",
             offset       = 0x00,
@@ -47,8 +47,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 2,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "TxInhibit",
             description  = "Set transmit link inhibit",
             offset       = 0x00,
@@ -56,8 +56,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 5,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "BaseControl",
             description  = "Base rate trigger divisor",
             offset       = 0x04,
@@ -65,8 +65,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "PulseIdWr",
             description  = "Pulse ID write",
             offset       = 0x58,
@@ -74,8 +74,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             mode         = "WO",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "PulseIdRd",
             description  = "Pulse ID read",
             offset       = 0x08,
@@ -83,18 +83,18 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             mode         = "RO",
             pollInterval = 1,
-        ))        
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "PulseIdSet",
             description  = "Activates PulseId register value",
             offset       = 0x70,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = "RW",
-        ))        
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "TStampWr",
             description  = "Time stamp Write",
             offset       = 0x60,
@@ -103,7 +103,7 @@ class TPGMiniCore(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "TStampRd",
             description  = "Time stamp read",
             offset       = 0x10,
@@ -111,18 +111,18 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 0,
             mode         = "RO",
             pollInterval = 1,
-        ))        
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "TStampSet",
             description  = "Activates Timestamp register value",
             offset       = 0x74,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = "RW",
-        ))        
-                
-        self.addRemoteVariables(    
+        ))
+
+        self.addRemoteVariables(
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       = 0x18,
@@ -134,7 +134,7 @@ class TPGMiniCore(pr.Device):
             hidden       = True,
         )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "RateReload",
             description  = "Loads cached fixed rate marker divisors",
             offset       = 0x40,
@@ -143,7 +143,7 @@ class TPGMiniCore(pr.Device):
             mode         = "WO",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NBeamSeq",
             description  = "Number of beam request engines",
             offset       = 0x4C,
@@ -153,7 +153,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NControlSeq",
             description  = "Number of control sequence engines",
             offset       = 0x4C,
@@ -161,9 +161,9 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 6,
             mode         = "RO",
             pollInterval = 1,
-        ))        
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "NArraysBsa",
             description  = "Number of BSA arrays",
             offset       = 0x4C,
@@ -173,7 +173,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SeqAddrLen",
             description  = "Number of beam sequence engines",
             offset       = 0x4C,
@@ -183,7 +183,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "NAllowSeq",
             description  = "Number of beam allow engines",
             offset       = 0x4C,
@@ -191,36 +191,36 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 26,
             mode         = "RO",
             pollInterval = 1,
-        ))        
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "TxReset",
             description  = "Reset transmit link",
             offset       = 0x68,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = "WO",
-        )) 
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountIntervalReset",
             description  = "Count Interval Reset",
             offset       = 0x6C,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = "WO",
-        ))         
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaNumSamples",
             description  = "Lcls-1 BSA Number of Samples - 1",
             offset       = 0x78,
             bitSize      = 12,
             bitOffset    = 0,
             mode         = "RW",
-        ))  
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaRate",
             description  = "Lcls-1 BSA Rate",
             offset       = 0x78,
@@ -237,8 +237,8 @@ class TPGMiniCore(pr.Device):
                 6 : "0.5Hz",
             },
         ))
-        
-        self.add(pr.RemoteVariable(   
+
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaTimeSlot",
             description  = "Lcls-1 BSA Time Slot",
             offset       = 0x78,
@@ -253,9 +253,9 @@ class TPGMiniCore(pr.Device):
                 4 : "TS5",
                 5 : "TS6",
             },
-        )) 
+        ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaSeverity",
             description  = "Lcls-1 BSA Rejection Severity Threshold",
             offset       = 0x78,
@@ -267,46 +267,46 @@ class TPGMiniCore(pr.Device):
                 1 : "MAJOR",
                 2 : "MINOR",
             },
-        ))                
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaEdefSlot",
             description  = "Lcls-1 BSA EDEF Slot Number",
             offset       = 0x78,
             bitSize      = 4,
             bitOffset    = 20,
             mode         = "RW",
-        ))  
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaNumAvgs",
             description  = "Lcls-1 BSA Number of Values to Average per Sample - 1",
             offset       = 0x78,
             bitSize      = 8,
             bitOffset    = 24,
             mode         = "RW",
-        ))         
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "Lcls1BsaStart",
             description  = "Lcls-1 BSA Started by Writing any Value Here",
             offset       = 0x7C,
             bitSize      = 32,
             bitOffset    = 0,
             mode         = "RW",
-        ))             
+        ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BsaCompleteWr",
             description  = "BSA complete write",
             offset       = 0x50,
             bitSize      = 64,
             bitOffset    = 0,
             mode         = "WO",
-            overlapEn    = True,            
+            overlapEn    = True,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BsaCompleteRd",
             description  = "BSA complete read",
             offset       = 0x50,
@@ -316,8 +316,8 @@ class TPGMiniCore(pr.Device):
             overlapEn    = True,
             pollInterval = 1,
         ))
-        
-        self.addRemoteVariables(  
+
+        self.addRemoteVariables(
             name         = "BsaActive",
             description  = "Activates/Deactivates BSA EDEF",
             offset       = 0x01FC,
@@ -327,9 +327,9 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 1,
             hidden       = True,
-        )        
+        )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "BsaRateSelMode",
             description  = "BSA def rate mode selection",
             offset       = 0x200,
@@ -339,15 +339,15 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
             enum         = {
                 0 : "FixedRate",
                 1 : "ACRate",
                 2 : "Sequencer",
-            },    
+            },
         )
-        
-        self.addRemoteVariables(  
+
+        self.addRemoteVariables(
             name         = "BsaFixedRate",
             description  = "BSA fixed rate mode selection",
             offset       = 0x200,
@@ -357,7 +357,7 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
             enum         = {
                 0 : "1MHz",
                 1 : "71kHz",
@@ -366,10 +366,10 @@ class TPGMiniCore(pr.Device):
                 4 : "100Hz",
                 5 : "10Hz",
                 6 : "1Hz",
-            },            
-        ) 
-        
-        self.addRemoteVariables(  
+            },
+        )
+
+        self.addRemoteVariables(
             name         = "BsaACRate",
             description  = "BSA AC rate mode selection",
             offset       = 0x200,
@@ -379,7 +379,7 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
             enum         = {
                 0 : "60Hz",
                 1 : "30Hz",
@@ -387,10 +387,10 @@ class TPGMiniCore(pr.Device):
                 3 : "5Hz",
                 4 : "1Hz",
                 5 : "0.5Hz",
-            },            
-        )         
-        
-        self.addRemoteVariables(  
+            },
+        )
+
+        self.addRemoteVariables(
             name         = "BsaACTSMask",
             description  = "BSA AC timeslot mask selection",
             offset       = 0x200,
@@ -400,10 +400,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
-        ) 
+            overlapEn    = True,
+        )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "BsaSequenceSelect",
             description  = "BSA sequencer selection",
             offset       = 0x200,
@@ -413,10 +413,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
-        )    
+            overlapEn    = True,
+        )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "BsaSequenceBitSelect",
             description  = "BSA sequencer bit selection",
             offset       = 0x200,
@@ -426,10 +426,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
-        )            
-        
-        self.addRemoteVariables(  
+            overlapEn    = True,
+        )
+
+        self.addRemoteVariables(
             name         = "BsaDestMode",
             description  = "BSA destination mode",
             offset       = 0x200,
@@ -439,15 +439,15 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
             enum         = {
                 0 : "Dont_Care",
                 1 : "Inclusive",
                 2 : "Exclusive",
-            },            
-        )           
-        
-        self.addRemoteVariables(  
+            },
+        )
+
+        self.addRemoteVariables(
             name         = "BsaDestInclusiveMask",
             description  = "BSA inclusive destination mask",
             offset       = 0x204,
@@ -457,10 +457,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
-        )      
+            overlapEn    = True,
+        )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "BsaDestExclusiveMask",
             description  = "BSA exclusive destination mask",
             offset       = 0x204,
@@ -470,10 +470,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
-        )              
+            overlapEn    = True,
+        )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "BsaNtoAvg",
             description  = "BSA def num acquisitions to average",
             offset       = 0x208,
@@ -483,10 +483,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "BsaAvgToWr",
             description  = "BSA def num averages to record",
             offset       = 0x208,
@@ -496,10 +496,10 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 8,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
         )
-        
-        self.addRemoteVariables(  
+
+        self.addRemoteVariables(
             name         = "BsaMaxSeverity",
             description  = "BSA def max alarm severity",
             offset       = 0x208,
@@ -509,16 +509,16 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,            
+            overlapEn    = True,
             enum         = {
                 0 : "NoAlarm",
                 1 : "Minor",
                 2 : "Major",
                 3 : "Invalid",
-            },            
-        ) 
+            },
+        )
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "PllCnt",
             description  = "Count of PLL status changes",
             offset       = 0x500,
@@ -528,7 +528,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "ClkCnt",
             description  = "Count of local 186M clock",
             offset       = 0x504,
@@ -538,7 +538,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "SyncErrCnt",
             description  = "Count of 71k sync errors",
             offset       = 0x508,
@@ -548,7 +548,7 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "CountInterval",
             description  = "Interval counters update period",
             offset       = 0x50C,
@@ -557,7 +557,7 @@ class TPGMiniCore(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "BaseRateCount",
             description  = "Count of base rate triggers",
             offset       = 0x510,

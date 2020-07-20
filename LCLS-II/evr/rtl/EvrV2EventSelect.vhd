@@ -9,11 +9,11 @@
 -- Translation of BSA DEF to control bits in timing pattern
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
@@ -70,7 +70,7 @@ begin
 
    process (config, dataIn, controlWord)
       variable rateType : slv(1 downto 0);
-   begin 
+   begin
       rateType := config.rateSel(12 downto 11);
       case rateType is
          when "00" => rateSel <= dataIn.fixedRates(conv_integer(config.rateSel(3 downto 0)));

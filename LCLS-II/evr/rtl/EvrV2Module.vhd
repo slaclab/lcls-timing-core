@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ architecture mapping of EvrV2Module is
   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadMasters  : AxiLiteReadMasterArray (NUM_AXI_MASTERS_C-1 downto 0);
   signal mAxiReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXI_MASTERS_C-1 downto 0);
-  
+
   signal channelConfig    : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   signal channelConfigS   : EvrV2ChannelConfigArray(NCHANNELS_G-1 downto 0);
   signal channelConfigAV  : slv(NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto 0);
@@ -82,22 +82,22 @@ architecture mapping of EvrV2Module is
   signal triggerConfigS   : EvrV2TriggerConfigArray(NTRIGGERS_G-1 downto 0);
   signal triggerConfigAV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
   signal triggerConfigSV  : slv(NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto 0);
-  
+
   signal rStrobe        : slv(5 downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv(NCHANNELS_G-1 downto 0) := (others=>'0');
   signal eventCount     : SlVectorArray(NCHANNELS_G downto 0,31 downto 0);
   signal rstCount       : sl;
-  
+
 begin  -- rtl
 
   assert (rStrobe'length <= 200)
     report "rStrobe'length exceeds clocks per cycle"
     severity failure;
-  
+
   -------------------------
   -- AXI-Lite Crossbar Core
-  -------------------------  
+  -------------------------
   AxiLiteCrossbar_Inst : entity surf.AxiLiteCrossbar
     generic map (
       TPD_G              => TPD_G,
@@ -114,14 +114,14 @@ begin  -- rtl
       mAxiWriteMasters    => mAxiWriteMasters,
       mAxiWriteSlaves     => mAxiWriteSlaves,
       mAxiReadMasters     => mAxiReadMasters,
-      mAxiReadSlaves      => mAxiReadSlaves);   
+      mAxiReadSlaves      => mAxiReadSlaves);
 
   U_SyncChannelConfig : entity surf.SynchronizerVector
     generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
     port map ( clk     => evrClk,
                dataIn  => channelConfigAV,
                dataOut => channelConfigSV );
-  
+
   Loop_EvtSel: for i in 0 to NCHANNELS_G-1 generate
     channelConfigAV((i+1)*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto i*EVRV2_CHANNEL_CONFIG_BITS_C)
       <= toSlv(channelConfig(i));
@@ -142,14 +142,14 @@ begin  -- rtl
                disable   => evrModeSel,
                timingIn  => evrBus,
                timingOut => timingMsg );
-  
+
   process (evrClk)
   begin  -- process
     if rising_edge(evrClk) then
       rStrobe    <= rStrobe(rStrobe'left-1 downto 0) & evrBus.strobe;
     end if;
   end process;
-  
+
   Sync_EvtCount : entity surf.SyncStatusVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => NCHANNELS_G+1 )
@@ -168,7 +168,7 @@ begin  -- rtl
     port map ( clk     => evrClk,
                dataIn  => triggerConfigAV,
                dataOut => triggerConfigSV );
-  
+
   Out_Trigger: for i in 0 to NTRIGGERS_G-1 generate
      triggerConfigAV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C)
       <= toSlv(triggerConfig(i));
@@ -186,7 +186,7 @@ begin  -- rtl
                       fire       => rStrobe(5),
                       trigstate  => trigOut(i) );
   end generate Out_Trigger;
-  
+
   U_EvrAxi : entity lcls_timing_core.EvrV2Axi
     generic map ( TPD_G      => TPD_G,
                   CHANNELS_C => NCHANNELS_G )

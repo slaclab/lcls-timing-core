@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS1 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS1 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS1 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity EvrV1Reg is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-      -- EVR Interface      
+      -- EVR Interface
       status         : in  EvrV1StatusType;
       config         : out EvrV1ConfigType;
       -- Clock and Reset
@@ -131,7 +131,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, fwVersion, irqActive, r, status) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -178,7 +178,7 @@ begin
 
       -----------------------------
       -- AXI-Lite Write Logic
-      -----------------------------      
+      -----------------------------
       if (axiStatus.writeEnable = '1') then
          -- Check for alignment
          if axiWriteMaster.awaddr(1 downto 0) = "00" then
@@ -402,11 +402,11 @@ begin
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       -----------------------------
       -- AXI-Lite Read Logic
-      -----------------------------      
+      -----------------------------
       elsif (axiStatus.readEnable = '1') and (r.cnt = LATCH_TS_LATENCY_G) then
          -- Check for alignment
          if axiReadMaster.araddr(1 downto 0) = "00" then
-            -- Set the EVR RAM select mask         
+            -- Set the EVR RAM select mask
             Set4bitMask(v.config.eventRamCs(0), axiReadMaster.araddr, "100");
             Set4bitMask(v.config.eventRamCs(1), axiReadMaster.araddr, "101");
             -- Update external data/address buses
@@ -673,7 +673,7 @@ begin
                 or (r.config.intControl(31) and status.intFlag(1) and r.config.intControl(1))  -- TsFifoFull
                 or (r.config.intControl(31) and status.intFlag(2) and r.config.intControl(2))  -- heartBeatTimeOut
                 or (r.config.intControl(31) and status.intFlag(3) and r.config.intControl(3))  -- event
-                or (r.config.intControl(31) and status.intFlag(5) and r.config.intControl(5));  -- databuff   
+                or (r.config.intControl(31) and status.intFlag(5) and r.config.intControl(5));  -- databuff
    end process comb;
 
    seq : process (axiClk) is

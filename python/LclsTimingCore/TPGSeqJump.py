@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class TPGSeqJump(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGSeqJump",
             description = "Timing pattern sequencer jump programming",
             **kwargs):
@@ -30,7 +30,7 @@ class TPGSeqJump(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "StartAddr",
             description  = "Sequence start offset",
             offset       =  0x00,
@@ -41,7 +41,7 @@ class TPGSeqJump(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables( 
+        self.addRemoteVariables(
             name         = "Class",
             description  = "Sequence power class",
             offset       =  0x01,
@@ -52,7 +52,7 @@ class TPGSeqJump(pr.Device):
             stride       =  4,
         )
 
-        self.addRemoteVariables(  
+        self.addRemoteVariables(
             name         = "StartSync",
             description  = "Start synchronization condition",
             offset       =  0x02,

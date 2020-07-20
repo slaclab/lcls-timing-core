@@ -66,5 +66,5 @@ jobs:
     - <<: *documentation_stage
       stage: generate_and_deploy
       name: "Generate and Deploy Documentation"
-      script: 
+      script:
         - ./generateDocumentationAndDeploy.sh 1

@@ -1,10 +1,10 @@
 #############################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -16,7 +16,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
   description: Channel
   size: 0x20
   children:
-    #########################################################  
+    #########################################################
     Enable:
       at:
         offset: 0x00
@@ -26,7 +26,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 0
       mode: RW
       description: Enable Register
-    #########################################################  
+    #########################################################
     BsaEnabled:
       at:
         offset: 0x00
@@ -36,7 +36,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 1
       mode: RW
       description: Bsa Enable Register (Only valid register is DMA_ENABLE_G=true)
-    #########################################################  
+    #########################################################
     DmaEnabled:
       at:
         offset: 0x00
@@ -46,7 +46,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 2
       mode: RW
       description: Dma Enable Register (Only valid register is DMA_ENABLE_G=true)
-    #########################################################  
+    #########################################################
     RateSel:
       at:
         offset: 0x04
@@ -56,7 +56,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 0
       mode: RW
       description: Rate select
-    #########################################################  
+    #########################################################
     DestSel:
       at:
         offset: 0x05
@@ -66,7 +66,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 5
       mode: RW
       description: Destination select
-    #########################################################  
+    #########################################################
     Count:
       at:
         offset: 0x08
@@ -74,7 +74,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       name: Count
       mode: RO
       description: Counts
-    #########################################################  
+    #########################################################
     BsaWindowDelay:
       at:
         offset: 0x0C
@@ -84,7 +84,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 0
       mode: RW
       description: Start of BSA sensitivity window following trigger (Only valid register is DMA_ENABLE_G=true)
-    #########################################################  
+    #########################################################
     BsaWindowSetup:
       at:
         offset: 0x0E
@@ -94,7 +94,7 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 4
       mode: RW
       description: Start of BSA sensitivity window before trigger (Only valid register is DMA_ENABLE_G=true)
-    #########################################################  
+    #########################################################
     BsaWindowWidth:
       at:
         offset: 0x10
@@ -104,4 +104,4 @@ EvrV2ChannelReg: &EvrV2ChannelReg
       lsBit: 0
       mode: RW
       description: Width of BSA sensitivity window (Only valid register is DMA_ENABLE_G=true)
-    #########################################################  
+    #########################################################

@@ -26,9 +26,9 @@ from LclsTimingCore.TPGSeqJump import *
 # from LclsTimingCore.TPGSeqMem import *
 
 class TPG(pr.Device):
-    def __init__(   self, 
-            name        = "TPG", 
-            description = "Timing generator module for AMC Carrier", 
+    def __init__(   self,
+            name        = "TPG",
+            description = "Timing generator module for AMC Carrier",
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
@@ -54,4 +54,4 @@ class TPG(pr.Device):
 
         #self.add(TPGSeqMem(
         #    offset       =  0x00000400,
-        #))        
+        #))

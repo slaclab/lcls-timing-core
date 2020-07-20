@@ -26,7 +26,7 @@ class EvrV2ChannelReg(pr.Device):
             dmaEnable   = False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "EnableReg",
             description = "Enable Register",
@@ -47,7 +47,7 @@ class EvrV2ChannelReg(pr.Device):
                 base        = pr.Bool,
                 mode        = "RW",
             ))
-        #########################################################  
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "dmaEnabled",
                 description = "DMA Enable register (Only valid register is DMA_ENABLE_G=true)",
@@ -57,7 +57,7 @@ class EvrV2ChannelReg(pr.Device):
                 base        = pr.Bool,
                 mode        = "RW",
             ))
-        ########################################################  
+        ########################################################
         self.add(pr.RemoteVariable(
             name        = "RateSel",
             description = "Rate select",
@@ -66,7 +66,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "DestSel",
             description = "Destination select",
@@ -75,7 +75,7 @@ class EvrV2ChannelReg(pr.Device):
             bitOffset   = 13,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Count",
             description = "Counts",
@@ -85,7 +85,7 @@ class EvrV2ChannelReg(pr.Device):
             mode        = "RO",
             pollInterval = 1,
         ))
-        #########################################################  
+        #########################################################
         if (dmaEnable):
             self.add(pr.RemoteVariable(
                 name        = "BsaWindowDelay",
@@ -95,7 +95,7 @@ class EvrV2ChannelReg(pr.Device):
                 bitOffset   = 0,
                 mode        = "RW",
             ))
-        ######################################################### 
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "BsaWindowSetup",
                 description = "Start of BSA sensitivity window before trigger (Only valid register is DMA_ENABLE_G=true)",

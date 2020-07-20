@@ -27,7 +27,7 @@ class EvrV2TriggerReg(pr.Device):
             tickUnit    = 'TBD',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "EnableTrig",
             description = "Trigger Enable",
@@ -46,7 +46,7 @@ class EvrV2TriggerReg(pr.Device):
             bitOffset   = 0,
             mode        = "RW",
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Polarity",
             description = "Signal polarity",
@@ -55,11 +55,11 @@ class EvrV2TriggerReg(pr.Device):
             bitOffset   = 16,
             mode        = "RW",
             enum         = {
-                0x0: 'Falling', 
-                0x1: 'Rising', 
-            },               
+                0x0: 'Falling',
+                0x1: 'Rising',
+            },
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Delay",
             description = "Delay in ticks",
@@ -69,7 +69,7 @@ class EvrV2TriggerReg(pr.Device):
             mode        = "RW",
             units       = tickUnit,
         ))
-        #########################################################  
+        #########################################################
         self.add(pr.RemoteVariable(
             name        = "Width",
             description = "Width in ticks",
@@ -79,7 +79,7 @@ class EvrV2TriggerReg(pr.Device):
             mode        = "RW",
             units       = tickUnit,
         ))
-        #########################################################  
+        #########################################################
         if (useTap):
             self.add(pr.RemoteVariable(
                 name        = "DelayTap",
@@ -89,7 +89,7 @@ class EvrV2TriggerReg(pr.Device):
                 bitOffset   = 0,
                 mode        = "RW",
             ))
-        #########################################################  
+        #########################################################
             self.add(pr.RemoteVariable(
                 name        = "DelayTapReadback",
                 description = "Delay tap readback in ticks/64 (Only valid register is USE_TAP_C=true)",
@@ -99,5 +99,5 @@ class EvrV2TriggerReg(pr.Device):
                 mode        = "RO",
                 pollInterval= 1,
             ))
-        #########################################################  
+        #########################################################
 

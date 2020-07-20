@@ -9,11 +9,11 @@
 --     Data corruption in reception
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ architecture testbed of TimingSerialDelayTb is
 --   constant DELAY_C      : integer := 140;    -- in clocks
    constant DELAY_C      : integer := 0;    -- in clocks
    constant FID_PERIOD_C : integer := 66;    -- clks btw fiducials
-   
+
    signal clk  : sl := '0';
    signal rst  : sl := '0';
    signal rstL : sl := '1';
@@ -51,7 +51,7 @@ architecture testbed of TimingSerialDelayTb is
    constant FRAME_PERIOD_C  : integer := 1;   -- fiducials btw frames
    constant FRAME_LEN_C     : integer := SEGMENT_LEN_C*SEGMENT_FRM_C;
    constant ADVANCE_START_C : integer := 3;   -- clocks after fiducial
-   
+
    type RegType is record
      nword     : integer;
      padvance  : integer;
@@ -89,11 +89,11 @@ architecture testbed of TimingSerialDelayTb is
    signal valid    : sl;
    signal overflow : sl;
    signal l0Reset  : sl;
-   
+
 begin
 
   assert FRAME_PERIOD_C >= SEGMENT_FRM_C report "FRAME_PERIOD_C must be >= SEGMENT_FRM_C";
-  
+
    ---------------------------
    -- Generate clock and reset
    ---------------------------
@@ -126,7 +126,7 @@ begin
                 clear    => '0',
                 divisor  => toSlv(FID_PERIOD_C*10,16),
                 trigO    => l0Reset );
-  
+
    U_DUT : entity lcls_timing_core.TimingSerialDelay
      generic map ( TPD_G    => TPD_G,
                    NWORDS_G => FRAME_LEN_C,
@@ -153,7 +153,7 @@ begin
      --  Generate stream --
      v.advance   := '0';
      v.ifiducial := r.ifiducial+1;
-     
+
      if r.padvance = ADVANCE_START_C then
        v.nadvance := r.nadvance+1;
        if r.nadvance = SEGMENT_LEN_C then
@@ -183,7 +183,7 @@ begin
      else
        v.padvance := r.padvance+1;
      end if;
-     
+
      if fiducial = '1' then  -- done with previous frame
        v.stream.ready   := '0';
        v.padvance       := 0;
@@ -197,7 +197,7 @@ begin
      v.sclknow := toSlv(clknow,16);
      v.sclkgen := toSlv(clkgen,16);
      v.strobe  := strobe;
-     
+
      --  Validate delayed frame --
      if strobe = '1' then
        ferror := false;
@@ -212,11 +212,11 @@ begin
      assert overflow /= '1' report "FIFO overflow";
 
      assert (r.strobe='0' or r.sclknow = r.sclkgen+4) report "Unexpected frame delay";
-     
+
      if rst = '1' then
        v := REG_INIT_C;
      end if;
-     
+
      rin <= v;
    end process comb;
 
@@ -226,5 +226,5 @@ begin
        r <= rin;
      end if;
    end process seq;
-   
+
 end testbed;

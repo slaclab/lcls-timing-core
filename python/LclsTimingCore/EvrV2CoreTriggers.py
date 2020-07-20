@@ -33,8 +33,8 @@ class EvrV2CoreTriggers(pr.Device):
 
         # Check the number of lanes requested
         if ( (numTrig<1) or (numTrig>16) ):
-            raise ValueError('numTrig must be between 1 to 16: (%i) is out of range' % (numTrig) )        
-        
+            raise ValueError('numTrig must be between 1 to 16: (%i) is out of range' % (numTrig) )
+
         for i in range(numTrig):
             self.add(timingCore.EvrV2ChannelReg(
                 name      = f'EvrV2ChannelReg[{i}]',

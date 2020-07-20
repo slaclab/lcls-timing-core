@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : 
+-- Title      :
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -7,11 +7,11 @@
 --   Common module to parse both LCLS-I and LCLS-II timing streams.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,21 +42,21 @@ entity TimingRx is
 
       rxControl           : out TimingPhyControlType;
       rxStatus            : in  TimingPhyStatusType;
-      
+
       timingClkSel        : out sl; -- '0'=LCLS1, '1'=LCLS2
-      timingClkSelR       : out sl; 
-      
+      timingClkSelR       : out sl;
+
       timingStreamUser    : out TimingStreamType;
       timingStreamPrompt  : out TimingStreamType;
       timingStreamStrobe  : out sl;
       timingStreamValid   : out sl;
-      
+
       timingMessage       : out TimingMessageType;
       timingMessageStrobe : out sl;
       timingMessageValid  : out sl;
       timingExtn          : out TimingExtnType;
       timingExtnValid     : out sl;
-      
+
       txClk               : in  sl;
 
       axilClk             : in  sl;
@@ -113,10 +113,10 @@ architecture rtl of TimingRx is
 
    signal rxR   : RxRegType := RX_REG_INIT_C;
    signal rxRin : RxRegType;
-   
+
    signal staData            : Slv5Array(1 downto 0);
    signal staData12          : slv(4 downto 0);
-   
+
    signal rxVersion          : Slv32Array(1 downto 0);
    signal rxVersion12        : slv(31 downto 0);
 
@@ -137,7 +137,7 @@ architecture rtl of TimingRx is
    signal timingTSEventCounter: slv(31 downto 0);
    signal timingTSEvCntGray_i : slv(31 downto 0);
    signal timingTSEvCntGray_o : Slv32Array(5 downto 0);
- 
+
 begin
 
   NOGEN_RxLcls1 : if CLKSEL_MODE_G = "LCLSII" generate
@@ -180,7 +180,7 @@ begin
   GEN_RxLcls2 : if CLKSEL_MODE_G /= "LCLSI" generate
     U_RxLcls2 : entity lcls_timing_core.TimingFrameRx
       generic map (
-        TPD_G             => TPD_G)   
+        TPD_G             => TPD_G)
       port map (
         rxClk               => rxClk,
         rxRst               => rxRst(1),
@@ -195,7 +195,7 @@ begin
         rxVersion           => rxVersion(1),
         staData             => staData  (1) );
   end generate;
-   
+
    axilComb : process (axilR, axilReadMaster, axilRst,
                        axilRxLinkUp,
                        axilVsnErr,
@@ -206,7 +206,7 @@ begin
                        axilWriteMaster, txClkCntS,
                        rxStatusCount,
                        timingTSEvCntGray_o(0)) is
-                 
+
       variable v          : AxilRegType;
       variable axilStatus : AxiLiteStatusType;
 
@@ -276,7 +276,7 @@ begin
       if v.messageDelay/=axilR.messageDelay then
         v.messageDelayRst := '1';
       end if;
-      
+
       axilSlaveRegisterR(X"28", 0, txClkCntS);
 
       axilSlaveRegisterR(X"2C", 0, muxSlVectorArray(rxStatusCount,0));
@@ -290,7 +290,7 @@ begin
       if axilRxLinkUp='0' then
         v.rxDown := '1';
       end if;
-      
+
       --if (axilRst = '1') then
       --   v := AXIL_REG_INIT_C;
       --end if;
@@ -315,7 +315,7 @@ begin
        txClkCnt <= txClkCnt+1 after TPD_G;
      end if;
    end process txClkCnt_seq;
-   
+
    SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
      generic map (
        TPD_G          => TPD_G,
@@ -337,7 +337,7 @@ begin
                    rxVersion(1);
    staData12    <= staData(0) when clkSelR='0' else
                    staData(1);
-   
+
    rxcomb : process(rxR, rxData) is
      variable v : RxRegType;
    begin
@@ -391,12 +391,12 @@ begin
      port map ( clk     => axilClk,
                 dataIn  => rxVersion12,
                 dataOut => axilVersion );
-   
+
    U_VsnErr : entity surf.Synchronizer
      port map ( clk     => axilClk,
                 dataIn  => staData12(4),
                 dataOut => axilVsnErr );
-   
+
    rxClkCnt_seq : process (rxClk) is
    begin
       if (rising_edge(rxClk)) then
@@ -411,7 +411,7 @@ begin
                 dataOut => clkSelR );
 
    SyncDelayRst : entity surf.Synchronizer
-     generic map ( TPD_G => TPD_G )   
+     generic map ( TPD_G => TPD_G )
      port map ( clk     => rxClk,
                 dataIn  => axilR.messageDelayRst,
                 dataOut => messageDelayRst );
@@ -423,7 +423,7 @@ begin
                 dataOut => messageDelayR );
 
    SyncStreamNoDelay : entity surf.Synchronizer
-     generic map ( TPD_G => TPD_G )    
+     generic map ( TPD_G => TPD_G )
      port map ( clk     => rxClk,
                 dataIn  => axilR.streamNoDelay,
                 dataOut => timingStreamNoDelayR );
@@ -444,13 +444,13 @@ begin
          wrRst        => '0',
          rdClk        => axilClk,
          rdRst        => '0');
-     
+
    SyncBypassRst : entity surf.Synchronizer
-     generic map ( TPD_G => TPD_G )     
+     generic map ( TPD_G => TPD_G )
      port map ( clk     => rxClk,
                 dataIn  => axilR.rxControl.bufferByRst,
                 dataOut => rxControl.bufferByRst );
-   
+
    -- gray encode event timestamp counter to bring into AXIL domain
    timingTSEvCntGray_i <= timingTSEventCounter xor '0' & timingTSEventCounter(31 downto 1);
 
@@ -474,11 +474,11 @@ begin
    rxControl.inhibit  <= '0';
    rxControl.polarity <= axilR.rxControl.polarity;
    rxControl.pllReset <= axilR.rxControl.pllReset;
-   
+
    rxRst(0)      <= '1' when (rxStatus.resetDone='0' or clkSelR='1') else '0';
    rxRst(1)      <= '1' when (rxStatus.resetDone='0' or clkSelR='0') else '0';
    timingClkSel  <= axilR.clkSel;
    timingClkSelR <= clkSelR;
-   
+
 end architecture rtl;
 

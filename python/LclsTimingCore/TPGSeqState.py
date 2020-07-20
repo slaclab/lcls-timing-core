@@ -20,7 +20,7 @@
 import pyrogue as pr
 
 class TPGSeqState(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = "TPGSeqState",
             description = "Timing pattern sequencer state",
             **kwargs):
@@ -30,7 +30,7 @@ class TPGSeqState(pr.Device):
         # Variables
         ##############################
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "SeqIndex",
             description  = "Sequencer instruction at offset",
             offset       =  0x00,
@@ -42,7 +42,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondACount",
             description  = "BSA condition A counter",
             offset       =  0x04,
@@ -54,7 +54,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondBCount",
             description  = "BSA condition B counter",
             offset       =  0x04,
@@ -66,7 +66,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = "SeqCondCCount",
             description  = "BSA condition C counter",
             offset       =  0x04,
@@ -78,7 +78,7 @@ class TPGSeqState(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "SeqCondDCount",
             description  = "BSA condition D counter",
             offset       =  0x04,

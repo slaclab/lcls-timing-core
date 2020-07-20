@@ -10,11 +10,11 @@
 -- Status updates:  nToAvgOut, avgToWrOut count up
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
@@ -34,7 +34,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity CtrControl is
-  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false ); 
+  generic ( TPD_G    : time    := 1 ns; ASYNC_REGCLK_G : boolean := false );
   port (
       sysclk     : in  sl;
       sysrst     : in  sl;
@@ -68,10 +68,10 @@ architecture CtrControl of CtrControl is
 
    signal rateSel : sl;
    signal ctrlatch : sl;
-   
+
   attribute use_dsp48      : string;
-  attribute use_dsp48 of r : signal is "yes";   
-  
+  attribute use_dsp48 of r : signal is "yes";
+
 begin
 
    count <= r.latch;
@@ -80,7 +80,7 @@ begin
      port map ( clk        => txclk,
                 dataIn     => ctrrst,
                 risingEdge => ctrlatch);
-   
+
    U_Select : entity lcls_timing_core.EventSelect
      port map ( clk       => txclk,
                 rateType  => ctrdef.rateSel(12 downto 11),
@@ -94,7 +94,7 @@ begin
                 acTS      => acTS,
                 expSeq    => expSeq,
                 rateSel   => rateSel );
-                
+
 
    comb: process (r, ctrlatch, txrst, enable, ctrdef, beamSeq, rateSel) is
      variable v : RegType;
@@ -115,18 +115,18 @@ begin
        if rateSel='1' and destSel='1' then
          v.count := r.count+1;
        end if;
-       
+
      end if;
 
      if ctrlatch='1' then
        v.latch := r.count;
        v.count := (others=>'0');
      end if;
-     
+
      if txrst='1' then
        v := REG_INIT_C;
      end if;
-     
+
      rin <= v;
    end process;
 
@@ -136,6 +136,6 @@ begin
        r <= rin after TPD_G;
      end if;
    end process;
-   
+
 end CtrControl;
 

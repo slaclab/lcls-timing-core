@@ -4,11 +4,11 @@
 -- Description: Increments a 64-bit nanosecond timestamp in programmable steps
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 LIBRARY ieee;
@@ -36,7 +36,7 @@ entity ClockTime is
       wrEnA              : in  sl;
       wrData             : in  slv(63 downto 0);
       rdData             : out slv(63 downto 0);
-      
+
       clkB               : in  sl;
       wrEnB              : in  sl;
       dataO              : out slv(63 downto 0)
@@ -44,7 +44,7 @@ entity ClockTime is
 end ClockTime;
 
 -- Define architecture for top level module
-architecture rtl of ClockTime is 
+architecture rtl of ClockTime is
 
   constant one_sec   : slv(31 downto 0) := slv(conv_unsigned(1000000000,32));
   signal step32         : slv (31 downto 0);
@@ -60,7 +60,7 @@ begin
   step32 <= x"000000" & "000" & step;
   urem   <= '0' & remainder;
   udiv   <= '0' & divisor;
-  
+
   U_WrFifo : entity surf.SynchronizerFifo
     generic map ( TPD_G=>TPD_G, DATA_WIDTH_G => 64 )
     port map ( rst    => rst,
@@ -97,7 +97,7 @@ begin
   remN  <= (others=>'0')    when (valid='1' and wrEnB='1') else
            (remB+urem) when (remB+urem < udiv) else
            (remB+urem-udiv);
-  
+
   process (clkB, rst)
   begin
     if rst='1' then
@@ -109,5 +109,5 @@ begin
   end process;
 
   dataO <= dataB;
-  
+
 end rtl;
