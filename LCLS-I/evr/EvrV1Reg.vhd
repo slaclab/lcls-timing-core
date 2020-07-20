@@ -404,8 +404,6 @@ begin
       -- AXI-Lite Read Logic
       -----------------------------      
       elsif (axiStatus.readEnable = '1') and (r.cnt = LATCH_TS_LATENCY_G) then
-         -- Reset the bus
-         v.axiReadSlave.rdata := (others => '0');
          -- Check for alignment
          if axiReadMaster.araddr(1 downto 0) = "00" then
             -- Set the EVR RAM select mask         
