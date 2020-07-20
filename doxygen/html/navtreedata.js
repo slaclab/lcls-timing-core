@@ -1,25 +1,3 @@
-/*
-@licstart  The following is the entire license notice for the
-JavaScript code in this file.
-
-Copyright (C) 1997-2019 by Dimitri van Heesch
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the GNU General Public License as published by
-the Free Software Foundation
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-@licend  The above is the entire license notice
-for the JavaScript code in this file
-*/
 var NAVTREE =
 [
   [ "LCLS-TIMING-CORE", "index.html", [
@@ -34,16 +12,16 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classEthTimingModule_1_1rtl.html#ae3f2610520504f07254ee38a4fe27f68",
-"classEvrV1EventReceiver_1_1rtl.html#a3b9616639148f7a3a805b6c896fb01f6",
+"classEthTimingModule_1_1rtl.html#af6ebbedb274b7b98db2c51fc77681f3a",
+"classEvrV1EventReceiver_1_1rtl.html#a38f22dfb0c65d7f27a1fd2a54fa8d1b9",
 "classEvrV2Cache_1_1mapping.html#a117d2e5b8b6279f15328f47acdd4ad76",
 "classEvrV2FromV1.html#aa5fefbb58d6204d5242dd2f4be3352e0",
-"classEvrV2__tb_1_1mapping.html#ac97222cfe8410d59cd08b2fcf3325038",
-"classTPGMiniEdef_1_1TPGMiniEdefImpl.html#a832f8400160dd51face7024ff2bfaa9f",
-"classTimingCore.html#a27ed01a18a19c742fcce9b90d8d22c25",
-"classTimingGtCoreWrapper_1_1rtl.html#a049e44bbf215e36cea1560a83ca89184",
-"classTimingRx.html#a22f8db74a5a4c77e7e2767279ca36e7f",
-"classTimingStreamRx.html#a10a0ab621ea8c1ebe2adf690728ac7e4"
+"classGthRxAlignCheck.html#a4f75f613ba88e0262eafdb37932247dc",
+"classTPGMiniReg.html#abbd5e99b7b0d1efcff8ca7f4c58f7dcf",
+"classTimingCore.html#a8cc88283087926e934bb67651263b053",
+"classTimingGtCoreWrapper_1_1rtl.html#a6994087e8ce789debc06ddf48cdb2f39",
+"classTimingRx_1_1rtl.html#a58c00861c31aa82d4c259739d9ff95c0",
+"classTimingStreamTx_1_1TimingStreamTx.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

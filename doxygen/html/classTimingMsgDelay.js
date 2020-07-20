@@ -2,7 +2,7 @@ var classTimingMsgDelay =
 [
     [ "TimingMsgDelay.rtl", "classTimingMsgDelay_1_1rtl.html", "classTimingMsgDelay_1_1rtl" ],
     [ "TPD_G", "classTimingMsgDelay.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "MEMORY_TYPE_G", "classTimingMsgDelay.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
+    [ "MEMORY_TYPE_G", "classTimingMsgDelay.html#ac895690f29c33c5abea3c393c287ac51", null ],
     [ "FIFO_ADDR_WIDTH_G", "classTimingMsgDelay.html#ac286fd787eba0f8f31741ce9c620df72", null ],
     [ "timingClk", "classTimingMsgDelay.html#ae685de4c73d74d18be9e3b4eb51a0ece", null ],
     [ "timingRst", "classTimingMsgDelay.html#a400f06fe3e10a7fd358edb19586e6c07", null ],

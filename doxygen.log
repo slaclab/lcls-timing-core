@@ -1,13 +1,10 @@
-warning: Tag 'PERL_PATH' at line 2121 of file '/home/travis/build/slaclab/lcls-timing-core/Doxyfile' has become obsolete.
-         To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
-warning: Tag 'MSCGEN_PATH' at line 2143 of file '/home/travis/build/slaclab/lcls-timing-core/Doxyfile' has become obsolete.
-         To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
+warning: ignoring unsupported tag `HTML_DYNAMIC_MENUS     =' at line 1195, file /home/travis/build/slaclab/lcls-timing-core/Doxyfile
 warning: enabling OPTIMIZE_OUTPUT_VHDL assumes the following settings:
   INHERIT_DOCS           = NO (was YES)
   HIDE_SCOPE_NAMES       = YES (was NO)
   EXTRACT_PRIVATE        = YES (was NO)
   ENABLE_PREPROCESSING   = NO (was YES)
-Notice: Output directory 'doxygen' does not exist. I have created it for you.
+Notice: Output directory `doxygen' does not exist. I have created it for you.
 Searching for include files...
 Searching for example files...
 Searching for images...
@@ -20,7 +17,6 @@ Searching for files in directory /home/travis/build/slaclab/lcls-timing-core
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/code_docs
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/code_docs/lcls-timing-core
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/code_docs/lcls-timing-core/doxygen
-Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/conda-recipe
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/ghdl
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-I
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-I/evr
@@ -35,8 +31,6 @@ Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCL
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gthUltraScale
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gthUltraScale/coregen
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gthUltraScale/rtl
-Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7
-Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/coregen
 Searching for files in directory /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl
@@ -58,11 +52,13 @@ Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-I/evr/EvrV1TimeStampFIF
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControl.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime.vhd...
-Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl//home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGMiniReg.vhd:221: warning: syntax error '+'
-ClockTime_186MHz.vhd...
+Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/CtrControl.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/default/TimingExtnPkg.vhd...
-Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/Divider.vhd...
+Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/
+
+ syntax error at line: 221 : +
+rtl/Divider.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/EthTimingModule.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/EventSelect.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/GthRxAlignCheck.vhd...
@@ -102,10 +98,17 @@ Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2FromV1.
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Module.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Pkg.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Trigger.vhd...
-Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2TrigReg.vhd...
 Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/tb/EvrV2_tb.vhd...
-Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGMiniStream.vhd:54: warning: Internal inconsistency: scope for class TPGMiniStream::TPGMiniStream not found!
+Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gthUltraScale/rtl/TimingGtCoreWrapper.vhd...
+Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd...
+Building group list...
+Building directory list...
+Building namespace list...
+Building file list...
+Building class list...
+Associating documentation with classes...
+Computing nesting relations for clas/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGMiniStream.vhd:53: warning: Internal inconsistency: scope for class TPGMiniStream::TPGMiniStream not found!
 
 [EvrV1Core.vhd:86:Info: Elaborating entity EvrV1Reg for hierarchy evrv1reg::GEN_LITTLE_ENDIAN:evrv1reg_inst]
 
@@ -187,13 +190,13 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [EvrV1TimeStampFIFO.vhd:68:Info: Elaborating entity fifoasync for hierarchy fifoasync::fifoasync_inst]
 
-[BsaControlv2.vhd:86:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
+[BsaControlv2.vhd:93:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
 
-[BsaControlv2.vhd:142:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:u_synchfifo]
+[BsaControlv2.vhd:149:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:u_synchfifo]
 
-[BsaControlv2.vhd:117:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
+[BsaControlv2.vhd:124:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
 
-[BsaControlv2.vhd:136:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:u_synchfifo]
+[BsaControlv2.vhd:143:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:u_synchfifo]
 
 [ClockTime.vhd:73:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::u_wrfifo]
 
@@ -203,9 +206,9 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [ClockTime_186MHz.vhd:75:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::u_rdfifo]
 
-[CtrControl.vhd:75:Info: Elaborating entity synchronizeredge for hierarchy synchronizeredge::u_latch]
+[CtrControl.vhd:82:Info: Elaborating entity synchronizeredge for hierarchy synchronizeredge::u_latch]
 
-[CtrControl.vhd:89:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
+[CtrControl.vhd:96:Info: Elaborating entity EventSelect for hierarchy eventselect::u_select]
 
 [EthTimingModule.vhd:114:Info: Elaborating entity ila_0 for hierarchy ila_0::GEN_ILA:u_ila]
 
@@ -221,39 +224,37 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [GthRxAlignCheck.vhd:291:Info: Elaborating entity axilitemaster for hierarchy axilitemaster::u_axilitemaster]
 
-[TimingCore.vhd:166:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_1]
+[TimingCore.vhd:168:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_1]
 
-[TimingCore.vhd:203:Info: Elaborating entity TimingRx for hierarchy timingrx::u_timingrx]
+[TimingCore.vhd:207:Info: Elaborating entity TimingRx for hierarchy timingrx::u_timingrx]
 
-[TimingCore.vhd:263:Info: Elaborating entity axiliteringbuffer for hierarchy axiliteringbuffer::GEN_AXIL_RINGB:axiliteringbuffer_1]
+[TimingCore.vhd:267:Info: Elaborating entity axiliteringbuffer for hierarchy axiliteringbuffer::GEN_AXIL_RINGB:axiliteringbuffer_1]
 
-[TimingCore.vhd:263:Info: Elaborating entity axiliteringbuffer for hierarchy axiliteringbuffer::GEN_AXIL_RINGB:axiliteringbuffer_2]
+[TimingCore.vhd:267:Info: Elaborating entity axiliteringbuffer for hierarchy axiliteringbuffer::GEN_AXIL_RINGB:axiliteringbuffer_2]
 
-[TimingCore.vhd:302:Info: Elaborating entity TPGMiniCore for hierarchy tpgminicore::GEN_MINICORE:tpgminicore_1]
+[TimingCore.vhd:306:Info: Elaborating entity TPGMiniCore for hierarchy tpgminicore::GEN_MINICORE:tpgminicore_1]
 
-[TimingCore.vhd:302:Info: Elaborating entity synchronizer for hierarchy synchronizer::GEN_MINICORE:u_syncmodesel]
-
-[TimingCore.vhd:317:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_syncmodesel]
+[TimingCore.vhd:306:Info: Elaborating entity synchronizer for hierarchy synchronizer::GEN_MINICORE:u_syncclksel]
 
 [TimingCore.vhd:385:Info: Elaborating entity synchronizer for hierarchy synchronizer::GEN_ASYNC:u_synchronizer_1]
 
 [TimingCore.vhd:385:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:synchronizerfifo_1]
 
-[TimingCore.vhd:385:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:GEN_EXTENSION_SYNC_FIFOS:synchronizerfifo_2]
+[TimingCore.vhd:385:Info: Elaborating entity synchronizerfifo for hierarchy synchronizerfifo::GEN_ASYNC:synchronizerfifo_2]
 
 [TimingCore.vhd:402:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_sync_linkv1]
 
-[TimingCore.vhd:415:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_sync_linkv2]
+[TimingCore.vhd:413:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_sync_linkv2]
 
-[TimingCore.vhd:435:Info: Elaborating entity EthTimingModule for hierarchy ethtimingmodule::u_ethtiming]
+[TimingCore.vhd:431:Info: Elaborating entity EthTimingModule for hierarchy ethtimingmodule::u_ethtiming]
 
 [TimingDeserializer.vhd:99:Info: Elaborating entity crc32parallel for hierarchy crc32parallel::u_crc]
 
-[TimingFrameRx.vhd:109:Info: Elaborating entity TimingDeserializer for hierarchy timingdeserializer::u_deserializer]
+[TimingFrameRx.vhd:111:Info: Elaborating entity TimingDeserializer for hierarchy timingdeserializer::u_deserializer]
 
-[TimingFrameRx.vhd:127:Info: Elaborating entity TimingSerialDelay for hierarchy timingserialdelay::u_delay0]
+[TimingFrameRx.vhd:125:Info: Elaborating entity TimingSerialDelay for hierarchy timingserialdelay::u_delay0]
 
-[TimingFrameRx.vhd:151:Info: Elaborating entity TimingSerialDelay for hierarchy timingserialdelay::GEN_FOR:u_extn]
+[TimingFrameRx.vhd:148:Info: Elaborating entity TimingSerialDelay for hierarchy timingserialdelay::GEN_EXTN:GEN_FOR:u_extn]
 
 [TimingGthWrapper.vhd:173:Info: Elaborating entity timinggth for hierarchy timinggth::your_instance_name]
 
@@ -269,41 +270,39 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [TimingMsgToAxiStream.vhd:143:Info: Elaborating entity axistreamfifov2 for hierarchy axistreamfifov2::axistreamfifo_1]
 
-[TimingRx.vhd:170:Info: Elaborating entity TimingStreamRx for hierarchy timingstreamrx::GEN_RxLcls1:u_rxlcls1]
+[TimingRx.vhd:169:Info: Elaborating entity TimingStreamRx for hierarchy timingstreamrx::GEN_RxLcls1:u_rxlcls1]
 
-[TimingRx.vhd:196:Info: Elaborating entity TimingFrameRx for hierarchy timingframerx::GEN_RxLcls2:u_rxlcls2]
+[TimingRx.vhd:197:Info: Elaborating entity TimingFrameRx for hierarchy timingframerx::GEN_RxLcls2:u_rxlcls2]
 
-[TimingRx.vhd:307:Info: Elaborating entity synchronizeroneshotcnt for hierarchy synchronizeroneshotcnt::synchronizeroneshotcnt_1]
+[TimingRx.vhd:333:Info: Elaborating entity synchronizeroneshotcnt for hierarchy synchronizeroneshotcnt::synchronizeroneshotcnt_1]
 
-[TimingRx.vhd:340:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncstatusvector_1]
+[TimingRx.vhd:366:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncstatusvector_1]
 
-[TimingRx.vhd:361:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncstatusvector_3]
+[TimingRx.vhd:387:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncstatusvector_3]
 
-[TimingRx.vhd:369:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::u_version]
+[TimingRx.vhd:393:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::u_version]
 
-[TimingRx.vhd:375:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_vsnerr]
+[TimingRx.vhd:398:Info: Elaborating entity synchronizer for hierarchy synchronizer::u_vsnerr]
 
-[TimingRx.vhd:388:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncclksel]
+[TimingRx.vhd:411:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncrxrst]
 
-[TimingRx.vhd:394:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncmodesel]
+[TimingRx.vhd:417:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncdelayrst]
 
-[TimingRx.vhd:402:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncdelayrst]
+[TimingRx.vhd:423:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::syncdelay]
 
-[TimingRx.vhd:411:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::syncdelay]
+[TimingRx.vhd:429:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncstreamnodelay]
 
-[TimingRx.vhd:419:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncstreamnodelay]
+[TimingRx.vhd:446:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncrxstatus]
 
-[TimingRx.vhd:436:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::syncrxstatus]
+[TimingRx.vhd:452:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncbypassrst]
 
-[TimingRx.vhd:444:Info: Elaborating entity synchronizer for hierarchy synchronizer::syncbypassrst]
+[TimingRx.vhd:464:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::synctsevcnt]
 
-[TimingRx.vhd:456:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::synctsevcnt]
+[TimingSerialDelay.vhd:149:Info: Elaborating entity ila_0 for hierarchy ila_0::GEN_DEBUG:u_ila]
 
-[TimingSerialDelay.vhd:160:Info: Elaborating entity ila_0 for hierarchy ila_0::GEN_DEBUG:u_ila]
+[TimingSerialDelay.vhd:176:Info: Elaborating entity fifosync for hierarchy fifosync::u_cntdelay]
 
-[TimingSerialDelay.vhd:189:Info: Elaborating entity fifosync for hierarchy fifosync::u_cntdelay]
-
-[TimingSerialDelay.vhd:210:Info: Elaborating entity fifosync for hierarchy fifosync::u_msgdelay]
+[TimingSerialDelay.vhd:192:Info: Elaborating entity fifosync for hierarchy fifosync::u_msgdelay]
 
 [TimingSerializer.vhd:86:Info: Elaborating entity crc32parallel for hierarchy crc32parallel::u_crc]
 
@@ -333,7 +332,7 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [TPGMiniEdefTb.vhd:122:Info: Elaborating entity tpgministream for hierarchy tpgministream::u_dut_stream]
 
-[TPGNotify.vhd:65:Info: Elaborating entity synchronizeroneshot for hierarchy synchronizeroneshot::u_syncirq]
+[TPGNotify.vhd:72:Info: Elaborating entity synchronizeroneshot for hierarchy synchronizeroneshot::u_syncirq]
 
 [TimingSerialDelay_tb.vhd:109:Info: Elaborating entity clkrst for hierarchy clkrst::u_clkrst]
 
@@ -345,71 +344,69 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [EvrV2Cache.vhd:71:Info: Elaborating entity simpledualportram for hierarchy simpledualportram::u_ram]
 
-[EvrV2CorePulseGen.vhd:177:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_inst]
+[EvrV2CorePulseGen.vhd:178:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_inst]
 
-[EvrV2CorePulseGen.vhd:252:Info: Elaborating entity EvrV2EventSelect for hierarchy evrv2eventselect::Loop_BsaCh:u_eventsel]
+[EvrV2CorePulseGen.vhd:253:Info: Elaborating entity EvrV2EventSelect for hierarchy evrv2eventselect::Loop_BsaCh:u_eventsel]
 
-[EvrV2CorePulseGen.vhd:327:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::syncvector_gtx]
+[EvrV2CorePulseGen.vhd:328:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::syncvector_gtx]
 
-[EvrV2CorePulseGen.vhd:340:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::sync_evtcount]
+[EvrV2CorePulseGen.vhd:341:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::sync_evtcount]
 
-[EvrV2CorePulseGen.vhd:354:Info: Elaborating entity EvrV2Trigger for hierarchy evrv2trigger::Out_Trigger:u_trig]
+[EvrV2CorePulseGen.vhd:355:Info: Elaborating entity EvrV2Trigger for hierarchy evrv2trigger::Out_Trigger:u_trig]
 
-[EvrV2CorePulseGen.vhd:374:Info: Elaborating entity EvrV2Axi for hierarchy evrv2axi::u_evraxi]
+[EvrV2CorePulseGen.vhd:376:Info: Elaborating entity EvrV2Axi for hierarchy evrv2axi::u_evraxi]
 
-[EvrV2CorePulseGen.vhd:388:Info: Elaborating entity EvrV2TrigReg for hierarchy evrv2trigreg::u_evrtrigreg]
+[EvrV2CorePulseGen.vhd:390:Info: Elaborating entity EvrV2TrigReg for hierarchy evrv2trigreg::u_evrtrigreg]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:u_syncrate]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:u_syncrate]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:u_syncdest]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:u_syncdest]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_enable]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_enable]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_dmaenable]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_dmaenable]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_bsaenable]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Channel:sync_bsaenable]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_setup]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_setup]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_delay]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_delay]
 
-[EvrV2CorePulseGen.vhd:458:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_width]
+[EvrV2CorePulseGen.vhd:460:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Channel:sync_width]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Trigger:sync_enable]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Trigger:sync_enable]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Trigger:sync_polarity]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizer for hierarchy synchronizer::Sync_Trigger:sync_polarity]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:sync_channel]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:sync_channel]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_syncdelay]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_syncdelay]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_syncwidth]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_syncwidth]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_synctap]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::Sync_Trigger:u_synctap]
 
-[EvrV2CorePulseGen.vhd:518:Info: Elaborating entity synchronizeroneshot for hierarchy synchronizeroneshot::Sync_Trigger:u_synctapld]
+[EvrV2CorePulseGen.vhd:520:Info: Elaborating entity synchronizeroneshot for hierarchy synchronizeroneshot::Sync_Trigger:u_synctapld]
 
-[EvrV2CorePulseGen.vhd:526:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::sync_dmafullthr]
+[EvrV2CorePulseGen.vhd:528:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::sync_dmafullthr]
 
-[EvrV2CoreTriggers.vhd:116:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_inst]
+[EvrV2CoreTriggers.vhd:115:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_inst]
 
-[EvrV2CoreTriggers.vhd:129:Info: Elaborating entity EvrV2TrigReg for hierarchy evrv2trigreg::u_trigreg]
+[EvrV2CoreTriggers.vhd:128:Info: Elaborating entity EvrV2TrigReg for hierarchy evrv2trigreg::u_trigreg]
 
-[EvrV2CoreTriggers.vhd:144:Info: Elaborating entity EvrV2ChannelReg for hierarchy evrv2channelreg::u_evrchanreg]
+[EvrV2CoreTriggers.vhd:143:Info: Elaborating entity EvrV2ChannelReg for hierarchy evrv2channelreg::u_evrchanreg]
 
-[EvrV2CoreTriggers.vhd:155:Info: Elaborating entity EvrV2EventSelect for hierarchy evrv2eventselect::Loop_EventSel:u_eventsel]
+[EvrV2CoreTriggers.vhd:167:Info: Elaborating entity EvrV2EventSelect for hierarchy evrv2eventselect::Loop_EventSel:u_eventsel]
 
-[EvrV2CoreTriggers.vhd:170:Info: Elaborating entity EvrV2Trigger for hierarchy evrv2trigger::Loop_Triggers:u_trig]
+[EvrV2CoreTriggers.vhd:167:Info: Elaborating entity EvrV2Trigger for hierarchy evrv2trigger::Loop_EventSel:u_trig]
 
-[EvrV2CoreTriggers.vhd:180:Info: Elaborating entity EvrV2TriggerCompl for hierarchy evrv2triggercompl::Loop_Compl:u_trig]
+[EvrV2CoreTriggers.vhd:180:Info: Elaborating entity EvrV2FromV1 for hierarchy evrv2fromv1::u_v2fromv1]
 
-[EvrV2CoreTriggers.vhd:197:Info: Elaborating entity EvrV2FromV1 for hierarchy evrv2fromv1::u_v2fromv1]
+[EvrV2CoreTriggers.vhd:235:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::GEN_SYNC:u_syncchannelconfig]
 
-[EvrV2CoreTriggers.vhd:252:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::GEN_SYNC:u_syncchannelconfig]
+[EvrV2CoreTriggers.vhd:235:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::GEN_SYNC:u_synctriggerconfig]
 
-[EvrV2CoreTriggers.vhd:252:Info: Elaborating entity synchronizervector for hierarchy synchronizervector::GEN_SYNC:u_synctriggerconfig]
-
-[EvrV2CoreTriggers.vhd:252:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::GEN_SYNC:sync_evtcount]
+[EvrV2CoreTriggers.vhd:235:Info: Elaborating entity syncstatusvector for hierarchy syncstatusvector::GEN_SYNC:sync_evtcount]
 
 [EvrV2Module.vhd:117:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::axilitecrossbar_inst]
 
@@ -429,7 +426,7 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [EvrV2Module.vhd:215:Info: Elaborating entity EvrV2TrigReg for hierarchy evrv2trigreg::u_evrtrigreg]
 
-[EvrV2Trigger.vhd:115:Info: Elaborating entity fifosync for hierarchy fifosync::GEN_FIFO:u_fifo]
+[EvrV2Trigger.vhd:122:Info: Elaborating entity fifosync for hierarchy fifosync::GEN_FIFO:u_fifo]
 
 [EvrV2_tb.vhd:162:Info: Elaborating entity TPGMini for hierarchy tpgmini::xpm:u_tpg]
 
@@ -499,198 +496,133 @@ Reading /home/travis/build/slaclab/lcls-timi/home/travis/build/slaclab/lcls-timi
 
 [TimingGtCoreWrapper.vhd:574:Info: Elaborating entity rstsync for hierarchy rstsync::u_rstsyncrx]
 
-[TimingGtCoreWrapper.vhd:137:Info: Elaborating entity rstsync for hierarchy rstsync::u_rxoutrst]
+[TimingGtCoreWrapper.vhd:315:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::u_xbar]
 
-[TimingGtCoreWrapper.vhd:147:Info: Elaborating entity rstsync for hierarchy rstsync::u_txoutrst]
+[TimingGtCoreWrapper.vhd:344:Info: Elaborating entity GthRxAlignCheck for hierarchy gthrxaligncheck::u_aligncheck]
 
-[TimingGtCoreWrapper.vhd:171:Info: Elaborating entity ibufds_gte2 for hierarchy ibufds_gte2::INT_REFCLK:u_ibufds_gte2]
+[TimingGtCoreWrapper.vhd:370:Info: Elaborating entity axilitetodrp for hierarchy axilitetodrp::u_axilitetodrp]
 
-[TimingGtCoreWrapper.vhd:171:Info: Elaborating entity bufg for hierarchy bufg::INT_REFCLK:u_bufg]
+[TimingGtCoreWrapper.vhd:399:Info: Elaborating entity gthe4channeldummy for hierarchy gthe4channeldummy::GEN_DISABLE_GT:u_term]
 
-[TimingGtCoreWrapper.vhd:171:Info: Elaborating entity pwruprst for hierarchy pwruprst::INT_REFCLK:u_pwruprst]
+[TimingGtCoreWrapper.vhd:477:Info: Elaborating entity timinggty_extref for hierarchy timinggty_extref::GEN_EXTREF:u_timinggtycore]
 
-[TimingGtCoreWrapper.vhd:195:Info: Elaborating entity decoder8b10b for hierarchy decoder8b10b::u_decoder8b10b]
+[TimingGtCoreWrapper.vhd:477:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::GEN_EXTREF:timing_recclk_bufg_gt]
 
-[TimingGtCoreWrapper.vhd:221:Info: Elaborating entity bufg for hierarchy bufg::txbufg_inst]
+[TimingGtCoreWrapper.vhd:555:Info: Elaborating entity timinggty_fixedlat for hierarchy timinggty_fixedlat::LOCREF_G:u_timinggtycore]
 
-[TimingGtCoreWrapper.vhd:333:Info: Elaborating entity gtx7core for hierarchy gtx7core::u_gtx]
+[TimingGtCoreWrapper.vhd:555:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::LOCREF_G:timing_recclk_bufg_gt]
 
-[TimingGtCoreWrapper.vhd:361:Info: Elaborating entity axilitetodrp for hierarchy axilitetodrp::u_axilitetodrp]
+[TimingGtCoreWrapper.vhd:563:Info: Elaborating entity rstsync for hierarchy rstsync::u_rstsyncrx]
 
-[TimingGtCoreWrapper.vhd:317:Info: Elaborating entity axilitecrossbar for hierarchy axilitecrossbar::u_xbar]
+[TimingGtCoreWrapper.vhd:573:Info: Elaborating entity watchdogrst for hierarchy watchdogrst::u_txwatchdog]
 
-[TimingGtCoreWrapper.vhd:346:Info: Elaborating entity GthRxAlignCheck for hierarchy gthrxaligncheck::u_aligncheck]
-
-[TimingGtCoreWrapper.vhd:372:Info: Elaborating entity axilitetodrp for hierarchy axilitetodrp::u_axilitetodrp]
-
-[TimingGtCoreWrapper.vhd:401:Info: Elaborating entity gthe4channeldummy for hierarchy gthe4channeldummy::GEN_DISABLE_GT:u_term]
-
-[TimingGtCoreWrapper.vhd:479:Info: Elaborating entity timinggty_extref for hierarchy timinggty_extref::GEN_EXTREF:u_timinggtycore]
-
-[TimingGtCoreWrapper.vhd:479:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::GEN_EXTREF:timing_recclk_bufg_gt]
-
-[TimingGtCoreWrapper.vhd:557:Info: Elaborating entity timinggty_fixedlat for hierarchy timinggty_fixedlat::LOCREF_G:u_timinggtycore]
-
-[TimingGtCoreWrapper.vhd:557:Info: Elaborating entity bufg_gt for hierarchy bufg_gt::LOCREF_G:timing_recclk_bufg_gt]
-
-[TimingGtCoreWrapper.vhd:565:Info: Elaborating entity rstsync for hierarchy rstsync::u_rstsyncrx]
-
-[TimingGtCoreWrapper.vhd:575:Info: Elaborating entity watchdogrst for hierarchy watchdogrst::u_txwatchdog]
-
-[TimingGtCoreWrapper.vhd:586:Info: Elaborating entity watchdogrst for hierarchy watchdogrst::u_rxwatchdog]
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:30: warning: documented symbol 'in sysclksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:31: warning: documented symbol 'in sysrstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:32: warning: documented symbol 'in bsadefBsaDefType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:34: warning: documented symbol 'out nToAvgOutslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:35: warning: documented symbol 'out avgToWrOutslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:37: warning: documented symbol 'in txclksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:38: warning: documented symbol 'in txrstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:39: warning: documented symbol 'in enablesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:40: warning: documented symbol 'in fixedRateslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:41: warning: documented symbol 'in acRateslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:42: warning: documented symbol 'in acTSslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:43: warning: documented symbol 'in beamSeqslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:44: warning: documented symbol 'in expSeqSlv16Array' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:45: warning: documented symbol 'out bsaInitsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:46: warning: documented symbol 'out bsaActivesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:47: warning: documented symbol 'out bsaAvgDonesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:49: warning: documented symbol 'out bsaDonesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:16: warning: documented symbol '_library_ ieeeieee' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:18: warning: documented symbol '_library_ lcls_timing_corelcls_timing_core' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:19: warning: documented symbol '_use_ TPGPkgTPGPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:20: warning: documented symbol '_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:21: warning: documented symbol '_use_ std_logic_arithstd_logic_arith' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:22: warning: documented symbol '_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:24: warning: documented symbol '_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:25: warning: documented symbol '_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:30: warning: documented symbol 'in rstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:31: warning: documented symbol 'in clkAsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:32: warning: documented symbol 'in wrEnAsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:33: warning: documented symbol 'in wrDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:34: warning: documented symbol 'out rdDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:36: warning: documented symbol 'in clkBsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:37: warning: documented symbol 'in wrEnBsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:39: warning: documented symbol 'out dataOslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:14: warning: documented symbol '_library_ ieeeieee' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:16: warning: documented symbol '_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:17: warning: documented symbol '_use_ std_logic_arithstd_logic_arith' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:18: warning: documented symbol '_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:22: warning: documented symbol '_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:23: warning: documented symbol '_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingDeserializer.vhd:81: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingFrameRx.vhd:85: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:97: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:168: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:269: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:270: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:281: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:283: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:69: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:74: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:244: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:248: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:250: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Pkg.vhd:116: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:38: warning: documented symbol 'in axilClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:39: warning: documented symbol 'in axilRstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:40: warning: documented symbol 'in axilReadMasterAxiLiteReadMasterType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:41: warning: documented symbol 'out axilReadSlaveAxiLiteReadSlaveType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:42: warning: documented symbol 'in axilWriteMasterAxiLiteWriteMasterType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:43: warning: documented symbol 'out axilWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:47: warning: documented symbol 'in gtRxPsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:48: warning: documented symbol 'in gtRxNsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:49: warning: documented symbol 'out gtTxPsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:50: warning: documented symbol 'out gtTxNsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:52: warning: member with no name found.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:53: warning: member with no name found.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:55: warning: documented symbol 'in rxControlTimingPhyControlType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:56: warning: documented symbol 'out rxStatusTimingPhyStatusType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:57: warning: documented symbol 'out rxOutClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:59: warning: documented symbol 'out rxDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:60: warning: documented symbol 'out rxDataKslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:61: warning: documented symbol 'out rxDispErrslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:62: warning: documented symbol 'out rxDecErrslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:64: warning: documented symbol 'in txControlTimingPhyControlType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:65: warning: documented symbol 'out txStatusTimingPhyStatusType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:66: warning: documented symbol 'out txOutClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:68: warning: documented symbol 'in txDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:69: warning: documented symbol 'in txDataKslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:71: warning: documented symbol 'in loopbackslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:15: warning: documented symbol '_library_ ieeeieee' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:16: warning: documented symbol '_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:17: warning: documented symbol '_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:18: warning: documented symbol '_use_ std_logic_arithstd_logic_arith' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:20: warning: documented symbol '_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:21: warning: documented symbol '_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:22: warning: documented symbol '_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:24: warning: documented symbol '_library_ lcls_timing_corelcls_timing_core' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:25: warning: documented symbol '_use_ TimingPkgTimingPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:27: warning: documented symbol '_library_ unisimunisim' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:28: warning: documented symbol '_use_ vcomponentsvcomponents' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:111: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd:112: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:41: warning: documented symbol 'in axilClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:42: warning: documented symbol 'in axilRstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:43: warning: documented symbol 'in axilReadMasterAxiLiteReadMasterType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:44: warning: documented symbol 'out axilReadSlaveAxiLiteReadSlaveType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:45: warning: documented symbol 'in axilWriteMasterAxiLiteWriteMasterType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:46: warning: documented symbol 'out axilWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:48: warning: documented symbol 'in stableClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:49: warning: documented symbol 'in stableRstsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:51: warning: documented symbol 'in gtRefClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:52: warning: documented symbol 'in gtRefClkDiv2sl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:53: warning: documented symbol 'in gtRxPsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:54: warning: documented symbol 'in gtRxNsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:55: warning: documented symbol 'out gtTxPsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:56: warning: documented symbol 'out gtTxNsl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:59: warning: documented symbol 'in rxControlTimingPhyControlType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:60: warning: documented symbol 'out rxStatusTimingPhyStatusType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:61: warning: documented symbol 'in rxUsrClkActivesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:62: warning: documented symbol 'out rxCdrStablesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:63: warning: documented symbol 'in rxUsrClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:64: warning: documented symbol 'out rxDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:65: warning: documented symbol 'out rxDataKslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:66: warning: documented symbol 'out rxDispErrslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:67: warning: documented symbol 'out rxDecErrslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:68: warning: documented symbol 'out rxOutClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:71: warning: documented symbol 'in txControlTimingPhyControlType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:72: warning: documented symbol 'out txStatusTimingPhyStatusType' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:73: warning: documented symbol 'in txUsrClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:74: warning: documented symbol 'in txUsrClkActivesl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:75: warning: documented symbol 'in txDataslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:76: warning: documented symbol 'in txDataKslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:77: warning: documented symbol 'out txOutClksl' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:79: warning: documented symbol 'in loopbackslv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:15: warning: documented symbol '_library_ ieeeieee' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:16: warning: documented symbol '_use_ std_logic_1164std_logic_1164' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:17: warning: documented symbol '_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:18: warning: documented symbol '_use_ std_logic_arithstd_logic_arith' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:21: warning: documented symbol '_library_ surfsurf' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:22: warning: documented symbol '_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:23: warning: documented symbol '_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:25: warning: documented symbol '_library_ lcls_timing_corelcls_timing_core' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:26: warning: documented symbol '_use_ TimingPkgTimingPkg' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:28: warning: documented symbol '_library_ unisimunisim' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:29: warning: documented symbol '_use_ vcomponentsvcomponents' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:237: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:238: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:239: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:246: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:249: warning: documented symbol 'slv' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:267: warning: documented symbol 'AxiLiteWriteMasterArray' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:268: warning: documented symbol 'AxiLiteWriteSlaveArray' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:269: warning: documented symbol 'AxiLiteReadMasterArray' was not declared or defined.
-/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:270: warning: documented symbol 'AxiLiteReadSlaveArray' was not declared or defined.
-ng-core/LCLS-II/gthUltraScale/rtl/TimingGtCoreWrapper.vhd...
-Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd...
-Reading /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd...
-Building group list...
-Building directory list...
-Building namespace list...
-Building file list...
-Building class list...
-Computing nesting relations for classes...
-Associating documentation with classes...
+[TimingGtCoreWrapper.vhd:584:Info: Elaborating entity watchdogrst for hierarchy watchdogrst::u_rxwatchdog]
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:37: warning: documented symbol `in sysclksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:38: warning: documented symbol `in sysrstsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:39: warning: documented symbol `in bsadefBsaDefType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:41: warning: documented symbol `out nToAvgOutslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:42: warning: documented symbol `out avgToWrOutslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:44: warning: documented symbol `in txclksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:45: warning: documented symbol `in txrstsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:46: warning: documented symbol `in enablesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:47: warning: documented symbol `in fixedRateslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:48: warning: documented symbol `in acRateslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:49: warning: documented symbol `in acTSslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:50: warning: documented symbol `in beamSeqslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:51: warning: documented symbol `in expSeqSlv16Array' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:52: warning: documented symbol `out bsaInitsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:53: warning: documented symbol `out bsaActivesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:54: warning: documented symbol `out bsaAvgDonesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:56: warning: documented symbol `out bsaDonesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:23: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:25: warning: documented symbol `_library_ lcls_timing_corelcls_timing_core' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:26: warning: documented symbol `_use_ TPGPkgTPGPkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:27: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:28: warning: documented symbol `_use_ std_logic_arithstd_logic_arith' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:29: warning: documented symbol `_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:31: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/BsaControlv2.vhd:32: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:30: warning: documented symbol `in rstsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:31: warning: documented symbol `in clkAsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:32: warning: documented symbol `in wrEnAsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:33: warning: documented symbol `in wrDataslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:34: warning: documented symbol `out rdDataslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:36: warning: documented symbol `in clkBsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:37: warning: documented symbol `in wrEnBsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:39: warning: documented symbol `out dataOslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:14: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:16: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:17: warning: documented symbol `_use_ std_logic_arithstd_logic_arith' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:18: warning: documented symbol `_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:22: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/ClockTime_186MHz.vhd:23: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingDeserializer.vhd:81: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingFrameRx.vhd:86: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:101: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:172: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:256: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:257: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:268: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TimingPkg.vhd:270: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:69: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:74: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:240: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:244: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/core/rtl/TPGPkg.vhd:246: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Pkg.vhd:112: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:39: warning: documented symbol `in axilClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:40: warning: documented symbol `in axilRstsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:41: warning: documented symbol `in axilReadMasterAxiLiteReadMasterType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:42: warning: documented symbol `out axilReadSlaveAxiLiteReadSlaveType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:43: warning: documented symbol `in axilWriteMasterAxiLiteWriteMasterType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:44: warning: documented symbol `out axilWriteSlaveAxiLiteWriteSlaveType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:46: warning: documented symbol `in stableClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:47: warning: documented symbol `in stableRstsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:49: warning: documented symbol `in gtRefClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:50: warning: documented symbol `in gtRefClkDiv2sl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:51: warning: documented symbol `in gtRxPsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:52: warning: documented symbol `in gtRxNsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:53: warning: documented symbol `out gtTxPsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:54: warning: documented symbol `out gtTxNsl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:57: warning: documented symbol `in rxControlTimingPhyControlType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:58: warning: documented symbol `out rxStatusTimingPhyStatusType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:59: warning: documented symbol `in rxUsrClkActivesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:60: warning: documented symbol `out rxCdrStablesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:61: warning: documented symbol `in rxUsrClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:62: warning: documented symbol `out rxDataslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:63: warning: documented symbol `out rxDataKslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:64: warning: documented symbol `out rxDispErrslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:65: warning: documented symbol `out rxDecErrslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:66: warning: documented symbol `out rxOutClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:69: warning: documented symbol `in txControlTimingPhyControlType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:70: warning: documented symbol `out txStatusTimingPhyStatusType' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:71: warning: documented symbol `in txUsrClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:72: warning: documented symbol `in txUsrClkActivesl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:73: warning: documented symbol `in txDataslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:74: warning: documented symbol `in txDataKslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:75: warning: documented symbol `out txOutClksl' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:77: warning: documented symbol `in loopbackslv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:15: warning: documented symbol `_library_ ieeeieee' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:16: warning: documented symbol `_use_ std_logic_1164std_logic_1164' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:17: warning: documented symbol `_use_ std_logic_unsignedstd_logic_unsigned' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:18: warning: documented symbol `_use_ std_logic_arithstd_logic_arith' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:21: warning: documented symbol `_library_ surfsurf' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:22: warning: documented symbol `_use_ StdRtlPkgStdRtlPkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:23: warning: documented symbol `_use_ AxiLitePkgAxiLitePkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:25: warning: documented symbol `_library_ lcls_timing_corelcls_timing_core' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:26: warning: documented symbol `_use_ TimingPkgTimingPkg' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:28: warning: documented symbol `_library_ unisimunisim' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:29: warning: documented symbol `_use_ vcomponentsvcomponents' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:235: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:236: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:237: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:244: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:247: warning: documented symbol `slv' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:265: warning: documented symbol `AxiLiteWriteMasterArray' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:266: warning: documented symbol `AxiLiteWriteSlaveArray' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:267: warning: documented symbol `AxiLiteReadMasterArray' was not declared or defined.
+/home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd:268: warning: documented symbol `AxiLiteReadSlaveArray' was not declared or defined.
+ses...
 Building example list...
 Searching for enumerations...
 Searching for documented typedefs...
@@ -713,6 +645,7 @@ Search for main page...
 Computing page relations...
 Determining the scope of groups...
 Sorting lists...
+Freeing entry tree
 Determining which enums are documented
 Computing member relations...
 Building full member lists recursively...
@@ -722,17 +655,14 @@ Generating disk names...
 Adding source references...
 Adding xrefitems...
 Sorting member lists...
-Setting anonymous enum type...
 Computing dependencies between directories...
 Generating citations page...
-Counting members...
 Counting data structures...
 Resolving user defined references...
 Finding anchors and sections in the documentation...
 Transferring function references...
 Combining using relations...
 Adding members to index pages...
-Correcting members for VHDL...
 Generating style sheet...
 Generating search indices...
 Generating example documentation...
@@ -792,11 +722,9 @@ Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rt
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Module.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Pkg.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2Trigger.vhd...
-Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/rtl/EvrV2TrigReg.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/evr/tb/EvrV2_tb.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gthUltraScale/rtl/TimingGtCoreWrapper.vhd...
-Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd...
 Parsing code for file /home/travis/build/slaclab/lcls-timing-core/LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd...
 Generating file documentation...
 Generating page documentation...
@@ -858,8 +786,6 @@ Generating docs for nested compound EvrV2Module::mapping...
 Generating docs for compound EvrV2Pkg...
 Generating docs for compound EvrV2Trigger...
 Generating docs for nested compound EvrV2Trigger::EvrV2Trigger...
-Generating docs for compound EvrV2TriggerCompl...
-Generating docs for nested compound EvrV2TriggerCompl::rtl...
 Generating docs for compound EvrV2TrigReg...
 Generating docs for nested compound EvrV2TrigReg::rtl...
 Generating docs for compound GthRxAlignCheck...
@@ -933,193 +859,189 @@ Generating file member index...
 Generating example index...
 finalizing index lists...
 writing tag file...
-Running plantuml with JAVA...
 Running dot...
 Generating dot graphs using 3 parallel threads...
-Running dot for graph 1/72
-Running dot for graph 2/72
-Running dot for graph 3/72
-Running dot for graph 4/72
-Running dot for graph 5/72
-Running dot for graph 6/72
-Running dot for graph 7/72
-Running dot for graph 8/72
-Running dot for graph 9/72
-Running dot for graph 10/72
-Running dot for graph 11/72
-Running dot for graph 12/72
-Running dot for graph 13/72
-Running dot for graph 14/72
-Running dot for graph 15/72
-Running dot for graph 16/72
-Running dot for graph 17/72
-Running dot for graph 18/72
-Running dot for graph 19/72
-Running dot for graph 20/72
-Running dot for graph 21/72
-Running dot for graph 22/72
-Running dot for graph 23/72
-Running dot for graph 24/72
-Running dot for graph 25/72
-Running dot for graph 26/72
-Running dot for graph 27/72
-Running dot for graph 28/72
-Running dot for graph 29/72
-Running dot for graph 30/72
-Running dot for graph 31/72
-Running dot for graph 32/72
-Running dot for graph 33/72
-Running dot for graph 34/72
-Running dot for graph 35/72
-Running dot for graph 36/72
-Running dot for graph 37/72
-Running dot for graph 38/72
-Running dot for graph 39/72
-Running dot for graph 40/72
-Running dot for graph 41/72
-Running dot for graph 42/72
-Running dot for graph 43/72
-Running dot for graph 44/72
-Running dot for graph 45/72
-Running dot for graph 46/72
-Running dot for graph 47/72
-Running dot for graph 48/72
-Running dot for graph 49/72
-Running dot for graph 50/72
-Running dot for graph 51/72
-Running dot for graph 52/72
-Running dot for graph 53/72
-Running dot for graph 54/72
-Running dot for graph 55/72
-Running dot for graph 56/72
-Running dot for graph 57/72
-Running dot for graph 58/72
-Running dot for graph 59/72
-Running dot for graph 60/72
-Running dot for graph 61/72
-Running dot for graph 62/72
-Running dot for graph 63/72
-Running dot for graph 64/72
-Running dot for graph 65/72
-Running dot for graph 66/72
-Running dot for graph 67/72
-Running dot for graph 68/72
-Running dot for graph 69/72
-Running dot for graph 70/72
-Running dot for graph 71/72
-Running dot for graph 72/72
-Patching output file 1/113
-Patching output file 2/113
-Patching output file 3/113
-Patching output file 4/113
-Patching output file 5/113
-Patching output file 6/113
-Patching output file 7/113
-Patching output file 8/113
-Patching output file 9/113
-Patching output file 10/113
-Patching output file 11/113
-Patching output file 12/113
-Patching output file 13/113
-Patching output file 14/113
-Patching output file 15/113
-Patching output file 16/113
-Patching output file 17/113
-Patching output file 18/113
-Patching output file 19/113
-Patching output file 20/113
-Patching output file 21/113
-Patching output file 22/113
-Patching output file 23/113
-Patching output file 24/113
-Patching output file 25/113
-Patching output file 26/113
-Patching output file 27/113
-Patching output file 28/113
-Patching output file 29/113
-Patching output file 30/113
-Patching output file 31/113
-Patching output file 32/113
-Patching output file 33/113
-Patching output file 34/113
-Patching output file 35/113
-Patching output file 36/113
-Patching output file 37/113
-Patching output file 38/113
-Patching output file 39/113
-Patching output file 40/113
-Patching output file 41/113
-Patching output file 42/113
-Patching output file 43/113
-Patching output file 44/113
-Patching output file 45/113
-Patching output file 46/113
-Patching output file 47/113
-Patching output file 48/113
-Patching output file 49/113
-Patching output file 50/113
-Patching output file 51/113
-Patching output file 52/113
-Patching output file 53/113
-Patching output file 54/113
-Patching output file 55/113
-Patching output file 56/113
-Patching output file 57/113
-Patching output file 58/113
-Patching output file 59/113
-Patching output file 60/113
-Patching output file 61/113
-Patching output file 62/113
-Patching output file 63/113
-Patching output file 64/113
-Patching output file 65/113
-Patching output file 66/113
-Patching output file 67/113
-Patching output file 68/113
-Patching output file 69/113
-Patching output file 70/113
-Patching output file 71/113
-Patching output file 72/113
-Patching output file 73/113
-Patching output file 74/113
-Patching output file 75/113
-Patching output file 76/113
-Patching output file 77/113
-Patching output file 78/113
-Patching output file 79/113
-Patching output file 80/113
-Patching output file 81/113
-Patching output file 82/113
-Patching output file 83/113
-Patching output file 84/113
-Patching output file 85/113
-Patching output file 86/113
-Patching output file 87/113
-Patching output file 88/113
-Patching output file 89/113
-Patching output file 90/113
-Patching output file 91/113
-Patching output file 92/113
-Patching output file 93/113
-Patching output file 94/113
-Patching output file 95/113
-Patching output file 96/113
-Patching output file 97/113
-Patching output file 98/113
-Patching output file 99/113
-Patching output file 100/113
-Patching output file 101/113
-Patching output file 102/113
-Patching output file 103/113
-Patching output file 104/113
-Patching output file 105/113
-Patching output file 106/113
-Patching output file 107/113
-Patching output file 108/113
-Patching output file 109/113
-Patching output file 110/113
-Patching output file 111/113
-Patching output file 112/113
-Patching output file 113/113
+Running dot for graph 1/71
+Running dot for graph 2/71
+Running dot for graph 3/71
+Running dot for graph 4/71
+Running dot for graph 5/71
+Running dot for graph 6/71
+Running dot for graph 7/71
+Running dot for graph 8/71
+Running dot for graph 9/71
+Running dot for graph 10/71
+Running dot for graph 11/71
+Running dot for graph 12/71
+Running dot for graph 13/71
+Running dot for graph 14/71
+Running dot for graph 15/71
+Running dot for graph 16/71
+Running dot for graph 17/71
+Running dot for graph 18/71
+Running dot for graph 19/71
+Running dot for graph 20/71
+Running dot for graph 21/71
+Running dot for graph 22/71
+Running dot for graph 23/71
+Running dot for graph 24/71
+Running dot for graph 25/71
+Running dot for graph 26/71
+Running dot for graph 27/71
+Running dot for graph 28/71
+Running dot for graph 29/71
+Running dot for graph 30/71
+Running dot for graph 31/71
+Running dot for graph 32/71
+Running dot for graph 33/71
+Running dot for graph 34/71
+Running dot for graph 35/71
+Running dot for graph 36/71
+Running dot for graph 37/71
+Running dot for graph 38/71
+Running dot for graph 39/71
+Running dot for graph 40/71
+Running dot for graph 41/71
+Running dot for graph 42/71
+Running dot for graph 43/71
+Running dot for graph 44/71
+Running dot for graph 45/71
+Running dot for graph 46/71
+Running dot for graph 47/71
+Running dot for graph 48/71
+Running dot for graph 49/71
+Running dot for graph 50/71
+Running dot for graph 51/71
+Running dot for graph 52/71
+Running dot for graph 53/71
+Running dot for graph 54/71
+Running dot for graph 55/71
+Running dot for graph 56/71
+Running dot for graph 57/71
+Running dot for graph 58/71
+Running dot for graph 59/71
+Running dot for graph 60/71
+Running dot for graph 61/71
+Running dot for graph 62/71
+Running dot for graph 63/71
+Running dot for graph 64/71
+Running dot for graph 65/71
+Running dot for graph 66/71
+Running dot for graph 67/71
+Running dot for graph 68/71
+Running dot for graph 69/71
+Running dot for graph 70/71
+Running dot for graph 71/71
+Patching output file 1/111
+Patching output file 2/111
+Patching output file 3/111
+Patching output file 4/111
+Patching output file 5/111
+Patching output file 6/111
+Patching output file 7/111
+Patching output file 8/111
+Patching output file 9/111
+Patching output file 10/111
+Patching output file 11/111
+Patching output file 12/111
+Patching output file 13/111
+Patching output file 14/111
+Patching output file 15/111
+Patching output file 16/111
+Patching output file 17/111
+Patching output file 18/111
+Patching output file 19/111
+Patching output file 20/111
+Patching output file 21/111
+Patching output file 22/111
+Patching output file 23/111
+Patching output file 24/111
+Patching output file 25/111
+Patching output file 26/111
+Patching output file 27/111
+Patching output file 28/111
+Patching output file 29/111
+Patching output file 30/111
+Patching output file 31/111
+Patching output file 32/111
+Patching output file 33/111
+Patching output file 34/111
+Patching output file 35/111
+Patching output file 36/111
+Patching output file 37/111
+Patching output file 38/111
+Patching output file 39/111
+Patching output file 40/111
+Patching output file 41/111
+Patching output file 42/111
+Patching output file 43/111
+Patching output file 44/111
+Patching output file 45/111
+Patching output file 46/111
+Patching output file 47/111
+Patching output file 48/111
+Patching output file 49/111
+Patching output file 50/111
+Patching output file 51/111
+Patching output file 52/111
+Patching output file 53/111
+Patching output file 54/111
+Patching output file 55/111
+Patching output file 56/111
+Patching output file 57/111
+Patching output file 58/111
+Patching output file 59/111
+Patching output file 60/111
+Patching output file 61/111
+Patching output file 62/111
+Patching output file 63/111
+Patching output file 64/111
+Patching output file 65/111
+Patching output file 66/111
+Patching output file 67/111
+Patching output file 68/111
+Patching output file 69/111
+Patching output file 70/111
+Patching output file 71/111
+Patching output file 72/111
+Patching output file 73/111
+Patching output file 74/111
+Patching output file 75/111
+Patching output file 76/111
+Patching output file 77/111
+Patching output file 78/111
+Patching output file 79/111
+Patching output file 80/111
+Patching output file 81/111
+Patching output file 82/111
+Patching output file 83/111
+Patching output file 84/111
+Patching output file 85/111
+Patching output file 86/111
+Patching output file 87/111
+Patching output file 88/111
+Patching output file 89/111
+Patching output file 90/111
+Patching output file 91/111
+Patching output file 92/111
+Patching output file 93/111
+Patching output file 94/111
+Patching output file 95/111
+Patching output file 96/111
+Patching output file 97/111
+Patching output file 98/111
+Patching output file 99/111
+Patching output file 100/111
+Patching output file 101/111
+Patching output file 102/111
+Patching output file 103/111
+Patching output file 104/111
+Patching output file 105/111
+Patching output file 106/111
+Patching output file 107/111
+Patching output file 108/111
+Patching output file 109/111
+Patching output file 110/111
+Patching output file 111/111
 lookup cache used 0/65536 hits=0 misses=0
 finished...

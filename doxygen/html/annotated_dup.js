@@ -27,7 +27,6 @@ var annotated_dup =
     [ "EvrV2FromV1", "classEvrV2FromV1.html", "classEvrV2FromV1" ],
     [ "EvrV2Module", "classEvrV2Module.html", "classEvrV2Module" ],
     [ "EvrV2Trigger", "classEvrV2Trigger.html", "classEvrV2Trigger" ],
-    [ "EvrV2TriggerCompl", "classEvrV2TriggerCompl.html", "classEvrV2TriggerCompl" ],
     [ "EvrV2TrigReg", "classEvrV2TrigReg.html", "classEvrV2TrigReg" ],
     [ "GthRxAlignCheck", "classGthRxAlignCheck.html", "classGthRxAlignCheck" ],
     [ "TimingCore", "classTimingCore.html", "classTimingCore" ],

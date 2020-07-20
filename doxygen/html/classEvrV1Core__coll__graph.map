@@ -1,8 +1,7 @@
 <map id="EvrV1Core" name="EvrV1Core">
-<area shape="rect" id="node1" title=" " alt="" coords="169,155,260,181"/>
-<area shape="rect" id="node2" href="$classEvrV1Reg.html" title=" " alt="" coords="87,80,190,107"/>
-<area shape="rect" id="node3" href="$classEvrV1EventReceiver.html" title=" " alt="" coords="215,80,369,107"/>
-<area shape="rect" id="node4" href="$classEvrV1TimeStampFIFO.html" title=" " alt="" coords="5,5,171,32"/>
-<area shape="rect" id="node5" href="$classEvrV1EventRAM256x32.html" title=" " alt="" coords="195,5,389,32"/>
-<area shape="rect" id="node6" href="$classEvrV1HeartBeat.html" title=" " alt="" coords="413,5,539,32"/>
+<area shape="rect" id="node2" href="$classEvrV1Reg.html" title="EvrV1Reg(2)" alt="" coords="85,80,187,107"/>
+<area shape="rect" id="node3" href="$classEvrV1EventReceiver.html" title="EvrV1EventReceiver" alt="" coords="211,80,365,107"/>
+<area shape="rect" id="node4" href="$classEvrV1TimeStampFIFO.html" title="EvrV1TimeStampFIFO" alt="" coords="5,5,168,32"/>
+<area shape="rect" id="node5" href="$classEvrV1EventRAM256x32.html" title="EvrV1EventRAM256x32(4)" alt="" coords="193,5,383,32"/>
+<area shape="rect" id="node6" href="$classEvrV1HeartBeat.html" title="EvrV1HeartBeat" alt="" coords="407,5,534,32"/>
 </map>

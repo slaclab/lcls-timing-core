@@ -1,6 +1,6 @@
 var classTPGMini =
 [
-    [ "TPGMini.TPGMini", "classTPGMini_1_1TPGMini.html", "classTPGMini_1_1TPGMini" ],
+    [ "TPGMini", "classTPGMini_1_1TPGMini.html", "classTPGMini_1_1TPGMini" ],
     [ "TPD_G", "classTPGMini.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NARRAYSBSA", "classTPGMini.html#a3c48b4ca25b843de682ce6e9fa41ce51", null ],
     [ "STREAM_INTF", "classTPGMini.html#a6f37d5aa9e278776671d15cf5d743e8c", null ],

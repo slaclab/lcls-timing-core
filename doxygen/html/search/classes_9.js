@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wordserializer_135',['WordSerializer',['../classWordSerializer.html',1,'']]]
+  ['wordserializer',['WordSerializer',['../classWordSerializer.html',1,'']]]
 ];
