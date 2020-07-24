@@ -89,7 +89,7 @@ package EvrV2Pkg is
     complEn   => '0',
     complAnd  => '0',
     delay     => (others=>'0'),
-    width     => (others=>'0'),
+    width     => toSlv(1, EVRV2_TRIG_WIDTH_C), -- Default to 1 cycle width, 0 will default channel
     channel   => (others=>'0'),
     channels  => (others=>'0'),
     delayTap  => (others=>'0'),
