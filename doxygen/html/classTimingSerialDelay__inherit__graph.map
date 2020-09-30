@@ -1,6 +1,7 @@
 <map id="TimingSerialDelay" name="TimingSerialDelay">
-<area shape="rect" id="node2" href="$classTimingFrameRx.html" title="TimingFrameRx" alt="" coords="5,80,129,107"/>
-<area shape="rect" id="node5" href="$classTimingSerialDelayTb.html" title="TimingSerialDelayTb" alt="" coords="153,80,312,107"/>
-<area shape="rect" id="node3" href="$classTimingRx.html" title="TimingRx" alt="" coords="25,155,109,181"/>
-<area shape="rect" id="node4" href="$classTimingCore.html" title="TimingCore" alt="" coords="19,229,116,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="79,5,222,32"/>
+<area shape="rect" id="node2" href="$classTimingFrameRx.html" title=" " alt="" coords="5,80,131,107"/>
+<area shape="rect" id="node5" href="$classTimingSerialDelayTb.html" title=" " alt="" coords="155,80,314,107"/>
+<area shape="rect" id="node3" href="$classTimingRx.html" title=" " alt="" coords="26,155,110,181"/>
+<area shape="rect" id="node4" href="$classTimingCore.html" title=" " alt="" coords="19,229,117,256"/>
 </map>

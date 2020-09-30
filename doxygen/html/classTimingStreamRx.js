@@ -2,7 +2,6 @@ var classTimingStreamRx =
 [
     [ "TimingStreamRx.rtl", "classTimingStreamRx_1_1rtl.html", "classTimingStreamRx_1_1rtl" ],
     [ "TPD_G", "classTimingStreamRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXIL_ERROR_RESP_G", "classTimingStreamRx.html#a183b9cc61a615f1f660c134b30caf3e4", null ],
     [ "rxClk", "classTimingStreamRx.html#a10a0ab621ea8c1ebe2adf690728ac7e4", null ],
     [ "rxRst", "classTimingStreamRx.html#ae8873332c929f955e5211c904d419793", null ],
     [ "rxData", "classTimingStreamRx.html#ad3496774dbd56e2e0f9138f24501f591", null ],

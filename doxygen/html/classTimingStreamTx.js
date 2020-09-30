@@ -1,6 +1,6 @@
 var classTimingStreamTx =
 [
-    [ "TimingStreamTx", "classTimingStreamTx_1_1TimingStreamTx.html", "classTimingStreamTx_1_1TimingStreamTx" ],
+    [ "TimingStreamTx.TimingStreamTx", "classTimingStreamTx_1_1TimingStreamTx.html", "classTimingStreamTx_1_1TimingStreamTx" ],
     [ "TPD_G", "classTimingStreamTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "clk", "classTimingStreamTx.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classTimingStreamTx.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],

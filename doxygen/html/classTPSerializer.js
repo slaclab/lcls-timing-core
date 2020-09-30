@@ -1,6 +1,6 @@
 var classTPSerializer =
 [
-    [ "TPSerializer.TPSerializer", "classTPSerializer_1_1TPSerializer.html", "classTPSerializer_1_1TPSerializer" ],
+    [ "TPSerializer", "classTPSerializer_1_1TPSerializer.html", "classTPSerializer_1_1TPSerializer" ],
     [ "TPD_G", "classTPSerializer.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "Id", "classTPSerializer.html#aefcde1df9f5293829ec115aa54ef4f65", null ],
     [ "txClk", "classTPSerializer.html#ac93564f504aaa4ddbe4818abd6babe7d", null ],

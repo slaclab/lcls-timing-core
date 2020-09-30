@@ -1,12 +1,13 @@
 <map id="EvrV2_tb" name="EvrV2_tb">
-<area shape="rect" id="node2" href="$classTPGMini.html" title="TPGMini" alt="" coords="261,155,335,181"/>
-<area shape="rect" id="node3" href="$classDivider.html" title="Divider(2)" alt="" coords="5,80,92,107"/>
-<area shape="rect" id="node4" href="$classBsaControl.html" title="BsaControl" alt="" coords="117,80,210,107"/>
-<area shape="rect" id="node5" href="$classEventSelect.html" title="EventSelect(2)" alt="" coords="105,5,222,32"/>
-<area shape="rect" id="node6" href="$classTimingSerializer.html" title="TimingSerializer" alt="" coords="234,80,362,107"/>
-<area shape="rect" id="node7" href="$classTPSerializer.html" title="TPSerializer" alt="" coords="386,80,485,107"/>
-<area shape="rect" id="node8" href="$classClockTime.html" title="ClockTime" alt="" coords="509,80,599,107"/>
-<area shape="rect" id="node9" href="$classTimingDeserializer.html" title="TimingDeserializer" alt="" coords="360,155,505,181"/>
-<area shape="rect" id="node10" href="$classEvrV2EventSelect.html" title="EvrV2EventSelect" alt="" coords="529,155,667,181"/>
-<area shape="rect" id="node11" href="$classEvrV2Trigger.html" title="EvrV2Trigger" alt="" coords="691,155,795,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="475,229,555,256"/>
+<area shape="rect" id="node2" href="$classTPGMini.html" title=" " alt="" coords="260,155,336,181"/>
+<area shape="rect" id="node3" href="$classDivider.html" title=" " alt="" coords="5,80,92,107"/>
+<area shape="rect" id="node4" href="$classBsaControl.html" title=" " alt="" coords="117,80,210,107"/>
+<area shape="rect" id="node5" href="$classEventSelect.html" title=" " alt="" coords="105,5,222,32"/>
+<area shape="rect" id="node6" href="$classTimingSerializer.html" title=" " alt="" coords="234,80,362,107"/>
+<area shape="rect" id="node7" href="$classTPSerializer.html" title=" " alt="" coords="386,80,485,107"/>
+<area shape="rect" id="node8" href="$classClockTime.html" title=" " alt="" coords="509,80,599,107"/>
+<area shape="rect" id="node9" href="$classTimingDeserializer.html" title=" " alt="" coords="360,155,505,181"/>
+<area shape="rect" id="node10" href="$classEvrV2EventSelect.html" title=" " alt="" coords="529,155,667,181"/>
+<area shape="rect" id="node11" href="$classEvrV2Trigger.html" title=" " alt="" coords="691,155,795,181"/>
 </map>

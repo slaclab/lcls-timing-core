@@ -1,7 +1,9 @@
 <map id="EvrV2CoreTriggers" name="EvrV2CoreTriggers">
-<area shape="rect" id="node2" href="$classEvrV2TrigReg.html" title="EvrV2TrigReg" alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node3" href="$classEvrV2ChannelReg.html" title="EvrV2ChannelReg" alt="" coords="137,5,274,32"/>
-<area shape="rect" id="node4" href="$classEvrV2EventSelect.html" title="EvrV2EventSelect" alt="" coords="298,5,435,32"/>
-<area shape="rect" id="node5" href="$classEvrV2Trigger.html" title="EvrV2Trigger" alt="" coords="460,5,564,32"/>
-<area shape="rect" id="node6" href="$classEvrV2FromV1.html" title="EvrV2FromV1" alt="" coords="588,5,697,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="200,132,341,159"/>
+<area shape="rect" id="node2" href="$classEvrV2TrigReg.html" title=" " alt="" coords="25,5,133,32"/>
+<area shape="rect" id="node3" href="$classEvrV2ChannelReg.html" title=" " alt="" coords="9,56,148,83"/>
+<area shape="rect" id="node4" href="$classEvrV2EventSelect.html" title=" " alt="" coords="10,107,147,133"/>
+<area shape="rect" id="node5" href="$classEvrV2Trigger.html" title=" " alt="" coords="27,157,131,184"/>
+<area shape="rect" id="node6" href="$classEvrV2TriggerCompl.html" title=" " alt="" coords="5,208,152,235"/>
+<area shape="rect" id="node7" href="$classEvrV2FromV1.html" title=" " alt="" coords="23,259,134,285"/>
 </map>

@@ -18,7 +18,7 @@ var classEvrV2CoreTriggers =
     [ "evrClk", "classEvrV2CoreTriggers.html#acbd0acef33309df0f50e095cca96195a", null ],
     [ "evrRst", "classEvrV2CoreTriggers.html#aad8c9c5e8d7a90739ec7f31eff360316", null ],
     [ "evrBus", "classEvrV2CoreTriggers.html#aa0564a9bf3d3a3a235f6f1e6f4605eda", null ],
-    [ "trigOut", "classEvrV2CoreTriggers.html#a51416e3304e23217b635a547dbdcd66d", null ],
+    [ "trigOut", "classEvrV2CoreTriggers.html#a2ba7911d19c7e48ac34b28ab02d69c6f", null ],
     [ "evrModeSel", "classEvrV2CoreTriggers.html#a49c4bb9e5a6e027b1b010567a3801d8c", null ],
     [ "ieee", "classEvrV2CoreTriggers.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classEvrV2CoreTriggers.html#acd03516902501cd1c7296a98e22c6fcb", null ],

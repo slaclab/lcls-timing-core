@@ -1,6 +1,6 @@
 var classTPFifo =
 [
-    [ "TPFifo", "classTPFifo_1_1TPFifo.html", "classTPFifo_1_1TPFifo" ],
+    [ "TPFifo.TPFifo", "classTPFifo_1_1TPFifo.html", "classTPFifo_1_1TPFifo" ],
     [ "TPD_G", "classTPFifo.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "LOGDEPTH", "classTPFifo.html#a025b5f1b5e7d3d31a8ced62c40aae110", null ],
     [ "rst", "classTPFifo.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],

@@ -10,8 +10,7 @@ var classTimingFrameRx =
     [ "timingMessage", "classTimingFrameRx.html#a99f63626ec9a90f473a677ba520787c4", null ],
     [ "timingMessageStrobe", "classTimingFrameRx.html#a07705f3372906d9d26a9052d06eeab90", null ],
     [ "timingMessageValid", "classTimingFrameRx.html#abe537a0ef52ef4e3c1774713853f6ab7", null ],
-    [ "timingExtn", "classTimingFrameRx.html#a61354c4c6592d7047911587994974f04", null ],
-    [ "timingExtnValid", "classTimingFrameRx.html#a151c4cb4bd852b44a562c5e6c32d8541", null ],
+    [ "timingExtension", "classTimingFrameRx.html#a4feeb0bafb0d9ee42b9491a322e2412e", null ],
     [ "rxVersion", "classTimingFrameRx.html#ab6b6776226fdf7ad5674c5bc1e5375b9", null ],
     [ "staData", "classTimingFrameRx.html#a3bf2da2b2d29c0ba3d0b5662e85a44be", null ],
     [ "ieee", "classTimingFrameRx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
@@ -21,6 +20,5 @@ var classTimingFrameRx =
     [ "surf", "classTimingFrameRx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classTimingFrameRx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "lcls_timing_core", "classTimingFrameRx.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TimingPkg", "classTimingFrameRx.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ],
-    [ "TimingExtnPkg", "classTimingFrameRx.html#a8534d6d00c085366c910c2e507a6ee3e", null ]
+    [ "TimingPkg", "classTimingFrameRx.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ]
 ];
