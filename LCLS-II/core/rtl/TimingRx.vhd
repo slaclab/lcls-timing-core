@@ -195,7 +195,7 @@ begin
             staData             => staData (1));
    end generate;
 
-   axilComb : process (axilR, axilReadMaster, axilRxLinkUp, axilStatusCounters12,
+   axilComb : process (axilR, axilRst, axilReadMaster, axilRxLinkUp, axilStatusCounters12,
                        axilStatusCounters3, axilVersion, axilVsnErr, axilWriteMaster, rxStatusCount,
                        timingTSEvCntGray_o, txClkCntS) is
 
@@ -205,7 +205,6 @@ begin
    begin
       -- Latch the current value
       v                     := axilR;
-      v.axilReadSlave.rdata := (others => '0');
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -265,9 +264,16 @@ begin
          v.rxDown := '1';
       end if;
 
-      --if (axilRst = '1') then
-      --   v := AXIL_REG_INIT_C;
-      --end if;
+      if (axilRst = '1') then
+         v := AXIL_REG_INIT_C;
+         -- Don't touch register configurations
+         v.clkSel        := axilR.clkSel;
+         v.modeSel       := axilR.modeSel;
+         v.modeSelEn     := axilR.modeSelEn;
+         v.rxControl     := axilR.rxControl;
+         v.streamNoDelay := axilR.streamNoDelay;
+         v.messageDelay  := axilR.messageDelay;
+      end if;
 
       axilRin <= v;
 

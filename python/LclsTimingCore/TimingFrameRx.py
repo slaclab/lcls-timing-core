@@ -193,6 +193,7 @@ class TimingFrameRx(pr.Device):
             bitSize      = 1,
             bitOffset    = 0x09,
             mode         = "RW" if clkselMode == 'SELECT' else 'RO',
+            verify       = False, # No verification because axilR.modeSelEn=0x0 can overwrite ModeSel with ClkSel
             enum         = {
                 0x0: 'Lcls1Protocol',
                 0x1: 'Lcls2Protocol',

@@ -13,11 +13,11 @@
 -- does not shift (sub-ns) when the logic configuration is changed.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Timing Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Timing Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Modification history:
@@ -55,7 +55,7 @@ architecture rtl of EvrV2TriggerCompl is
 
   signal r    : RegType := REG_INIT_C;
   signal r_in : RegType;
-  
+
 begin
   comb : process ( rst, r, trigIn, config ) is
     variable v : RegType;

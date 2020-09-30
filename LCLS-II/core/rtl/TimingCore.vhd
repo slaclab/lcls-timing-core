@@ -104,10 +104,10 @@ architecture rtl of TimingCore is
          addrBits                 => 16,
          connectivity             => ite(USE_TPGMINI_C, X"FFFF", x"0000")));
 
-   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0);
-   signal locAxilReadMasters  : AxiLiteReadMasterArray (NUM_AXIL_MASTERS_C-1 downto 0);
-   signal locAxilReadSlaves   : AxiLiteReadSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray (NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray (NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray  (NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
 
    signal timingRx            : TimingRxType;
    signal timingStrobe        : sl;
@@ -289,7 +289,7 @@ begin
             axiWriteSlave  => locAxilWriteSlaves (FRAME_TX_AXIL_INDEX_C));
 
       U_SyncModeSel : entity surf.Synchronizer
-         generic map (TPD_G=> TPD_G)      
+         generic map (TPD_G=> TPD_G)
         port map ( clk     => gtTxUsrClk,
                    dataIn  => modeSel,
                    dataOut => modeSelTx );
@@ -298,7 +298,7 @@ begin
                                 itxData(1);
       tpgMiniTimingPhy.dataK <= itxDataK(0) when modeSelTx='0' else
                                 itxDataK(1);
-                        
+
    end generate GEN_MINICORE;
 
    NOGEN_MINICORE : if not USE_TPGMINI_C generate
@@ -311,7 +311,7 @@ begin
    end generate NOGEN_MINICORE;
 
    U_SyncModeSel : entity surf.Synchronizer
-     generic map (TPD_G=> TPD_G)      
+     generic map (TPD_G=> TPD_G)
      port map ( clk     => gtRxRecClk,
                 dataIn  => modeSel,
                 dataOut => modeSelRx );
