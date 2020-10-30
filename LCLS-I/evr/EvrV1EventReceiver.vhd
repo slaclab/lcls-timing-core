@@ -367,7 +367,7 @@ begin
    end generate GEN_EVENT_RX_CH;
 
    preScaleRst <= '1' when(EventStreamDly = x"7B") else '0';
-   eventChRst  <= evrRst or not(evrEnable) or not(rxLinkUp) or preScaleRst;
+   eventChRst  <= evrRst or not(evrEnable) or not(rxLinkUp);
 
    ------------------------
    -- Decode the time stamp
