@@ -260,6 +260,8 @@ package TPGPkg is
                           allowRequired    : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           destnControl     : Slv16Array(MAXBEAMSEQDEPTH-1 downto 0);
                           --
+                          beamCharge    : slv(15 downto 0);
+                          beamChargeOverride : sl;
                           beamEnergy    : Slv16Array(0 to 3);
                           photonWavelen : Slv16Array(0 to 1);
                           irqEnable     : sl;
@@ -324,6 +326,8 @@ package TPGPkg is
     seqDestn          => (others=>x"0"),
     allowRequired     => (others=>x"0000"),
     destnControl      => (others=>x"0000"),
+    beamCharge        => (others=>'0'),
+    beamChargeOverride=> '0',
     beamEnergy        => (others=>(others=>'0')),
     photonWavelen     => (others=>(others=>'0')),
     irqEnable         => '0',
