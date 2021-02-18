@@ -35,59 +35,61 @@ library lcls_timing_core;
 use lcls_timing_core.EvrV2Pkg.all;
 
 entity EvrV2TriggerCompl is
-  generic ( REG_OUT_G : boolean := false );
-  port (
-      clk        : in  sl;
-      rst        : in  sl;
-      config     : in  EvrV2TriggerConfigArray(1 downto 0);
-      trigIn     : in  slv(1 downto 0);
-      trigOut    : out slv(1 downto 0) );
+   generic (
+      TPD_G     : time    := 1 ns;
+      REG_OUT_G : boolean := false);
+   port (
+      clk     : in  sl;
+      rst     : in  sl;
+      config  : in  EvrV2TriggerConfigArray(1 downto 0);
+      trigIn  : in  slv(1 downto 0);
+      trigOut : out slv(1 downto 0));
 end EvrV2TriggerCompl;
 
 architecture rtl of EvrV2TriggerCompl is
 
-  type RegType is record
-    trig : slv(1 downto 0);
-  end record;
+   type RegType is record
+      trig : slv(1 downto 0);
+   end record;
 
-  constant REG_INIT_C : RegType := (
-    trig => (others=>'0') );
+   constant REG_INIT_C : RegType := (
+      trig => (others => '0'));
 
-  signal r    : RegType := REG_INIT_C;
-  signal r_in : RegType;
+   signal r    : RegType := REG_INIT_C;
+   signal r_in : RegType;
 
 begin
-  comb : process ( rst, r, trigIn, config ) is
-    variable v : RegType;
-  begin
-    for i in 0 to 1 loop
-      if config(i).complEn = '0' then
-        v.trig(i) := trigIn(i);
-      elsif config(i).complAnd = '1' then
-        v.trig(i) := trigIn(0) and trigIn(1);
-      else
-        v.trig(i) := trigIn(0) or trigIn(1);
+   comb : process (rst, r, trigIn, config) is
+      variable v : RegType;
+   begin
+      for i in 0 to 1 loop
+         if config(i).complEn = '0' then
+            v.trig(i) := trigIn(i);
+         elsif config(i).complAnd = '1' then
+            v.trig(i) := trigIn(0) and trigIn(1);
+         else
+            v.trig(i) := trigIn(0) or trigIn(1);
+         end if;
+      end loop;
+
+      if rst = '1' then
+         v := REG_INIT_C;
       end if;
-    end loop;
 
-    if rst = '1' then
-      v := REG_INIT_C;
-    end if;
+      r_in <= v;
 
-    r_in <= v;
+      if REG_OUT_G then
+         trigOut <= r.trig;
+      else
+         trigOut <= v.trig;
+      end if;
+   end process comb;
 
-    if REG_OUT_G then
-      trigOut <= r.trig;
-    else
-      trigOut <= v.trig;
-    end if;
-  end process comb;
-
-  seq : process ( clk ) is
-  begin
-    if rising_edge(clk) then
-      r <= r_in;
-    end if;
-  end process seq;
+   seq : process (clk) is
+   begin
+      if rising_edge(clk) then
+         r <= r_in after TPD_G;
+      end if;
+   end process seq;
 
 end rtl;
