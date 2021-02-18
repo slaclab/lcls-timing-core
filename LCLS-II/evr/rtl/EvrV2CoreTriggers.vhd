@@ -87,10 +87,10 @@ architecture mapping of EvrV2CoreTriggers is
 
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv          (NCHANNELS_G-1 downto 0) := (others=>'0');
-  signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0);
-  signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0);
+  signal eventCount     : SlVectorArray(NCHANNELS_G-1 downto 0,31 downto 0) := (others => (others => '0'));
+  signal eventCountV    : Slv32Array(NCHANNELS_G-1 downto 0) := (others => (others => '0'));
   signal strobe         : slv(3 downto 0);
-  signal trigPulse      : slv(NTRIGGERS_G-1 downto 0);
+  signal trigPulse      : slv(NTRIGGERS_G-1 downto 0) := (others => '0');
 
 begin  -- rtl
 
