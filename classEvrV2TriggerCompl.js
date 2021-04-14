@@ -1,6 +1,7 @@
 var classEvrV2TriggerCompl =
 [
     [ "rtl", "classEvrV2TriggerCompl_1_1rtl.html", "classEvrV2TriggerCompl_1_1rtl" ],
+    [ "TPD_G", "classEvrV2TriggerCompl.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "REG_OUT_G", "classEvrV2TriggerCompl.html#a2f5cbb6189fae3446e77fa7dde0f76e8", null ],
     [ "clk", "classEvrV2TriggerCompl.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classEvrV2TriggerCompl.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
