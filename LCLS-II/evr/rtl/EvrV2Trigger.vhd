@@ -56,6 +56,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
      state          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
+     fifoWrEn       : sl;
      fifoRd         : sl;
      fifoDin        : slv(TRIG_WIDTH_C-1 downto 0);
    end record;
@@ -68,6 +69,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
      state      => '0',
      fifoReset  => '1',
      fifoWr     => '0',
+     fifoWrEn   => '0',
      fifoRd     => '0',
      fifoDin    => (others=>'0'));
 
@@ -139,15 +141,23 @@ begin
         v.delay  := r.delay-1;
       end if;
 
+      if not allBits(r.fifo_delay,'0') then
+        v.fifo_delay := r.fifo_delay - 1;
+      end if;
+      
+      v.fifoWrEn   := '0';
+      if config.delay(TRIG_WIDTH_C-1 downto 0) >= r.fifo_delay then
+        v.fifoWrEn := '1';
+      end if;
+      
+      v.fifoWr     := '0';
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
-         v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
-         v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
-      else
-         v.fifoWr     := '0';
-         if not allBits(r.fifo_delay,'0') then
-           v.fifo_delay := r.fifo_delay - 1;
+         if r.fifoWrEn = '1' then
+           v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) +
+                           config.width(TRIG_WIDTH_C-1 downto 0) + 1;
+           v.fifoWr     := '1';
          end if;
       end if;
 
