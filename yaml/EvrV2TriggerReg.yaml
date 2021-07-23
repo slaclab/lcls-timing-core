@@ -62,7 +62,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       class: IntField
       name: ComplEn
       sizeBits: 1
-      lsBit: 5
+      lsBit: 4
       mode: RW
       description: Enable complementary trigger outputs
     #########################################################  
@@ -72,7 +72,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       class: IntField
       name: ComplAnd
       sizeBits: 1
-      lsBit: 6
+      lsBit: 5
       mode: RW
       enums:
         - name: LogicOR
@@ -112,14 +112,4 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RW
       description: Delay tap in ticks/64 (Only valid register is USE_TAP_C=true)
-    #########################################################  
-    DelayTapReadback:
-      at:
-        offset: 0x0E
-      class: IntField
-      name: DelayTapReadback
-      sizeBits: 6
-      lsBit: 0
-      mode: RO
-      description: Delay tap readback in ticks/64 (Only valid register is USE_TAP_C=true)
     #########################################################  
