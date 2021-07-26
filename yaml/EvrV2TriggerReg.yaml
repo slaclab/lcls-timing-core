@@ -111,5 +111,15 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       sizeBits: 6
       lsBit: 0
       mode: RW
-      description: Delay tap in ticks/64 (Only valid register is USE_TAP_C=true)
+      description: Delay tap in 82ps ticks (Only valid register is USE_TAP_C=true)
+    #########################################################  
+    DelayTapReadback:
+      at:
+        offset: 0x0E
+      class: IntField
+      name: DelayTap
+      sizeBits: 6
+      lsBit: 0
+      mode: RO
+      description: Delay tap readback in 82ps ticks (Only valid register is USE_TAP_C=true)
     #########################################################  
