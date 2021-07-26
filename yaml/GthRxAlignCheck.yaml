@@ -69,3 +69,23 @@ GthRxAlignCheck: &GthRxAlignCheck
       mode: RO
       description: Last timing frame phase seen
     #########################################################
+    TxClkFreq:
+      at:
+        offset: 0x0108
+      class: IntField
+      name: TxClkFreq
+      sizeBits: 32
+      lsBit: 0
+      mode: RO
+      description: TX Clock Frequency (units of Hz)
+    #########################################################
+    RxClkFreq:
+      at:
+        offset: 0x010C
+      class: IntField
+      name: RxClkFreq
+      sizeBits: 32
+      lsBit: 0
+      mode: RO
+      description: RX Clock Frequency (units of Hz)
+    #########################################################
