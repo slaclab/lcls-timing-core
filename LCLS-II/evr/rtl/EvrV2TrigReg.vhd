@@ -95,30 +95,10 @@ begin
             v.triggerConfig(i).loadTap := r.loadShift(i)(3);
             v.loadShift(i)             := r.loadShift(i)(2 downto 0) & '0';
 
-            -- Check for read transaction
-            if (axilEp.axiStatus.readEnable = '1') then
-
-               -- Check the Address
-               if (StdMatch(axilReadMaster.araddr(11 downto 0), toSlv(i*GRP_C + 12, STRIDE_C))) then
-                  v.axilReadSlave.rdata(31 downto 6) := (others => '0');
-                  v.axilReadSlave.rdata(5 downto 0)  := delay_rd(i);
-                  axiSlaveReadResponse(v.axilReadSlave);
-               end if;
-
-            end if;
-
-            -- Check for Write transaction
-            if (axilEp.axiStatus.writeEnable = '1') then
-
-               -- Check the Address
-               if (StdMatch(axilWriteMaster.awaddr(11 downto 0), toSlv(i*GRP_C + 12, STRIDE_C))) then
-                  v.triggerConfig(i).delayTap := axilWriteMaster.wdata(5 downto 0);
-                  axiSlaveWriteResponse(v.axilWriteSlave);
-                  v.loadShift(i)(0)           := '1';
-               end if;
-
-            end if;
-
+            axiSlaveRegister (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), 0, v.triggerConfig(i).delayTap);
+            axiSlaveRegisterR(axilEp, toSlv(i*GRP_C + 12, STRIDE_C),16, delay_rd(i));
+            axiWrDetect      (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), v.loadShift(i)(0));
+            
          end if;
 
       end loop;

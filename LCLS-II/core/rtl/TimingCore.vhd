@@ -391,6 +391,7 @@ begin
       appTimingBus_i.valid     <= timingValid;
       appTimingBus_i.modesel   <= modeSelRx;
       appTimingBus_i.extension <= timingExtension;
+      modeSelApp               <= modeSelRx;
    end generate;
 
    U_SYNC_LinkV1 : entity surf.Synchronizer
