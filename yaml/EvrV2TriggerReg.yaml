@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'LCLS Timing Core'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'LCLS Timing Core', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'LCLS Timing Core', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -16,7 +16,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
   description: Trigger
   size: 0x1000
   children:
-    #########################################################  
+    #########################################################
     Enable:
       at:
         offset: 0x03
@@ -26,7 +26,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 7
       mode: RW
       description: Trigger enable
-    #########################################################  
+    #########################################################
     Source:
       at:
         offset: 0x00
@@ -36,7 +36,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RW
       description: Source channel
-    #########################################################  
+    #########################################################
     Polarity:
       at:
         offset: 0x02
@@ -55,7 +55,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
 #        { name: Falling, value: 0 }
 #        { name: Rising , value: 1 }
       description: Signal polarity
-    #########################################################  
+    #########################################################
     ComplEn:
       at:
         offset: 0x03
@@ -65,7 +65,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 4
       mode: RW
       description: Enable complementary trigger outputs
-    #########################################################  
+    #########################################################
     ComplAnd:
       at:
         offset: 0x03
@@ -82,7 +82,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
           class: Enum
           value: 1
       description: Complementary trigger logic
-    #########################################################  
+    #########################################################
     Delay:
       at:
         offset: 0x04
@@ -92,7 +92,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RW
       description: Delay in ticks
-    #########################################################  
+    #########################################################
     Width:
       at:
         offset: 0x08
@@ -102,7 +102,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RW
       description: Width in ticks
-    #########################################################  
+    #########################################################
     DelayTap:
       at:
         offset: 0x0C
@@ -112,7 +112,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RW
       description: Delay tap in 82ps ticks (Only valid register is USE_TAP_C=true)
-    #########################################################  
+    #########################################################
     DelayTapReadback:
       at:
         offset: 0x0E
@@ -122,4 +122,4 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       lsBit: 0
       mode: RO
       description: Delay tap readback in 82ps ticks (Only valid register is USE_TAP_C=true)
-    #########################################################  
+    #########################################################
