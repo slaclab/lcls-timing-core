@@ -98,7 +98,7 @@ begin
             axiSlaveRegister (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), 0, v.triggerConfig(i).delayTap);
             axiSlaveRegisterR(axilEp, toSlv(i*GRP_C + 12, STRIDE_C),16, delay_rd(i));
             axiWrDetect      (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), v.loadShift(i)(0));
-            
+
          end if;
 
       end loop;
