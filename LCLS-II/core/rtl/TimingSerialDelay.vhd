@@ -268,7 +268,7 @@ begin
                v.state := ARMED_S;
             elsif valid_msg = '1' then                   -- still accumulating
                -- Prevent out of range errors in simulations
-               if (r.nword<NWORDS_G)
+               if (r.nword<NWORDS_G) then
                   v.nword  := r.nword+1;
                end if;
                v.frame  := dout_msg & r.frame(r.frame'left downto 1);
