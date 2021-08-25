@@ -354,7 +354,7 @@ begin
          WIDTH_G        => 4)
       port map (
          statusIn(0)  => rxR.clkCnt(rxR.clkCnt'left),
-         statusIn(1)  => rxStatus.resetDone,
+         statusIn(1)  => rxStatus.locked,
          statusIn(2)  => rxR.decErr,
          statusIn(3)  => rxR.dspErr,
          statusOut    => stv,
