@@ -21,6 +21,8 @@ var classTimingGtCoreWrapper =
     [ "gtRxN", "classTimingGtCoreWrapper.html#afa7bd5fde3aee86e886acc3ce073c8bf", null ],
     [ "gtTxP", "classTimingGtCoreWrapper.html#a723076ac451ab1151d81b66560e05579", null ],
     [ "gtTxN", "classTimingGtCoreWrapper.html#af626ec9a7b241e92ca18db9d7bf3ee89", null ],
+    [ "gtgRefClk", "classTimingGtCoreWrapper.html#ae0356fcc3e06ebfd70a0afd185c947bb", null ],
+    [ "cpllRefClkSel", "classTimingGtCoreWrapper.html#a6037fcd378f1a9afb731ec28329a4e7c", null ],
     [ "rxControl", "classTimingGtCoreWrapper.html#af35d94654f4558adf8de9140313bfc29", null ],
     [ "rxStatus", "classTimingGtCoreWrapper.html#aaf54222f6a31dd46b32a8566e97e3d77", null ],
     [ "rxUsrClkActive", "classTimingGtCoreWrapper.html#a7edfc7ea569edf2d2271762c61f09574", null ],

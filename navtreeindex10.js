@@ -1,5 +1,7 @@
 var NAVTREEINDEX10 =
 {
+"classTimingSerializer_1_1TimingSerializer.html#a98c23a0eec9b281d079269f76591b83d":[0,0,39,0,10],
+"classTimingSerializer_1_1TimingSerializer.html#ac811a5fc9ad6bce4e4a131d452aed219":[0,0,39,0,1],
 "classTimingSerializer_1_1TimingSerializer.html#ade4de2a008a5f96235206eb18081481c":[0,0,39,0,14],
 "classTimingStreamRx.html":[0,0,40],
 "classTimingStreamRx.html#a013c20dbecc6073fc352d07e596c4bea":[0,0,40,20],
