@@ -121,12 +121,12 @@ architecture rtl of TimingRx is
    signal rxVersion   : Slv32Array(1 downto 0);
    signal rxVersion12 : slv(31 downto 0);
 
-   signal stv                  : slv(3 downto 0);
+   signal stv                  : slv(4 downto 0);
    signal axilRxLinkUp         : sl;
    signal axilVsnErr           : sl;
    signal axilVersion          : slv(31 downto 0);
    signal axilStatusCounters12 : SlVectorArray(3 downto 0, 31 downto 0);
-   signal axilStatusCounters3  : SlVectorArray(3 downto 0, 31 downto 0);
+   signal axilStatusCounters3  : SlVectorArray(4 downto 0, 31 downto 0);
    signal txClkCnt             : slv(3 downto 0) := (others => '0');
    signal txClkCntS            : slv(31 downto 0);
    signal rxRst                : slv(1 downto 0);
@@ -312,7 +312,7 @@ begin
          rdClk      => axilClk,
          rdRst      => axilRst);
 
-   axilRxLinkUp <= stv(1);
+   axilRxLinkUp <= stv(4);
    rxVersion12  <= rxVersion(0) when modeSelR = '0' else
                   rxVersion(1);
    staData12 <= staData(0) when modeSelR = '0' else
@@ -348,18 +348,19 @@ begin
    SyncStatusVector_3 : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => "1111",
+         IN_POLARITY_G  => "11111",
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 32,
-         WIDTH_G        => 4)
+         WIDTH_G        => 5)
       port map (
          statusIn(0)  => rxR.clkCnt(rxR.clkCnt'left),
-         statusIn(1)  => rxStatus.locked,
+         statusIn(1)  => rxStatus.resetDone,
          statusIn(2)  => rxR.decErr,
          statusIn(3)  => rxR.dspErr,
+         statusIn(4)  => rxStatus.locked,
          statusOut    => stv,
          cntRstIn     => axilR.cntRst,
-         rollOverEnIn => "0001",
+         rollOverEnIn => "00001",
          cntOut       => axilStatusCounters3,
          wrClk        => rxClk,
          wrRst        => '0',
@@ -468,7 +469,7 @@ begin
    timingTSEvCntGray_o(1) <= timingTSEvCntGray_o(2) xor "00" & timingTSEvCntGray_o(2)(31 downto 2);
    timingTSEvCntGray_o(0) <= timingTSEvCntGray_o(1) xor '0' & timingTSEvCntGray_o(1)(31 downto 1);
 
-   rxControl.reset    <= axilR.rxControl.reset or (axilRxLinkUp and (stv(2) or stv(3)));
+   rxControl.reset    <= axilR.rxControl.reset or (stv(1) and (stv(2) or stv(3)));
    rxControl.inhibit  <= '0';
    rxControl.polarity <= axilR.rxControl.polarity;
    rxControl.pllReset <= axilR.rxControl.pllReset;
