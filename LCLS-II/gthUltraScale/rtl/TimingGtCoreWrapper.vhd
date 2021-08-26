@@ -55,6 +55,10 @@ entity TimingGtCoreWrapper is
       gtTxP        : out sl;
       gtTxN        : out sl;
 
+      -- GTGREFCLK Interface Option
+      gtgRefClk     : in sl              := '0';
+      cpllRefClkSel : in slv(2 downto 0) := "001"; -- Set for "111" for gtgRefClk
+
       -- Rx ports
       rxControl      : in  TimingPhyControlType;
       rxStatus       : out TimingPhyStatusType;
@@ -104,11 +108,13 @@ architecture rtl of TimingGtCoreWrapper is
          gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
+         cpllrefclksel_in                   : in  std_logic_vector(2 DOWNTO 0);
          drpaddr_in                         : in  std_logic_vector(8 downto 0);
          drpclk_in                          : in  std_logic_vector(0 downto 0);
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gtgrefclk_in                       : in  std_logic_vector(0 downto 0);
          gthrxn_in                          : in  std_logic_vector(0 downto 0);
          gthrxp_in                          : in  std_logic_vector(0 downto 0);
          gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
@@ -495,11 +501,13 @@ begin
             gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
+            cpllrefclksel_in                      => cpllRefClkSel,
             drpaddr_in                            => drpAddr,
             drpclk_in(0)                          => axilClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
+            gtgrefclk_in(0)                       => gtgRefClk,
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             gtrefclk0_in(0)                       => gtRefClk,
