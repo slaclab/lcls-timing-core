@@ -104,6 +104,7 @@ architecture rtl of TimingGtCoreWrapper is
    signal txResetDone : sl := '0';
    signal txUsrClk    : sl := '0';
    signal txClk       : sl := '0';
+   signal txRst       : sl := '0';
 
    signal drpRdy  : sl               := '0';
    signal drpEn   : sl               := '0';
@@ -174,11 +175,9 @@ begin
 
       iStableClk <= stableClk;
       iStableRst <= stableRst;
-      gtRefClk <= gtRefClkIn;
+      gtRefClk   <= gtRefClkIn;
 
    end generate;
-
-
 
    U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
@@ -201,6 +200,7 @@ begin
    dataValid <= not (uOr(decErr) or uOr(dispErr));
 
    rxRst <= iStableRst or rxControl.reset;
+   txRst <= iStableRst or txControl.reset;
 
    process(gtRxRecClk, gtRxResetDone)
    begin
@@ -311,8 +311,7 @@ begin
          txMmcmResetOut   => open,
          txMmcmLockedIn   => '1',
          -- Tx User Reset signals
-         txUserResetIn    => iStableRst,
-         --txResetDoneOut   => open,
+         txUserResetIn    => txRst,
          txResetDoneOut   => txResetDone,
          -- Tx Data
          txDataIn         => txData,
