@@ -65,6 +65,7 @@ entity TimingGtCoreWrapper is
       txStatus        : out TimingPhyStatusType;
       txOutClk        : out sl;
       txOutRst        : out sl;
+      txUsrClk        : in  sl;
       txData          : in  slv(15 downto 0);
       txDataK         : in  slv(1 downto 0);
       -- Misc.
@@ -73,11 +74,11 @@ end entity TimingGtCoreWrapper;
 
 architecture rtl of TimingGtCoreWrapper is
 
-   constant CPLL_FBDIV_C        : integer    := ite(GT_CONFIG_G, 1, 2);
-   constant CPLL_FBDIV_45_C     : integer    := 5;
-   constant CPLL_REFCLK_DIV_C   : integer    := 1;
-   constant RXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2);
-   constant TXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2);
+   constant CPLL_FBDIV_C        : integer    := ite(GT_CONFIG_G, 2, 4); -- N2
+   constant CPLL_FBDIV_45_C     : integer    := 5; -- N1
+   constant CPLL_REFCLK_DIV_C   : integer    := 2; -- M
+   constant RXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2); -- D
+   constant TXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2); -- D
    constant RX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
    constant TX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
 --   constant RXCDR_CFG_C       : bit_vector := ite(GT_CONFIG_G, x"03000023ff20400020", x"03000023ff40200020");
@@ -102,8 +103,6 @@ architecture rtl of TimingGtCoreWrapper is
    signal dataK         : slv(1 downto 0)  := (others => '0');
 
    signal txResetDone : sl := '0';
-   signal txUsrClk    : sl := '0';
-   signal txClk       : sl := '0';
    signal txRst       : sl := '0';
 
    signal drpRdy  : sl               := '0';
@@ -112,8 +111,6 @@ architecture rtl of TimingGtCoreWrapper is
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
-
-   signal iTxPowerDown : slv(1 downto 0);
 
 begin
 
@@ -137,7 +134,6 @@ begin
          asyncRst => gtRxResetDone,
          syncRst  => rxOutRst);
 
-   txOutClk <= txUsrClk;
    U_txOutRst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
@@ -215,11 +211,6 @@ begin
       end if;
    end process;
 
-   TxBUFG_Inst : BUFG
-      port map (
-         I => txClk,
-         O => txUsrClk);
-
    U_Gtx : entity surf.Gtx7Core
       generic map (
          TPD_G                 => TPD_G,
@@ -247,7 +238,6 @@ begin
          TX_OUTCLK_SRC_G       => "OUTCLKPMA",
          TX_DLY_BYPASS_G       => '1',
          TX_PHASE_ALIGN_G      => "NONE",
-         TX_BUF_ADDR_MODE_G    => "FULL",
          RX_BUF_EN_G           => false,
          RX_OUTCLK_SRC_G       => "OUTCLKPMA",
          RX_USRCLK_SRC_G       => "RXOUTCLK",
@@ -305,7 +295,7 @@ begin
          rxChBondIn       => (others => '0'),
          rxChBondOut      => open,
          -- Tx Clock Related Signals
-         txOutClkOut      => txClk,
+         txOutClkOut      => txOutClk,
          txUsrClkIn       => txUsrClk,
          txUsrClk2In      => txUsrClk,
          txUserRdyOut     => open,
@@ -321,8 +311,6 @@ begin
          txPolarityIn     => txControl.polarity,
          -- Misc.
          loopbackIn       => loopback,
-         txPowerDown      => iTxPowerDown,
-         rxPowerDown      => (others => '0'),
          txDiffCtrl       => "1111",
          txPostCursor     => "00111",
          txPreCursor      => "00111",
@@ -334,8 +322,6 @@ begin
          drpAddr          => drpAddr,
          drpDi            => drpDi,
          drpDo            => drpDo);
-
-   iTxPowerDown <= (others => txControl.inhibit);
 
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
