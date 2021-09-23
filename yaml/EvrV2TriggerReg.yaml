@@ -117,7 +117,7 @@ EvrV2TriggerReg: &EvrV2TriggerReg
       at:
         offset: 0x0E
       class: IntField
-      name: DelayTap
+      name: DelayTapReadback
       sizeBits: 6
       lsBit: 0
       mode: RO
