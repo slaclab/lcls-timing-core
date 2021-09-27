@@ -111,7 +111,7 @@ architecture rtl of EvrV1EventReceiver is
 
    signal evrEnable   : sl;
    signal mapRamPage  : sl;
-   signal eventChRst  : sl;
+   signal eventChRst  : slv(11 downto 0);
    signal preScaleRst : sl;
    signal uSecDivider : slv(31 downto 0);
 
@@ -353,7 +353,7 @@ begin
       ReceiverChannel_Inst : EvrV1EventReceiverChannel
          port map (
             Clock        => evrClk,
-            Reset        => eventChRst,
+            Reset        => eventChRst(i),
             myEvent      => eventRamPulseDataInt(i),
             myDelay      => pulseDelay(i),
             myWidth      => pulseWidth(i),
@@ -364,11 +364,25 @@ begin
             resetPulse   => eventRamResetDataInt(i),
             channelDebug => open);
 
+      process(evrEnable, evrRst, preScaleRst, pulseDelay, rxLinkUp)
+      begin
+         -- Check for delay > 1
+         if (pulseDelay(i) > 1) then
+            -- Keep the same behavior as the legacy SVN EVR GEN2 code,
+            -- Else the EVR forward bug happens where we cannot
+            -- have working fiducials and delays > 1 fiducial came up again
+            -- svn co file:///afs/slac/g/reseng/svn/repos/LCLS_II/trunk/EvrCardG2/
+            eventChRst(i) <= evrRst or not(evrEnable) or not(rxLinkUp) or preScaleRst;
+         else
+            -- Else remove prescaler reset from LCLS-I evr trigger logic
+            -- https://github.com/slaclab/lcls-timing-core/commit/fc07db632e95d01cb295a9c558519bfbecb0d91f
+            eventChRst(i) <= evrRst or not(evrEnable) or not(rxLinkUp);
+         end if;
+      end process;
+
    end generate GEN_EVENT_RX_CH;
 
    preScaleRst <= '1' when(EventStreamDly = x"7B") else '0';
-   eventChRst  <= evrRst or not(evrEnable) or not(rxLinkUp);
-
    ------------------------
    -- Decode the time stamp
    ------------------------
@@ -475,8 +489,8 @@ begin
    ------------------
    -- Event Insertion
    ------------------
-   process(evrRst, extEventCode, extEventEn, extEventPulse, intEventCode, intEventEn, intEventPulse,
-           rxData)
+   process(evrRst, extEventCode, extEventEn, extEventPulse, intEventCode,
+           intEventEn, intEventPulse, rxData)
    begin
       if evrRst = '1' then
          rxDataEvent <= (others => '0');
