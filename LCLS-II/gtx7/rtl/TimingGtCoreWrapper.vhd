@@ -90,6 +90,7 @@ architecture rtl of TimingGtCoreWrapper is
    signal iStableClk    : sl               := '0';
    signal iStableRst    : sl               := '0';
    signal rxRst         : sl               := '0';
+   signal rxReset       : sl               := '0';
    signal gtRxResetDone : sl               := '0';
    signal dataValid     : sl               := '0';
    signal gtRxRecClk    : sl               := '0';
@@ -104,6 +105,8 @@ architecture rtl of TimingGtCoreWrapper is
    signal txResetDone : sl := '0';
    signal txUsrClk    : sl := '0';
    signal txClk       : sl := '0';
+   signal txRst       : sl := '0';
+   signal txReset     : sl := '0';
 
    signal drpRdy  : sl               := '0';
    signal drpEn   : sl               := '0';
@@ -201,6 +204,23 @@ begin
    dataValid <= not (uOr(decErr) or uOr(dispErr));
 
    rxRst <= iStableRst or rxControl.reset;
+   txRst <= iStableRst or txControl.reset;
+
+   U_rxReset : entity surf.PwrUpRst
+      generic map(
+         TPD_G => TPD_G)
+      port map (
+         arst   => rxRst,
+         clk    => iStableClk,
+         rstOut => rxReset);
+
+   U_txReset : entity surf.PwrUpRst
+      generic map(
+         TPD_G => TPD_G)
+      port map (
+         arst   => txRst,
+         clk    => iStableClk,
+         rstOut => txReset);
 
    process(gtRxRecClk, gtRxResetDone)
    begin
@@ -287,7 +307,7 @@ begin
          rxMmcmResetOut   => open,
          rxMmcmLockedIn   => '1',
          -- Rx User Reset Signals
-         rxUserResetIn    => rxRst,
+         rxUserResetIn    => rxReset,
          rxResetDoneOut   => gtRxResetDone,
          -- Manual Comma Align signals
          rxDataValidIn    => dataValid,
@@ -311,7 +331,7 @@ begin
          txMmcmResetOut   => open,
          txMmcmLockedIn   => '1',
          -- Tx User Reset signals
-         txUserResetIn    => iStableRst,
+         txUserResetIn    => txReset,
          --txResetDoneOut   => open,
          txResetDoneOut   => txResetDone,
          -- Tx Data
