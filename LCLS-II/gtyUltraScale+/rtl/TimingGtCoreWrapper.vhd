@@ -30,11 +30,11 @@ use unisim.vcomponents.all;
 
 entity TimingGtCoreWrapper is
    generic (
-      TPD_G             : time    := 1 ns;
-      DISABLE_TIME_GT_G : boolean := false;
-      EXTREF_G          : boolean := false;
+      TPD_G             : time             := 1 ns;
+      DISABLE_TIME_GT_G : boolean          := false;
+      EXTREF_G          : boolean          := false;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
-      ADDR_BITS_G       : positive := 22;
+      ADDR_BITS_G       : positive         := 22;
       GTY_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
    port (
       -- AXI-Lite Port
@@ -54,6 +54,10 @@ entity TimingGtCoreWrapper is
       gtRxN        : in  sl;
       gtTxP        : out sl;
       gtTxN        : out sl;
+
+      -- GTGREFCLK Interface Option
+      gtgRefClk     : in sl              := '0';
+      cpllRefClkSel : in slv(2 downto 0) := "001";  -- Set for "111" for gtgRefClk
 
       -- Rx ports
       rxControl      : in  TimingPhyControlType;
@@ -105,11 +109,13 @@ architecture rtl of TimingGtCoreWrapper is
          gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
+         cpllrefclksel_in                   : in  std_logic_vector(2 downto 0);
          drpaddr_in                         : in  std_logic_vector(9 downto 0);
          drpclk_in                          : in  std_logic_vector(0 downto 0);
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gtgrefclk_in                       : in  std_logic_vector(0 downto 0);
          gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
          gtyrxn_in                          : in  std_logic_vector(0 downto 0);
          gtyrxp_in                          : in  std_logic_vector(0 downto 0);
@@ -497,11 +503,13 @@ begin
             gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
+            cpllrefclksel_in                      => cpllRefClkSel,
             drpaddr_in                            => drpAddr,
             drpclk_in(0)                          => stableClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
+            gtgrefclk_in(0)                       => gtgRefClk,
             gtyrxn_in(0)                          => gtRxN,
             gtyrxp_in(0)                          => gtRxP,
             gtrefclk0_in(0)                       => gtRefClk,
