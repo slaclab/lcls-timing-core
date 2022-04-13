@@ -213,7 +213,7 @@ begin
        end if;
 
        -- count off the tmo in 10 ms steps
-       if r.tmoactive = '1' and fixedRate(4)='1' then
+       if r.tmoactive = '1' and fixedRate(2)='1' then
          if r.tmocnt = tmocnt then
            --  assert done
            v.bsaDone   := '1';
