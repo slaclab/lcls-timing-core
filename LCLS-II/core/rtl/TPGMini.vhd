@@ -182,6 +182,7 @@ begin
         sysclk     => txClk,
         sysrst     => txRst,
         bsadef     => config.bsadefv(i),
+        tmo        => frame.fixedRates(2),
         nToAvgOut  => status.bsaStatus(i)(15 downto 0),
         avgToWrOut => status.bsaStatus(i)(31 downto 16),
         txclk      => txClk,
