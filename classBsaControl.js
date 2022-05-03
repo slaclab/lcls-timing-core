@@ -30,5 +30,6 @@ var classBsaControl =
     [ "VCOMPONENTS", "classBsaControl.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
     [ "surf", "classBsaControl.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classBsaControl.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "tmo", "classBsaControl.html#af69b21f9129244a8bd45fb3dbebca2e7", null ],
     [ "tmocnt", "classBsaControl.html#add7ad0c4f07ed69d91b6db662a097548", null ]
 ];
