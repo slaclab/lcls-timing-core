@@ -30,6 +30,7 @@ entity BsaControl is
       sysclk     : in  sl;
       sysrst     : in  sl;
       bsadef     : in  BsaDefType;
+      tmo        : in  sl := '0';
       tmocnt     : in  slv( 3 downto 0) := x"F";  -- 10 ms steps
       nToAvgOut  : out slv(15 downto 0);
       avgToWrOut : out slv(15 downto 0);
@@ -140,7 +141,7 @@ begin
      avgToWrOUt <= r.avgToWr;
    end generate GEN_SYNC;
 
-   comb: process (r, txrst, enable, bsadef, beamSeq, rateSel, fixedRate, tmocnt) is
+   comb: process (r, txrst, enable, bsadef, beamSeq, rateSel, tmo, tmocnt) is
      variable v : RegType;
      variable destSel : sl;
      variable avgDone : sl;
@@ -213,7 +214,7 @@ begin
        end if;
 
        -- count off the tmo in 10 ms steps
-       if r.tmoactive = '1' and fixedRate(4)='1' then
+       if r.tmoactive = '1' and tmo='1' then
          if r.tmocnt = tmocnt then
            --  assert done
            v.bsaDone   := '1';
