@@ -25,9 +25,7 @@ package TPGPkg is
    constant ACRATEDEPTH      : integer := 6;  -- number of ac rate markers
    constant MAXALLOWSEQDEPTH : natural := 16;  -- max number of allow sequences
    constant MAXBEAMSEQDEPTH  : natural := 16;  -- max number of beam sequences
-   constant BEAMSEQWIDTH     : natural := 32;  -- number of bits in beam sequence data
-   constant MAXEXPSEQDEPTH   : natural := 18;  -- max number of expt sequences
-   constant EXPSEQWIDTH      : natural := 32;  -- number of bits in expt sequence
+   constant MAXEXPSEQDEPTH   : natural := 72;  -- max number of expt sequences
    constant EXPPARTITIONS    : integer := 8;  -- number of expt partitions
    constant MAXSEQDEPTH      : integer := MAXALLOWSEQDEPTH+MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
    constant SEQADDRLEN       : integer := 11;  -- sequencer address bus width
@@ -169,7 +167,7 @@ package TPGPkg is
       countSyncE   : slv(31 downto 0);
       countBRT     : slv(31 downto 0);
       countTrig    : Slv32Array(NTRIGGERSIN-1 downto 0);
-      countSeq     : Slv32Array(MAXSEQDEPTH-1 downto 0);
+      countSeq     : Slv128Array(MAXSEQDEPTH-1 downto 0);
       countUpdate  : sl;                      -- single sysclk pulse
       beamDiag     : BeamDiagStatusType;
       rxStatus     : slv(11 downto 0);
@@ -251,8 +249,9 @@ package TPGPkg is
       timeStampWrEn      : sl;
       ACRateDivisors     : Slv8Array(5 downto 0);
       FixedRateDivisors  : Slv20Array(9 downto 0);
+      RateReload         : sl;
       --
-      SeqRestart         : slv (63 downto 0);
+      SeqRestart         : slv (MAXSEQDEPTH-1 downto 0);
       --
       forceSync          : sl;
       --  Arbiter control
@@ -321,6 +320,7 @@ package TPGPkg is
                             x"0005B",                                    -- 10.2kHz
                             x"0000D",                                    -- 71.4kHz
                             x"00001"),                                   -- 929 kHz
+      RateReload         => '0',
       SeqRestart         => (others => '0'),
       forceSync          => '0',
       seqDestn           => (others => x"0"),
