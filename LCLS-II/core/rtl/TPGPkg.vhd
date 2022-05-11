@@ -88,7 +88,8 @@ package TPGPkg is
    type BsaDefArray is array(natural range<>) of BsaDefType;
 
    --  Address into BRAM for sequence engines
-   type SeqAddrType is array(SEQADDRLEN-1 downto 0) of sl;
+--   type SeqAddrType is array(SEQADDRLEN-1 downto 0) of sl;
+   subtype SeqAddrType is slv(SEQADDRLEN-1 downto 0);
    type SeqAddrArray is array(natural range<>) of SeqAddrType;
 
    type L1TrigConfig is record
