@@ -224,12 +224,14 @@ package TPGPkg is
    type BeamDiagControlType is record
       manfault : sl;
       clear    : slv(30 downto 0);
-      holdoff  : slv(15 downto 0);
+      holdoff  : slv(19 downto 0);
+      inhibit  : slv(29 downto 0);
    end record;
    constant BEAM_DIAG_CONTROL_INIT_C : BeamDiagControlType := (
       manfault => '0',
       clear    => (others => '0'),
-      holdoff  => (others => '0'));
+      holdoff  => (others => '0'),
+      inhibit  => (others => '0'));
 
    type TPGConfigType is record
       clock_step         : slv(4 downto 0);
