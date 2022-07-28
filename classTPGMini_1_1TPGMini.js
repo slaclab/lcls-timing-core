@@ -28,7 +28,7 @@ var classTPGMini_1_1TPGMini =
     [ "intervalCnt", "classTPGMini_1_1TPGMini.html#a734c6a238b044bd97e3d3b281cc8aa62", null ],
     [ "countBRT", "classTPGMini_1_1TPGMini.html#a5ae5b160de1cd1fc47e89f7f61f946a3", null ],
     [ "countBRTn", "classTPGMini_1_1TPGMini.html#adab6ff13e7e93b5b8c1af6e1e490b08b", null ],
-    [ "countSeq", "classTPGMini_1_1TPGMini.html#ad59d35747e846cd4233dfc220e983489", null ],
+    [ "countSeq", "classTPGMini_1_1TPGMini.html#a6abfdf610b806d153164dd3c30792dab", null ],
     [ "status", "classTPGMini_1_1TPGMini.html#a3684710d1f76c902d3fbb4a8da78d930", null ],
     [ "config", "classTPGMini_1_1TPGMini.html#acc3372154c680768e425475fb0f1c2e2", null ],
     [ "TPG_ID", "classTPGMini_1_1TPGMini.html#ab173de1e8c87c612635aaaab1fbf6540", null ],
