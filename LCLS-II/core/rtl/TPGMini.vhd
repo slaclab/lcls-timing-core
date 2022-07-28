@@ -89,7 +89,7 @@ architecture TPGMini of TPGMini is
   signal countRst              : sl;
   signal intervalCnt           : slv(31 downto 0);
   signal countBRT, countBRTn   : slv(31 downto 0);
-  signal countSeq              : Slv32Array(MAXSEQDEPTH-1 downto 0);
+  signal countSeq              : Slv128Array(MAXSEQDEPTH-1 downto 0);
 
   -- Delay registers (for closing timing)
   signal status : TPGStatusType := TPG_STATUS_INIT_C;
