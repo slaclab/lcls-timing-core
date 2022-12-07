@@ -42,8 +42,8 @@ var NAVTREEINDEX =
 "classTPGMiniEdef_1_1TPGMiniEdefImpl.html#a69bb58036359157b6662c79bf8626790",
 "classTimingCore.html#a22f8db74a5a4c77e7e2767279ca36e7f",
 "classTimingGtCoreWrapper.html#af35d94654f4558adf8de9140313bfc29",
-"classTimingMsgToAxiStream_1_1rtl.html#ab78fc37ea192f196c2a93709d70bac57",
-"classTimingSerializer_1_1TimingSerializer.html#a4d1aa26dcfa648e02cbb0964cddbdbfe"
+"classTimingMsgAxiRingBuffer.html#a776f7d1c3e4102d6af8db8ec00c215ce",
+"classTimingSerialDelayTb_1_1testbed.html#a646e7cb0234600dd21311579cf1d941f"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

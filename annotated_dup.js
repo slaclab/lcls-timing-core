@@ -34,6 +34,7 @@ var annotated_dup =
     [ "TimingDeserializer", "classTimingDeserializer.html", "classTimingDeserializer" ],
     [ "TimingFrameRx", "classTimingFrameRx.html", "classTimingFrameRx" ],
     [ "TimingGtCoreWrapper", "classTimingGtCoreWrapper.html", "classTimingGtCoreWrapper" ],
+    [ "TimingGthCoreWrapper", "classTimingGthCoreWrapper.html", "classTimingGthCoreWrapper" ],
     [ "TimingGthWrapper", "classTimingGthWrapper.html", "classTimingGthWrapper" ],
     [ "TimingMsgAxiRingBuffer", "classTimingMsgAxiRingBuffer.html", "classTimingMsgAxiRingBuffer" ],
     [ "TimingMsgDelay", "classTimingMsgDelay.html", "classTimingMsgDelay" ],

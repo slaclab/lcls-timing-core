@@ -1,6 +1,6 @@
 var classTimingSerialDelay =
 [
-    [ "TimingSerialDelay", "classTimingSerialDelay_1_1TimingSerialDelay.html", "classTimingSerialDelay_1_1TimingSerialDelay" ],
+    [ "TimingSerialDelay.TimingSerialDelay", "classTimingSerialDelay_1_1TimingSerialDelay.html", "classTimingSerialDelay_1_1TimingSerialDelay" ],
     [ "TPD_G", "classTimingSerialDelay.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "NWORDS_G", "classTimingSerialDelay.html#a00d48071f3fec8204a7f6fb4b18c9406", null ],
     [ "FDEPTH_G", "classTimingSerialDelay.html#a0be6f9fef49853e8c3741a07a58eeb9a", null ],

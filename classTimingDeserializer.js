@@ -1,6 +1,6 @@
 var classTimingDeserializer =
 [
-    [ "TimingDeserializer.TimingDeserializer", "classTimingDeserializer_1_1TimingDeserializer.html", "classTimingDeserializer_1_1TimingDeserializer" ],
+    [ "TimingDeserializer", "classTimingDeserializer_1_1TimingDeserializer.html", "classTimingDeserializer_1_1TimingDeserializer" ],
     [ "TPD_G", "classTimingDeserializer.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "STREAMS_C", "classTimingDeserializer.html#a03858ad7299feef30395216bd19803f1", null ],
     [ "clk", "classTimingDeserializer.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
