@@ -54,7 +54,6 @@ architecture EvrV2Trigger of EvrV2Trigger is
      delay          : slv(TRIG_WIDTH_C-1 downto 0);
      width          : slv(TRIG_WIDTH_C-1 downto 0);
      state          : sl;
-     valid          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
@@ -67,7 +66,6 @@ architecture EvrV2Trigger of EvrV2Trigger is
      delay      => (others=>'0'),
      width      => (others=>'0'),
      state      => '0',
-     valid      => '0',
      fifoReset  => '1',
      fifoWr     => '0',
      fifoRd     => '0',
@@ -88,8 +86,29 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
    signal fifoCountDbg : slv(6 downto 0);
 
+   constant DEBUG_C : boolean := true;
+   
+   component ila_0
+      port (clk    : in sl;
+            probe0 : in slv(255 downto 0));
+   end component;
+
 begin
 
+   GEN_DEBUG : if DEBUG_C generate
+      U_ILA : ila_0
+         port map (clk                   => clk,
+                   probe0( 0)            => r.fifoReset,
+                   probe0( 1)            => fire,
+                   probe0( 1)            => r.fifoWr,
+                   probe0( 2)            => r.fifoRd,
+                   probe0( 30 downto  3) => r.fifoDin,
+                   probe0( 58 downto 31) => r.fifo_delay,
+                   probe0( 86 downto 59) => fifoDout,
+                   probe0( 87)           => fifoValid,
+                   probe0( 95 downto 88) => fifoCount,
+                   probe0(255 downto 96) => (others => '0'));
+   end generate;
 
    trigstate <= r.state;
 
@@ -149,22 +168,12 @@ begin
          --  Push the delay until trigger edge into the fifo
          v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
-         if r.valid = '0' then
-           v.fifoWr   := '0';  -- v := REG_INIT_C;
-         else
-           v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
-         end if;
+         v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
       else
          v.fifoWr     := '0';
          if not allBits(r.fifo_delay,'0') then
            v.fifo_delay := r.fifo_delay - 1;
          end if;
-      end if;
-
-      v.valid := '1';
-      --  This only happens when the timing stream is corrupt
-      if config.delay(TRIG_WIDTH_C-1 downto 0) < r.fifo_delay then
-        v.valid := '0';
       end if;
 
       --  Trigger input logic
