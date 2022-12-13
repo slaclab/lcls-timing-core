@@ -150,7 +150,7 @@ begin
          v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
          if r.valid = '0' then
-           v := REG_INIT_C;
+           v.fifoWr   := '0';  -- v := REG_INIT_C;
          end if;
       else
          v.fifoWr     := '0';
