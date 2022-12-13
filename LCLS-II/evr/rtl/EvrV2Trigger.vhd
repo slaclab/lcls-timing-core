@@ -141,10 +141,10 @@ begin
 
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
+         v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
+         --  This only happens when the timing stream is corrupt
          if r.fifo_delay > config.delay(TRIG_WIDTH_C-1 downto 0) then
-           v.fifoWr   := '1';
-         else
            v := REG_INIT_C;
          end if;
       else
