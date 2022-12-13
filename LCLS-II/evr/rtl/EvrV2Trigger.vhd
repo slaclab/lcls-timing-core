@@ -54,6 +54,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
      delay          : slv(TRIG_WIDTH_C-1 downto 0);
      width          : slv(TRIG_WIDTH_C-1 downto 0);
      state          : sl;
+     valid          : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
@@ -66,6 +67,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
      delay      => (others=>'0'),
      width      => (others=>'0'),
      state      => '0',
+     valid      => '0',
      fifoReset  => '1',
      fifoWr     => '0',
      fifoRd     => '0',
@@ -144,7 +146,7 @@ begin
          v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
          --  This only happens when the timing stream is corrupt
-         if r.fifo_delay > config.delay(TRIG_WIDTH_C-1 downto 0) then
+         if r.valid = '0' then
            v := REG_INIT_C;
          end if;
       else
@@ -154,6 +156,11 @@ begin
          end if;
       end if;
 
+      v.valid := '1';
+      if config.delay(TRIG_WIDTH_C-1 downto 0) < r.fifo_delay then
+        v.valid := '0';
+      end if;
+      
       if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
           ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
          v.armed := '1';
