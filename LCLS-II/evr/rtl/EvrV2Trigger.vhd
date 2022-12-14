@@ -95,7 +95,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
 begin
 
-   GEN_DEBUG : if DEBUG_CC generate
+   GEN_DEBUG : if DEBUG_C generate
       U_ILA : ila_0
          port map (clk                   => clk,
                    probe0( 0)            => r.fifoReset,
