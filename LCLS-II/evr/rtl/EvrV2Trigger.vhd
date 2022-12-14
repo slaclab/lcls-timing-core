@@ -86,7 +86,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
    signal fifoCountDbg : slv(6 downto 0);
 
-   constant DEBUG_C : boolean := true;
+   constant DEBUG_CC : boolean := true;
    
    component ila_0
       port (clk    : in sl;
@@ -95,7 +95,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
 begin
 
-   GEN_DEBUG : if DEBUG_C generate
+   GEN_DEBUG : if DEBUG_CC generate
       U_ILA : ila_0
          port map (clk                   => clk,
                    probe0( 0)            => r.fifoReset,
