@@ -43,7 +43,8 @@ entity EvrV2Trigger is
       config     : in  EvrV2TriggerConfigType;
       arm        : in  slv(CHANNELS_C-1 downto 0);
       fire       : in  sl;
-      trigstate  : out sl );
+      trigstate  : out sl;
+      trigdebug  : out slv(255 downto 0) );
 end EvrV2Trigger;
 
 architecture EvrV2Trigger of EvrV2Trigger is
@@ -95,6 +96,10 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
 begin
 
+   trigdebug <= toSlv(0,158) &
+                fire & fifoCount & fifoValid & fifoDout &
+                r.fifo_delay & r.fifoDin & r.fifoRd & r.fifoWr & r.fifoReset;
+   
    GEN_DEBUG : if DEBUG_C generate
       U_ILA : ila_0
          port map (clk                   => clk,
