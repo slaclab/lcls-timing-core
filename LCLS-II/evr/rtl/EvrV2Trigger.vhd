@@ -105,9 +105,9 @@ begin
                    probe0( 58 downto 31) => r.fifo_delay,
                    probe0( 86 downto 59) => fifoDout,
                    probe0( 87)           => fifoValid,
-                   probe0( 95 downto 88) => fifoCount,
-                   probe0( 96)            => fire,
-                   probe0(255 downto 97) => (others => '0'));
+                   probe0( 96 downto 88) => fifoCount,
+                   probe0( 97)           => fire,
+                   probe0(255 downto 98) => (others => '0'));
    end generate;
 
    trigstate <= r.state;
