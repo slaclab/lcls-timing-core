@@ -99,7 +99,6 @@ begin
       U_ILA : ila_0
          port map (clk                   => clk,
                    probe0( 0)            => r.fifoReset,
-                   probe0( 1)            => fire,
                    probe0( 1)            => r.fifoWr,
                    probe0( 2)            => r.fifoRd,
                    probe0( 30 downto  3) => r.fifoDin,
@@ -107,7 +106,8 @@ begin
                    probe0( 86 downto 59) => fifoDout,
                    probe0( 87)           => fifoValid,
                    probe0( 95 downto 88) => fifoCount,
-                   probe0(255 downto 96) => (others => '0'));
+                   probe0( 96)            => fire,
+                   probe0(255 downto 97) => (others => '0'));
    end generate;
 
    trigstate <= r.state;
