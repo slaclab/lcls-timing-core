@@ -338,7 +338,7 @@ begin
       port map (
          statusIn(3 downto 0) => staData12(3 downto 0),
          cntRstIn             => axilR.cntRst,
-         rollOverEnIn         => "0111",
+         rollOverEnIn         => "1111",
          cntOut               => axilStatusCounters12,
          wrClk                => rxClk,
          wrRst                => '0',
@@ -359,7 +359,7 @@ begin
          statusIn(3)  => rxR.dspErr,
          statusOut    => stv,
          cntRstIn     => axilR.cntRst,
-         rollOverEnIn => "0001",
+         rollOverEnIn => "1111",
          cntOut       => axilStatusCounters3,
          wrClk        => rxClk,
          wrRst        => '0',
