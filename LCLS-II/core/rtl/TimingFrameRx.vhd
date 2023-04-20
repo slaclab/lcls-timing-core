@@ -86,7 +86,7 @@ architecture rtl of TimingFrameRx is
 
 begin
 
-   delayRst <= rxRst or messageDelayRst;
+   delayRst <= rxRst or messageDelayRst or doverflow0;
 
    GEN_STREAM_IDS : for i in 0 to 15 generate
       streamIds(i) <= toSlv(i, 4);
@@ -113,7 +113,8 @@ begin
       generic map (
          TPD_G    => TPD_G,
          NWORDS_G => TIMING_MESSAGE_WORDS_C,
-         FDEPTH_G => 100)
+         FDEPTH_G => 100,
+         DEBUG_G  => true )
       port map (
          clk        => rxClk,
          rst        => delayRst,
