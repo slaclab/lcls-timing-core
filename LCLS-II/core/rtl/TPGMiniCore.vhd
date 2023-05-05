@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
+-- Description: 
 -------------------------------------------------------------------------------
--- This file is part of 'LCLS Timing Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the
--- top-level directory of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'LCLS Timing Core', including this file,
--- may be copied, modified, propagated, or distributed except according to
+-- This file is part of 'LCLS2 Timing Core'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'LCLS2 Timing Core', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,24 +26,28 @@ use lcls_timing_core.TPGMiniEdefPkg.all;
 
 entity TPGMiniCore is
    generic (
-      TPD_G           : time    := 1 ns;
-      NARRAYSBSA      : natural := 1);
+      TPD_G       : time    := 1 ns;
+      NARRAYSBSA  : natural := 1;
+      EXTN_STREAM : boolean := false);
    port (
-     txClk           : in  sl;
-     txRst           : in  sl;
-     txRdy           : in  sl;
-     txData          : out Slv16Array(1 downto 0);
-     txDataK         : out Slv2Array (1 downto 0);
-     txPolarity      : out sl;
-     txResetO        : out sl;
-     txLoopback      : out slv( 2 downto 0);
-     txInhibit       : out sl;
-     axiClk          : in  sl;
-     axiRst          : in  sl;
-     axiReadMaster   : in  AxiLiteReadMasterType;
-     axiReadSlave    : out AxiLiteReadSlaveType;
-     axiWriteMaster  : in  AxiLiteWriteMasterType;
-     axiWriteSlave   : out AxiLiteWriteSlaveType );
+      txClk          : in  sl;
+      txRst          : in  sl;
+      txRdy          : in  sl;
+      txData         : out Slv16Array(1 downto 0);
+      txDataK        : out Slv2Array (1 downto 0);
+      txPolarity     : out sl;
+      txResetO       : out sl;
+      txLoopback     : out slv(2 downto 0);
+      txInhibit      : out sl;
+      extnStreamId   : in  slv(3 downto 0)  := x"F";
+      extnStream     : in  TimingSerialType := TIMING_SERIAL_INIT_C;
+      extnAdvance    : out sl;
+      axiClk         : in  sl;
+      axiRst         : in  sl;
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType);
 end TPGMiniCore;
 
 architecture rtl of TPGMiniCore is
@@ -51,13 +55,13 @@ architecture rtl of TPGMiniCore is
    signal status : TPGStatusType;
    signal config : TPGConfigType;
 
-   signal regClk            : sl;
-   signal regRst            : sl;
-   signal regReadMaster     : AxiLiteReadMasterType;
-   signal regReadSlave      : AxiLiteReadSlaveType;
-   signal regWriteMaster    : AxiLiteWriteMasterType;
-   signal regWriteSlave     : AxiLiteWriteSlaveType;
-   signal edefConfig        : TPGMiniEdefConfigType;
+   signal regClk         : sl;
+   signal regRst         : sl;
+   signal regReadMaster  : AxiLiteReadMasterType;
+   signal regReadSlave   : AxiLiteReadSlaveType;
+   signal regWriteMaster : AxiLiteWriteMasterType;
+   signal regWriteSlave  : AxiLiteWriteSlaveType;
+   signal edefConfig     : TPGMiniEdefConfigType;
 
 begin  -- rtl
 
@@ -103,35 +107,40 @@ begin  -- rtl
          txInhibit      => txInhibit,
          irqActive      => '0',
          irqEnable      => open,
-         irqReq         => open );
+         irqReq         => open);
 
    TPGMini_Inst : entity lcls_timing_core.TPGMini
       generic map (
-         TPD_G          => TPD_G,
-         NARRAYSBSA     => NARRAYSBSA )
+         TPD_G       => TPD_G,
+         NARRAYSBSA  => NARRAYSBSA,
+         EXTN_STREAM => EXTN_STREAM)
       port map (
          -- Register Interface
-         statusO        => status,
-         configI        => config,
+         statusO      => status,
+         configI      => config,
          -- TPG Interface
-         txClk          => txClk,
-         txRst          => txRst,
-         txRdy          => txRdy,
-         txData         => txData (1),
-         txDataK        => txDataK(1) );
+         txClk        => txClk,
+         txRst        => txRst,
+         txRdy        => txRdy,
+         txData       => txData (1),
+         txDataK      => txDataK(1),
+         -- Extn interface
+         extnStreamId => extnStreamId,
+         extnStream   => extnStream,
+         extnAdvance  => extnAdvance);
 
    TPGMiniStream_Inst : entity lcls_timing_core.TPGMiniStream
       generic map (
-         TPD_G          => TPD_G)
+         TPD_G => TPD_G)
       port map (
          -- Register Interface
-         config         => config,
-         edefConfig     => edefConfig,
+         config     => config,
+         edefConfig => edefConfig,
          -- TPG Interface
-         txClk          => txClk,
-         txRst          => txRst,
-         txRdy          => txRdy,
-         txData         => txData (0),
-         txDataK        => txDataK(0) );
+         txClk      => txClk,
+         txRst      => txRst,
+         txRdy      => txRdy,
+         txData     => txData (0),
+         txDataK    => txDataK(0));
 
 end rtl;
