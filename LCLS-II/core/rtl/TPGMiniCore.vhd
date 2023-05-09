@@ -23,6 +23,7 @@ use surf.AxiLitePkg.all;
 library lcls_timing_core;
 use lcls_timing_core.TPGPkg.all;
 use lcls_timing_core.TPGMiniEdefPkg.all;
+use lcls_timing_core.TimingPkg.all;
 
 entity TPGMiniCore is
    generic (
