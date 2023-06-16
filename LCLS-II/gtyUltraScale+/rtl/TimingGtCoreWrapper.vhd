@@ -354,7 +354,7 @@ begin
 
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
-      U_TERM : entity surf.Gthe3ChannelDummy
+      U_TERM : entity surf.Gtye4ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 1)
