@@ -113,8 +113,7 @@ begin
       generic map (
          TPD_G    => TPD_G,
          NWORDS_G => TIMING_MESSAGE_WORDS_C,
-         FDEPTH_G => 100,
-         DEBUG_G  => true )
+         FDEPTH_G => 100)
       port map (
          clk        => rxClk,
          rst        => delayRst,

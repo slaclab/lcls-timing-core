@@ -35,16 +35,14 @@ entity EvrV2Trigger is
             TRIG_DEPTH_C : integer := 16;
             TRIG_WIDTH_C : integer := EVRV2_TRIG_WIDTH_C; -- bit size of
                                                         -- width,delay counters
-            USE_MASK_G   : boolean := false;
-            DEBUG_C      : boolean := false);
+            USE_MASK_G   : boolean := false);
   port (
       clk        : in  sl;
       rst        : in  sl;
       config     : in  EvrV2TriggerConfigType;
       arm        : in  slv(CHANNELS_C-1 downto 0);
       fire       : in  sl;
-      trigstate  : out sl;
-      trigdebug  : out slv(255 downto 0) );
+      trigstate  : out sl );
 end EvrV2Trigger;
 
 architecture EvrV2Trigger of EvrV2Trigger is
@@ -87,31 +85,7 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
    signal fifoCountDbg : slv(6 downto 0);
 
-   component ila_0
-      port (clk    : in sl;
-            probe0 : in slv(255 downto 0));
-   end component;
-
 begin
-
-   trigdebug <= toSlv(0,158) &
-                fire & fifoCount & fifoValid & fifoDout &
-                r.fifo_delay & r.fifoDin & r.fifoRd & r.fifoWr & r.fifoReset;
-   
-   GEN_DEBUG : if DEBUG_C generate
-      U_ILA : ila_0
-         port map (clk                   => clk,
-                   probe0( 0)            => r.fifoReset,
-                   probe0( 1)            => r.fifoWr,
-                   probe0( 2)            => r.fifoRd,
-                   probe0( 30 downto  3) => r.fifoDin,
-                   probe0( 58 downto 31) => r.fifo_delay,
-                   probe0( 86 downto 59) => fifoDout,
-                   probe0( 87)           => fifoValid,
-                   probe0( 96 downto 88) => fifoCount,
-                   probe0( 97)           => fire,
-                   probe0(255 downto 98) => (others => '0'));
-   end generate;
 
    trigstate <= r.state;
 
