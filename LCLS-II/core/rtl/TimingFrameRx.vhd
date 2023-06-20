@@ -86,7 +86,7 @@ architecture rtl of TimingFrameRx is
 
 begin
 
-   delayRst <= rxRst or messageDelayRst;
+   delayRst <= rxRst or messageDelayRst or doverflow0;
 
    GEN_STREAM_IDS : for i in 0 to 15 generate
       streamIds(i) <= toSlv(i, 4);
