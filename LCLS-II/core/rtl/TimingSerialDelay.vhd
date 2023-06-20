@@ -113,6 +113,9 @@ architecture TimingSerialDelay of TimingSerialDelay is
    signal msgFifoWr : sl;
    signal lastWord  : sl;
 
+   signal count_cnt : slv(CADDR_WIDTH_C-1 downto 0);
+   signal count_msg : slv(MADDR_WIDTH_C-1 downto 0);
+   
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
 
@@ -156,7 +159,9 @@ begin
             probe0(58)            => r.valid,
             probe0(60 downto 59)  => r_state,
             probe0(68 downto 61)  => nwordslv,
-            probe0(255 downto 69) => (others => '0'));
+            probe0(84 downto 69)  => resize(count_cnt,16),
+            probe0(100 downto 85)  => resize(count_msg,16),
+            probe0(255 downto 101) => (others => '0'));
    end generate;
 
    GEN_FRAME : for i in 0 to NWORDS_G-1 generate
@@ -186,7 +191,8 @@ begin
          dout(19 downto 0) => dout_cnt,
          dout(20)          => dout_rdy,
          valid             => valid_cnt,
-         overflow          => full_cnt);
+         overflow          => full_cnt,
+         data_count        => count_cnt);
 
    msgFifoWr <= advance_i or r.lastWord;
    U_MsgDelay : entity surf.FifoSync
@@ -207,7 +213,8 @@ begin
          dout(16)          => firstW,
          dout(17)          => lastWord,
          valid             => valid_msg,
-         overflow          => full_msg);
+         overflow          => full_msg,
+         data_count        => count_msg);
 
    process (advance_i, delay, dout_cnt, dout_msg, dout_rdy, fiducial_i, firstW, lastWord, r, rst,
             stream_i, valid_cnt, valid_msg) is

@@ -35,8 +35,7 @@ entity EvrV2Trigger is
             TRIG_DEPTH_C : integer := 16;
             TRIG_WIDTH_C : integer := EVRV2_TRIG_WIDTH_C; -- bit size of
                                                         -- width,delay counters
-            USE_MASK_G   : boolean := false;
-            DEBUG_C      : boolean := false);
+            USE_MASK_G   : boolean := false);
   port (
       clk        : in  sl;
       rst        : in  sl;
@@ -88,7 +87,6 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
 begin
 
-
    trigstate <= r.state;
 
    GEN_NO_FIFO : if TRIG_DEPTH_C = 0 generate
@@ -97,6 +95,7 @@ begin
    end generate;
 
    GEN_FIFO : if TRIG_DEPTH_C > 0 generate
+     --  A fifo of delays before the next trigger edge
      U_Fifo : entity surf.FifoSync
        generic map ( TPD_G        => TPD_G,
                      DATA_WIDTH_G => TRIG_WIDTH_C,
@@ -125,6 +124,7 @@ begin
 
       if allBits(r.delay,'0') then
         if allBits(r.width,'0') then
+          --  Trigger done.  Wait for next fifo entry.
           if r.fifoRd='1' then
             v.width  := config.width(TRIG_WIDTH_C-1 downto 0);
             v.delay  := fifoDout;
@@ -132,6 +132,7 @@ begin
             v.fifoRd := '1';
           end if;
         else
+          --  Delay complete.  Assert trigger.
           v.width  := r.width-1;
           v.state  := config.polarity;
         end if;
@@ -141,6 +142,7 @@ begin
 
       if fire = '1' and r.armed = '1' then
          v.armed      := '0';
+         --  Push the delay until trigger edge into the fifo
          v.fifoWr     := '1';
          v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
          v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
@@ -151,6 +153,7 @@ begin
          end if;
       end if;
 
+      --  Trigger input logic
       if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
           ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
          v.armed := '1';
