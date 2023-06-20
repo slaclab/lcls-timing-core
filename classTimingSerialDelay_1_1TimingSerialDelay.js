@@ -36,6 +36,8 @@ var classTimingSerialDelay_1_1TimingSerialDelay =
     [ "nwordslv", "classTimingSerialDelay_1_1TimingSerialDelay.html#a53bd5db35762a5516b85029d788d0a3b", null ],
     [ "msgFifoRd", "classTimingSerialDelay_1_1TimingSerialDelay.html#af553c46fc5e11c1253403223ad60ee1a", null ],
     [ "msgFifoWr", "classTimingSerialDelay_1_1TimingSerialDelay.html#a7035c9dca71a088e7e4e1ed5016bea5f", null ],
+    [ "count_cnt", "classTimingSerialDelay_1_1TimingSerialDelay.html#a8d8f09a468bd2aca755e0b4f2a68ea31", null ],
+    [ "count_msg", "classTimingSerialDelay_1_1TimingSerialDelay.html#a7c80fe09e4acce664f4611d8916a9a07", null ],
     [ "use_dsp48", "classTimingSerialDelay_1_1TimingSerialDelay.html#a073a21d3f84f2260308186db63c60acd", null ],
     [ "use_dsp48", "classTimingSerialDelay_1_1TimingSerialDelay.html#a5dfc2e71bc80a90d1459887f3b4c23c4", null ],
     [ "r_state", "classTimingSerialDelay_1_1TimingSerialDelay.html#a7c20705816dcdff4c9730301784d3dc9", null ],

@@ -6,7 +6,6 @@ var classEvrV2Trigger =
     [ "TRIG_DEPTH_C", "classEvrV2Trigger.html#a3037c0d21a73bc4352721fdd2c09d951", null ],
     [ "TRIG_WIDTH_C", "classEvrV2Trigger.html#a7ab62e67d059d161a6a4032251f675b3", null ],
     [ "USE_MASK_G", "classEvrV2Trigger.html#aa2a146b5f4024d07d0d04b6a3c80a896", null ],
-    [ "DEBUG_C", "classEvrV2Trigger.html#ac058639fd959dfa53736975c7f9cdf4b", null ],
     [ "clk", "classEvrV2Trigger.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classEvrV2Trigger.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "config", "classEvrV2Trigger.html#a3e070ee97b7d84ae0e03e2ecd289c0a1", null ],
