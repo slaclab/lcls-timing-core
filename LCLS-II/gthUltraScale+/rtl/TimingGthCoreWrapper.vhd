@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for GTY Core
+-- Description: Wrapper for GTH Core
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -28,14 +28,14 @@ use lcls_timing_core.TimingPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity TimingGtCoreWrapper is
+entity TimingGthCoreWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       DISABLE_TIME_GT_G : boolean          := false;
       EXTREF_G          : boolean          := false;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
       ADDR_BITS_G       : positive         := 22;
-      GTY_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
+      GTH_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -47,9 +47,9 @@ entity TimingGtCoreWrapper is
 
       stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
-      -- GTY FPGA IO
+      -- GTH FPGA IO
       gtRefClk     : in  sl;
-      gtRefClkDiv2 : in  sl;            -- Unused in GTYE3, but used in GTYE4
+      gtRefClkDiv2 : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       gtRxP        : in  sl;
       gtRxN        : in  sl;
       gtTxP        : out sl;
@@ -81,11 +81,11 @@ entity TimingGtCoreWrapper is
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
-end entity TimingGtCoreWrapper;
+end entity TimingGthCoreWrapper;
 
-architecture rtl of TimingGtCoreWrapper is
+architecture rtl of TimingGthCoreWrapper is
 
-   component TimingGty_fixedlat
+   component TimingGth_fixedlat
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
@@ -116,9 +116,9 @@ architecture rtl of TimingGtCoreWrapper is
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
          gtgrefclk_in                       : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
          gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
-         gtyrxn_in                          : in  std_logic_vector(0 downto 0);
-         gtyrxp_in                          : in  std_logic_vector(0 downto 0);
          loopback_in                        : in  std_logic_vector(2 downto 0);
          rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
          rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
@@ -137,9 +137,9 @@ architecture rtl of TimingGtCoreWrapper is
          txusrclk2_in                       : in  std_logic_vector(0 downto 0);
          drpdo_out                          : out std_logic_vector(15 downto 0);
          drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
          gtpowergood_out                    : out std_logic_vector(0 downto 0);
-         gtytxn_out                         : out std_logic_vector(0 downto 0);
-         gtytxp_out                         : out std_logic_vector(0 downto 0);
          rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
          rxbyterealign_out                  : out std_logic_vector(0 downto 0);
          rxcommadet_out                     : out std_logic_vector(0 downto 0);
@@ -150,15 +150,17 @@ architecture rtl of TimingGtCoreWrapper is
          rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
          rxoutclk_out                       : out std_logic_vector(0 downto 0);
          rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxphalignerr_out                   : out std_logic_vector(0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          rxresetdone_out                    : out std_logic_vector(0 downto 0);
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         rxsyncout_out                      : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
-   component TimingGty_extref
+   component TimingGth_extref
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
@@ -187,9 +189,9 @@ architecture rtl of TimingGtCoreWrapper is
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
          gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
-         gtyrxn_in                          : in  std_logic_vector(0 downto 0);
-         gtyrxp_in                          : in  std_logic_vector(0 downto 0);
          loopback_in                        : in  std_logic_vector(2 downto 0);
          rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
          rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
@@ -208,9 +210,9 @@ architecture rtl of TimingGtCoreWrapper is
          txusrclk2_in                       : in  std_logic_vector(0 downto 0);
          drpdo_out                          : out std_logic_vector(15 downto 0);
          drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
          gtpowergood_out                    : out std_logic_vector(0 downto 0);
-         gtytxn_out                         : out std_logic_vector(0 downto 0);
-         gtytxp_out                         : out std_logic_vector(0 downto 0);
          rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
          rxbyterealign_out                  : out std_logic_vector(0 downto 0);
          rxcommadet_out                     : out std_logic_vector(0 downto 0);
@@ -221,9 +223,11 @@ architecture rtl of TimingGtCoreWrapper is
          rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
          rxoutclk_out                       : out std_logic_vector(0 downto 0);
          rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxphalignerr_out                   : out std_logic_vector(0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          rxresetdone_out                    : out std_logic_vector(0 downto 0);
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         rxsyncout_out                      : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          txresetdone_out                    : out std_logic_vector(0 downto 0)
@@ -236,7 +240,7 @@ architecture rtl of TimingGtCoreWrapper is
          addrBits     => ADDR_BITS_G,
          connectivity => x"FFFF"),
       1               => (
-         baseAddr     => (AXIL_BASE_ADDR_G+GTY_DRP_OFFSET_G),
+         baseAddr     => (AXIL_BASE_ADDR_G+GTH_DRP_OFFSET_G),
          addrBits     => ADDR_BITS_G,
          connectivity => x"FFFF"));
 
@@ -300,7 +304,7 @@ begin
    U_AlignCheck : entity lcls_timing_core.GthRxAlignCheck
       generic map (
          TPD_G      => TPD_G,
-         GT_TYPE_G  => "GTYE4",
+         GT_TYPE_G  => "GTHE3",
          DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
@@ -329,7 +333,7 @@ begin
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         COMMON_CLK_G     => false,
+         COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 10,
@@ -343,8 +347,8 @@ begin
          axilWriteMaster => axilWriteMasters(1),
          axilWriteSlave  => axilWriteSlaves(1),
          -- DRP Interface
-         drpClk          => stableClk,
-         drpRst          => stableRst,
+         drpClk          => axilClk,
+         drpRst          => axilRst,
          drpRdy          => drpRdy,
          drpEn           => drpEn,
          drpWe           => drpWe,
@@ -354,7 +358,7 @@ begin
 
    GEN_DISABLE_GT : if (DISABLE_TIME_GT_G = true) generate
 
-      U_TERM : entity surf.Gtye4ChannelDummy
+      U_TERM : entity surf.Gthe4ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 1)
@@ -387,7 +391,7 @@ begin
    end generate;
 
    GEN_EXTREF : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = true)generate
-      U_TimingGtyCore : TimingGty_extref
+      U_TimingGthCore : TimingGth_extref
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txbypassrst,
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
@@ -400,8 +404,8 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => stableClk,
-            gtwiz_reset_all_in(0)                 => stableRst,
+            gtwiz_reset_clk_freerun_in(0)         => axilClk,
+            gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
@@ -412,12 +416,12 @@ begin
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => stableClk,
+            drpclk_in(0)                          => axilClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
-            gtyrxn_in(0)                          => gtRxN,
-            gtyrxp_in(0)                          => gtRxP,
+            gthrxn_in(0)                          => gtRxN,
+            gthrxp_in(0)                          => gtRxP,
             gtrefclk0_in(0)                       => gtRefClk,
             loopback_in                           => loopback,
             rx8b10ben_in(0)                       => '1',
@@ -438,8 +442,8 @@ begin
             txusrclk2_in(0)                       => txUsrClk,
             drpdo_out                             => drpDo,
             drprdy_out(0)                         => drpRdy,
-            gtytxn_out(0)                         => gtTxN,
-            gtytxp_out(0)                         => gtTxP,
+            gthtxn_out(0)                         => gtTxN,
+            gthtxp_out(0)                         => gtTxP,
             rxbyteisaligned_out                   => open,
             rxbyterealign_out                     => open,
             rxcommadet_out                        => open,
@@ -479,7 +483,7 @@ begin
    end generate;
 
    LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false)generate
-      U_TimingGtyCore : TimingGty_fixedlat
+      U_TimingGthCore : TimingGth_fixedlat
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txbypassrst,
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
@@ -492,7 +496,7 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_clk_freerun_in(0)         => axilClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
@@ -505,13 +509,13 @@ begin
             gtwiz_userdata_rx_out                 => rxData,
             cpllrefclksel_in                      => cpllRefClkSel,
             drpaddr_in                            => drpAddr,
-            drpclk_in(0)                          => stableClk,
+            drpclk_in(0)                          => axilClk,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
             drpwe_in(0)                           => drpWe,
             gtgrefclk_in(0)                       => gtgRefClk,
-            gtyrxn_in(0)                          => gtRxN,
-            gtyrxp_in(0)                          => gtRxP,
+            gthrxn_in(0)                          => gtRxN,
+            gthrxp_in(0)                          => gtRxP,
             gtrefclk0_in(0)                       => gtRefClk,
             loopback_in                           => loopback,
             rx8b10ben_in(0)                       => '1',
@@ -532,8 +536,8 @@ begin
             txusrclk2_in(0)                       => txUsrClk,
             drpdo_out                             => drpDo,
             drprdy_out(0)                         => drpRdy,
-            gtytxn_out(0)                         => gtTxN,
-            gtytxp_out(0)                         => gtTxP,
+            gthtxn_out(0)                         => gtTxN,
+            gthtxp_out(0)                         => gtTxP,
             rxbyteisaligned_out                   => open,
             rxbyterealign_out                     => open,
             rxcommadet_out                        => open,
@@ -574,13 +578,13 @@ begin
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtRefClkDiv2,
+      port map (clk      => txoutclkb,
                 asyncRst => txControl.reset,
                 syncRst  => txbypassrst);
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtRefClkDiv2,
+      port map (clk      => rxoutclkb,
                 asyncRst => rxRst,
                 syncRst  => rxbypassrst);
 
