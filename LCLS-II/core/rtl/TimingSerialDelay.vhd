@@ -115,7 +115,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
 
    signal count_cnt : slv(CADDR_WIDTH_C-1 downto 0);
    signal count_msg : slv(MADDR_WIDTH_C-1 downto 0);
-   
+
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
 
