@@ -74,10 +74,10 @@ entity TimingGtCoreWrapper is
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
       txStatus       : out TimingPhyStatusType;
-      txUsrClk       : in  sl;
-      txUsrClkActive : in  sl;
-      txData         : in  slv(15 downto 0);
-      txDataK        : in  slv(1 downto 0);
+      txUsrClk       : in  sl := '0';
+      txUsrClkActive : in  sl := '0';
+      txData         : in  slv(15 downto 0) := (others => '0');
+      txDataK        : in  slv(1 downto 0)  := (others => '0');
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
