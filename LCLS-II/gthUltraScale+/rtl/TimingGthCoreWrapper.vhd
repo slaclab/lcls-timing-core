@@ -251,8 +251,7 @@ architecture rtl of TimingGthCoreWrapper is
    signal txoutclkb    : sl               := '0';
    signal rxoutclk_out : sl               := '0';
    signal rxoutclkb    : sl               := '0';
-   signal freeRunClk   : sl               := '0';
-
+   
    signal drpAddr     : slv(9 downto 0)  := (others => '0');
    signal drpDi       : slv(15 downto 0) := (others => '0');
    signal drpEn       : sl               := '0';
@@ -405,7 +404,7 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => freeRunClk,
+            gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
@@ -460,16 +459,6 @@ begin
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
       rxDecErr  <= rxCtrl3Out(1 downto 0);
-
-      TIMING_FRCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => stableClk,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => freeRunClk);
       
       txoutclkb <= gtRefClkDiv2;
 
@@ -498,7 +487,7 @@ begin
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
-            gtwiz_reset_clk_freerun_in(0)         => freeRunClk,
+            gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
@@ -555,6 +544,7 @@ begin
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
       rxDecErr  <= rxCtrl3Out(1 downto 0);
+
 
 --      TIMING_TXCLK_BUFG_GT : BUFG_GT
 --         port map (
