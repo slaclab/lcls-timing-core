@@ -41,6 +41,8 @@ var classTimingSerialDelay_1_1TimingSerialDelay =
     [ "use_dsp48", "classTimingSerialDelay_1_1TimingSerialDelay.html#a073a21d3f84f2260308186db63c60acd", null ],
     [ "use_dsp48", "classTimingSerialDelay_1_1TimingSerialDelay.html#a5dfc2e71bc80a90d1459887f3b4c23c4", null ],
     [ "r_state", "classTimingSerialDelay_1_1TimingSerialDelay.html#a7c20705816dcdff4c9730301784d3dc9", null ],
+    [ "r_count_cnt", "classTimingSerialDelay_1_1TimingSerialDelay.html#abafd0c7732506616d8b65bff824e3026", null ],
+    [ "r_count_msg", "classTimingSerialDelay_1_1TimingSerialDelay.html#ad3360b1ce1a6e7b222846324d76cd08c", null ],
     [ "ila_0", "classTimingSerialDelay_1_1TimingSerialDelay.html#a0c139f3ef59723b75becd775d3688bf0", null ],
     [ "u_ila", "classTimingSerialDelay_1_1TimingSerialDelay.html#a638c9e85308f7cf526b4bd4061e98d77", null ],
     [ "u_cntdelay", "classTimingSerialDelay_1_1TimingSerialDelay.html#a7a92f9ee334d1d1426c5d67d349597b8", null ],
