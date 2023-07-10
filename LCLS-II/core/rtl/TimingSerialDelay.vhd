@@ -115,11 +115,13 @@ architecture TimingSerialDelay of TimingSerialDelay is
 
    signal count_cnt : slv(CADDR_WIDTH_C-1 downto 0);
    signal count_msg : slv(MADDR_WIDTH_C-1 downto 0);
-   
+
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
 
    signal r_state : slv(1 downto 0);
+   signal r_count_cnt : slv(15 downto 0);
+   signal r_count_msg : slv(15 downto 0);
 
    component ila_0
       port (clk    : in sl;
@@ -133,6 +135,9 @@ begin
                  "01" when r.state = SHIFT_S else
                  "10" when r.state = ARMED_S else
                  "11";
+      r_count_cnt <= resize(count_cnt,16);
+      r_count_msg <= resize(count_msg,16);
+
       U_ILA : ila_0
          port map (
             clk                   => clk,
@@ -159,8 +164,8 @@ begin
             probe0(58)            => r.valid,
             probe0(60 downto 59)  => r_state,
             probe0(68 downto 61)  => nwordslv,
-            probe0(84 downto 69)  => resize(count_cnt,16),
-            probe0(100 downto 85)  => resize(count_msg,16),
+            probe0(84 downto 69)  => r_count_cnt,
+            probe0(100 downto 85)  => r_count_msg,
             probe0(255 downto 101) => (others => '0'));
    end generate;
 
