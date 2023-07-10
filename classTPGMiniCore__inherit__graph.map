@@ -1,12 +1,15 @@
 <map id="TPGMiniCore" name="TPGMiniCore">
-<area shape="rect" id="node1" title=" " alt="" coords="187,229,294,256"/>
-<area shape="rect" id="node10" href="$classTimingCore.html" title=" " alt="" coords="192,304,289,331"/>
-<area shape="rect" id="node2" href="$classTPGMiniReg.html" title=" " alt="" coords="134,155,235,181"/>
-<area shape="rect" id="node3" href="$classTPGMini.html" title=" " alt="" coords="260,155,336,181"/>
-<area shape="rect" id="node4" href="$classDivider.html" title=" " alt="" coords="5,80,92,107"/>
-<area shape="rect" id="node5" href="$classBsaControl.html" title=" " alt="" coords="117,80,210,107"/>
-<area shape="rect" id="node6" href="$classEventSelect.html" title=" " alt="" coords="105,5,222,32"/>
-<area shape="rect" id="node7" href="$classTimingSerializer.html" title=" " alt="" coords="234,80,362,107"/>
-<area shape="rect" id="node8" href="$classTPSerializer.html" title=" " alt="" coords="386,80,485,107"/>
-<area shape="rect" id="node9" href="$classClockTime.html" title=" " alt="" coords="509,80,599,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="323,229,429,256"/>
+<area shape="rect" id="node13" href="$classTimingCore.html" title=" " alt="" coords="327,304,425,331"/>
+<area shape="rect" id="node2" href="$classTPGMiniReg.html" title=" " alt="" coords="212,155,313,181"/>
+<area shape="rect" id="node3" href="$classTPGMini.html" title=" " alt="" coords="338,155,414,181"/>
+<area shape="rect" id="node4" href="$classDivider.html" title=" " alt="" coords="515,80,584,107"/>
+<area shape="rect" id="node10" href="$classTPGMiniStream.html" title=" " alt="" coords="488,155,611,181"/>
+<area shape="rect" id="node5" href="$classBsaControl.html" title=" " alt="" coords="8,80,101,107"/>
+<area shape="rect" id="node6" href="$classEventSelect.html" title=" " alt="" coords="5,5,104,32"/>
+<area shape="rect" id="node7" href="$classTimingSerializer.html" title=" " alt="" coords="125,80,253,107"/>
+<area shape="rect" id="node8" href="$classTPSerializer.html" title=" " alt="" coords="277,80,376,107"/>
+<area shape="rect" id="node9" href="$classClockTime.html" title=" " alt="" coords="400,80,491,107"/>
+<area shape="rect" id="node11" href="$classTimingStreamTx.html" title=" " alt="" coords="737,80,868,107"/>
+<area shape="rect" id="node12" href="$classTPGMiniEdef.html" title=" " alt="" coords="609,80,714,107"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="TPGMini" name="TPGMini">
-<area shape="rect" id="node1" title=" " alt="" coords="260,155,336,181"/>
-<area shape="rect" id="node2" href="$classDivider.html" title=" " alt="" coords="5,80,92,107"/>
-<area shape="rect" id="node3" href="$classBsaControl.html" title=" " alt="" coords="117,80,210,107"/>
-<area shape="rect" id="node4" href="$classEventSelect.html" title=" " alt="" coords="105,5,222,32"/>
-<area shape="rect" id="node5" href="$classTimingSerializer.html" title=" " alt="" coords="234,80,362,107"/>
-<area shape="rect" id="node6" href="$classTPSerializer.html" title=" " alt="" coords="386,80,485,107"/>
-<area shape="rect" id="node7" href="$classClockTime.html" title=" " alt="" coords="509,80,599,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="242,155,318,181"/>
+<area shape="rect" id="node2" href="$classDivider.html" title=" " alt="" coords="5,80,75,107"/>
+<area shape="rect" id="node3" href="$classBsaControl.html" title=" " alt="" coords="99,80,192,107"/>
+<area shape="rect" id="node4" href="$classEventSelect.html" title=" " alt="" coords="96,5,195,32"/>
+<area shape="rect" id="node5" href="$classTimingSerializer.html" title=" " alt="" coords="216,80,344,107"/>
+<area shape="rect" id="node6" href="$classTPSerializer.html" title=" " alt="" coords="368,80,467,107"/>
+<area shape="rect" id="node7" href="$classClockTime.html" title=" " alt="" coords="491,80,581,107"/>
 </map>

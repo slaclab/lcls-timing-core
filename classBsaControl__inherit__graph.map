@@ -1,8 +1,8 @@
 <map id="BsaControl" name="BsaControl">
-<area shape="rect" id="node1" title=" " alt="" coords="57,80,151,107"/>
-<area shape="rect" id="node3" href="$classTPGMini.html" title=" " alt="" coords="66,155,142,181"/>
-<area shape="rect" id="node2" href="$classEventSelect.html" title=" " alt="" coords="45,5,163,32"/>
-<area shape="rect" id="node4" href="$classEvrV2__tb.html" title=" " alt="" coords="5,229,85,256"/>
-<area shape="rect" id="node5" href="$classTPGMiniCore.html" title=" " alt="" coords="109,229,216,256"/>
-<area shape="rect" id="node6" href="$classTimingCore.html" title=" " alt="" coords="114,304,211,331"/>
+<area shape="rect" id="node1" title=" " alt="" coords="71,80,164,107"/>
+<area shape="rect" id="node3" href="$classTPGMini.html" title=" " alt="" coords="79,155,155,181"/>
+<area shape="rect" id="node2" href="$classEventSelect.html" title=" " alt="" coords="68,5,167,32"/>
+<area shape="rect" id="node4" href="$classTPGMiniCore.html" title=" " alt="" coords="5,229,112,256"/>
+<area shape="rect" id="node6" href="$classEvrV2__tb.html" title=" " alt="" coords="136,229,216,256"/>
+<area shape="rect" id="node5" href="$classTimingCore.html" title=" " alt="" coords="10,304,107,331"/>
 </map>

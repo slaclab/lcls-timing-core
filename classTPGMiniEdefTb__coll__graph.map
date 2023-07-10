@@ -1,0 +1,8 @@
+<map id="TPGMiniEdefTb" name="TPGMiniEdefTb">
+<area shape="rect" id="node1" title=" " alt="" coords="170,155,291,181"/>
+<area shape="rect" id="node2" href="$classTPGMiniStream.html" title=" " alt="" coords="169,80,292,107"/>
+<area shape="rect" id="node3" href="$classDivider.html" title=" " alt="" coords="5,5,75,32"/>
+<area shape="rect" id="node4" href="$classTimingStreamTx.html" title=" " alt="" coords="99,5,229,32"/>
+<area shape="rect" id="node5" href="$classClockTime.html" title=" " alt="" coords="253,5,344,32"/>
+<area shape="rect" id="node6" href="$classTPGMiniEdef.html" title=" " alt="" coords="369,5,474,32"/>
+</map>

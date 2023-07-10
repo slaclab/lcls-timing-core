@@ -1,24 +1,26 @@
 /*
-@licstart  The following is the entire license notice for the
-JavaScript code in this file.
+ @licstart  The following is the entire license notice for the JavaScript code in this file.
 
-Copyright (C) 1997-2019 by Dimitri van Heesch
+ The MIT License (MIT)
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the GNU General Public License as published by
-the Free Software Foundation
+ Copyright (C) 1997-2020 by Dimitri van Heesch
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ and associated documentation files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ The above copyright notice and this permission notice shall be included in all copies or
+ substantial portions of the Software.
 
-@licend  The above is the entire license notice
-for the JavaScript code in this file
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ @licend  The above is the entire license notice for the JavaScript code in this file
 */
 var NAVTREE =
 [
@@ -33,17 +35,18 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-".html",
-"classEthTimingModule_1_1rtl.html#ade4de2a008a5f96235206eb18081481c",
-"classEvrV1EventReceiver_1_1rtl.html#a372e7aca19d44600015699076b15a5d9",
-"classEvrV2Cache_1_1mapping.html#a0d347dae676ace529149cbbc35181d2d",
-"classEvrV2FromV1.html#a8562dfa3c7970041e8fb901d9c0e4ecf",
-"classEvrV2__tb_1_1mapping.html#ac84e535b4220c12507adc5b54943b53d",
-"classTPGMiniEdef_1_1TPGMiniEdefImpl.html#a6d195c83fdfeae48522472b17c84fe32",
-"classTimingCore.html#a27153a4d982c1e45a244cf77cf67f50f",
-"classTimingGtCoreWrapper.html#af626ec9a7b241e92ca18db9d7bf3ee89",
-"classTimingMsgAxiRingBuffer.html#a80e5574c28ce6fd06510648d63787843",
-"classTimingSerialDelayTb_1_1testbed.html#a75db1938adfd9a02f06bba7c4226bb34"
+"annotated.html",
+"classEthTimingModule_1_1rtl.html#ae3f2610520504f07254ee38a4fe27f68",
+"classEvrV1EventReceiver_1_1rtl.html#a3173891423da0ca5c65d6f226564a783",
+"classEvrV2Cache_1_1mapping.html#a045b081bbd4c3053ed31794634a4d47d",
+"classEvrV2FromV1.html#aa5fefbb58d6204d5242dd2f4be3352e0",
+"classEvrV2__tb_1_1mapping.html#abfa021148fc7b23f4567519658d0989d",
+"classTPGMiniEdef_1_1TPGMiniEdefImpl.html#a832f8400160dd51face7024ff2bfaa9f",
+"classTPSerializer.html#a815a01a008e6cb8f25a7e7ca7f79750b",
+"classTimingGtCoreWrapper.html#a6847cab03f6bfb4658db33b9ffbdb965",
+"classTimingGthWrapper.html#a6badda97516c0bdc87a71bd53f972089",
+"classTimingSerialDelay.html#adeb222493482dfe91c36a7a02710329c",
+"classWordSerializer_1_1mapping.html#aaeb6804f08716fa47f851260dc473f7e"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

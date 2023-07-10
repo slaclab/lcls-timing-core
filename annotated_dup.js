@@ -1,8 +1,5 @@
 var annotated_dup =
 [
-    [ "TPGMiniStream", null, [
-      [ "TPGMiniStream.TPGMiniStream", "classTPGMiniStream_1_1TPGMiniStream.html", "classTPGMiniStream_1_1TPGMiniStream" ]
-    ] ],
     [ "BsaControl", "classBsaControl.html", "classBsaControl" ],
     [ "ClockTime", "classClockTime.html", "classClockTime" ],
     [ "CtrControl", "classCtrControl.html", "classCtrControl" ],
@@ -51,6 +48,7 @@ var annotated_dup =
     [ "TPGMiniEdef", "classTPGMiniEdef.html", "classTPGMiniEdef" ],
     [ "TPGMiniEdefTb", "classTPGMiniEdefTb.html", "classTPGMiniEdefTb" ],
     [ "TPGMiniReg", "classTPGMiniReg.html", "classTPGMiniReg" ],
+    [ "TPGMiniStream", "classTPGMiniStream.html", "classTPGMiniStream" ],
     [ "TPGNotify", "classTPGNotify.html", "classTPGNotify" ],
     [ "TPSerializer", "classTPSerializer.html", "classTPSerializer" ],
     [ "WordSerializer", "classWordSerializer.html", "classWordSerializer" ]
