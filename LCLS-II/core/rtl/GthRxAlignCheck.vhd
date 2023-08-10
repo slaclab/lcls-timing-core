@@ -161,8 +161,9 @@ begin
       v := r;
 
       -- Reset the flags
-      v.rst    := '0';
-      v.locked := '0';
+      v.rst         := '0';
+      -- Reset the strobes
+      v.rstRetryCnt := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -189,8 +190,6 @@ begin
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_OK_C);
 
-      v.rstRetryCnt := '0';
-
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -212,6 +211,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
+            -- Reset the flag
+            v.locked := '0';
             -- Wait for the reset transition and check state of master AXI-Lite
             if (resetDone = '1') and (ack.done = '0') then
                -- Start the master AXI-Lite transaction
