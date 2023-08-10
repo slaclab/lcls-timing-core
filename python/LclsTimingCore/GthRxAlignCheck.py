@@ -31,7 +31,7 @@ class GthRxAlignCheck(pr.Device):
             # description  = "Timing frame phase",
             # offset       =  0x00,
             # bitSize      =  16,
-            # bitOffset    =  0x00,
+            # bitOffset    =  0,
             # mode         = "RO",
             # pollInterval = 1,
             # number       =  128,
@@ -44,7 +44,7 @@ class GthRxAlignCheck(pr.Device):
             description  = "Timing frame phase",
             offset       =  0x00,
             bitSize      =  32,
-            bitOffset    =  0x00,
+            bitOffset    =  0,
             mode         = "RO",
             pollInterval = 1,
             number       =  64,
@@ -57,7 +57,16 @@ class GthRxAlignCheck(pr.Device):
             description  = "Timing frame phase lock target",
             offset       =  0x100,
             bitSize      =  7,
-            bitOffset    =  0x00,
+            bitOffset    =  0,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "Mask",
+            description  = "Register Mask Value",
+            offset       =  0x100,
+            bitSize      =  7,
+            bitOffset    =  8,
             mode         = "RW",
         ))
 
@@ -75,7 +84,7 @@ class GthRxAlignCheck(pr.Device):
             description  = "Last timing frame phase seen",
             offset       =  0x104,
             bitSize      =  7,
-            bitOffset    =  0x00,
+            bitOffset    =  0,
             mode         = "RO",
             pollInterval = 1,
         ))
@@ -116,4 +125,43 @@ class GthRxAlignCheck(pr.Device):
             dependencies = [self.RxClkFreqRaw],
             linkedGet    = lambda: self.RxClkFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "Locked",
+            description  = 'If True, align checker successfully aligned the transceiver',
+            offset       = 0x110,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RO',
+            base         = pr.Bool,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "Override",
+            description  = 'If set to True, the Align Checker will stop resetting the transceiver, regardless of the phase read-out from the DRP interface',
+            offset       = 0x114,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+            base         = pr.Bool,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name         = "RstRetryCnt",
+            description  = 'Reset the Retry Counter back to zero',
+            offset       = 0x118,
+            bitSize      = 1,
+            bitOffset    = 0,
+            function     = pr.RemoteCommand.touchOne
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "RetryCnt",
+            description  = 'How many retries it took to align. Does not roll-over',
+            offset       = 0x11C,
+            bitSize      = 16,
+            bitOffset    = 0,
+            mode         = 'RO',
+            base         = pr.UInt,
         ))

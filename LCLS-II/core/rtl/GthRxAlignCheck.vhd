@@ -63,8 +63,8 @@ architecture rtl of GthRxAlignCheck is
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
-   constant LOCK_VALUE : integer := 16;
-   constant MASK_VALUE : integer := 126;
+   constant LOCK_VALUE_C : integer := 16;
+   constant MASK_VALUE_C : integer := 126;
 
    type StateType is (
       RESET_S,
@@ -75,8 +75,11 @@ architecture rtl of GthRxAlignCheck is
    type RegType is record
       locked          : sl;
       rst             : sl;
+      rstRetryCnt     : sl;
+      override        : sl;
       rstlen          : slv(3 downto 0);
       rstcnt          : slv(3 downto 0);
+      retryCnt        : slv(15 downto 0);
       tgt             : slv(6 downto 0);
       mask            : slv(6 downto 0);
       last            : slv(15 downto 0);
@@ -89,10 +92,13 @@ architecture rtl of GthRxAlignCheck is
    constant REG_INIT_C : RegType := (
       locked          => '0',
       rst             => '1',
+      rstRetryCnt     => '0',
+      override        => '0',
       rstlen          => toSlv(3, 4),
       rstcnt          => toSlv(0, 4),
-      tgt             => toSlv(LOCK_VALUE, 7),
-      mask            => toSlv(MASK_VALUE, 7),
+      retryCnt        => toSlv(0, 16),
+      tgt             => toSlv(LOCK_VALUE_C, 7),
+      mask            => toSlv(MASK_VALUE_C, 7),
       last            => toSlv(0, 16),
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -166,17 +172,24 @@ begin
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), v.sample(i));
+         axiSlaveRegister(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), v.sample(i));
       end loop;
-      axiSlaveRegister(axilEp, toSlv(256, 9), 0, v.tgt);
-      axiSlaveRegister(axilEp, toSlv(256, 9), 8, v.mask);
-      axiSlaveRegister(axilEp, toSlv(256, 9), 16, v.rstlen);
-      axiSlaveRegister(axilEp, toSlv(260, 9), 0, v.last);
-      axiSlaveRegisterR(axilEp, toSlv(264, 9), 0, txClkFreq);
-      axiSlaveRegisterR(axilEp, toSlv(268, 9), 0, rxClkFreq);
+      axiSlaveRegister (axilEp, x"100", 0,  v.tgt);
+      axiSlaveRegister (axilEp, x"100", 8,  v.mask);
+      axiSlaveRegister (axilEp, x"100", 16, v.rstlen);
+      axiSlaveRegister (axilEp, x"104", 0,  v.last);
+      axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
+      axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
+      axiSlaveRegisterR(axilEp, x"110", 0,  v.locked);
+      axiSlaveRegister (axilEp, x"114", 0,  v.override);
+      axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
+      axiSlaveRegisterR(axilEp, x"11C", 0,  v.retryCnt);
+
 
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_OK_C);
+
+      v.rstRetryCnt := '0';
 
       -- State Machine
       case r.state is
@@ -221,7 +234,8 @@ begin
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment
-               if ((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7) then
+               if ( (((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
+               or  v.override = '1') then
                   -- Next state
                   v.state := LOCKED_S;
                else
@@ -252,6 +266,18 @@ begin
          v.rstcnt      := (others => '0');
          -- Next state
          v.state       := RESET_S;
+      end if;
+
+      -- Increment the reset retry counter (if triggered internally)
+      if    (r.rstRetryCnt = '1') then
+         -- Reset clause first
+         v.retryCnt := (others => '0');
+      elsif (v.rst = '1' and r.rst = '0' and resetIn = '0' and resetErr = '0') then
+         -- Edge-triggered
+         if (allBits(r.retryCnt, '1') = false) then
+            -- Prevent rollover
+            v.retryCnt := r.retryCnt + 1;
+         end if;
       end if;
 
       -- Reset
