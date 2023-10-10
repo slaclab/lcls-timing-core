@@ -165,3 +165,22 @@ class GthRxAlignCheck(pr.Device):
             mode         = 'RO',
             base         = pr.UInt,
         ))
+
+        self.add(pr.RemoteVariable(
+            name         = "RefClkFreqRaw",
+            offset       = 0x120,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
+            hidden       = True,
+            pollInterval = 1,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = "RefClkFreq",
+            units        = "MHz",
+            mode         = 'RO',
+            dependencies = [self.RefClkFreqRaw],
+            linkedGet    = lambda: self.RefClkFreqRaw.value() * 1.0e-6,
+            disp         = '{:0.3f}',
+        ))

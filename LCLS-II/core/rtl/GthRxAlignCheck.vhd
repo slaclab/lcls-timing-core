@@ -24,13 +24,15 @@ use surf.AxiLitePkg.all;
 
 entity GthRxAlignCheck is
    generic (
-      TPD_G      : time   := 1 ns;
-      GT_TYPE_G  : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
-      DRP_ADDR_G : slv(31 downto 0));
+      TPD_G          : time   := 1 ns;
+      GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
+      AXI_CLK_FREQ_G : real   := 125.0e6;
+      DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring
       txClk            : in  sl;
       rxClk            : in  sl;
+      refClk           : in  sl;
       -- GTH Status/Control Interface
       resetIn          : in  sl;
       resetOut         : out sl;
@@ -112,8 +114,9 @@ architecture rtl of GthRxAlignCheck is
    signal ack : AxiLiteAckType;
 
 
-   signal txClkFreq : slv(31 downto 0);
-   signal rxClkFreq : slv(31 downto 0);
+   signal txClkFreq  : slv(31 downto 0);
+   signal rxClkFreq  : slv(31 downto 0);
+   signal refClkFreq : slv(31 downto 0);
 
   -- attribute dont_touch              : string;
   -- attribute dont_touch of r         : signal is "TRUE";
@@ -123,10 +126,24 @@ architecture rtl of GthRxAlignCheck is
 
 begin
 
+   U_refClkFreq : entity surf.SyncClockFreq
+      generic map (
+         TPD_G          => TPD_G,
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
+         REFRESH_RATE_G => 1.0,         -- Units of Hz
+         CNT_WIDTH_G    => 32)          -- Counters' width
+      port map (
+         -- Frequency Measurement and Monitoring Outputs (locClk domain)
+         freqOut => refClkFreq,
+         -- Clocks
+         clkIn   => refClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
+
    U_txClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
          REFRESH_RATE_G => 1.0,         -- Units of Hz
          CNT_WIDTH_G    => 32)          -- Counters' width
       port map (
@@ -140,7 +157,7 @@ begin
    U_rxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => 156.25E+6,   -- Units of Hz
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
          REFRESH_RATE_G => 1.0,         -- Units of Hz
          CNT_WIDTH_G    => 32)          -- Counters' width
       port map (
@@ -185,6 +202,7 @@ begin
       axiSlaveRegister (axilEp, x"114", 0,  v.override);
       axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
       axiSlaveRegisterR(axilEp, x"11C", 0,  v.retryCnt);
+      axiSlaveRegisterR(axilEp, x"120", 0,  refClkFreq);
 
 
       -- Close out the transaction
