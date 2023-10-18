@@ -109,11 +109,11 @@ architecture rtl of GthRxAlignCheck is
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : slv(31 downto 0);
 
-   attribute keep                    : string;
-   attribute keep of r         : signal is "TRUE";
-   attribute keep of ack       : signal is "TRUE";
-   attribute keep of resetErr : signal is "TRUE";
-   attribute keep of resetDone : signal is "TRUE";
+   --attribute DONT_TOUCH                    : string;
+   --attribute DONT_TOUCH of r         : signal is "TRUE";
+   --attribute DONT_TOUCH of ack       : signal is "TRUE";
+   --attribute DONT_TOUCH of resetErr : signal is "TRUE";
+   --attribute DONT_TOUCH of resetDone : signal is "TRUE";
 
 begin
 
@@ -244,7 +244,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1') then
+      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
