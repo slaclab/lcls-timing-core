@@ -3,7 +3,7 @@
   "ip_inst": {
     "xci_name": "TimingGth_fixedlat",
     "component_reference": "xilinx.com:ip:gtwizard_ultrascale:1.7",
-    "ip_revision": "14",
+    "ip_revision": "15",
     "gen_directory": "../../../../EPixHR10k2M_project.gen/sources_1/ip/TimingGth_fixedlat",
     "parameters": {
       "component_parameters": {
@@ -838,7 +838,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
-        "IPREVISION": [ { "value": "14" } ],
+        "IPREVISION": [ { "value": "15" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../EPixHR10k2M_project.gen/sources_1/ip/TimingGth_fixedlat" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
