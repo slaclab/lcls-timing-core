@@ -251,7 +251,7 @@ architecture rtl of TimingGthCoreWrapper is
    signal txoutclkb    : sl               := '0';
    signal rxoutclk_out : sl               := '0';
    signal rxoutclkb    : sl               := '0';
-   
+
    signal drpAddr     : slv(9 downto 0)  := (others => '0');
    signal drpDi       : slv(15 downto 0) := (others => '0');
    signal drpEn       : sl               := '0';
@@ -459,7 +459,7 @@ begin
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
       rxDecErr  <= rxCtrl3Out(1 downto 0);
-      
+
       txoutclkb <= gtRefClkDiv2;
 
       TIMING_RECCLK_BUFG_GT : BUFG_GT
