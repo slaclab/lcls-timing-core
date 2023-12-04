@@ -139,7 +139,6 @@ architecture rtl of TimingRx is
    signal timingTSEventCounter : slv(31 downto 0);
    signal timingTSEvCntGray_i  : slv(31 downto 0);
    signal timingTSEvCntGray_o  : Slv32Array(5 downto 0);
-
 begin
 
    NOGEN_RxLcls1 : if (CLKSEL_MODE_G = "LCLSII" or CLKSEL_MODE_G = "LCLSIIPIC") generate
@@ -194,7 +193,7 @@ begin
             rxVersion           => rxVersion(1),
             staData             => staData (1));
    end generate;
-
+    
    axilComb : process (axilR, axilRst, axilReadMaster, axilRxLinkUp, axilStatusCounters12,
                        axilStatusCounters3, axilVersion, axilVsnErr, axilWriteMaster, rxStatusCount,
                        timingTSEvCntGray_o, txClkCntS) is

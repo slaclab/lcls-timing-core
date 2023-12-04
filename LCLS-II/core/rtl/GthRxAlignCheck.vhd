@@ -108,13 +108,6 @@ architecture rtl of GthRxAlignCheck is
 
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : slv(31 downto 0);
-
-   --attribute DONT_TOUCH                    : string;
-   --attribute DONT_TOUCH of r         : signal is "TRUE";
-   --attribute DONT_TOUCH of ack       : signal is "TRUE";
-   --attribute DONT_TOUCH of resetErr : signal is "TRUE";
-   --attribute DONT_TOUCH of resetDone : signal is "TRUE";
-
 begin
 
    U_txClkFreq : entity surf.SyncClockFreq
