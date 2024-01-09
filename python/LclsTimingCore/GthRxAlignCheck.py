@@ -61,6 +61,16 @@ class GthRxAlignCheck(pr.Device):
             mode         = "RW",
         ))
 
+
+        self.add(pr.RemoteVariable(
+            name         = "Mask",
+            description  = "Mask",
+            offset       =  0x100,
+            bitSize      =  7,
+            bitOffset    =  8,
+            mode         = "RW",
+        ))
+
         self.add(pr.RemoteVariable(
             name         = "ResetLen",
             description  = "Reset length",

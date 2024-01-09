@@ -81,6 +81,7 @@ entity TimingGthCoreWrapper is
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
+   
 end entity TimingGthCoreWrapper;
 
 architecture rtl of TimingGthCoreWrapper is
@@ -251,7 +252,7 @@ architecture rtl of TimingGthCoreWrapper is
    signal txoutclkb    : sl               := '0';
    signal rxoutclk_out : sl               := '0';
    signal rxoutclkb    : sl               := '0';
-   
+
    signal drpAddr     : slv(9 downto 0)  := (others => '0');
    signal drpDi       : slv(15 downto 0) := (others => '0');
    signal drpEn       : sl               := '0';
@@ -459,7 +460,7 @@ begin
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
       rxDecErr  <= rxCtrl3Out(1 downto 0);
-      
+
       txoutclkb <= gtRefClkDiv2;
 
       TIMING_RECCLK_BUFG_GT : BUFG_GT
@@ -473,7 +474,8 @@ begin
             O       => rxoutclkb);
    end generate;
 
-   LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false)generate
+   LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false) generate
+
       U_TimingGthCore : TimingGth_fixedlat
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txbypassrst,

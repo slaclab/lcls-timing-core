@@ -108,13 +108,6 @@ architecture rtl of GthRxAlignCheck is
 
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : slv(31 downto 0);
-
-  -- attribute dont_touch              : string;
-  -- attribute dont_touch of r         : signal is "TRUE";
-  -- attribute dont_touch of ack       : signal is "TRUE";
-  -- attribute dont_touch of txClkFreq : signal is "TRUE";
-  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
-
 begin
 
    U_txClkFreq : entity surf.SyncClockFreq
@@ -244,7 +237,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1') then
+      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
