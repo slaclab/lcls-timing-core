@@ -83,7 +83,7 @@ architecture rtl of TimingFrameRx is
    signal dframe  : DataArray;
    signal dstrobe : slv(15 downto 1);
    signal dvalid  : slv(15 downto 1);
-   
+
 begin
 
    delayRst <= rxRst or messageDelayRst or doverflow0;
