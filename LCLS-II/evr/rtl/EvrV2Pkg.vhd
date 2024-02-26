@@ -218,7 +218,7 @@ package body EvrV2Pkg is
     assignSlv(i, vector, cfg.enabled);
     assignSlv(i, vector, cfg.polarity);
     assignSlv(i, vector, cfg.complEn);
-    assignSlv(i, vector, cfg.complAnd);
+    assignSlv(i, vector, cfg.complOp);
     assignSlv(i, vector, cfg.delay);
     assignSlv(i, vector, cfg.width);
     assignSlv(i, vector, cfg.channel);
@@ -250,7 +250,7 @@ package body EvrV2Pkg is
     assignRecord(i, vector, cfg.enabled);
     assignRecord(i, vector, cfg.polarity);
     assignRecord(i, vector, cfg.complEn);
-    assignRecord(i, vector, cfg.complAnd);
+    assignRecord(i, vector, cfg.complOp);
     assignRecord(i, vector, cfg.delay);
     assignRecord(i, vector, cfg.width);
     assignRecord(i, vector, cfg.channel);
