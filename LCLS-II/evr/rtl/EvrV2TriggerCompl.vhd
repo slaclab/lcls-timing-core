@@ -64,11 +64,14 @@ begin
    begin
       for i in 0 to 1 loop
          if config(i).complEn = '0' then
-            v.trig(i) := trigIn(i);
-         elsif config(i).complAnd = '1' then
-            v.trig(i) := trigIn(0) and trigIn(1);
+           v.trig(i) := trigIn(i);
          else
-            v.trig(i) := trigIn(0) or trigIn(1);
+           case config(i).complOp is
+             when "00" => v.trig(i) <=     trigIn(0) or  trigIn(1);
+             when "01" => v.trig(i) <=     trigIn(0) and trigIn(1);
+             when "10" => v.trig(i) <=     trigIn(0) xor trigIn(1);
+             when "11" => v.trig(i) <= '1';  -- reserved
+           end case;
          end if;
       end loop;
 

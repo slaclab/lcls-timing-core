@@ -68,13 +68,13 @@ package EvrV2Pkg is
   type EvrV2ChannelConfigArray is array (natural range<>) of EvrV2ChannelConfig;
 
   constant EVRV2_TRIG_WIDTH_C : integer := 28;
-  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 31+2*EVRV2_TRIG_WIDTH_C;
+  constant EVRV2_TRIGGER_CONFIG_BITS_C : integer := 32+2*EVRV2_TRIG_WIDTH_C;
 
   type EvrV2TriggerConfigType is record
     enabled  : sl;
     polarity : sl;
     complEn  : sl;
-    complAnd : sl;
+    complOp  : slv( 1 downto 0);
     delay    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     width    : slv(EVRV2_TRIG_WIDTH_C-1 downto 0);
     channel  : slv( 3 downto 0);
@@ -87,7 +87,7 @@ package EvrV2Pkg is
     enabled   => '0',
     polarity  => '1',
     complEn   => '0',
-    complAnd  => '0',
+    complOp   => "00",
     delay     => (others=>'0'),
     width     => toSlv(1, EVRV2_TRIG_WIDTH_C), -- Default to 1 cycle width, 0 will essentially disable the channel (zero cycle wide)
     channel   => (others=>'0'),
