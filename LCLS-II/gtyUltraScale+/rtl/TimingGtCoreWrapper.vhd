@@ -45,8 +45,8 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
-      stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
-      stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableClk    : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableRst    : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTY FPGA IO
       gtRefClk     : in  sl;
       gtRefClkDiv2 : in  sl;            -- Unused in GTYE3, but used in GTYE4
@@ -74,8 +74,8 @@ entity TimingGtCoreWrapper is
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
       txStatus       : out TimingPhyStatusType;
-      txUsrClk       : in  sl := '0';
-      txUsrClkActive : in  sl := '0';
+      txUsrClk       : in  sl               := '0';
+      txUsrClkActive : in  sl               := '0';
       txData         : in  slv(15 downto 0) := (others => '0');
       txDataK        : in  slv(1 downto 0)  := (others => '0');
       txOutClk       : out sl;
@@ -155,7 +155,8 @@ architecture rtl of TimingGtCoreWrapper is
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txresetdone_out                    : out std_logic_vector(0 downto 0)
+         txresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxrecclkout_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
    component TimingGty_extref
@@ -226,7 +227,8 @@ architecture rtl of TimingGtCoreWrapper is
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txresetdone_out                    : out std_logic_vector(0 downto 0)
+         txresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxrecclkout_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -450,7 +452,8 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out                    => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open);
+            txpmaresetdone_out                    => open,
+            rxrecclkout_out(0)                    => rxrecclk_out);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -544,7 +547,8 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out                    => open,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open);
+            txpmaresetdone_out                    => open,
+            rxrecclkout_out(0)                    => rxrecclk_out);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
