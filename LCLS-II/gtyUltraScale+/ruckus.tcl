@@ -14,19 +14,19 @@ if { [info exists ::env(TIMING_246MHz)] != 1 || $::env(TIMING_246MHz) == 0 } {
 
 if { $::env(VIVADO_VERSION) >= 2021.1 && [info exists ::env(TIMING_246MHz)] != 1} {
 
-   # loadSource -lib lcls_timing_core   -path "${path}/TimingGty_extref.dcp"
-   loadIpCore -path "${path}/TimingGty_extref.xci"
+   loadSource -lib lcls_timing_core   -path "${path}/TimingGty_extref.dcp"
+   # loadIpCore -path "${path}/TimingGty_extref.xci"
 
-   # loadSource -lib lcls_timing_core   -path "${path}/TimingGty_fixedlat.dcp"
-   loadIpCore -path "${path}/TimingGty_fixedlat.xci"
+   loadSource -lib lcls_timing_core   -path "${path}/TimingGty_fixedlat.dcp"
+   # loadIpCore -path "${path}/TimingGty_fixedlat.xci"
 
 } elseif { $::env(VIVADO_VERSION) >= 2020.2 && [info exists ::env(TIMING_246MHz)] == 1 } {
 
-   # loadSource -lib lcls_timing_core   -path "${path}/TimingGty_extref.dcp"
-   loadIpCore -path "${path}/TimingGty_extref.xci"
+   loadSource -lib lcls_timing_core   -path "${path}/TimingGty_extref.dcp"
+   # loadIpCore -path "${path}/TimingGty_extref.xci"
 
-   # loadSource -lib lcls_timing_core   -path "${path}/TimingGty_fixedlat.dcp"
-   loadIpCore -path "${path}/TimingGty_fixedlat.xci"
+   loadSource -lib lcls_timing_core   -path "${path}/TimingGty_fixedlat.dcp"
+   # loadIpCore -path "${path}/TimingGty_fixedlat.xci"
 
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2021.1 (or later)\n\n"
