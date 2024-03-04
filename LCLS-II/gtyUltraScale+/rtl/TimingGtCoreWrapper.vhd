@@ -70,6 +70,7 @@ entity TimingGtCoreWrapper is
       rxDispErr      : out slv(1 downto 0);
       rxDecErr       : out slv(1 downto 0);
       rxOutClk       : out sl;
+      rxRecClk : out sl;
 
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
@@ -453,7 +454,7 @@ begin
             rxpmaresetdone_out                    => open,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
-            rxrecclkout_out(0)                    => rxrecclk_out);
+            rxrecclkout_out(0)                    => rxRecClk);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -548,7 +549,7 @@ begin
             rxpmaresetdone_out                    => open,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
-            rxrecclkout_out(0)                    => rxrecclk_out);
+            rxrecclkout_out(0)                    => rxRecClk);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
