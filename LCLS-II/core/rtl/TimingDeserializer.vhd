@@ -79,9 +79,9 @@ architecture TimingDeserializer of TimingDeserializer is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
   signal crc : slv(31 downto 0);
-   
+
 begin
-  
+
   fiducial <= r.fiducial;
   streams  <= r.streams;
   advance  <= r.advance;
