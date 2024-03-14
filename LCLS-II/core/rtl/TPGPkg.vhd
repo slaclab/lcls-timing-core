@@ -25,9 +25,10 @@ package TPGPkg is
    constant ACRATEDEPTH      : integer := 6;  -- number of ac rate markers
    constant MAXALLOWSEQDEPTH : natural := 16;  -- max number of allow sequences
    constant MAXBEAMSEQDEPTH  : natural := 16;  -- max number of beam sequences
-   constant MAXEXPSEQDEPTH   : natural := 72;  -- max number of expt sequences
+   constant MAXEXPSEQDEPTH   : natural := 64;  -- max number of expt sequences
    constant EXPPARTITIONS    : integer := 8;  -- number of expt partitions
    constant MAXSEQDEPTH      : integer := MAXALLOWSEQDEPTH+MAXBEAMSEQDEPTH+MAXEXPSEQDEPTH;
+   constant MAXDESTDIAGDEPTH : integer := 8;
    constant SEQADDRLEN       : integer := 11;  -- sequencer address bus width
    constant SEQCOUNTDEPTH    : integer := 4;  -- counters within a sequencer (depth of nested loops)
    constant BCSWIDTH         : integer := 1;
@@ -43,7 +44,7 @@ package TPGPkg is
    constant Beam  : slv(Allow'left+MAXBEAMSEQDEPTH downto Allow'left+1) := (others => '0');
    constant Expt  : slv(Beam'left+MAXEXPSEQDEPTH downto Beam'left+1)    := (others => '0');
    constant Seq   : slv(Expt'left downto Allow'right)                   := (others => '0');
-
+   
    type CtrDefType is record
       rateSel : slv(12 downto 0);
       -- Bits(12:11)=(fixed,AC,seq,reserved)
@@ -154,6 +155,7 @@ package TPGPkg is
       narraysbsa   : slv (7 downto 0);
       seqaddrlen   : slv (3 downto 0);
       nallowseq    : slv (5 downto 0);
+      ndestdiag    : slv (7 downto 0);
       --
       pulseId      : slv(63 downto 0);
       timeStamp    : slv(63 downto 0);
@@ -169,6 +171,7 @@ package TPGPkg is
       countBRT     : slv(31 downto 0);
       countTrig    : Slv32Array(NTRIGGERSIN-1 downto 0);
       countSeq     : Slv128Array(MAXSEQDEPTH-1 downto 0);
+      countDestDiag: Slv128Array(MAXDESTDIAGDEPTH-1 downto 0);
       countUpdate  : sl;                      -- single sysclk pulse
       beamDiag     : BeamDiagStatusType;
       rxStatus     : slv(11 downto 0);
@@ -194,6 +197,7 @@ package TPGPkg is
       narraysbsa   => (others => '0'),
       seqaddrlen   => (others => '0'),
       nallowseq    => (others => '0'),
+      ndestdiag    => (others => '0'),
       pulseId      => (others => '0'),
       timeStamp    => (others => '0'),
       bsaComplete  => (others => '0'),
@@ -208,6 +212,7 @@ package TPGPkg is
       countBRT     => (others => '0'),
       countTrig    => (others => (others => '0')),
       countSeq     => (others => (others => '0')),
+      countDestDiag=> (others => (others => '0')),
       countUpdate  => '0',
       beamDiag     => BEAM_DIAG_STATUS_INIT_C,
       rxStatus     => (others => '0'),
