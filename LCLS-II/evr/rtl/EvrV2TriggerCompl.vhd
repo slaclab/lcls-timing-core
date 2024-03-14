@@ -71,6 +71,7 @@ begin
              when "01" => v.trig(i) :=     trigIn(0) and trigIn(1);
              when "10" => v.trig(i) :=     trigIn(0) xor trigIn(1);
              when "11" => v.trig(i) := '1';  -- reserved
+             when others => NULL;
            end case;
          end if;
       end loop;
