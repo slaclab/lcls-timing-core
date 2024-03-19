@@ -193,7 +193,7 @@ begin
             rxVersion           => rxVersion(1),
             staData             => staData (1));
    end generate;
-    
+
    axilComb : process (axilR, axilRst, axilReadMaster, axilRxLinkUp, axilStatusCounters12,
                        axilStatusCounters3, axilVersion, axilVsnErr, axilWriteMaster, rxStatusCount,
                        timingTSEvCntGray_o, txClkCntS) is

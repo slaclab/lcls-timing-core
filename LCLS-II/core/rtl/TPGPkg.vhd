@@ -241,10 +241,11 @@ package TPGPkg is
       -- AC sync from analog or digital AMC
       acMaster           : sl;
       -- Analog lookahead (master) or digital delay (us)
-      acDelay            : slv(14 downto 0);
+      acTS1              : slv(1 downto 0);
+      acPolarity         : sl;
+      acDelay            : slv(12 downto 0);
       inpDelay           : slv(8 downto 0);
       inpDelayLd         : sl;
-      frameDelay         : slv(15 downto 0);
       baseDivisor        : slv(15 downto 0);
       pulseId            : slv(63 downto 0);
       pulseIdWrEn        : sl;
@@ -293,11 +294,12 @@ package TPGPkg is
       txPolarity         => '0',
       baseDivisor        => x"00C8",
       acMaster           => '1',
-      acDelay            => toSlv(100, 15),
+      acTS1              => "00",
+      acPolarity         => '0',
+      acDelay            => toSlv(100, 13),
       --    acDelay           => toSlv(733,15),
       inpDelay           => (others => '0'),
       inpDelayLd         => '0',
-      frameDelay         => x"0000",
       pulseId            => (others => '0'),
       pulseIdWrEn        => '1',
       timeStamp          => (others => '0'),

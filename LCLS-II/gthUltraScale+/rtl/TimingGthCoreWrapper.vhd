@@ -81,7 +81,7 @@ entity TimingGthCoreWrapper is
       txOutClk       : out sl;
 
       loopback : in slv(2 downto 0));
-   
+
 end entity TimingGthCoreWrapper;
 
 architecture rtl of TimingGthCoreWrapper is
