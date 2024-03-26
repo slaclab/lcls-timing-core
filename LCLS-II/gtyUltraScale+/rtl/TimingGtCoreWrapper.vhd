@@ -308,7 +308,7 @@ begin
       port map (
          -- Clock Monitoring
          txClk            => txoutclkb,
-         rxClk            => rxoutclkb,
+         rxClk            => rxUsrClk,  -- Should maybe be rxUsrClk
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
          resetDone        => bypassdone,
