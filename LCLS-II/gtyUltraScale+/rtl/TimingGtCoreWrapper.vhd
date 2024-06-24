@@ -62,17 +62,18 @@ entity TimingGtCoreWrapper is
       cpllRefClkSel : in slv(2 downto 0) := "001";  -- Set for "111" for gtgRefClk
 
       -- Rx ports
-      rxControl      : in  TimingPhyControlType;
-      rxStatus       : out TimingPhyStatusType;
-      rxUsrClkActive : in  sl;
-      rxCdrStable    : out sl;
-      rxUsrClk       : in  sl;
-      rxData         : out slv(15 downto 0);
-      rxDataK        : out slv(1 downto 0);
-      rxDispErr      : out slv(1 downto 0);
-      rxDecErr       : out slv(1 downto 0);
-      rxOutClk       : out sl;
-      rxRecClk : out sl;
+      rxControl       : in  TimingPhyControlType;
+      rxStatus        : out TimingPhyStatusType;
+      rxUsrClkActive  : in  sl;
+      rxCdrStable     : out sl;
+      rxPmaRstDoneOut : out sl;
+      rxUsrClk        : in  sl;
+      rxData          : out slv(15 downto 0);
+      rxDataK         : out slv(1 downto 0);
+      rxDispErr       : out slv(1 downto 0);
+      rxDecErr        : out slv(1 downto 0);
+      rxOutClk        : out sl;
+      rxRecClk        : out sl;
 
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
@@ -456,7 +457,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out                    => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
             rxrecclkout_out(0)                    => rxRecClk);
@@ -551,7 +552,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out                    => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
             rxrecclkout_out(0)                    => rxRecClk);
