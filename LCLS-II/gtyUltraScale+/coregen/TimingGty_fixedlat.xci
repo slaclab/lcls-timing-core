@@ -4,7 +4,7 @@
     "xci_name": "TimingGty_fixedlat",
     "component_reference": "xilinx.com:ip:gtwizard_ultrascale:1.7",
     "ip_revision": "16",
-    "gen_directory": "../../../../S30xlAPx_project.gen/sources_1/ip/TimingGty_fixedlat",
+    "gen_directory": "../../../../FcHubBittware_project.gen/sources_1/ip/TimingGty_fixedlat",
     "parameters": {
       "component_parameters": {
         "GT_TYPE": [ { "value": "GTY", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
@@ -170,7 +170,7 @@
         "PRESET": [ { "value": "GTY-Aurora_8B10B", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "INTERNAL_PRESET": [ { "value": "Aurora_8B10B", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "INTERNAL_PORT_USAGE_UPDATED": [ { "value": "0", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
-        "INTERNAL_PORT_ENABLEMENT_UPDATED": [ { "value": "26", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
+        "INTERNAL_PORT_ENABLEMENT_UPDATED": [ { "value": "25", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
         "INTERNAL_CHANNEL_SITES_UPDATED": [ { "value": "7", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
         "INTERNAL_CHANNEL_COLUMN_LOC_MAX": [ { "value": "96", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
         "INTERNAL_RX_COMMA_PRESET_UPDATE": [ { "value": "9", "resolve_type": "generated", "format": "long", "enabled": false, "usage": "all" } ],
@@ -825,7 +825,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "16" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../S30xlAPx_project.gen/sources_1/ip/TimingGty_fixedlat" } ],
+        "OUTPUTDIR": [ { "value": "../../../../FcHubBittware_project.gen/sources_1/ip/TimingGty_fixedlat" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.1" } ],
