@@ -457,7 +457,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => rxPmaRstDoneOut,
+            rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
             rxrecclkout_out(0)                    => rxRecClk);
@@ -552,7 +552,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => rxPmaRstDoneOut,
+            rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open,
             rxrecclkout_out(0)                    => rxRecClk);
