@@ -22,7 +22,7 @@ use UNISIM.VCOMPONENTS.ALL;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity ClockTime is
+entity ClockTime_186MHz is
    generic (
       TPD_G    : time    := 1 ns);
    port (
@@ -37,10 +37,10 @@ entity ClockTime is
       wrEnB              : in  sl;
       dataO              : out slv(63 downto 0)
       );
-end ClockTime;
+end ClockTime_186MHz;
 
 -- Define architecture for top level module
-architecture ClockTime_186MHz of ClockTime is
+architecture rtl of ClockTime_186MHz is
 
   constant remainder : slv( 4 downto 0)  := slv(conv_unsigned( 5,5));
   constant divisor   : slv( 4 downto 0)  := slv(conv_unsigned(13,5));
@@ -101,4 +101,4 @@ begin
 
   dataO <= dataB;
 
-end ClockTime_186MHz;
+end rtl;

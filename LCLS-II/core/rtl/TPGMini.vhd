@@ -326,7 +326,7 @@ begin
     end if;
   end process;
 
-  U_ClockTime : entity lcls_timing_core.ClockTime
+  U_ClockTime : entity lcls_timing_core.ClockTime_186MHz
     generic map (
       TPD_G =>   TPD_G)
     port map (
