@@ -326,10 +326,13 @@ begin
     end if;
   end process;
 
-  U_ClockTime : entity lcls_timing_core.ClockTime_186MHz
+  U_ClockTime : entity lcls_timing_core.ClockTime
     generic map (
       TPD_G =>   TPD_G)
     port map (
+      step      => toSlv(8,5),
+      remainder => toSlv(2,5),
+      divisor   => toSlv(5,5),
       rst    => txRst,
       clkA   => txClk,
       wrEnA  => config.timeStampWrEn,
@@ -338,7 +341,7 @@ begin
       clkB   => txClk,
       wrEnB  => baseEnable,
       dataO  => frame.timeStamp);
-
+      
   statusO <= status;
   config  <= configI;
 
