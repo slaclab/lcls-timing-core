@@ -338,7 +338,7 @@ begin
       clkB   => txClk,
       wrEnB  => baseEnable,
       dataO  => frame.timeStamp);
-      
+
   statusO <= status;
   config  <= configI;
 

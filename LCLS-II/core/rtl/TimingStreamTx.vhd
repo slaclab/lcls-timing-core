@@ -94,7 +94,7 @@ begin
         v.ecodData   := K_COM_C;
         v.dataK      := "01";
       end if;
-      
+
       case (r.state) is
         when IDLE_S =>
           v.wordCount := (others=>'0');
