@@ -330,9 +330,6 @@ begin
     generic map (
       TPD_G =>   TPD_G)
     port map (
-      step      => toSlv(8,5),
-      remainder => toSlv(2,5),
-      divisor   => toSlv(5,5),
       rst    => txRst,
       clkA   => txClk,
       wrEnA  => config.timeStampWrEn,
