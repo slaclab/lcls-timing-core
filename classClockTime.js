@@ -1,6 +1,5 @@
 var classClockTime =
 [
-    [ "ClockTime_186MHz", "classClockTime_1_1ClockTime__186MHz.html", "classClockTime_1_1ClockTime__186MHz" ],
     [ "rtl", "classClockTime_1_1rtl.html", "classClockTime_1_1rtl" ],
     [ "TPD_G", "classClockTime.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "FRACTION_DEPTH_G", "classClockTime.html#a73f5a23159cf52eba82afd8c66a65863", null ],
@@ -20,7 +19,5 @@ var classClockTime =
     [ "std_logic_arith", "classClockTime.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classClockTime.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "surf", "classClockTime.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classClockTime.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "UNISIM", "classClockTime.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VCOMPONENTS", "classClockTime.html#af7dabcc6b22cfac21d9188de6b952c14", null ]
+    [ "StdRtlPkg", "classClockTime.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

@@ -2,6 +2,7 @@ var annotated_dup =
 [
     [ "BsaControl", "classBsaControl.html", "classBsaControl" ],
     [ "ClockTime", "classClockTime.html", "classClockTime" ],
+    [ "ClockTime_186MHz", "classClockTime__186MHz.html", "classClockTime__186MHz" ],
     [ "CtrControl", "classCtrControl.html", "classCtrControl" ],
     [ "Divider", "classDivider.html", "classDivider" ],
     [ "EthTimingModule", "classEthTimingModule.html", "classEthTimingModule" ],
