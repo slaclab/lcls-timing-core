@@ -72,7 +72,6 @@ entity TimingGtCoreWrapper is
       rxDispErr       : out slv(1 downto 0);
       rxDecErr        : out slv(1 downto 0);
       rxOutClk        : out sl;
-      rxRecClk        : out sl;
 
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
@@ -158,8 +157,7 @@ architecture rtl of TimingGtCoreWrapper is
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txresetdone_out                    : out std_logic_vector(0 downto 0);
-         rxrecclkout_out                    : out std_logic_vector(0 downto 0)
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
    component TimingGty_extref
@@ -230,8 +228,7 @@ architecture rtl of TimingGtCoreWrapper is
          rxsyncdone_out                     : out std_logic_vector(0 downto 0);
          txoutclk_out                       : out std_logic_vector(0 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txresetdone_out                    : out std_logic_vector(0 downto 0);
-         rxrecclkout_out                    : out std_logic_vector(0 downto 0)
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -458,8 +455,7 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open,
-            rxrecclkout_out(0)                    => rxRecClk);
+            txpmaresetdone_out                    => open);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
@@ -553,8 +549,7 @@ begin
             rxoutclk_out(0)                       => rxoutclk_out,
             rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
-            txpmaresetdone_out                    => open,
-            rxrecclkout_out(0)                    => rxRecClk);
+            txpmaresetdone_out                    => open);
 
       rxDataK   <= rxCtrl0Out(1 downto 0);
       rxDispErr <= rxCtrl1Out(1 downto 0);
