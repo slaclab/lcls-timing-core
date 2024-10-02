@@ -84,9 +84,16 @@ begin
       v := r;
 
       v.dataBuffEn := not r.dataBuffEn;
-      v.dbufData   := D_215_C;
-      v.ecodData   := K_COM_C;
-      v.dataK      := "01";
+
+      if r.dataBuffEn = '1' then
+        v.dbufData   := x"00";
+        v.ecodData   := x"00";
+        v.dataK      := "00";
+      else
+        v.dbufData   := x"00";
+        v.ecodData   := K_COM_C;
+        v.dataK      := "01";
+      end if;
 
       case (r.state) is
         when IDLE_S =>
@@ -97,14 +104,14 @@ begin
             v.dataBuffEn := '0';
             v.pulseId    := pulseId;
             v.eventCodes := eventCodes;
-            v.dataK      := "11";
+            v.dataK(1)   := '1';
             v.dbufData   := K_280_C;
           end if;
         when FRAME_S =>
           if r.wordCount=NDATABUFF_WORDS then
             v.state     := PULSEID_S;
             v.wordCount := (others=>'0');
-            v.dataK      := "11";
+            v.dataK(1)  := '1';
             v.dbufData   := K_281_C;
           elsif r.dataBuffEn='1' then
             v.dbufData  := r.dataBuff(7 downto 0);
@@ -112,27 +119,28 @@ begin
             v.wordCount := r.wordCount+1;
           end if;
         when PULSEID_S =>
-          v.dataK     := "00";
-          if r.wordCount=toSlv(32,r.wordCount'length) then
-            v.state     := ECODE_S;
-            v.wordCount := (others=>'0');
-            v.ecodData  := x"7D";
-          else
-            v.wordCount := r.wordCount+1;
-            v.pulseId   := r.pulseId(30 downto 0) & '0';
-            if r.pulseId(31)='0' then
-              v.ecodData := x"70";
+          if r.dataBuffEn='1' then
+            if r.wordCount=toSlv(32,r.wordCount'length) then
+              v.state     := ECODE_S;
+              v.wordCount := (others=>'0');
+              v.ecodData  := x"7D";
             else
-              v.ecodData := x"71";
+              v.wordCount := r.wordCount+1;
+              v.pulseId   := r.pulseId(30 downto 0) & '0';
+              if r.pulseId(31)='0' then
+                v.ecodData := x"70";
+              else
+                v.ecodData := x"71";
+              end if;
             end if;
           end if;
         when ECODE_S =>
           if r.wordCount = toSlv(255,r.wordCount'length) then
             v.state := IDLE_S;
-          else
+          elsif r.dataBuffEn = '1' then
             v.wordCount := r.wordCount+1;
             if r.eventCodes(conv_integer(r.wordCount))='1' then
-              v.dataK    := "00";
+              v.dataK(0) := '0';
               v.ecodData := r.wordCount;
             end if;
           end if;
