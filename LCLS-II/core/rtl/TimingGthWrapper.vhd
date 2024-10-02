@@ -25,6 +25,7 @@ entity TimingGthWrapper is
       TPD_G : time := 1 ns);
 
    port (
+      -- StableClk (which is GT's drpClk) in the IP core configured for 156.25MHz/2 (78.125MHz)
       stableClk : in sl;
 
       gtRefClk : in  sl;
