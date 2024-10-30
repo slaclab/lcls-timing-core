@@ -45,26 +45,28 @@ entity EvrV2Trigger is
       trigstate  : out sl );
 end EvrV2Trigger;
 
-architecture EvrV2Trigger of EvrV2Trigger is
+architecture rtl of EvrV2Trigger is
 
+   type PushState is (DISABLED_S, ENABLED_S, ARMED_S, PUSHING_S);
+  
    type RegType is record
      fifo_delay     : slv(TRIG_WIDTH_C-1 downto 0);      -- clks until trigger fifo is empty
-     armed          : sl;
-     delay          : slv(TRIG_WIDTH_C-1 downto 0);
-     width          : slv(TRIG_WIDTH_C-1 downto 0);
+     push_state     : PushState;
+     duration       : slv(TRIG_WIDTH_C-1 downto 0);
      state          : sl;
+     next_state     : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
-     fifoDin        : slv(TRIG_WIDTH_C-1 downto 0);
+     fifoDin        : slv(TRIG_WIDTH_C downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
      fifo_delay => (others=>'0'),
-     armed      => '0',
-     delay      => (others=>'0'),
-     width      => (others=>'0'),
+     push_state => DISABLED_S,
+     duration   => (others=>'0'),
      state      => '0',
+     next_state => '0',
      fifoReset  => '1',
      fifoWr     => '0',
      fifoRd     => '0',
@@ -77,11 +79,8 @@ architecture EvrV2Trigger of EvrV2Trigger is
 
    signal fifoValid : sl;
 
-   signal fifoDout  : slv(TRIG_WIDTH_C-1 downto 0);
+   signal fifoDout  : slv(TRIG_WIDTH_C downto 0);
    signal fifoCount : slv(FIFO_AWIDTH_C-1 downto 0);
-   signal fifoEmpty : sl;
-   signal fifoFull  : sl;
-
 
    signal fifoCountDbg : slv(6 downto 0);
 
@@ -90,17 +89,17 @@ begin
    trigstate <= r.state;
 
    GEN_NO_FIFO : if TRIG_DEPTH_C = 0 generate
-     fifoDout  <= resize(config.delay,fifoDout'length);
-     fifoEmpty <= not r.fifoWr;
+     fifoDout  <= r.fifoDin;
+     fifoValid <= r.fifoWr;
    end generate;
 
    GEN_FIFO : if TRIG_DEPTH_C > 0 generate
      --  A fifo of delays before the next trigger edge
      U_Fifo : entity surf.FifoSync
        generic map ( TPD_G        => TPD_G,
-                     DATA_WIDTH_G => TRIG_WIDTH_C,
+                     DATA_WIDTH_G => TRIG_WIDTH_C+1,
                      ADDR_WIDTH_G => FIFO_AWIDTH_C,
-                     FWFT_EN_G    => false )
+                     FWFT_EN_G    => true )
        port map (    rst   => r.fifoReset,
                      clk   => clk,
                      wr_en => rin.fifoWr,
@@ -108,56 +107,80 @@ begin
                      din   => rin.fifoDin,
                      dout  => fifoDout,
                      valid => fifoValid,
-                     empty => fifoEmpty,
-                     full  => fifoFull,
                      data_count => fifoCount );
    end generate;
 
-   process (r, arm, fire, rst, config, fifoValid, fifoDout, fifoEmpty)
+   process (r, arm, fire, rst, config, fifoValid, fifoDout)
       variable v : RegType;
+      variable x : slv(TRIG_WIDTH_C-1 downto 0);
    begin
       v := r;
 
-      v.state     := not config.polarity;
       v.fifoReset := '0';
       v.fifoRd    := '0';
+      v.fifoWr    := '0';
 
-      if allBits(r.delay,'0') then
-        if allBits(r.width,'0') then
-          --  Trigger done.  Wait for next fifo entry.
-          if r.fifoRd='1' then
-            v.width  := config.width(TRIG_WIDTH_C-1 downto 0);
-            v.delay  := fifoDout;
-          elsif fifoEmpty='0' then
-            v.fifoRd := '1';
+      if allBits(r.duration,'0') then
+        v.state := r.next_state;
+        --  Transition done.  Wait for next fifo entry.
+        if fifoValid = '1' then
+          v.next_state := fifoDout(fifoDout'left);
+          x := fifoDout(fifoDout'left-1 downto 0);
+          if x = 0 then
+            v.state := v.next_state;
+          else
+            v.duration := x-1;
           end if;
-        else
-          --  Delay complete.  Assert trigger.
-          v.width  := r.width-1;
-          v.state  := config.polarity;
+          v.fifoRd     := '1';
         end if;
       else
-        v.delay  := r.delay-1;
+        v.duration := r.duration-1;
       end if;
 
-      if fire = '1' and r.armed = '1' then
-         v.armed      := '0';
-         --  Push the delay until trigger edge into the fifo
-         v.fifoWr     := '1';
-         v.fifoDin    := config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay;
-         v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) + 1;
-      else
-         v.fifoWr     := '0';
-         if not allBits(r.fifo_delay,'0') then
-           v.fifo_delay := r.fifo_delay - 1;
-         end if;
+      if not allBits(r.fifo_delay,'0') then
+        v.fifo_delay := r.fifo_delay - 1;
       end if;
 
-      --  Trigger input logic
-      if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
-          ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
-         v.armed := '1';
-      end if;
+      case r.push_state is
+        when DISABLED_S =>
+          if config.enabled = '1' then
+            -- set the polarity
+            v.push_state := ENABLED_S;
+            v.fifoWr     := '1';
+            v.fifoDin    := not config.polarity & toSlv(0,TRIG_WIDTH_C);
+          end if;
+        when ENABLED_S  =>
+          --  Trigger input logic
+          if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
+              ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
+            v.push_state := ARMED_S;
+          end if;
+        when ARMED_S =>
+          if fire = '1' then
+            -- If the configured delay has been reduced such that this
+            -- trigger would precede one already in the fifo, eat it.
+            if (r.fifo_delay > config.delay(TRIG_WIDTH_C-1 downto 0) or
+                config.width(TRIG_WIDTH_C-1 downto 0) = 0) then
+              v.push_state := ENABLED_S;
+            else
+              --  Push the delay until trigger edge into the fifo
+              v.push_state := PUSHING_S;
+              v.fifoWr     := '1';
+              v.fifoDin    := config.polarity & (config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay);
+              v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) - 1;
+            end if;
+          end if;
+        when PUSHING_S =>
+          --  Push the width into the fifo
+          x := config.width(TRIG_WIDTH_C-1 downto 0);
+          if config.delay(TRIG_WIDTH_C-1 downto 0) = 0 then
+            x := x-1;
+          end if;
+          v.fifoWr     := '1';
+          v.fifoDin    := not config.polarity & x;
+          v.push_state := ENABLED_S;
+        when others => NULL;
+      end case;
 
       if rst='1' or config.enabled='0' then
          v := REG_INIT_C;
@@ -173,5 +196,5 @@ begin
      end if;
    end process;
 
-end EvrV2Trigger;
+end rtl;
 
