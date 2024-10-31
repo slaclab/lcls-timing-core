@@ -55,6 +55,9 @@ architecture rtl of EvrV2Trigger is
      duration       : slv(TRIG_WIDTH_C-1 downto 0);
      state          : sl;
      next_state     : sl;
+     push_width     : slv(TRIG_WIDTH_C-1 downto 0);
+     push_delay     : slv(TRIG_WIDTH_C-1 downto 0);
+     skip           : sl;
      fifoReset      : sl;
      fifoWr         : sl;
      fifoRd         : sl;
@@ -67,6 +70,9 @@ architecture rtl of EvrV2Trigger is
      duration   => (others=>'0'),
      state      => '0',
      next_state => '0',
+     push_width => (others=>'0'),
+     push_delay => (others=>'0'),
+     skip       => '1',
      fifoReset  => '1',
      fifoWr     => '0',
      fifoRd     => '0',
@@ -141,6 +147,24 @@ begin
         v.fifo_delay := r.fifo_delay - 1;
       end if;
 
+      --  Calculate the width push
+      x := config.width(TRIG_WIDTH_C-1 downto 0);
+      if config.delay(TRIG_WIDTH_C-1 downto 0) = 0 then
+        x := x-1;
+      end if;
+      v.push_width := x;
+
+      -- If the configured delay has been reduced such that this
+      -- trigger would precede one already in the fifo, eat it.
+      v.skip := '0';
+      if (r.fifo_delay+1 > config.delay(TRIG_WIDTH_C-1 downto 0) or
+          config.width(TRIG_WIDTH_C-1 downto 0) = 0) then
+        v.skip := '1';
+      end if;
+
+      -- Precalculate
+      v.push_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) - 1;
+      
       case r.push_state is
         when DISABLED_S =>
           if config.enabled = '1' then
@@ -157,27 +181,20 @@ begin
           end if;
         when ARMED_S =>
           if fire = '1' then
-            -- If the configured delay has been reduced such that this
-            -- trigger would precede one already in the fifo, eat it.
-            if (r.fifo_delay > config.delay(TRIG_WIDTH_C-1 downto 0) or
-                config.width(TRIG_WIDTH_C-1 downto 0) = 0) then
+            if r.skip = '1' then
               v.push_state := ENABLED_S;
             else
               --  Push the delay until trigger edge into the fifo
               v.push_state := PUSHING_S;
               v.fifoWr     := '1';
               v.fifoDin    := config.polarity & (config.delay(TRIG_WIDTH_C-1 downto 0) - r.fifo_delay);
-              v.fifo_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) - 1;
+              v.fifo_delay := r.push_delay;
             end if;
           end if;
         when PUSHING_S =>
           --  Push the width into the fifo
-          x := config.width(TRIG_WIDTH_C-1 downto 0);
-          if config.delay(TRIG_WIDTH_C-1 downto 0) = 0 then
-            x := x-1;
-          end if;
           v.fifoWr     := '1';
-          v.fifoDin    := not config.polarity & x;
+          v.fifoDin    := not config.polarity & r.push_width;
           v.push_state := ENABLED_S;
         when others => NULL;
       end case;
