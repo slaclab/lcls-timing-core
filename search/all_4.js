@@ -21,7 +21,7 @@ var searchData=
   ['evrv2fromv1_28',['EvrV2FromV1',['../classEvrV2FromV1.html',1,'EvrV2FromV1'],['../classEvrV2FromV1_1_1EvrV2FromV1.html',1,'EvrV2FromV1']]],
   ['evrv2module_29',['EvrV2Module',['../classEvrV2Module.html',1,'']]],
   ['evrv2pkg_30',['EvrV2Pkg',['../classEvrV2Pkg.html',1,'']]],
-  ['evrv2trigger_31',['EvrV2Trigger',['../classEvrV2Trigger.html',1,'EvrV2Trigger'],['../classEvrV2Trigger_1_1EvrV2Trigger.html',1,'EvrV2Trigger']]],
+  ['evrv2trigger_31',['EvrV2Trigger',['../classEvrV2Trigger.html',1,'']]],
   ['evrv2triggercompl_32',['EvrV2TriggerCompl',['../classEvrV2TriggerCompl.html',1,'']]],
   ['evrv2trigreg_33',['EvrV2TrigReg',['../classEvrV2TrigReg.html',1,'']]]
 ];

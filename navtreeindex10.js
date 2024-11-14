@@ -1,5 +1,7 @@
 var NAVTREEINDEX10 =
 {
+"classTimingSerialDelay.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,38,17],
+"classTimingSerialDelay.html#a14ccdc157ed50fb37a29e446d265c91e":[0,0,38,12],
 "classTimingSerialDelay.html#a2d074768c24674062132b8e1c238317e":[0,0,38,2],
 "classTimingSerialDelay.html#a38212cad6c364e55f87a635c6e2e2747":[0,0,38,4],
 "classTimingSerialDelay.html#a3bc75b646654cda9d28d7b2fb0e6c983":[0,0,38,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX10 =
 "classWordSerializer.html#a013c20dbecc6073fc352d07e596c4bea":[0,0,52,15],
 "classWordSerializer.html#a0a6af6eef40212dbaf130d57ce711256":[0,0,52,9],
 "classWordSerializer.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,52,11],
-"classWordSerializer.html#a598da929e807d58939b47499e8bc9fa8":[0,0,52,12],
-"classWordSerializer.html#a7380eac9214b4bf49c9a843d98b73eb2":[0,0,52,4],
-"classWordSerializer.html#a74937eb02b457ad15401157c6318107f":[0,0,52,6]
+"classWordSerializer.html#a598da929e807d58939b47499e8bc9fa8":[0,0,52,12]
 };

@@ -1,6 +1,6 @@
 var classEvrV2Trigger =
 [
-    [ "EvrV2Trigger", "classEvrV2Trigger_1_1EvrV2Trigger.html", "classEvrV2Trigger_1_1EvrV2Trigger" ],
+    [ "rtl", "classEvrV2Trigger_1_1rtl.html", "classEvrV2Trigger_1_1rtl" ],
     [ "TPD_G", "classEvrV2Trigger.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "CHANNELS_C", "classEvrV2Trigger.html#af49a104f4138754009ec6927f2032415", null ],
     [ "TRIG_DEPTH_C", "classEvrV2Trigger.html#aae6033ad831dd4fa9ddfaee6077c92f3", null ],
