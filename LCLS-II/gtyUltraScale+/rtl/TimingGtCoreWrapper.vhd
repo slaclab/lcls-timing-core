@@ -44,7 +44,7 @@ entity TimingGtCoreWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-
+      -- StableClk (which is GT's drpClk) in the IP core configured for 156.25MHz/2 (78.125MHz)
       stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTY FPGA IO
