@@ -177,8 +177,7 @@ begin  -- rtl
      U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G        => TPD_G,
                       CHANNELS_C   => NCHANNELS_G,
-                      TRIG_DEPTH_C => TRIG_DEPTH_G,
-                      DEBUG_C      => false )
+                      TRIG_DEPTH_C => TRIG_DEPTH_G)
         port map (    clk        => evrClk,
                       rst        => evrRst,
                       config     => triggerConfig(i),

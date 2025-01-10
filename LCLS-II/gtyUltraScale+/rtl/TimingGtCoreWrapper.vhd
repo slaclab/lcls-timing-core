@@ -31,10 +31,11 @@ use unisim.vcomponents.all;
 entity TimingGtCoreWrapper is
    generic (
       TPD_G             : time             := 1 ns;
+      SIMULATION_G      : boolean          := false;
       DISABLE_TIME_GT_G : boolean          := false;
       EXTREF_G          : boolean          := false;
+      AXI_CLK_FREQ_G    : real             := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
-      ADDR_BITS_G       : positive         := 22;
       GTY_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
    port (
       -- AXI-Lite Port
@@ -45,8 +46,8 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- StableClk (which is GT's drpClk) in the IP core configured for 156.25MHz/2 (78.125MHz)
-      stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
-      stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableClk    : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableRst    : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTY FPGA IO
       gtRefClk     : in  sl;
       gtRefClkDiv2 : in  sl;            -- Unused in GTYE3, but used in GTYE4
@@ -60,22 +61,23 @@ entity TimingGtCoreWrapper is
       cpllRefClkSel : in slv(2 downto 0) := "001";  -- Set for "111" for gtgRefClk
 
       -- Rx ports
-      rxControl      : in  TimingPhyControlType;
-      rxStatus       : out TimingPhyStatusType;
-      rxUsrClkActive : in  sl;
-      rxCdrStable    : out sl;
-      rxUsrClk       : in  sl;
-      rxData         : out slv(15 downto 0);
-      rxDataK        : out slv(1 downto 0);
-      rxDispErr      : out slv(1 downto 0);
-      rxDecErr       : out slv(1 downto 0);
-      rxOutClk       : out sl;
+      rxControl       : in  TimingPhyControlType;
+      rxStatus        : out TimingPhyStatusType;
+      rxUsrClkActive  : in  sl;
+      rxCdrStable     : out sl;
+      rxPmaRstDoneOut : out sl;
+      rxUsrClk        : in  sl;
+      rxData          : out slv(15 downto 0);
+      rxDataK         : out slv(1 downto 0);
+      rxDispErr       : out slv(1 downto 0);
+      rxDecErr        : out slv(1 downto 0);
+      rxOutClk        : out sl;
 
       -- Tx Ports
       txControl      : in  TimingPhyControlType;
       txStatus       : out TimingPhyStatusType;
-      txUsrClk       : in  sl := '0';
-      txUsrClkActive : in  sl := '0';
+      txUsrClk       : in  sl               := '0';
+      txUsrClkActive : in  sl               := '0';
       txData         : in  slv(15 downto 0) := (others => '0');
       txDataK        : in  slv(1 downto 0)  := (others => '0');
       txOutClk       : out sl;
@@ -233,11 +235,11 @@ architecture rtl of TimingGtCoreWrapper is
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
       0               => (
          baseAddr     => (AXIL_BASE_ADDR_G+x"00000000"),
-         addrBits     => ADDR_BITS_G,
+         addrBits     => 9,
          connectivity => x"FFFF"),
       1               => (
          baseAddr     => (AXIL_BASE_ADDR_G+GTY_DRP_OFFSET_G),
-         addrBits     => ADDR_BITS_G,
+         addrBits     => 12,
          connectivity => x"FFFF"));
 
    signal rxCtrl0Out   : slv(15 downto 0) := (others => '0');
@@ -297,15 +299,18 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_AlignCheck : entity lcls_timing_core.GthRxAlignCheck
+   U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
-         TPD_G      => TPD_G,
-         GT_TYPE_G  => "GTYE4",
-         DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
+         TPD_G          => TPD_G,
+         SIMULATION_G   => SIMULATION_G,
+         GT_TYPE_G      => "GTYE4",
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
          txClk            => txoutclkb,
-         rxClk            => rxoutclkb,
+         rxClk            => rxUsrClk,
+         refClk           => axilClk,   -- Could probably also be stableClk
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
          resetDone        => bypassdone,
@@ -448,7 +453,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open);
 
@@ -542,7 +547,7 @@ begin
             rxctrl2_out                           => open,
             rxctrl3_out                           => rxCtrl3Out,
             rxoutclk_out(0)                       => rxoutclk_out,
-            rxpmaresetdone_out                    => open,
+            rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
             txoutclk_out(0)                       => txoutclk_out,
             txpmaresetdone_out                    => open);
 

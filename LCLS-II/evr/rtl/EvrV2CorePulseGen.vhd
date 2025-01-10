@@ -342,9 +342,7 @@ begin  -- rtl
   Out_Trigger: for i in 0 to TriggerOutputs-1 generate
      U_Trig : entity lcls_timing_core.EvrV2Trigger
         generic map ( TPD_G    => TPD_G,
-                      CHANNELS_C => ReadoutChannels,
-                      --DEBUG_C    => (i<1) )
-                      DEBUG_C    => false )
+                      CHANNELS_C => ReadoutChannels)
         port map (    clk      => evrClk,
                       rst      => evrRst,
                       config   => triggerConfigS(i),
