@@ -498,7 +498,7 @@ begin
             gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
             gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
-            gtwiz_reset_all_in(0)                 => '0',
+            gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
