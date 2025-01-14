@@ -34,6 +34,7 @@ entity TimingGtCoreWrapper is
       SIMULATION_G      : boolean          := false;
       DISABLE_TIME_GT_G : boolean          := false;
       EXTREF_G          : boolean          := false;
+      LCLS1_ONLY_G      : boolean          := false;
       AXI_CLK_FREQ_G    : real             := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
       GTY_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
@@ -88,6 +89,79 @@ end entity TimingGtCoreWrapper;
 architecture rtl of TimingGtCoreWrapper is
 
    component TimingGty_fixedlat
+      port (
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
+         cpllrefclksel_in                   : in  std_logic_vector(2 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gtgrefclk_in                       : in  std_logic_vector(0 downto 0);
+         gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
+         gtyrxn_in                          : in  std_logic_vector(0 downto 0);
+         gtyrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
+         rxmcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxusrclk_in                        : in  std_logic_vector(0 downto 0);
+         rxusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         tx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         txctrl0_in                         : in  std_logic_vector(15 downto 0);
+         txctrl1_in                         : in  std_logic_vector(15 downto 0);
+         txctrl2_in                         : in  std_logic_vector(7 downto 0);
+         txinhibit_in                       : in  std_logic_vector(0 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txusrclk_in                        : in  std_logic_vector(0 downto 0);
+         txusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         gtytxn_out                         : out std_logic_vector(0 downto 0);
+         gtytxp_out                         : out std_logic_vector(0 downto 0);
+         rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
+         rxbyterealign_out                  : out std_logic_vector(0 downto 0);
+         rxcommadet_out                     : out std_logic_vector(0 downto 0);
+         rxctrl0_out                        : out std_logic_vector(15 downto 0);
+         rxctrl1_out                        : out std_logic_vector(15 downto 0);
+         rxctrl2_out                        : out std_logic_vector(7 downto 0);
+         rxctrl3_out                        : out std_logic_vector(7 downto 0);
+         rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
+         rxoutclk_out                       : out std_logic_vector(0 downto 0);
+         rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         txoutclk_out                       : out std_logic_vector(0 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0)
+         );
+   end component;
+   component TimingGty_fixedlat_Lcls1Only
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
@@ -483,8 +557,102 @@ begin
             O       => rxoutclkb);
    end generate;
 
-   LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false)generate
+   LOCREF_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false) and (LCLS1_ONLY_G = false) generate
       U_TimingGtyCore : TimingGty_fixedlat
+         port map (
+            gtwiz_userclk_tx_reset_in(0)          => txbypassrst,
+            gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
+            gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
+            gtwiz_buffbypass_tx_reset_in(0)       => txbypassrst,
+            gtwiz_buffbypass_tx_start_user_in(0)  => '0',
+            gtwiz_buffbypass_tx_done_out          => open,
+            gtwiz_buffbypass_tx_error_out         => open,
+            gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
+            gtwiz_buffbypass_rx_start_user_in(0)  => '0',
+            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
+            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
+            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_all_in(0)                 => '0',
+            gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
+            gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
+            gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
+            gtwiz_reset_rx_datapath_in(0)         => rxRst,
+            gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
+            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
+            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
+            gtwiz_userdata_tx_in                  => txData,
+            gtwiz_userdata_rx_out                 => rxData,
+            cpllrefclksel_in                      => cpllRefClkSel,
+            drpaddr_in                            => drpAddr,
+            drpclk_in(0)                          => stableClk,
+            drpdi_in                              => drpDi,
+            drpen_in(0)                           => drpEn,
+            drpwe_in(0)                           => drpWe,
+            gtgrefclk_in(0)                       => gtgRefClk,
+            gtyrxn_in(0)                          => gtRxN,
+            gtyrxp_in(0)                          => gtRxP,
+            gtrefclk0_in(0)                       => gtRefClk,
+            loopback_in                           => loopback,
+            rx8b10ben_in(0)                       => '1',
+            rxcommadeten_in(0)                    => '1',
+            rxmcommaalignen_in(0)                 => '1',
+            rxpcommaalignen_in(0)                 => '1',
+            rxpolarity_in(0)                      => rxControl.polarity,
+            rxusrclk_in(0)                        => rxUsrClk,
+            rxusrclk2_in(0)                       => rxUsrClk,
+            tx8b10ben_in(0)                       => '1',
+            txctrl0_in                            => X"0000",
+            txctrl1_in                            => X"0000",
+            txctrl2_in(1 downto 0)                => txDataK,
+            txctrl2_in(7 downto 2)                => (others => '0'),
+            txinhibit_in(0)                       => txControl.inhibit,
+            txpolarity_in(0)                      => txControl.polarity,
+            txusrclk_in(0)                        => txUsrClk,
+            txusrclk2_in(0)                       => txUsrClk,
+            drpdo_out                             => drpDo,
+            drprdy_out(0)                         => drpRdy,
+            gtytxn_out(0)                         => gtTxN,
+            gtytxp_out(0)                         => gtTxP,
+            rxbyteisaligned_out                   => open,
+            rxbyterealign_out                     => open,
+            rxcommadet_out                        => open,
+            rxctrl0_out                           => rxCtrl0Out,
+            rxctrl1_out                           => rxCtrl1Out,
+            rxctrl2_out                           => open,
+            rxctrl3_out                           => rxCtrl3Out,
+            rxoutclk_out(0)                       => rxoutclk_out,
+            rxpmaresetdone_out(0)                 => rxPmaRstDoneOut,
+            txoutclk_out(0)                       => txoutclk_out,
+            txpmaresetdone_out                    => open);
+
+      rxDataK   <= rxCtrl0Out(1 downto 0);
+      rxDispErr <= rxCtrl1Out(1 downto 0);
+      rxDecErr  <= rxCtrl3Out(1 downto 0);
+
+--      TIMING_TXCLK_BUFG_GT : BUFG_GT
+--         port map (
+--            I       => txoutclk_out,
+--            CE      => '1',
+--            CEMASK  => '1',
+--            CLR     => '0',
+--            CLRMASK => '1',
+--            DIV     => "001",           -- Divide-by-2
+--            O       => txoutclkb);
+      txoutclkb <= gtRefClkDiv2;
+
+      TIMING_RECCLK_BUFG_GT : BUFG_GT
+         port map (
+            I       => rxoutclk_out,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",           -- Divide-by-1
+            O       => rxoutclkb);
+   end generate;
+
+   LOCREF_LCLS1_ONLY_G : if (DISABLE_TIME_GT_G = false) and (EXTREF_G = false) and (LCLS1_ONLY_G = true) generate
+      U_TimingGtyCore : TimingGty_fixedlat_Lcls1Only
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txbypassrst,
             gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,

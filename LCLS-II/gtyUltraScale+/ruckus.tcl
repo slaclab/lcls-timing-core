@@ -14,14 +14,16 @@ if { [info exists ::env(TIMING_246MHz)] != 1 || $::env(TIMING_246MHz) == 0 } {
 
       # Check if loading the XCI file
       if { [info exists ::env(LCLS_TIMING_GTY_XCI)] != 0 && $::env(LCLS_TIMING_GTY_XCI) == 1 } {
-          loadIpCore -path "${path}/TimingGty_extref.xci"
-          loadIpCore -path "${path}/TimingGty_fixedlat.xci"
-          puts "Loading XCI files for LCLS Timing"
+         loadIpCore -path "${path}/TimingGty_extref.xci"
+         loadIpCore -path "${path}/TimingGty_fixedlat.xci"
+         loadIpCore -path "${path}/TimingGty_fixedlat_Lcls1Only.xci"
+         puts "Loading XCI files for LCLS Timing"
 
       # Else loading the .DCP file
       } else {
-          loadSource -lib lcls_timing_core -path "${path}/TimingGty_extref.dcp"
-          loadSource -lib lcls_timing_core -path "${path}/TimingGty_fixedlat.dcp"
+         loadSource -lib lcls_timing_core -path "${path}/TimingGty_extref.dcp"
+         loadSource -lib lcls_timing_core -path "${path}/TimingGty_fixedlat.dcp"
+         loadSource -lib lcls_timing_core -path "${path}/TimingGty_fixedlat_Lcls1Only.dcp"
       }
 
    } else {
@@ -39,14 +41,14 @@ if { [info exists ::env(TIMING_246MHz)] != 1 || $::env(TIMING_246MHz) == 0 } {
 
       # Check if loading the XCI file
       if { [info exists ::env(LCLS_TIMING_GTY_XCI)] != 0 && $::env(LCLS_TIMING_GTY_XCI) == 1 } {
-          loadIpCore -path "${path}/TimingGty_extref.xci"
-          loadIpCore -path "${path}/TimingGty_fixedlat.xci"
-          puts "Loading XCI files for LCLS Timing"
+         loadIpCore -path "${path}/TimingGty_extref.xci"
+         loadIpCore -path "${path}/TimingGty_fixedlat.xci"
+         puts "Loading XCI files for LCLS Timing"
 
       # Else loading the .DCP file
       } else {
-          loadSource -lib lcls_timing_core -path "${path}/TimingGty_extref.dcp"
-          loadSource -lib lcls_timing_core -path "${path}/TimingGty_fixedlat.dcp"
+         loadSource -lib lcls_timing_core -path "${path}/TimingGty_extref.dcp"
+         loadSource -lib lcls_timing_core -path "${path}/TimingGty_fixedlat.dcp"
       }
 
    } else {
