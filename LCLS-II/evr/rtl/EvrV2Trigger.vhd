@@ -48,7 +48,7 @@ end EvrV2Trigger;
 architecture rtl of EvrV2Trigger is
 
    type PushState is (DISABLED_S, ENABLED_S, ARMED_S, PUSHING_S);
-
+  
    type RegType is record
      fifo_delay     : slv(TRIG_WIDTH_C-1 downto 0);      -- clks until trigger fifo is empty
      push_state     : PushState;
@@ -78,7 +78,7 @@ architecture rtl of EvrV2Trigger is
      fifoRd     => '0',
      fifoDin    => (others=>'0'));
 
-   constant FIFO_AWIDTH_C : natural := bitSize( TRIG_DEPTH_C );
+   constant FIFO_AWIDTH_C : natural := bitSize( TRIG_DEPTH_C )+1;
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -86,35 +86,24 @@ architecture rtl of EvrV2Trigger is
    signal fifoValid : sl;
 
    signal fifoDout  : slv(TRIG_WIDTH_C downto 0);
-   signal fifoCount : slv(FIFO_AWIDTH_C-1 downto 0);
-
-   signal fifoCountDbg : slv(6 downto 0);
 
 begin
 
    trigstate <= r.state;
 
-   GEN_NO_FIFO : if TRIG_DEPTH_C = 0 generate
-     fifoDout  <= r.fifoDin;
-     fifoValid <= r.fifoWr;
-   end generate;
-
-   GEN_FIFO : if TRIG_DEPTH_C > 0 generate
-     --  A fifo of delays before the next trigger edge
-     U_Fifo : entity surf.FifoSync
-       generic map ( TPD_G        => TPD_G,
-                     DATA_WIDTH_G => TRIG_WIDTH_C+1,
-                     ADDR_WIDTH_G => FIFO_AWIDTH_C,
-                     FWFT_EN_G    => true )
-       port map (    rst   => r.fifoReset,
-                     clk   => clk,
-                     wr_en => rin.fifoWr,
-                     rd_en => rin.fifoRd,
-                     din   => rin.fifoDin,
-                     dout  => fifoDout,
-                     valid => fifoValid,
-                     data_count => fifoCount );
-   end generate;
+   --  A fifo of delays before the next trigger edge
+   U_Fifo : entity surf.FifoSync
+     generic map ( TPD_G        => TPD_G,
+                   DATA_WIDTH_G => TRIG_WIDTH_C+1,
+                   ADDR_WIDTH_G => FIFO_AWIDTH_C,
+                   FWFT_EN_G    => true )
+     port map (    rst   => r.fifoReset,
+                   clk   => clk,
+                   wr_en => rin.fifoWr,
+                   rd_en => rin.fifoRd,
+                   din   => rin.fifoDin,
+                   dout  => fifoDout,
+                   valid => fifoValid );
 
    process (r, arm, fire, rst, config, fifoValid, fifoDout)
       variable v : RegType;
@@ -157,14 +146,14 @@ begin
       -- If the configured delay has been reduced such that this
       -- trigger would precede one already in the fifo, eat it.
       v.skip := '0';
-      if (r.fifo_delay+1 > config.delay(TRIG_WIDTH_C-1 downto 0) or
+      if (r.fifo_delay > config.delay(TRIG_WIDTH_C-1 downto 0) or
           config.width(TRIG_WIDTH_C-1 downto 0) = 0) then
         v.skip := '1';
       end if;
 
       -- Precalculate
       v.push_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) - 1;
-
+      
       case r.push_state is
         when DISABLED_S =>
           if config.enabled = '1' then

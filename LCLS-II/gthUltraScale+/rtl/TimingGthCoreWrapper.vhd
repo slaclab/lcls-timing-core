@@ -31,8 +31,10 @@ use unisim.vcomponents.all;
 entity TimingGthCoreWrapper is
    generic (
       TPD_G             : time             := 1 ns;
+      SIMULATION_G      : boolean          := false;
       DISABLE_TIME_GT_G : boolean          := false;
       EXTREF_G          : boolean          := false;
+      AXI_CLK_FREQ_G    : real             := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
       ADDR_BITS_G       : positive         := 22;
       GTH_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
@@ -302,15 +304,18 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
-   U_AlignCheck : entity lcls_timing_core.GthRxAlignCheck
+   U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
-         TPD_G      => TPD_G,
-         GT_TYPE_G  => "GTHE3",
-         DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
+         TPD_G          => TPD_G,
+         SIMULATION_G   => SIMULATION_G,
+         GT_TYPE_G      => "GTHE4",
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
          txClk            => txoutclkb,
          rxClk            => rxoutclkb,
+         refClk           => axilClk,   -- Could probably also be stableClk
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
          resetDone        => bypassdone,

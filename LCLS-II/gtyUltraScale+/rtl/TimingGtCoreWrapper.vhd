@@ -383,7 +383,7 @@ begin
       port map (
          -- Clock Monitoring
          txClk            => txoutclkb,
-         rxClk            => rxUsrClk,
+         rxClk            => rxoutclkb,
          refClk           => axilClk,   -- Could probably also be stableClk
          -- GTH Status/Control Interface
          resetIn          => rxControl.reset,
