@@ -2,8 +2,10 @@ var classTimingGthCoreWrapper =
 [
     [ "TimingGthCoreWrapper.rtl", "classTimingGthCoreWrapper_1_1rtl.html", "classTimingGthCoreWrapper_1_1rtl" ],
     [ "TPD_G", "classTimingGthCoreWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "SIMULATION_G", "classTimingGthCoreWrapper.html#a6ebe009af632144d5bad445bf5a6a699", null ],
     [ "DISABLE_TIME_GT_G", "classTimingGthCoreWrapper.html#a371c16477c818e4867997f6b9da3115b", null ],
     [ "EXTREF_G", "classTimingGthCoreWrapper.html#a76b095769df856df585737772173cff8", null ],
+    [ "AXI_CLK_FREQ_G", "classTimingGthCoreWrapper.html#a0000f8a760400cefd0739913654cb169", null ],
     [ "AXIL_BASE_ADDR_G", "classTimingGthCoreWrapper.html#a7dfb121e532926a3f1cb7474b411a125", null ],
     [ "ADDR_BITS_G", "classTimingGthCoreWrapper.html#a841199ec6e5f91e443bf2d0e314bae46", null ],
     [ "GTH_DRP_OFFSET_G", "classTimingGthCoreWrapper.html#ad0040c2aeb552dd6cf74500590e8601b", null ],
