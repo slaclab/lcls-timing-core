@@ -48,7 +48,7 @@ end EvrV2Trigger;
 architecture rtl of EvrV2Trigger is
 
    type PushState is (DISABLED_S, ENABLED_S, ARMED_S, PUSHING_S);
-  
+
    type RegType is record
      fifo_delay     : slv(TRIG_WIDTH_C-1 downto 0);      -- clks until trigger fifo is empty
      push_state     : PushState;
@@ -164,7 +164,7 @@ begin
 
       -- Precalculate
       v.push_delay := config.delay(TRIG_WIDTH_C-1 downto 0) + config.width(TRIG_WIDTH_C-1 downto 0) - 1;
-      
+
       case r.push_state is
         when DISABLED_S =>
           if config.enabled = '1' then
