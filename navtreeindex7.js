@@ -240,6 +240,7 @@ var NAVTREEINDEX7 =
 "classTimingFrameRx_1_1rtl.html#af7384a2e879e485e909aabcb925b44e2":[0,0,30,0,5],
 "classTimingFrameRx_1_1rtl.html#afd2a4a3d8755218181d189888fee521b":[0,0,30,0,15],
 "classTimingGtCoreWrapper.html":[0,0,31],
+"classTimingGtCoreWrapper.html#a0000f8a760400cefd0739913654cb169":[0,0,31,68],
 "classTimingGtCoreWrapper.html#a013c20dbecc6073fc352d07e596c4bea":[0,0,31,48],
 "classTimingGtCoreWrapper.html#a04b26ab9527043b8550500fad704242c":[0,0,31,15],
 "classTimingGtCoreWrapper.html#a099e93b1a32647f65749edc1e5f3e26e":[0,0,31,58],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classTimingGtCoreWrapper.html#a0e3cca179ac52e5a5b64a695f70be636":[0,0,31,9],
 "classTimingGtCoreWrapper.html#a0f5caa29db17da69ce801bdd7d4e9e74":[0,0,31,27],
 "classTimingGtCoreWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095":[0,0,31,44],
-"classTimingGtCoreWrapper.html#a0ff8c9e0df0b258def71801427cd308e":[0,0,31,66],
-"classTimingGtCoreWrapper.html#a1493523af4431beab0f82cdf11b856c1":[0,0,31,36]
+"classTimingGtCoreWrapper.html#a0ff8c9e0df0b258def71801427cd308e":[0,0,31,69]
 };

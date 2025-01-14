@@ -66,5 +66,9 @@ var classTimingGtCoreWrapper =
     [ "gtRefClkP", "classTimingGtCoreWrapper.html#ac7fc5c6b11bccc68e357b3debef40f4e", null ],
     [ "gtRefClkN", "classTimingGtCoreWrapper.html#a35acdd7806ea2767475c020d2820744d", null ],
     [ "gtRefClkIn", "classTimingGtCoreWrapper.html#a23add5cac8d4c6a5ee16d22cf35ba350", null ],
-    [ "GTY_DRP_OFFSET_G", "classTimingGtCoreWrapper.html#a0ff8c9e0df0b258def71801427cd308e", null ]
+    [ "SIMULATION_G", "classTimingGtCoreWrapper.html#a6ebe009af632144d5bad445bf5a6a699", null ],
+    [ "LCLS1_ONLY_G", "classTimingGtCoreWrapper.html#a1b5aae69b7ad1854099a86ba71a7a4d8", null ],
+    [ "AXI_CLK_FREQ_G", "classTimingGtCoreWrapper.html#a0000f8a760400cefd0739913654cb169", null ],
+    [ "GTY_DRP_OFFSET_G", "classTimingGtCoreWrapper.html#a0ff8c9e0df0b258def71801427cd308e", null ],
+    [ "rxPmaRstDoneOut", "classTimingGtCoreWrapper.html#a564e0ebf10b44b1311a461c294130174", null ]
 ];
