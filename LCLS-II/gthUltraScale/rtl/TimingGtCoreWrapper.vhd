@@ -30,13 +30,13 @@ use unisim.vcomponents.all;
 
 entity TimingGtCoreWrapper is
    generic (
-      TPD_G             : time    := 1 ns;
-      SIMULATION_G      : boolean := false;
-      DISABLE_TIME_GT_G : boolean := false;
-      EXTREF_G          : boolean := false;
-      AXI_CLK_FREQ_G    : real    := 156.25e6;
+      TPD_G             : time             := 1 ns;
+      SIMULATION_G      : boolean          := false;
+      DISABLE_TIME_GT_G : boolean          := false;
+      EXTREF_G          : boolean          := false;
+      AXI_CLK_FREQ_G    : real             := 156.25e6;
       AXIL_BASE_ADDR_G  : slv(31 downto 0);
-      ADDR_BITS_G       : positive := 22;
+      ADDR_BITS_G       : positive         := 22;
       GTH_DRP_OFFSET_G  : slv(31 downto 0) := x"00400000");
    port (
       -- AXI-Lite Port
@@ -47,19 +47,19 @@ entity TimingGtCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- StableClk (which is GT's drpClk) in the IP core configured for 156.25MHz/2 (78.125MHz)
-      stableClk    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
-      stableRst    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableClk       : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      stableRst       : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
       -- GTH FPGA IO
-      gtRefClk     : in  sl;
-      gtRefClkDiv2 : in  sl;            -- Unused in GTHE3, but used in GTHE4/GTYE4
-      gtRxP        : in  sl;
-      gtRxN        : in  sl;
-      gtTxP        : out sl;
-      gtTxN        : out sl;
+      gtRefClk        : in  sl;
+      gtRefClkDiv2    : in  sl;  -- Unused in GTHE3, but used in GTHE4/GTYE4
+      gtRxP           : in  sl;
+      gtRxN           : in  sl;
+      gtTxP           : out sl;
+      gtTxN           : out sl;
 
       -- GTGREFCLK Interface Option
       gtgRefClk     : in sl              := '0';
-      cpllRefClkSel : in slv(2 downto 0) := "001"; -- Set for "111" for gtgRefClk
+      cpllRefClkSel : in slv(2 downto 0) := "001";  -- Set for "111" for gtgRefClk
 
       -- Rx ports
       rxControl      : in  TimingPhyControlType;
@@ -110,7 +110,7 @@ architecture rtl of TimingGtCoreWrapper is
          gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
-         cpllrefclksel_in                   : in  std_logic_vector(2 DOWNTO 0);
+         cpllrefclksel_in                   : in  std_logic_vector(2 downto 0);
          drpaddr_in                         : in  std_logic_vector(8 downto 0);
          drpclk_in                          : in  std_logic_vector(0 downto 0);
          drpdi_in                           : in  std_logic_vector(15 downto 0);
