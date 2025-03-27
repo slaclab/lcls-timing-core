@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 if { $::env(VIVADO_VERSION) >= 2022.2} {
    loadSource -lib lcls_timing_core -dir "$::DIR_PATH/rtl"
