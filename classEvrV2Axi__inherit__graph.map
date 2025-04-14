@@ -1,5 +1,7 @@
 <map id="EvrV2Axi" name="EvrV2Axi">
-<area shape="rect" id="node1" title=" " alt="" coords="116,5,197,32"/>
-<area shape="rect" id="node2" href="$classEvrV2CorePulseGen.html" title=" " alt="" coords="5,80,156,107"/>
-<area shape="rect" id="node3" href="$classEvrV2Module.html" title=" " alt="" coords="180,80,288,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="116,5,197,31"/>
+<area shape="rect" id="Node000002" href="$classEvrV2CorePulseGen.html" title=" " alt="" coords="5,79,156,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,42,95,80,91,76,133,38"/>
+<area shape="rect" id="Node000003" href="$classEvrV2Module.html" title=" " alt="" coords="180,79,288,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,38,223,76,220,80,177,42"/>
 </map>

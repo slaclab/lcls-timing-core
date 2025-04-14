@@ -1,8 +1,13 @@
 <map id="TimingRx" name="TimingRx">
-<area shape="rect" id="node1" title=" " alt="" coords="105,155,189,181"/>
-<area shape="rect" id="node6" href="$classTimingCore.html" title=" " alt="" coords="98,229,195,256"/>
-<area shape="rect" id="node2" href="$classTimingStreamRx.html" title=" " alt="" coords="5,80,136,107"/>
-<area shape="rect" id="node3" href="$classTimingFrameRx.html" title=" " alt="" coords="160,80,285,107"/>
-<area shape="rect" id="node4" href="$classTimingDeserializer.html" title=" " alt="" coords="66,5,211,32"/>
-<area shape="rect" id="node5" href="$classTimingSerialDelay.html" title=" " alt="" coords="235,5,378,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,152,189,177"/>
+<area shape="rect" id="Node000006" href="$classTimingCore.html" title=" " alt="" coords="98,225,195,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="149,191,149,225,144,225,144,191"/>
+<area shape="rect" id="Node000002" href="$classTimingStreamRx.html" title=" " alt="" coords="5,79,136,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,111,136,150,132,154,91,115"/>
+<area shape="rect" id="Node000003" href="$classTimingFrameRx.html" title=" " alt="" coords="160,79,285,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,115,161,154,157,150,199,111"/>
+<area shape="rect" id="Node000004" href="$classTimingDeserializer.html" title=" " alt="" coords="66,5,211,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="164,38,211,76,207,80,161,42"/>
+<area shape="rect" id="Node000005" href="$classTimingSerialDelay.html" title=" " alt="" coords="235,5,378,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="284,42,238,80,235,76,281,38"/>
 </map>

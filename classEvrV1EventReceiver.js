@@ -1,27 +1,4 @@
 var classEvrV1EventReceiver =
 [
-    [ "rtl", "classEvrV1EventReceiver_1_1rtl.html", "classEvrV1EventReceiver_1_1rtl" ],
-    [ "TPD_G", "classEvrV1EventReceiver.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "SYNC_POLARITY_G", "classEvrV1EventReceiver.html#ad3adcdda5fd90d19f6b3c80ec78d97fa", null ],
-    [ "axiClk", "classEvrV1EventReceiver.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classEvrV1EventReceiver.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "status", "classEvrV1EventReceiver.html#a453d3aca81346d23894408fb037ec33b", null ],
-    [ "config", "classEvrV1EventReceiver.html#ae431e22c3cbe7b534c8ebac744f7aa48", null ],
-    [ "sync", "classEvrV1EventReceiver.html#ae46f5c99fec8a1a8e0bac0b6a94939a6", null ],
-    [ "trigOut", "classEvrV1EventReceiver.html#acfc5185b3e81a78a7990c411dc20ed1b", null ],
-    [ "eventStreamOut", "classEvrV1EventReceiver.html#a1a118f1b1bb8ff37028ea945906ceda8", null ],
-    [ "evrClk", "classEvrV1EventReceiver.html#ae85cf54cbf646bc1b79998be31a22b8c", null ],
-    [ "evrRst", "classEvrV1EventReceiver.html#afc9071160616c6c14b21730feeaa3b4b", null ],
-    [ "rxLinkUp", "classEvrV1EventReceiver.html#a626f43539582c7ff20578f3e9d37d17d", null ],
-    [ "rxError", "classEvrV1EventReceiver.html#a5ab04fab53689d99037c1db7fc89831e", null ],
-    [ "rxData", "classEvrV1EventReceiver.html#a701d0d910cc53cbcf22f82b9399d5e4e", null ],
-    [ "rxDataK", "classEvrV1EventReceiver.html#acd8bb9e6f3a599e66bdd392ce0f9f34c", null ],
-    [ "ieee", "classEvrV1EventReceiver.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEvrV1EventReceiver.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classEvrV1EventReceiver.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classEvrV1EventReceiver.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classEvrV1EventReceiver.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classEvrV1EventReceiver.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "lcls_timing_core", "classEvrV1EventReceiver.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "EvrV1Pkg", "classEvrV1EventReceiver.html#a62ac0267b4790c58b3226d854eda1aaa", null ]
+    [ "EvrV1EventReceiver.rtl", "classEvrV1EventReceiver_1_1rtl.html", null ]
 ];

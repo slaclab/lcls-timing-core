@@ -1,8 +1,13 @@
 <map id="EvrV2Module" name="EvrV2Module">
-<area shape="rect" id="node1" title=" " alt="" coords="300,80,408,107"/>
-<area shape="rect" id="node2" href="$classEvrV2EventSelect.html" title=" " alt="" coords="5,5,143,32"/>
-<area shape="rect" id="node3" href="$classEvrV2FromV1.html" title=" " alt="" coords="167,5,277,32"/>
-<area shape="rect" id="node4" href="$classEvrV2Trigger.html" title=" " alt="" coords="302,5,406,32"/>
-<area shape="rect" id="node5" href="$classEvrV2Axi.html" title=" " alt="" coords="431,5,512,32"/>
-<area shape="rect" id="node6" href="$classEvrV2TrigReg.html" title=" " alt="" coords="536,5,644,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="300,79,408,104"/>
+<area shape="rect" id="Node000002" href="$classEvrV2EventSelect.html" title=" " alt="" coords="5,5,143,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,31,309,76,308,81,131,37"/>
+<area shape="rect" id="Node000003" href="$classEvrV2FromV1.html" title=" " alt="" coords="167,5,277,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,35,334,76,331,81,254,39"/>
+<area shape="rect" id="Node000004" href="$classEvrV2Trigger.html" title=" " alt="" coords="302,5,406,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="357,44,357,79,351,79,351,44"/>
+<area shape="rect" id="Node000005" href="$classEvrV2Axi.html" title=" " alt="" coords="431,5,512,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="442,40,375,81,372,76,439,35"/>
+<area shape="rect" id="Node000006" href="$classEvrV2TrigReg.html" title=" " alt="" coords="536,5,644,31"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="540,37,393,81,391,76,538,32"/>
 </map>

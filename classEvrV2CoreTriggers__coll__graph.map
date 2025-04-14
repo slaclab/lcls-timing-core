@@ -1,9 +1,15 @@
 <map id="EvrV2CoreTriggers" name="EvrV2CoreTriggers">
-<area shape="rect" id="node1" title=" " alt="" coords="200,132,341,159"/>
-<area shape="rect" id="node2" href="$classEvrV2TrigReg.html" title=" " alt="" coords="25,5,133,32"/>
-<area shape="rect" id="node3" href="$classEvrV2ChannelReg.html" title=" " alt="" coords="9,56,148,83"/>
-<area shape="rect" id="node4" href="$classEvrV2EventSelect.html" title=" " alt="" coords="10,107,147,133"/>
-<area shape="rect" id="node5" href="$classEvrV2Trigger.html" title=" " alt="" coords="27,157,131,184"/>
-<area shape="rect" id="node6" href="$classEvrV2TriggerCompl.html" title=" " alt="" coords="5,208,152,235"/>
-<area shape="rect" id="node7" href="$classEvrV2FromV1.html" title=" " alt="" coords="23,259,134,285"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,129,341,155"/>
+<area shape="rect" id="Node000002" href="$classEvrV2TrigReg.html" title=" " alt="" coords="25,5,133,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,33,153,40,186,61,215,85,259,127,256,131,212,89,182,65,151,44,138,38"/>
+<area shape="rect" id="Node000003" href="$classEvrV2ChannelReg.html" title=" " alt="" coords="9,55,148,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,82,153,89,243,127,241,132,151,94,132,87"/>
+<area shape="rect" id="Node000004" href="$classEvrV2EventSelect.html" title=" " alt="" coords="10,104,147,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="162,125,200,130,199,135,161,130"/>
+<area shape="rect" id="Node000005" href="$classEvrV2Trigger.html" title=" " alt="" coords="27,153,131,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="144,155,200,148,200,153,144,161"/>
+<area shape="rect" id="Node000006" href="$classEvrV2TriggerCompl.html" title=" " alt="" coords="5,203,152,228"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="129,195,151,188,238,152,240,157,153,192,131,200"/>
+<area shape="rect" id="Node000007" href="$classEvrV2FromV1.html" title=" " alt="" coords="23,252,134,277"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="135,245,151,237,211,194,255,153,259,157,214,198,153,242,138,249"/>
 </map>

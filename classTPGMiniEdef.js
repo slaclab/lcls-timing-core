@@ -1,27 +1,4 @@
 var classTPGMiniEdef =
 [
-    [ "TPGMiniEdefImpl", "classTPGMiniEdef_1_1TPGMiniEdefImpl.html", "classTPGMiniEdef_1_1TPGMiniEdefImpl" ],
-    [ "TPD_G", "classTPGMiniEdef.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EDEF_G", "classTPGMiniEdef.html#a5c845a5bd4486effa9120ed0997344f2", null ],
-    [ "clk", "classTPGMiniEdef.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classTPGMiniEdef.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "cen", "classTPGMiniEdef.html#a797cd7d7a433dcb377cb430acbfa600a", null ],
-    [ "strb", "classTPGMiniEdef.html#ae22b9718f6e1119c36912858f70765ab", null ],
-    [ "cnfg", "classTPGMiniEdef.html#a4dac8b5b797a2960eccab433af05a6c1", null ],
-    [ "actv", "classTPGMiniEdef.html#aeaaa7aacc1f7a2342a4bff35cea6093c", null ],
-    [ "avgD", "classTPGMiniEdef.html#ae4c4d9c6baebb3f682ce9b7554d6d3aa", null ],
-    [ "allD", "classTPGMiniEdef.html#a683eca6a288b62ad4cf9f5f8cff4c8d5", null ],
-    [ "init", "classTPGMiniEdef.html#aa597eb063595361c073eacbd766ef5ca", null ],
-    [ "smin", "classTPGMiniEdef.html#ab22c364e83433cbc1018580901bbe74d", null ],
-    [ "smaj", "classTPGMiniEdef.html#a21084bf0219daaa22f06380d995bba23", null ],
-    [ "rate", "classTPGMiniEdef.html#a38c34b043c1e6d9a2844190ab94db54f", null ],
-    [ "slot", "classTPGMiniEdef.html#aa75b3e9b7d44b43123c96907bbea53cd", null ],
-    [ "ieee", "classTPGMiniEdef.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPGMiniEdef.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classTPGMiniEdef.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classTPGMiniEdef.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPGMiniEdef.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "lcls_timing_core", "classTPGMiniEdef.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TPGMiniEdefPkg", "classTPGMiniEdef.html#a8bf100239e6cddc831b8f2afa659ac87", null ],
-    [ "TextUtilPkg", "classTPGMiniEdef.html#aa9c868aa3ebeb0772295885509c0d4f2", null ]
+    [ "TPGMiniEdef.TPGMiniEdefImpl", "classTPGMiniEdef_1_1TPGMiniEdefImpl.html", null ]
 ];

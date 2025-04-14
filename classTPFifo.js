@@ -1,27 +1,4 @@
 var classTPFifo =
 [
-    [ "TPFifo", "classTPFifo_1_1TPFifo.html", "classTPFifo_1_1TPFifo" ],
-    [ "TPD_G", "classTPFifo.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "LOGDEPTH", "classTPFifo.html#a2d5567b75e34129efbdb55ca941b2eef", null ],
-    [ "rst", "classTPFifo.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "wrClk", "classTPFifo.html#af5f976c0de563f9c8b71697ded90a15b", null ],
-    [ "sof", "classTPFifo.html#ae2c423354b4aab90b726d5027b31d2bf", null ],
-    [ "eof", "classTPFifo.html#ab532f6a41a4fdc51fb153ebd91e9119c", null ],
-    [ "wrData", "classTPFifo.html#a6c6f4f04b385aa79ce598829e29cf6e5", null ],
-    [ "wrDataWord", "classTPFifo.html#a7f6cd1028bbd8bb629ca68fc82f6b0bf", null ],
-    [ "trig", "classTPFifo.html#a920aae4c671b375d546ff1e56d52b3db", null ],
-    [ "wsel", "classTPFifo.html#aca0a44e1b3117a26b6ea0200f6679a0f", null ],
-    [ "rdClk", "classTPFifo.html#a8d58d95b5473cd43107c4f9c6aaf2d08", null ],
-    [ "rdEn", "classTPFifo.html#a9adaff5375670f00fcebf9cb537bc581", null ],
-    [ "rdData", "classTPFifo.html#a49f3d2905e0ebaf89b1fd491a16da31d", null ],
-    [ "full", "classTPFifo.html#a58a8a9f2e9f4d84ec3cdca1a72c2f979", null ],
-    [ "empty", "classTPFifo.html#ad1b92ebd9a43f0e151ebc3fc8c6dcb9a", null ],
-    [ "ieee", "classTPFifo.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPFifo.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classTPFifo.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classTPFifo.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "UNISIM", "classTPFifo.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VCOMPONENTS", "classTPFifo.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
-    [ "surf", "classTPFifo.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPFifo.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "TPFifo.TPFifo", "classTPFifo_1_1TPFifo.html", null ]
 ];

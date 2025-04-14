@@ -1,25 +1,4 @@
 var classEvrV2TrigReg =
 [
-    [ "rtl", "classEvrV2TrigReg_1_1rtl.html", "classEvrV2TrigReg_1_1rtl" ],
-    [ "TPD_G", "classEvrV2TrigReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EVR_CARD_G", "classEvrV2TrigReg.html#a0702b5a5172a3bc7d4231c77c8d7b913", null ],
-    [ "TRIGGERS_C", "classEvrV2TrigReg.html#a536643d30e37022c51e0fae04d48dbd6", null ],
-    [ "USE_TAP_C", "classEvrV2TrigReg.html#a1f63cdc62ee5635543dad411f7c434b9", null ],
-    [ "axiClk", "classEvrV2TrigReg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classEvrV2TrigReg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axilWriteMaster", "classEvrV2TrigReg.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classEvrV2TrigReg.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilReadMaster", "classEvrV2TrigReg.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classEvrV2TrigReg.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "triggerConfig", "classEvrV2TrigReg.html#a05789f85f4136940c5aa9dd91f435853", null ],
-    [ "delay_rd", "classEvrV2TrigReg.html#a24fe746380b5d35319e439a3ac657bbc", null ],
-    [ "ieee", "classEvrV2TrigReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEvrV2TrigReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classEvrV2TrigReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classEvrV2TrigReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classEvrV2TrigReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classEvrV2TrigReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classEvrV2TrigReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classEvrV2TrigReg.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "EvrV2Pkg", "classEvrV2TrigReg.html#a0e12a59a2b7d059c35a725138fbb0634", null ]
+    [ "EvrV2TrigReg.rtl", "classEvrV2TrigReg_1_1rtl.html", null ]
 ];

@@ -1,29 +1,4 @@
 var classTPGMiniCore =
 [
-    [ "TPGMiniCore.rtl", "classTPGMiniCore_1_1rtl.html", "classTPGMiniCore_1_1rtl" ],
-    [ "TPD_G", "classTPGMiniCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NARRAYSBSA", "classTPGMiniCore.html#a718732301cd8143a404cae0cbc437629", null ],
-    [ "txClk", "classTPGMiniCore.html#ade5a7692a38f8c7bb3c2309c35fa9885", null ],
-    [ "txRst", "classTPGMiniCore.html#a794fe32c223f97a9a79d0d72cfc2a99f", null ],
-    [ "txRdy", "classTPGMiniCore.html#a516606cfb75a6e1c97b837fb747b20d6", null ],
-    [ "txData", "classTPGMiniCore.html#a637ae0d974995dbd74c9cd428618c339", null ],
-    [ "txDataK", "classTPGMiniCore.html#a773eba1a78d02c710bf2d20f01c45690", null ],
-    [ "txPolarity", "classTPGMiniCore.html#a73f54c9920cdf663d197cfc32fddc52d", null ],
-    [ "txResetO", "classTPGMiniCore.html#ad2cd8dd56f1318874b9dc5d8d152c267", null ],
-    [ "txLoopback", "classTPGMiniCore.html#aac1d27889e10facf62dbf0c202628608", null ],
-    [ "txInhibit", "classTPGMiniCore.html#aaa215aef591fd1459241d39407e96d36", null ],
-    [ "axiClk", "classTPGMiniCore.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classTPGMiniCore.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classTPGMiniCore.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classTPGMiniCore.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classTPGMiniCore.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classTPGMiniCore.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "ieee", "classTPGMiniCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPGMiniCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classTPGMiniCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPGMiniCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classTPGMiniCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classTPGMiniCore.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TPGPkg", "classTPGMiniCore.html#afc81d64632888ae2d9b4b40b219fae55", null ],
-    [ "TPGMiniEdefPkg", "classTPGMiniCore.html#a8bf100239e6cddc831b8f2afa659ac87", null ]
+    [ "TPGMiniCore.rtl", "classTPGMiniCore_1_1rtl.html", null ]
 ];

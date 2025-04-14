@@ -1,32 +1,4 @@
 var classEvrV2Axi =
 [
-    [ "mapping", "classEvrV2Axi_1_1mapping.html", "classEvrV2Axi_1_1mapping" ],
-    [ "TPD_G", "classEvrV2Axi.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DMA_ENABLE_G", "classEvrV2Axi.html#ab471fa24148d0fe6f4338385e8731872", null ],
-    [ "CHANNELS_C", "classEvrV2Axi.html#af49a104f4138754009ec6927f2032415", null ],
-    [ "axiClk", "classEvrV2Axi.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classEvrV2Axi.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axilWriteMaster", "classEvrV2Axi.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classEvrV2Axi.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilReadMaster", "classEvrV2Axi.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classEvrV2Axi.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "irqEnable", "classEvrV2Axi.html#ac84dd1d173c7d44d0bea8e20c5164003", null ],
-    [ "channelConfig", "classEvrV2Axi.html#a0c6d961096437710c8e1d936b477523b", null ],
-    [ "trigSel", "classEvrV2Axi.html#a114d063634864e3d7f1f3300983d59b3", null ],
-    [ "dmaFullThr", "classEvrV2Axi.html#a51227e623196015a1455535332a5d424", null ],
-    [ "irqReq", "classEvrV2Axi.html#a912561c30666a998f31ba88e086dc9f7", null ],
-    [ "rstCount", "classEvrV2Axi.html#a2a5c74571c0923f4e4666a5fd8fb88c3", null ],
-    [ "eventCount", "classEvrV2Axi.html#a29540c9a30dc645977d587ddfe63d42e", null ],
-    [ "gtxDebug", "classEvrV2Axi.html#a057e09e80e4c73e2505d5d69fc6fbf42", null ],
-    [ "ieee", "classEvrV2Axi.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEvrV2Axi.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classEvrV2Axi.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classEvrV2Axi.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "NUMERIC_STD", "classEvrV2Axi.html#ae00f3f04545af57582ff10609eee23e2", null ],
-    [ "surf", "classEvrV2Axi.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classEvrV2Axi.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classEvrV2Axi.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classEvrV2Axi.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TimingPkg", "classEvrV2Axi.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ],
-    [ "EvrV2Pkg", "classEvrV2Axi.html#a0e12a59a2b7d059c35a725138fbb0634", null ]
+    [ "EvrV2Axi.mapping", "classEvrV2Axi_1_1mapping.html", null ]
 ];

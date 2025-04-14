@@ -1,32 +1,4 @@
 var classTPGMiniReg =
 [
-    [ "TPGMiniReg.rtl", "classTPGMiniReg_1_1rtl.html", "classTPGMiniReg_1_1rtl" ],
-    [ "TPD_G", "classTPGMiniReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NARRAYS_BSA", "classTPGMiniReg.html#af49bc08da0eda5af2d5a91149ddb681d", null ],
-    [ "USE_WSTRB_G", "classTPGMiniReg.html#a5ded877fab84392c62d4d354f9b91d90", null ],
-    [ "irqActive", "classTPGMiniReg.html#a94b817a2a67f4f75b5715fa88dbb890c", null ],
-    [ "irqEnable", "classTPGMiniReg.html#ac84dd1d173c7d44d0bea8e20c5164003", null ],
-    [ "irqReq", "classTPGMiniReg.html#a9fc0455c304e6781030af3f0cb1767ff", null ],
-    [ "axiReadMaster", "classTPGMiniReg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classTPGMiniReg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classTPGMiniReg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classTPGMiniReg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "status", "classTPGMiniReg.html#a0fe0fddd32bfc857e81b8c80e0fe4de6", null ],
-    [ "config", "classTPGMiniReg.html#a46c5b0cec99f54d2bbb5556576832747", null ],
-    [ "edefConfig", "classTPGMiniReg.html#a8c0439565b1b9a8a700ee3a45b8a2f44", null ],
-    [ "txReset", "classTPGMiniReg.html#ae1ab7195ac523cb072829bffdb41ec26", null ],
-    [ "txLoopback", "classTPGMiniReg.html#aac1d27889e10facf62dbf0c202628608", null ],
-    [ "txInhibit", "classTPGMiniReg.html#aaa215aef591fd1459241d39407e96d36", null ],
-    [ "axiClk", "classTPGMiniReg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classTPGMiniReg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classTPGMiniReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPGMiniReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classTPGMiniReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classTPGMiniReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classTPGMiniReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPGMiniReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classTPGMiniReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classTPGMiniReg.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TPGPkg", "classTPGMiniReg.html#afc81d64632888ae2d9b4b40b219fae55", null ],
-    [ "TPGMiniEdefPkg", "classTPGMiniReg.html#a8bf100239e6cddc831b8f2afa659ac87", null ]
+    [ "TPGMiniReg.rtl", "classTPGMiniReg_1_1rtl.html", null ]
 ];

@@ -1,28 +1,4 @@
 var classEvrV1Reg =
 [
-    [ "rtl", "classEvrV1Reg_1_1rtl.html", "classEvrV1Reg_1_1rtl" ],
-    [ "TPD_G", "classEvrV1Reg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "BUILD_INFO_G", "classEvrV1Reg.html#ab82b2700793705e55de284c6cfd850a0", null ],
-    [ "USE_WSTRB_G", "classEvrV1Reg.html#a5ded877fab84392c62d4d354f9b91d90", null ],
-    [ "LATCH_TS_LATENCY_G", "classEvrV1Reg.html#a3d0209a0231cd3065d25096332d2c54a", null ],
-    [ "irqActive", "classEvrV1Reg.html#a94b817a2a67f4f75b5715fa88dbb890c", null ],
-    [ "irqEnable", "classEvrV1Reg.html#ac84dd1d173c7d44d0bea8e20c5164003", null ],
-    [ "irqReq", "classEvrV1Reg.html#a9fc0455c304e6781030af3f0cb1767ff", null ],
-    [ "axiReadMaster", "classEvrV1Reg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classEvrV1Reg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classEvrV1Reg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classEvrV1Reg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "status", "classEvrV1Reg.html#a52cc6c8aa1e54817854240fea5ff0d40", null ],
-    [ "config", "classEvrV1Reg.html#aab986abcc63c9a68d131a1b6ca032543", null ],
-    [ "axiClk", "classEvrV1Reg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classEvrV1Reg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classEvrV1Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEvrV1Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classEvrV1Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classEvrV1Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classEvrV1Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classEvrV1Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classEvrV1Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classEvrV1Reg.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "EvrV1Pkg", "classEvrV1Reg.html#a62ac0267b4790c58b3226d854eda1aaa", null ]
+    [ "EvrV1Reg.rtl", "classEvrV1Reg_1_1rtl.html", null ]
 ];

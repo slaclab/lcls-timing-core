@@ -1,29 +1,4 @@
 var classCtrControl =
 [
-    [ "CtrControl", "classCtrControl_1_1CtrControl.html", "classCtrControl_1_1CtrControl" ],
-    [ "TPD_G", "classCtrControl.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "ASYNC_REGCLK_G", "classCtrControl.html#a1372af8a434a9a3d5c050eb1cf98177d", null ],
-    [ "sysclk", "classCtrControl.html#aa0e8807a34e24d2a600d9a291326d95d", null ],
-    [ "sysrst", "classCtrControl.html#aede7338a7f729cbabf925b3585de613a", null ],
-    [ "ctrdef", "classCtrControl.html#a68b8aea52eafd63cdfe21d2d51c431ea", null ],
-    [ "ctrrst", "classCtrControl.html#a4ebb122252d010130f709d055887229d", null ],
-    [ "txclk", "classCtrControl.html#a47cff66db3435536860849a97ddd631f", null ],
-    [ "txrst", "classCtrControl.html#a08e6d943bb8c2e81fc3c7f847926bb5e", null ],
-    [ "enable", "classCtrControl.html#ac3a8d990a960e202e489043abc840522", null ],
-    [ "fixedRate", "classCtrControl.html#a98a01fe6a2ddb89d7805becfbdbbf0ea", null ],
-    [ "acRate", "classCtrControl.html#aaf054f456cd3d6fc1aeb36cafa61b022", null ],
-    [ "acTS", "classCtrControl.html#a408e2b454bb959e437732c9077840e50", null ],
-    [ "beamSeq", "classCtrControl.html#a97cf651de17a1b448208e1e835103620", null ],
-    [ "expSeq", "classCtrControl.html#a43b25370cabf750fdf0431ccb8bb2b51", null ],
-    [ "count", "classCtrControl.html#a7fa716df786a01c29d46baa42528a421", null ],
-    [ "ieee", "classCtrControl.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "lcls_timing_core", "classCtrControl.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TPGPkg", "classCtrControl.html#afc81d64632888ae2d9b4b40b219fae55", null ],
-    [ "std_logic_1164", "classCtrControl.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classCtrControl.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classCtrControl.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "UNISIM", "classCtrControl.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VCOMPONENTS", "classCtrControl.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
-    [ "surf", "classCtrControl.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classCtrControl.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "CtrControl.CtrControl", "classCtrControl_1_1CtrControl.html", null ]
 ];

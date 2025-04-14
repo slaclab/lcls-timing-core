@@ -1,7 +1,11 @@
 <map id="EvrV1EventReceiver" name="EvrV1EventReceiver">
-<area shape="rect" id="node1" title=" " alt="" coords="205,80,360,107"/>
-<area shape="rect" id="node5" href="$classEvrV1Core.html" title=" " alt="" coords="237,155,328,181"/>
-<area shape="rect" id="node2" href="$classEvrV1TimeStampFIFO.html" title=" " alt="" coords="5,5,171,32"/>
-<area shape="rect" id="node3" href="$classEvrV1EventRAM256x32.html" title=" " alt="" coords="195,5,370,32"/>
-<area shape="rect" id="node4" href="$classEvrV1HeartBeat.html" title=" " alt="" coords="394,5,521,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="205,79,360,104"/>
+<area shape="rect" id="Node000005" href="$classEvrV1Core.html" title=" " alt="" coords="237,152,328,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="285,118,285,152,280,152,280,118"/>
+<area shape="rect" id="Node000002" href="$classEvrV1TimeStampFIFO.html" title=" " alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,33,252,76,250,81,131,38"/>
+<area shape="rect" id="Node000003" href="$classEvrV1EventRAM256x32.html" title=" " alt="" coords="195,5,370,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,44,285,79,280,79,280,44"/>
+<area shape="rect" id="Node000004" href="$classEvrV1HeartBeat.html" title=" " alt="" coords="394,5,521,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="418,38,312,81,310,76,416,33"/>
 </map>

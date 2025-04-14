@@ -1,25 +1,4 @@
 var classTimingGthWrapper =
 [
-    [ "TimingGthWrapper.rtl", "classTimingGthWrapper_1_1rtl.html", "classTimingGthWrapper_1_1rtl" ],
-    [ "TPD_G", "classTimingGthWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "stableClk", "classTimingGthWrapper.html#abae55f5fe5006544226d4b910464381a", null ],
-    [ "gtRefClk", "classTimingGthWrapper.html#a04b26ab9527043b8550500fad704242c", null ],
-    [ "gtRxP", "classTimingGthWrapper.html#ac4333e09929f3354bd9e2efbe2b6b406", null ],
-    [ "gtRxN", "classTimingGthWrapper.html#a999ea110b3a466dd7f6c5efaaab82e6c", null ],
-    [ "gtTxP", "classTimingGthWrapper.html#aa58336ea27a58f1e60a9d0d95f940ec4", null ],
-    [ "gtTxN", "classTimingGthWrapper.html#a1ab8deaa356690d49f6a932da3152771", null ],
-    [ "txInhibit", "classTimingGthWrapper.html#a6badda97516c0bdc87a71bd53f972089", null ],
-    [ "rxRecClk", "classTimingGthWrapper.html#abfb7cb6535f4bf66a5f2bcbcba090ef6", null ],
-    [ "rxUsrClk", "classTimingGthWrapper.html#a0f5caa29db17da69ce801bdd7d4e9e74", null ],
-    [ "rxReset", "classTimingGthWrapper.html#addfea4883444c9a51ca51218358589da", null ],
-    [ "rxRstDone", "classTimingGthWrapper.html#acd44a757974dfc2100e1501ae908fc54", null ],
-    [ "rxData", "classTimingGthWrapper.html#a388d86fd92f7be58c121098c9f240109", null ],
-    [ "rxDataK", "classTimingGthWrapper.html#a8d1e023cbd81ea768ebc20345e6e263a", null ],
-    [ "rxDispErr", "classTimingGthWrapper.html#ae5a8d00f8290e4832a6901ae4dde071b", null ],
-    [ "rxDecErr", "classTimingGthWrapper.html#a7d65429eddbdb47b90e0beb7aa19c587", null ],
-    [ "std_logic_1164", "classTimingGthWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classTimingGthWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classTimingGthWrapper.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classTimingGthWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTimingGthWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "TimingGthWrapper.rtl", "classTimingGthWrapper_1_1rtl.html", null ]
 ];

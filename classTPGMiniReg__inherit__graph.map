@@ -1,5 +1,7 @@
 <map id="TPGMiniReg" name="TPGMiniReg">
-<area shape="rect" id="node1" title=" " alt="" coords="8,5,109,32"/>
-<area shape="rect" id="node2" href="$classTPGMiniCore.html" title=" " alt="" coords="5,80,112,107"/>
-<area shape="rect" id="node3" href="$classTimingCore.html" title=" " alt="" coords="10,155,107,181"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="8,5,109,31"/>
+<area shape="rect" id="Node000002" href="$classTPGMiniCore.html" title=" " alt="" coords="5,79,112,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
+<area shape="rect" id="Node000003" href="$classTimingCore.html" title=" " alt="" coords="10,152,107,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,118,61,152,56,152,56,118"/>
 </map>

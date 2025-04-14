@@ -1,26 +1,4 @@
 var classEvrV2ChannelReg =
 [
-    [ "rtl", "classEvrV2ChannelReg_1_1rtl.html", "classEvrV2ChannelReg_1_1rtl" ],
-    [ "TPD_G", "classEvrV2ChannelReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NCHANNELS_G", "classEvrV2ChannelReg.html#a268b932d84caebc302b77c79160ed348", null ],
-    [ "EVR_CARD_G", "classEvrV2ChannelReg.html#a0702b5a5172a3bc7d4231c77c8d7b913", null ],
-    [ "DMA_ENABLE_G", "classEvrV2ChannelReg.html#ab471fa24148d0fe6f4338385e8731872", null ],
-    [ "axiClk", "classEvrV2ChannelReg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classEvrV2ChannelReg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axilWriteMaster", "classEvrV2ChannelReg.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classEvrV2ChannelReg.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilReadMaster", "classEvrV2ChannelReg.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classEvrV2ChannelReg.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "channelConfig", "classEvrV2ChannelReg.html#ac99ef6a21abdc4a90f536d09ccc82ccc", null ],
-    [ "eventCount", "classEvrV2ChannelReg.html#ad9e416ad145d0a40df99163d86b959fd", null ],
-    [ "ieee", "classEvrV2ChannelReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEvrV2ChannelReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classEvrV2ChannelReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classEvrV2ChannelReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classEvrV2ChannelReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classEvrV2ChannelReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classEvrV2ChannelReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "lcls_timing_core", "classEvrV2ChannelReg.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TimingPkg", "classEvrV2ChannelReg.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ],
-    [ "EvrV2Pkg", "classEvrV2ChannelReg.html#a0e12a59a2b7d059c35a725138fbb0634", null ]
+    [ "EvrV2ChannelReg.rtl", "classEvrV2ChannelReg_1_1rtl.html", null ]
 ];

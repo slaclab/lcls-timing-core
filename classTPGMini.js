@@ -1,27 +1,4 @@
 var classTPGMini =
 [
-    [ "TPGMini", "classTPGMini_1_1TPGMini.html", "classTPGMini_1_1TPGMini" ],
-    [ "TPD_G", "classTPGMini.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NARRAYSBSA", "classTPGMini.html#a6b8213d6c79cccb4798d17e71613dc11", null ],
-    [ "STREAM_INTF", "classTPGMini.html#a65e346b5c2eafe76d98020c93afb5a6c", null ],
-    [ "statusO", "classTPGMini.html#a292385cf7e07084194390557e06a56c1", null ],
-    [ "configI", "classTPGMini.html#a8ccd1751c0615e5947a19faf63bef933", null ],
-    [ "txClk", "classTPGMini.html#ade5a7692a38f8c7bb3c2309c35fa9885", null ],
-    [ "txRst", "classTPGMini.html#a794fe32c223f97a9a79d0d72cfc2a99f", null ],
-    [ "txRdy", "classTPGMini.html#a516606cfb75a6e1c97b837fb747b20d6", null ],
-    [ "txData", "classTPGMini.html#a105cbb8a69204275a1446fcae3d87a2f", null ],
-    [ "txDataK", "classTPGMini.html#a7201e92d45f40d9735deff389739cc44", null ],
-    [ "streams", "classTPGMini.html#a874f56ffd6f8848dcd724df751dab007", null ],
-    [ "streamIds", "classTPGMini.html#a66798a99cd2174a80d6a1f3e80d4d64a", null ],
-    [ "advance", "classTPGMini.html#ac84a23f559c6fba33b7e807e29732cb5", null ],
-    [ "fiducial", "classTPGMini.html#a98c3ef799d7f1d58f776cf8301b17e91", null ],
-    [ "ieee", "classTPGMini.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPGMini.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classTPGMini.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classTPGMini.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classTPGMini.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPGMini.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "lcls_timing_core", "classTPGMini.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TimingPkg", "classTPGMini.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ],
-    [ "TPGPkg", "classTPGMini.html#afc81d64632888ae2d9b4b40b219fae55", null ]
+    [ "TPGMini.TPGMini", "classTPGMini_1_1TPGMini.html", null ]
 ];

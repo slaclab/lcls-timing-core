@@ -1,27 +1,4 @@
 var classTPGMiniStream =
 [
-    [ "TPGMiniStream", "classTPGMiniStream_1_1TPGMiniStream.html", "classTPGMiniStream_1_1TPGMiniStream" ],
-    [ "TPD_G", "classTPGMiniStream.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AC_PERIOD", "classTPGMiniStream.html#acfe0eb2c5d9521d65b46e7d2bb34307b", null ],
-    [ "NUM_EDEFS", "classTPGMiniStream.html#a4ced529a5b492d6c2a86cb20b561c791", null ],
-    [ "config", "classTPGMiniStream.html#abc852b23342bd1424c1ae1aa78a6006b", null ],
-    [ "edefConfig", "classTPGMiniStream.html#aa99c67c39a997896dc2c5ecdd08f43cd", null ],
-    [ "txClk", "classTPGMiniStream.html#ade5a7692a38f8c7bb3c2309c35fa9885", null ],
-    [ "txRst", "classTPGMiniStream.html#a794fe32c223f97a9a79d0d72cfc2a99f", null ],
-    [ "txRdy", "classTPGMiniStream.html#a516606cfb75a6e1c97b837fb747b20d6", null ],
-    [ "txData", "classTPGMiniStream.html#a105cbb8a69204275a1446fcae3d87a2f", null ],
-    [ "txDataK", "classTPGMiniStream.html#a7201e92d45f40d9735deff389739cc44", null ],
-    [ "simData", "classTPGMiniStream.html#a87a4d342044029f30f5d76359b361670", null ],
-    [ "simEvents", "classTPGMiniStream.html#af06d0199b1143e75aa728eb348956b1f", null ],
-    [ "simStrobe", "classTPGMiniStream.html#a478b8faaac332113dc364e861275e76f", null ],
-    [ "ieee", "classTPGMiniStream.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTPGMiniStream.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classTPGMiniStream.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classTPGMiniStream.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "lcls_timing_core", "classTPGMiniStream.html#a013c20dbecc6073fc352d07e596c4bea", null ],
-    [ "TPGPkg", "classTPGMiniStream.html#afc81d64632888ae2d9b4b40b219fae55", null ],
-    [ "surf", "classTPGMiniStream.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTPGMiniStream.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "TimingPkg", "classTPGMiniStream.html#aa5fefbb58d6204d5242dd2f4be3352e0", null ],
-    [ "TPGMiniEdefPkg", "classTPGMiniStream.html#a8bf100239e6cddc831b8f2afa659ac87", null ]
+    [ "TPGMiniStream.TPGMiniStream", "classTPGMiniStream_1_1TPGMiniStream.html", null ]
 ];
