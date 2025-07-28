@@ -201,20 +201,33 @@ begin
 
       case (r.rdState) is
          when RD_IDLE_S =>
-	    if (fifoValid = '1' and fifoDout(fifoDout'left) = '1' and fifoDout(COUNT_WIDTH_C-1 downto 0) = r.count) then
-	       v.fifoRd := '1';
-	       v.strobe := r.valid;
-	       v.rdState := RD_MSG_S;
-	    end if;
+            if fifoValid = '1' then
+               if fifoDout(fifoDout'left) = '1' then
+                  if (fifoDout(COUNT_WIDTH_C-1 downto 0) = r.count) then
+                    v.fifoRd := '1';
+                    v.strobe := r.valid;
+                    v.rdState := RD_MSG_S;
+                  end if;
+               else  -- unexpected word
+                  v.fifoRd := '1';
+                  v.valid  := '0';
+               end if;
+            end if;
          when RD_MSG_S =>
-            if (fifoValid = '0' or fifoDout(STOP_BIT_C) = '1') then
-               v.fifoRd  := fifoValid; 
-               v.valid   := fifoValid; 
-	       v.rdState := RD_IDLE_S;
-	    else
-	       v.fifoRd := '1';
-	       v.frame  := fifoDout(15 downto 0) & r.frame(r.frame'left downto 1);
-	    end if;
+            if fifoValid = '1' then
+               if fifoDout(fifoDout'left) = '1' then
+                  v.fifoRd  := '1';
+                  v.valid   := '0'; 
+                  v.rdState := RD_IDLE_S;
+               elsif fifoDout(STOP_BIT_C) = '1' then
+                  v.fifoRd  := '1';
+                  v.valid   := '1';
+                  v.rdState := RD_IDLE_S;
+               else
+  	          v.fifoRd := '1';
+	          v.frame  := fifoDout(15 downto 0) & r.frame(r.frame'left downto 1);
+               end if;
+            end if;
       end case;
       
       if (rst = '1') then
