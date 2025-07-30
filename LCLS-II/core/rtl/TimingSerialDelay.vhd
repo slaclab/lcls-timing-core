@@ -54,89 +54,71 @@ end TimingSerialDelay;
 -- Define architecture for top level module
 architecture TimingSerialDelay of TimingSerialDelay is
 
-   constant CADDR_WIDTH_C : integer := log2(FDEPTH_G);
-   constant MADDR_WIDTH_C : integer := log2(NWORDS_G*FDEPTH_G);
-
-   type StateType is (IDLE_S, SHIFT_S, ARMED_S, ERR_S);
+   constant COUNT_WIDTH_C : integer := 20;
+   constant ADDR_WIDTH_C : integer := log2((NWORDS_G+1)*FDEPTH_G);
+   constant START_BIT_C : integer := 16;
+   constant STOP_BIT_C  : integer := 17;
+   
+   type WrStateType is (WR_IDLE_S, WR_MSG_S);
+   type RdStateType is (RD_IDLE_S, RD_MSG_S);
 
    type RegType is record
       count       : slv(19 downto 0);
       target      : slv(19 downto 0);
+      wrState     : WrStateType;
+      rdState     : RdStateType;
+      advance     : sl;
       frame       : Slv16Array(NWORDS_G-1 downto 0);
-      state       : StateType;
-      firstW      : sl;
-      accept      : sl;
-      accept_last : sl;
-      nword       : integer range 0 to NWORDS_G;
-      rd_cnt      : sl;
-      rd_msg      : sl;
       strobe      : sl;
       valid       : sl;
-      fifoRst     : sl;
-      advanceLast : sl;
-      lastWord    : sl;
+      fifoRd      : sl;
+      fifoWr      : sl;
+      fifoDin     : slv(COUNT_WIDTH_C downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      count       => (others => '0'),
-      target      => (others => '0'),
-      frame       => (others => (others => '0')),
-      state       => ERR_S,
-      firstW      => '0',
-      accept      => '0',
-      accept_last => '0',
-      nword       => 0,
-      rd_cnt      => '0',
-      rd_msg      => '0',
+      count       => (others=>'0'),
+      target      => toSlv(4,COUNT_WIDTH_C),
+      wrState     => WR_IDLE_S,
+      rdState     => RD_IDLE_S,
+      advance     => '0',
+      frame       => (others => (others=>'0')),
       strobe      => '0',
       valid       => '0',
-      fifoRst     => '1',
-      advanceLast => '0',
-      lastWord    => '0');
+      fifoRd      => '0',
+      fifoWr      => '0',
+      fifoDin     => (others=>'0') );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal valid_cnt : sl;
-   signal valid_msg : sl;
-   signal full_cnt  : sl;
-   signal full_msg  : sl;
-   signal dout_cnt  : slv(19 downto 0);
-   signal din_rdy   : sl;
-   signal dout_rdy  : sl;
-   signal dout_msg  : slv(15 downto 0);
-   signal firstW    : sl;
-   signal wr_cnt    : sl;
-   signal nwordslv  : slv(7 downto 0);
-
-   signal msgFifoRd : sl;
-   signal msgFifoWr : sl;
-   signal lastWord  : sl;
-
-   signal count_cnt : slv(CADDR_WIDTH_C-1 downto 0);
-   signal count_msg : slv(MADDR_WIDTH_C-1 downto 0);
-
+   signal fifoDout     : slv(COUNT_WIDTH_C downto 0);
+   signal fifoValid    : sl;
+   signal fifoOverflow : sl;
+   signal fifoCount    : slv(ADDR_WIDTH_C-1 downto 0);
+   
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
 
-   signal r_state : slv(1 downto 0);
-   signal r_count_cnt : slv(15 downto 0);
-   signal r_count_msg : slv(15 downto 0);
-
+   signal r_wrstate   : slv(1 downto 0);
+   signal r_rdstate   : slv(1 downto 0);
+   signal r_fifoCount : slv(15 downto 0);
+   
    component ila_0
       port (clk    : in sl;
             probe0 : in slv(255 downto 0));
    end component;
 
 begin
-   nwordslv <= toslv(r.nword, 8);
+
    GEN_DEBUG : if DEBUG_G generate
-      r_state <= "00" when r.state = IDLE_S else
-                 "01" when r.state = SHIFT_S else
-                 "10" when r.state = ARMED_S else
-                 "11";
-      r_count_cnt <= resize(count_cnt,16);
-      r_count_msg <= resize(count_msg,16);
+      r_wrstate <= "00" when r.wrState = WR_IDLE_S else
+                   "01" when r.wrState = WR_MSG_S else
+                   "11";
+      r_rdstate <= "00" when r.rdState = RD_IDLE_S else
+                   "01" when r.rdState = RD_MSG_S else
+                   "11";
+      r_fifoCount <= resize(fifoCount,16);
 
       U_ILA : ila_0
          port map (
@@ -145,28 +127,16 @@ begin
             probe0(1)             => fiducial_i,
             probe0(2)             => advance_i,
             probe0(3)             => stream_i.last,
-            probe0(4)             => valid_cnt,
-            probe0(5)             => valid_msg,
-            probe0(6)             => full_cnt,
-            probe0(7)             => full_msg,
-            probe0(8)             => din_rdy,
-            probe0(9)             => dout_rdy,
-            probe0(10)            => firstW,
-            probe0(11)            => wr_cnt,
-            probe0(31 downto 12)  => r.count,
-            probe0(51 downto 32)  => r.target,
-            probe0(52)            => r.firstW,
-            probe0(53)            => r.accept,
-            probe0(54)            => r.rd_cnt,
-            probe0(55)            => r.rd_msg,
-            probe0(56)            => r.fifoRst,
-            probe0(57)            => r.strobe,
-            probe0(58)            => r.valid,
-            probe0(60 downto 59)  => r_state,
-            probe0(68 downto 61)  => nwordslv,
-            probe0(84 downto 69)  => r_count_cnt,
-            probe0(100 downto 85)  => r_count_msg,
-            probe0(255 downto 101) => (others => '0'));
+            probe0(4)             => '0',
+            probe0(5)             => r.strobe,
+            probe0(6)             => r.valid,
+            probe0(26 downto  7)  => r.target,
+            probe0(46 downto 27)  => r.count,
+            probe0(48 downto 47)  => r_wrstate,
+            probe0(50 downto 49)  => r_rdstate,
+	    probe0(51)            => fifoValid,
+	    probe0(67 downto 52)  => r_fifoCount,
+            probe0(255 downto 68) => (others => '0'));
    end generate;
 
    GEN_FRAME : for i in 0 to NWORDS_G-1 generate
@@ -175,129 +145,91 @@ begin
 
    strobe_o   <= r.strobe;
    valid_o    <= r.valid;
-   overflow_o <= full_cnt or full_msg;
+   overflow_o <= fifoOverflow;
 
-   wr_cnt  <= fiducial_i and r.accept and din_rdy;
-   din_rdy <= r.accept_last;
-
-   U_CntDelay : entity surf.FifoSync
-      generic map (
-         TPD_G        => TPD_G,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 21,
-         ADDR_WIDTH_G => CADDR_WIDTH_C)
-      port map (
-         rst               => r.fifoRst,
-         clk               => clk,
-         wr_en             => wr_cnt,
-         din(19 downto 0)  => r.target,
-         din(20)           => din_rdy,
-         rd_en             => r.rd_cnt,
-         dout(19 downto 0) => dout_cnt,
-         dout(20)          => dout_rdy,
-         valid             => valid_cnt,
-         overflow          => full_cnt,
-         data_count        => count_cnt);
-
-   msgFifoWr <= advance_i or r.lastWord;
    U_MsgDelay : entity surf.FifoSync
       generic map (
          TPD_G        => TPD_G,
          FWFT_EN_G    => true,
-         DATA_WIDTH_G => 18,
-         ADDR_WIDTH_G => MADDR_WIDTH_C)
+         DATA_WIDTH_G => COUNT_WIDTH_C+1,
+         ADDR_WIDTH_G => ADDR_WIDTH_C)
       port map (
-         rst               => r.fifoRst,
+         rst               => rst,
          clk               => clk,
-         wr_en             => msgFifoWr,
-         din(15 downto 0)  => stream_i.data,
-         din(16)           => r.firstW,
-         din(17)           => r.lastWord,
-         rd_en             => msgFifoRd,
-         dout(15 downto 0) => dout_msg,
-         dout(16)          => firstW,
-         dout(17)          => lastWord,
-         valid             => valid_msg,
-         overflow          => full_msg,
-         data_count        => count_msg);
+         wr_en             => rin.fifoWr,
+	 din               => rin.fifoDin,
+         rd_en             => rin.fifoRd,
+	 dout              => fifoDout,
+         valid             => fifoValid,
+         overflow          => fifoOverflow,
+         data_count        => fifoCount);
 
-   process (advance_i, delay, dout_cnt, dout_msg, dout_rdy, fiducial_i, firstW, lastWord, r, rst,
-            stream_i, valid_cnt, valid_msg) is
+   process (advance_i, delay, fifoDout, fifoValid, fiducial_i, r, stream_i ) is
       variable v : RegType;
    begin
       v := r;
 
-      v.lastWord    := '0';
-      v.advanceLast := advance_i;
-      if (advance_i = '0' and r.advanceLast = '1') then
-         v.lastWord := '1';
-      end if;
-
       v.count   := r.count+1;
       v.target  := r.count+5+delay;     -- need extra fixed delay for cntdelay fifo
-      v.rd_msg  := '0';
-      v.rd_cnt  := '0';
+
+      v.fifoWr  := '0';
+      v.fifoRd  := '0';
+
       v.strobe  := '0';
-      v.fifoRst := '0';
+      v.advance := advance_i;
 
-      if fiducial_i = '1' or r.fifoRst = '1' then
-         v.accept      := '0';
-         v.accept_last := '0';
-      elsif advance_i = '1' then
-         v.accept := '1';
-         if stream_i.last = '1' then
-            v.accept_last := '1';
-         end if;
-      end if;
-
-      if fiducial_i = '1' and stream_i.last = '1' then
-         v.firstW := '1';
-      elsif advance_i = '1' then
-         v.firstW := '0';
-      end if;
-
-      case (r.state) is
-         when ERR_S =>
-            if fiducial_i = '1' then
-               v.state := IDLE_S;
-            else
-               v.fifoRst := '1';
-            end if;
-         when IDLE_S =>
-            if (valid_msg = '1') then
-               v.rd_msg := '1';
-               v.nword  := 1;
-               v.frame  := dout_msg & r.frame(r.frame'left downto 1);
-               v.valid  := firstW;
-               v.state  := SHIFT_S;
-            end if;
-         when SHIFT_S =>
-            if (valid_msg = '1' and lastWord = '1') then  -- Last word of frame reached
-               v.state  := ARMED_S;
-               v.rd_msg := '1';
-            elsif valid_msg = '1' and firstW = '1' then  -- short frame
-               v.valid := '0';
-               v.state := ARMED_S;
-            elsif valid_msg = '1' then                   -- still accumulating
-               -- Prevent out of range errors in simulations
-               if (r.nword<NWORDS_G) then
-                  v.nword  := r.nword+1;
-               end if;
-               v.frame  := dout_msg & r.frame(r.frame'left downto 1);
-               v.rd_msg := '1';
-            end if;
-         when ARMED_S =>
-            if (valid_cnt = '1' and dout_cnt = r.count) then
-               v.rd_cnt := '1';
-               v.strobe := r.valid and dout_rdy;
-               v.valid  := r.valid and dout_rdy;
-               v.state  := IDLE_S;
-            end if;
-         when others => null;
+      case (r.wrState) is
+         --  Can fiducial_i and advance_i assert at the same time??
+         when WR_IDLE_S =>
+	    if fiducial_i = '1' then
+      	       v.fifoWr  := '1';
+	       v.fifoDin := '1' & r.target;
+	       v.wrState := WR_MSG_S;
+	    end if;
+         when WR_MSG_S =>
+	    if advance_i = '1' then
+               v.fifoWr  := '1';
+               v.fifoDin := resize(stream_i.data,COUNT_WIDTH_C+1);
+               v.fifoDin(START_BIT_C) := r.fifoDin(COUNT_WIDTH_C);
+	    elsif r.advance = '1' then
+               v.fifoWr  := '1';
+               v.fifoDin := (others=>'0');
+               v.fifoDin(STOP_BIT_C) := '1';
+	       v.wrState := WR_IDLE_S;
+	    end if;
       end case;
 
-      msgFifoRd <= v.rd_msg;
-
+      case (r.rdState) is
+         when RD_IDLE_S =>
+            if fifoValid = '1' then
+               if fifoDout(fifoDout'left) = '1' then
+                  if (fifoDout(COUNT_WIDTH_C-1 downto 0) = r.count) then
+                    v.fifoRd := '1';
+                    v.strobe := r.valid;
+                    v.rdState := RD_MSG_S;
+                  end if;
+               else  -- unexpected word
+                  v.fifoRd := '1';
+                  v.valid  := '0';
+               end if;
+            end if;
+         when RD_MSG_S =>
+            if fifoValid = '1' then
+               if fifoDout(fifoDout'left) = '1' then
+                  v.fifoRd  := '1';
+                  v.valid   := '0'; 
+                  v.rdState := RD_IDLE_S;
+               elsif fifoDout(STOP_BIT_C) = '1' then
+                  v.fifoRd  := '1';
+                  v.valid   := '1';
+                  v.rdState := RD_IDLE_S;
+               else
+  	          v.fifoRd := '1';
+	          v.frame  := fifoDout(15 downto 0) & r.frame(r.frame'left downto 1);
+               end if;
+            end if;
+      end case;
+      
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
