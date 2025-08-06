@@ -164,7 +164,7 @@ begin
          overflow          => fifoOverflow,
          data_count        => fifoCount);
 
-   process (advance_i, delay, fifoDout, fifoValid, fiducial_i, r, stream_i ) is
+   process (rst, r, advance_i, delay, fifoDout, fifoValid, fiducial_i, stream_i ) is
       variable v : RegType;
    begin
       v := r;
