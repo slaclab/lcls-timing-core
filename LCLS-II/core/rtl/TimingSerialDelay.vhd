@@ -58,7 +58,7 @@ architecture TimingSerialDelay of TimingSerialDelay is
    constant ADDR_WIDTH_C : integer := log2((NWORDS_G+1)*FDEPTH_G);
    constant START_BIT_C : integer := 16;
    constant STOP_BIT_C  : integer := 17;
-   
+
    type WrStateType is (WR_IDLE_S, WR_MSG_S);
    type RdStateType is (RD_IDLE_S, RD_MSG_S);
 
@@ -96,14 +96,14 @@ architecture TimingSerialDelay of TimingSerialDelay is
    signal fifoValid    : sl;
    signal fifoOverflow : sl;
    signal fifoCount    : slv(ADDR_WIDTH_C-1 downto 0);
-   
+
    attribute use_dsp48      : string;
    attribute use_dsp48 of r : signal is "yes";
 
    signal r_wrstate   : slv(1 downto 0);
    signal r_rdstate   : slv(1 downto 0);
    signal r_fifoCount : slv(15 downto 0);
-   
+
    component ila_0
       port (clk    : in sl;
             probe0 : in slv(255 downto 0));
@@ -217,7 +217,7 @@ begin
             if fifoValid = '1' then
                if fifoDout(fifoDout'left) = '1' then
                   v.fifoRd  := '1';
-                  v.valid   := '0'; 
+                  v.valid   := '0';
                   v.rdState := RD_IDLE_S;
                elsif fifoDout(STOP_BIT_C) = '1' then
                   v.fifoRd  := '1';
@@ -229,7 +229,7 @@ begin
                end if;
             end if;
       end case;
-      
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
