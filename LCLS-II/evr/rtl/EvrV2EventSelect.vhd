@@ -68,19 +68,32 @@ begin
    begin
       rateType := config.rateSel(12 downto 11);
       case rateType is
+         ------------------------------------------------------------------------------
          when "00" =>
-            rateSel <= dataIn.fixedRates(conv_integer(config.rateSel(3 downto 0)));
+            -- Check that the rateSel outside dataIn.fixedRates[9:0] bitmask range
+            if (config.rateSel(3 downto 0) > 9) then
+               rateSel <= '0';
+            else
+               rateSel <= dataIn.fixedRates(conv_integer(config.rateSel(3 downto 0)));
+            end if;
+         ------------------------------------------------------------------------------
          when "01" =>
             if (config.rateSel(conv_integer(dataIn.acTimeSlot)+3-1) = '0') then
                -- acTS counts from "1"
                rateSel <= '0';
+            -- Check that the rateSel outside dataIn.acRates[5:0] bitmask range
+            elsif (config.rateSel(2 downto 0) > 5) then
+               rateSel <= '0';
             else
                rateSel <= dataIn.acRates(conv_integer(config.rateSel(2 downto 0)));
             end if;
+         ------------------------------------------------------------------------------
          when "10" =>
             rateSel <= controlWord(conv_integer(config.rateSel(3 downto 0)));
+         ------------------------------------------------------------------------------
          when others =>
             rateSel <= '0';
+      ------------------------------------------------------------------------------
       end case;
    end process;
 
