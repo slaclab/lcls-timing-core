@@ -73,10 +73,10 @@ begin  -- rtl
       port map (
          axiClk          => axilClk,
          axiRst          => axilRst,
-         axilWriteMaster => axiWriteMasters(CHAN_INDEX_C),
-         axilWriteSlave  => axiWriteSlaves(CHAN_INDEX_C),
-         axilReadMaster  => axiReadMasters(CHAN_INDEX_C),
-         axilReadSlave   => axiReadSlaves(CHAN_INDEX_C),
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
          -- configuration
          channelConfig   => channelConfig,
          -- status
