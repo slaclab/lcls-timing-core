@@ -19,6 +19,7 @@ var annotated_dup =
     [ "EvrV2Axi", "classEvrV2Axi.html", "classEvrV2Axi" ],
     [ "EvrV2Cache", "classEvrV2Cache.html", "classEvrV2Cache" ],
     [ "EvrV2ChannelReg", "classEvrV2ChannelReg.html", "classEvrV2ChannelReg" ],
+    [ "EvrV2CoreChannels", "classEvrV2CoreChannels.html", "classEvrV2CoreChannels" ],
     [ "EvrV2CorePulseGen", "classEvrV2CorePulseGen.html", "classEvrV2CorePulseGen" ],
     [ "EvrV2CoreTriggers", "classEvrV2CoreTriggers.html", "classEvrV2CoreTriggers" ],
     [ "EvrV2EventSelect", "classEvrV2EventSelect.html", "classEvrV2EventSelect" ],

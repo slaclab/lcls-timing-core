@@ -15,13 +15,14 @@ var searchData=
   ['evrv2axi_12',['EvrV2Axi',['../classEvrV2Axi.html',1,'']]],
   ['evrv2cache_13',['EvrV2Cache',['../classEvrV2Cache.html',1,'']]],
   ['evrv2channelreg_14',['EvrV2ChannelReg',['../classEvrV2ChannelReg.html',1,'']]],
-  ['evrv2corepulsegen_15',['EvrV2CorePulseGen',['../classEvrV2CorePulseGen.html',1,'']]],
-  ['evrv2coretriggers_16',['EvrV2CoreTriggers',['../classEvrV2CoreTriggers.html',1,'']]],
-  ['evrv2eventselect_17',['evrv2eventselect',['../classEvrV2EventSelect.html',1,'EvrV2EventSelect'],['../classEvrV2EventSelect_1_1EvrV2EventSelect.html',1,'EvrV2EventSelect.EvrV2EventSelect']]],
-  ['evrv2fromv1_18',['evrv2fromv1',['../classEvrV2FromV1.html',1,'EvrV2FromV1'],['../classEvrV2FromV1_1_1EvrV2FromV1.html',1,'EvrV2FromV1.EvrV2FromV1']]],
-  ['evrv2module_19',['EvrV2Module',['../classEvrV2Module.html',1,'']]],
-  ['evrv2pkg_20',['EvrV2Pkg',['../classEvrV2Pkg.html',1,'']]],
-  ['evrv2trigger_21',['EvrV2Trigger',['../classEvrV2Trigger.html',1,'']]],
-  ['evrv2triggercompl_22',['EvrV2TriggerCompl',['../classEvrV2TriggerCompl.html',1,'']]],
-  ['evrv2trigreg_23',['EvrV2TrigReg',['../classEvrV2TrigReg.html',1,'']]]
+  ['evrv2corechannels_15',['EvrV2CoreChannels',['../classEvrV2CoreChannels.html',1,'']]],
+  ['evrv2corepulsegen_16',['EvrV2CorePulseGen',['../classEvrV2CorePulseGen.html',1,'']]],
+  ['evrv2coretriggers_17',['EvrV2CoreTriggers',['../classEvrV2CoreTriggers.html',1,'']]],
+  ['evrv2eventselect_18',['evrv2eventselect',['../classEvrV2EventSelect.html',1,'EvrV2EventSelect'],['../classEvrV2EventSelect_1_1EvrV2EventSelect.html',1,'EvrV2EventSelect.EvrV2EventSelect']]],
+  ['evrv2fromv1_19',['evrv2fromv1',['../classEvrV2FromV1.html',1,'EvrV2FromV1'],['../classEvrV2FromV1_1_1EvrV2FromV1.html',1,'EvrV2FromV1.EvrV2FromV1']]],
+  ['evrv2module_20',['EvrV2Module',['../classEvrV2Module.html',1,'']]],
+  ['evrv2pkg_21',['EvrV2Pkg',['../classEvrV2Pkg.html',1,'']]],
+  ['evrv2trigger_22',['EvrV2Trigger',['../classEvrV2Trigger.html',1,'']]],
+  ['evrv2triggercompl_23',['EvrV2TriggerCompl',['../classEvrV2TriggerCompl.html',1,'']]],
+  ['evrv2trigreg_24',['EvrV2TrigReg',['../classEvrV2TrigReg.html',1,'']]]
 ];
