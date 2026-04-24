@@ -151,6 +151,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          FWFT_EN_G    => true,
+         PIPE_STAGES_G => 1,
          DATA_WIDTH_G => COUNT_WIDTH_C+1,
          ADDR_WIDTH_G => ADDR_WIDTH_C)
       port map (
