@@ -33,10 +33,11 @@ use lcls_timing_core.TimingPkg.all;
 
 entity TimingSerialDelay is
    generic (
-      TPD_G    : time    := 1 ns;
-      NWORDS_G : integer := 16;         -- frame length in 16b words
-      FDEPTH_G : integer := 100;        -- max depth of frame pipeline
-      DEBUG_G  : boolean := false);
+      TPD_G                   : time    := 1 ns;
+      NWORDS_G                : integer := 16;         -- frame length in 16b words
+      FDEPTH_G                : integer := 100;        -- max depth of frame pipeline
+      MSG_DELAY_PIPE_STAGES_G : integer := 0;
+      DEBUG_G                 : boolean := false);
    port (
       -- Clock and reset
       clk        : in  sl;
@@ -149,11 +150,11 @@ begin
 
    U_MsgDelay : entity surf.FifoSync
       generic map (
-         TPD_G        => TPD_G,
-         FWFT_EN_G    => true,
-         PIPE_STAGES_G => 1,
-         DATA_WIDTH_G => COUNT_WIDTH_C+1,
-         ADDR_WIDTH_G => ADDR_WIDTH_C)
+         TPD_G         => TPD_G,
+         FWFT_EN_G     => true,
+         PIPE_STAGES_G => MSG_DELAY_PIPE_STAGES_G,
+         DATA_WIDTH_G  => COUNT_WIDTH_C+1,
+         ADDR_WIDTH_G  => ADDR_WIDTH_C)
       port map (
          rst               => rst,
          clk               => clk,
