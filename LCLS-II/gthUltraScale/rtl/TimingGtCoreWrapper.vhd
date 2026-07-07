@@ -263,6 +263,11 @@ architecture rtl of TimingGtCoreWrapper is
    signal bypassdone  : sl               := '0';
    signal bypasserr   : sl               := '0';
 
+   signal locked      : sl               := '0';
+   signal bypassdone_sync : sl           := '0';
+   signal bypasserr_sync  : sl           := '0';
+
+
    signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
@@ -274,6 +279,14 @@ architecture rtl of TimingGtCoreWrapper is
    signal mAxilReadSlave   : AxiLiteReadSlaveType;
 
 begin
+
+   U_LockedSync : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G)
+      port map (
+         clk     => rxUsrClk,     
+         dataIn  => locked,
+         dataOut => rxStatus.locked);     
 
    rxStatus.bufferByDone <= bypassdone;
    rxStatus.bufferByErr  <= bypasserr;
@@ -300,6 +313,24 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
+   U_ResetDoneSync : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,         
+         dataIn  => bypassdone,
+         dataOut => bypassdone_sync);
+
+   U_ResetErrSync : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,         
+         dataIn  => bypasserr,
+         dataOut => bypasserr_sync);         
+
    U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
          TPD_G          => TPD_G,
@@ -313,11 +344,12 @@ begin
          rxClk            => rxoutclkb,
          refClk           => axilClk,   -- Could probably also be stableClk
          -- GTH Status/Control Interface
-         resetIn          => rxControl.reset,
-         resetDone        => bypassdone,
-         resetErr         => bypasserr,
-         resetOut         => rxRst,
-         locked           => rxStatus.locked,
+         resetIn          => rxControl.reset, -- input signal@axilClk
+         resetDone        => bypassdone_sync, -- input signal@axilClk
+         resetErr         => bypasserr_sync,  -- input signal@axilClk   
+         --rxRst should be an active-High, asynchronous pulse of at least one gtwiz_reset_clk_freerun_in (alilClk)  
+         resetOut         => rxRst, -- output signal@axilClk
+         locked           => locked, -- output signal@axilClk
          -- Clock and Reset
          axilClk          => axilClk,
          axilRst          => axilRst,
@@ -403,17 +435,17 @@ begin
             gtwiz_buffbypass_tx_error_out         => open,
             gtwiz_buffbypass_rx_reset_in(0)       => rxbypassrst,
             gtwiz_buffbypass_rx_start_user_in(0)  => '0',
-            gtwiz_buffbypass_rx_done_out(0)       => bypassdone,
-            gtwiz_buffbypass_rx_error_out(0)      => bypasserr,
+            gtwiz_buffbypass_rx_done_out(0)       => bypassdone, -- @gtwiz_buffbypass_rx_clk_in (RXUSRCLK2, timingRxClk)
+            gtwiz_buffbypass_rx_error_out(0)      => bypasserr, -- @gtwiz_buffbypass_rx_clk_in (RXUSRCLK2, timingRxClk)
             gtwiz_reset_clk_freerun_in(0)         => axilClk,
             gtwiz_reset_all_in(0)                 => '0',
             gtwiz_reset_tx_pll_and_datapath_in(0) => txControl.pllReset,
             gtwiz_reset_tx_datapath_in(0)         => txControl.reset,
-            gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset,
-            gtwiz_reset_rx_datapath_in(0)         => rxRst,
+            gtwiz_reset_rx_pll_and_datapath_in(0) => rxControl.pllReset, --@axilClk
+            gtwiz_reset_rx_datapath_in(0)         => rxRst, --@axilClk
             gtwiz_reset_rx_cdr_stable_out(0)      => rxCdrStable,
-            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone,
-            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone,
+            gtwiz_reset_tx_done_out(0)            => txStatus.resetDone, -- @TXUSRCLK2 (refClkDiv2, timingTxClk)
+            gtwiz_reset_rx_done_out(0)            => rxStatus.resetDone, -- @RXUSRCLK2 (timingRxClk)
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
             drpaddr_in                            => drpAddr,
