@@ -29,6 +29,7 @@ entity TimingRx is
    generic (
       TPD_G             : time   := 1 ns;
       DEFAULT_CLK_SEL_G : sl     := '1';
+      RESET_ON_ERR_G    : boolean := true;
       CLKSEL_MODE_G     : string := "SELECT");  -- "LCLSI","LCLSII","LCLSIIPIC","LCLSIPIIC"
    port (
       rxClk  : in sl;
@@ -468,7 +469,8 @@ begin
    timingTSEvCntGray_o(1) <= timingTSEvCntGray_o(2) xor "00" & timingTSEvCntGray_o(2)(31 downto 2);
    timingTSEvCntGray_o(0) <= timingTSEvCntGray_o(1) xor '0' & timingTSEvCntGray_o(1)(31 downto 1);
 
-   rxControl.reset    <= axilR.rxControl.reset or (stv(1) and (stv(2) or stv(3)));
+   rxControl.reset    <= axilR.rxControl.reset or (stv(1) and (stv(2) or stv(3))) when RESET_ON_ERR_G = true else
+                         axilR.rxControl.reset;
    rxControl.inhibit  <= '0';
    rxControl.polarity <= axilR.rxControl.polarity;
    rxControl.pllReset <= axilR.rxControl.pllReset;
