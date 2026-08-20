@@ -80,9 +80,7 @@ architecture rtl of TimingGtCoreWrapper is
    constant TXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2);
    constant RX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
    constant TX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
---   constant RXCDR_CFG_C       : bit_vector := ite(GT_CONFIG_G, x"03000023ff20400020", x"03000023ff40200020");
-   --  compensate for sync clock jitter
-   constant RXCDR_CFG_C         : bit_vector := ite(GT_CONFIG_G, x"03800023ff10200020", x"03000023ff40200020");
+   constant RXCDR_CFG_C         : bit_vector := ite(GT_CONFIG_G, x"03000023ff10200020", x"03000023ff40200020");
    constant STABLE_CLK_PERIOD_C : real       := 4.0E-9;
 
    signal gtRefClk      : sl               := '0';
