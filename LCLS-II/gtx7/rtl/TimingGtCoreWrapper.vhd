@@ -106,6 +106,7 @@ architecture rtl of TimingGtCoreWrapper is
    signal txClk       : sl := '0';
    signal txRst       : sl := '0';
    signal txReset     : sl := '0';
+   signal cPllLock    : sl := '0';
 
    signal drpRdy  : sl               := '0';
    signal drpEn   : sl               := '0';
@@ -123,7 +124,7 @@ begin
    rxStatus.bufferByDone <= gtRxResetDone;
    rxStatus.bufferByErr  <= not(dataValid) and linkUp;
 
-   txStatus.locked       <= txResetDone;
+   txStatus.locked       <= cPllLock;
    txStatus.resetDone    <= txResetDone;
    txStatus.bufferByDone <= txResetDone;
    txStatus.bufferByErr  <= '0';
@@ -286,7 +287,7 @@ begin
       port map (
          stableClkIn      => iStableClk,
          cPllRefClkIn     => gtRefClk,
-         cPllLockOut      => open,
+         cPllLockOut      => cPllLock,
          qPllRefClkIn     => '0',
          qPllClkIn        => '0',
          qPllLockIn       => '1',
