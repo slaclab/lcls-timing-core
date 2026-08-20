@@ -29,10 +29,11 @@ use unisim.vcomponents.all;
 
 entity TimingGtCoreWrapper is
    generic (
-      TPD_G             : time       := 1 ns;
-      CPLL_REFCLK_SEL_G : bit_vector := "001";
-      REFCLK_G          : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
-      GT_CONFIG_G       : boolean    := true);  -- V1 = false, V2 = true
+      TPD_G                 : time       := 1 ns;
+      SIM_GTRESET_SPEEDUP_G : boolean    := false;
+      CPLL_REFCLK_SEL_G     : bit_vector := "001";
+      REFCLK_G              : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
+      GT_CONFIG_G           : boolean    := true);  -- V1 = false, V2 = true
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -175,7 +176,7 @@ begin
 
       iStableClk <= stableClk;
       iStableRst <= stableRst;
-      gtRefClk <= gtRefClkIn;
+      gtRefClk   <= gtRefClkIn;
 
    end generate;
 
@@ -241,7 +242,7 @@ begin
    U_Gtx : entity surf.Gtx7Core
       generic map (
          TPD_G                 => TPD_G,
-         SIM_GTRESET_SPEEDUP_G => "FALSE",
+         SIM_GTRESET_SPEEDUP_G => ite(SIM_GTRESET_SPEEDUP_G, "TRUE", "FALSE"),
          SIM_VERSION_G         => "4.0",
          SIMULATION_G          => false,
          STABLE_CLOCK_PERIOD_G => STABLE_CLK_PERIOD_C,
