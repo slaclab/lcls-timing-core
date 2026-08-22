@@ -32,6 +32,9 @@ entity TimingGtCoreWrapper is
       TPD_G                 : time       := 1 ns;
       SIM_GTRESET_SPEEDUP_G : boolean    := false;
       WAIT_TIME_CDRLOCK_G   : integer    := -1;
+      RX_ODD_ALIGN_MODE_G   : string     := "RESET";  -- "RESET": legacy behavior, resets the RX on
+                                                        -- an odd comma landing; "BITSLIP": resolves
+                                                        -- the odd residue in fabric.
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       REFCLK_G              : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
       GT_CONFIG_G           : boolean    := true;   -- V1 = false, V2 = true
@@ -120,6 +123,12 @@ architecture rtl of TimingGtCoreWrapper is
    signal iTxPowerDown : slv(1 downto 0);
 
 begin
+
+   -- RX_ODD_ALIGN_MODE_G is a string generic so it cannot carry a constrained range; this assert
+   -- enforces the two-member enumeration explicitly instead.
+   assert (RX_ODD_ALIGN_MODE_G = "RESET") or (RX_ODD_ALIGN_MODE_G = "BITSLIP")
+      report "TimingGtCoreWrapper: RX_ODD_ALIGN_MODE_G must be RESET or BITSLIP"
+      severity failure;
 
    rxStatus.locked       <= linkUp;
    rxStatus.resetDone    <= gtRxResetDone;
@@ -282,6 +291,7 @@ begin
          RX_DLY_BYPASS_G       => '1',
          RX_DDIEN_G            => '1',
          RX_ALIGN_MODE_G       => "FIXED_LAT",
+         RX_ODD_ALIGN_MODE_G   => RX_ODD_ALIGN_MODE_G,
          RX_DFE_KL_CFG2_G      => X"301148AC",
          RX_OS_CFG_G           => "0000010000000",
          RXCDR_CFG_G           => RXCDR_CFG_C,
