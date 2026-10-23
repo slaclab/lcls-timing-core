@@ -29,10 +29,13 @@ use unisim.vcomponents.all;
 
 entity TimingGtCoreWrapper is
    generic (
-      TPD_G             : time       := 1 ns;
-      CPLL_REFCLK_SEL_G : bit_vector := "001";
-      REFCLK_G          : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
-      GT_CONFIG_G       : boolean    := true);  -- V1 = false, V2 = true
+      TPD_G                 : time       := 1 ns;
+      SIM_GTRESET_SPEEDUP_G : boolean    := false;
+      WAIT_TIME_CDRLOCK_G   : integer    := -1;
+      CPLL_REFCLK_SEL_G     : bit_vector := "001";
+      REFCLK_G              : boolean    := false;  --  FALSE: use gtRefClkP/N,  TRUE: use gtRefClkIn
+      GT_CONFIG_G           : boolean    := true;   -- V1 = false, V2 = true
+      STABLE_CLK_PERIOD_G   : real       := 4.0E-9);  -- Period of the stableClk input
    port (
       -- AXI-Lite Port
       axilClk         : in  sl;
@@ -80,10 +83,11 @@ architecture rtl of TimingGtCoreWrapper is
    constant TXOUT_DIV_C         : integer    := ite(GT_CONFIG_G, 1, 2);
    constant RX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
    constant TX_CLK25_DIV_C      : integer    := ite(GT_CONFIG_G, 15, 10);
---   constant RXCDR_CFG_C       : bit_vector := ite(GT_CONFIG_G, x"03000023ff20400020", x"03000023ff40200020");
-   --  compensate for sync clock jitter
-   constant RXCDR_CFG_C         : bit_vector := ite(GT_CONFIG_G, x"03800023ff10200020", x"03000023ff40200020");
-   constant STABLE_CLK_PERIOD_C : real       := 4.0E-9;
+   constant RXCDR_CFG_C         : bit_vector := ite(GT_CONFIG_G, x"03000023ff10200020", x"03000023ff40200020");
+
+   -- Odd comma landing policy, keyed to the same V1/V2 selector as the CPLL and CDR settings above.
+   -- V2 resolves the odd residue in fabric; V1 keeps the legacy reset-and-retry.
+   constant RX_ODD_ALIGN_MODE_C : string := ite(GT_CONFIG_G, "BITSLIP", "RESET");
 
    signal gtRefClk      : sl               := '0';
    signal gtRefClkDiv2  : sl               := '0';
@@ -102,11 +106,13 @@ architecture rtl of TimingGtCoreWrapper is
    signal data          : slv(15 downto 0) := (others => '0');
    signal dataK         : slv(1 downto 0)  := (others => '0');
 
-   signal txResetDone : sl := '0';
-   signal txUsrClk    : sl := '0';
-   signal txClk       : sl := '0';
-   signal txRst       : sl := '0';
-   signal txReset     : sl := '0';
+   signal txResetDone    : sl := '0';
+   signal txUsrClk       : sl := '0';
+   signal txClk          : sl := '0';
+   signal txRst          : sl := '0';
+   signal txReset        : sl := '0';
+   signal cPllLock       : sl := '0';
+   signal cPllRefClkLost : sl := '0';
 
    signal drpRdy  : sl               := '0';
    signal drpEn   : sl               := '0';
@@ -124,10 +130,13 @@ begin
    rxStatus.bufferByDone <= gtRxResetDone;
    rxStatus.bufferByErr  <= not(dataValid) and linkUp;
 
-   txStatus.locked       <= txResetDone;
+   txStatus.locked       <= cPllLock;
    txStatus.resetDone    <= txResetDone;
    txStatus.bufferByDone <= txResetDone;
-   txStatus.bufferByErr  <= '0';
+   -- Debug observable: carries the GTXE2's CPLLREFCLKLOST, not a TX buffer error.
+   -- Gtx7TxRst gates its exit from ASSERT_ALL_RESETS on this, so it is the signal
+   -- that explains a CPLL that never re-locks after a reset.
+   txStatus.bufferByErr  <= cPllRefClkLost;
 
    rxOutClk <= gtRxRecClk;
    U_rxOutRst : entity surf.RstSync
@@ -166,7 +175,8 @@ begin
 
       U_PwrUpRst : entity surf.PwrUpRst
          generic map(
-            TPD_G => TPD_G)
+            TPD_G         => TPD_G,
+            SIM_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G)
          port map (
             clk    => iStableClk,
             rstOut => iStableRst);
@@ -177,7 +187,7 @@ begin
 
       iStableClk <= stableClk;
       iStableRst <= stableRst;
-      gtRefClk <= gtRefClkIn;
+      gtRefClk   <= gtRefClkIn;
 
    end generate;
 
@@ -208,7 +218,8 @@ begin
 
    U_rxReset : entity surf.PwrUpRst
       generic map(
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         SIM_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G)
       port map (
          arst   => rxRst,
          clk    => iStableClk,
@@ -216,7 +227,8 @@ begin
 
    U_txReset : entity surf.PwrUpRst
       generic map(
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         SIM_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G)
       port map (
          arst   => txRst,
          clk    => iStableClk,
@@ -243,10 +255,11 @@ begin
    U_Gtx : entity surf.Gtx7Core
       generic map (
          TPD_G                 => TPD_G,
-         SIM_GTRESET_SPEEDUP_G => "FALSE",
+         SIM_GTRESET_SPEEDUP_G => ite(SIM_GTRESET_SPEEDUP_G, "TRUE", "FALSE"),
+         WAIT_TIME_CDRLOCK_G   => WAIT_TIME_CDRLOCK_G,
          SIM_VERSION_G         => "4.0",
          SIMULATION_G          => false,
-         STABLE_CLOCK_PERIOD_G => STABLE_CLK_PERIOD_C,
+         STABLE_CLOCK_PERIOD_G => STABLE_CLK_PERIOD_G,
          CPLL_REFCLK_SEL_G     => CPLL_REFCLK_SEL_G,
          CPLL_FBDIV_G          => CPLL_FBDIV_C,
          CPLL_FBDIV_45_G       => CPLL_FBDIV_45_C,
@@ -273,6 +286,7 @@ begin
          RX_DLY_BYPASS_G       => '1',
          RX_DDIEN_G            => '1',
          RX_ALIGN_MODE_G       => "FIXED_LAT",
+         RX_ODD_ALIGN_MODE_G   => RX_ODD_ALIGN_MODE_C,
          RX_DFE_KL_CFG2_G      => X"301148AC",
          RX_OS_CFG_G           => "0000010000000",
          RXCDR_CFG_G           => RXCDR_CFG_C,
@@ -285,15 +299,16 @@ begin
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
          FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
       port map (
-         stableClkIn      => iStableClk,
-         cPllRefClkIn     => gtRefClk,
-         cPllLockOut      => open,
-         qPllRefClkIn     => '0',
-         qPllClkIn        => '0',
-         qPllLockIn       => '1',
-         qPllRefClkLostIn => '0',
-         qPllResetOut     => open,
-         gtRxRefClkBufg   => iStableClk,
+         stableClkIn       => iStableClk,
+         cPllRefClkIn      => gtRefClk,
+         cPllLockOut       => cPllLock,
+         cPllRefClkLostOut => cPllRefClkLost,
+         qPllRefClkIn      => '0',
+         qPllClkIn         => '0',
+         qPllLockIn        => '1',
+         qPllRefClkLostIn  => '0',
+         qPllResetOut      => open,
+         gtRxRefClkBufg    => iStableClk,
          -- Serial IO
          gtTxP            => gtTxP,
          gtTxN            => gtTxN,

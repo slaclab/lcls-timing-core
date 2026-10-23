@@ -105,7 +105,7 @@ class GthRxAlignCheck(pr.Device):
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.TxClkFreqRaw],
-            linkedGet    = lambda: self.TxClkFreqRaw.value() * 1.0e-6,
+            linkedGet    = lambda read: self.TxClkFreqRaw.get(read=read) * 1.0e-6,
             disp         = '{:0.3f}',
         ))
 
@@ -124,6 +124,6 @@ class GthRxAlignCheck(pr.Device):
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.RxClkFreqRaw],
-            linkedGet    = lambda: self.RxClkFreqRaw.value() * 1.0e-6,
+            linkedGet    = lambda read: self.RxClkFreqRaw.get(read=read) * 1.0e-6,
             disp         = '{:0.3f}',
         ))
