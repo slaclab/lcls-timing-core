@@ -13,6 +13,7 @@ from LclsTimingCore.EvrV1Reg import *
 
 from LclsTimingCore.EvrV2ChannelReg import *
 from LclsTimingCore.EvrV2Core import *
+from LclsTimingCore.EvrV2CoreChannels import *
 from LclsTimingCore.EvrV2CoreTriggers import *
 from LclsTimingCore.EvrV2TriggerReg import *
 

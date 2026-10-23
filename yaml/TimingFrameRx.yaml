@@ -162,6 +162,16 @@ TimingFrameRx: &TimingFrameRx
       mode: RW
       description: Buffer bypass reset status
     #########################################################
+    RxPLLReset:
+      at:
+        offset: 0x0020
+      class: IntField
+      name: RxReset
+      sizeBits: 1
+      lsBit: 7
+      mode: RW
+      description: Reset receive PLL
+    #########################################################
     VersionErr:
       at:
         offset: 0x0021
