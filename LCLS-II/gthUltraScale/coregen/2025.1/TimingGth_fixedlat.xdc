@@ -54,7 +54,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Channel primitive location constraint
-set_property LOC GTHE3_CHANNEL_X0Y39 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[9].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST}]
+# set_property LOC GTHE3_CHANNEL_X0Y39 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[9].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST}]
 
 # Channel primitive serial data pin location constraints
 # (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
