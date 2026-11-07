@@ -14,9 +14,13 @@
 *.pyc
 *.bin
 *.ld
-*.swo
-*.swp
-__pycache__*
+*.dat
+*.htm
+*.log
+
+# Matlab
+*.autosave
+*.slxc
 
 # OS files
 .DS_Store
@@ -26,23 +30,47 @@ __pycache__*
 .Trashes
 ehthumbs.db
 Thumps.db
-build.info
-.lfsconfig
-
-# Vivado Build
-build*
-
-# Travis Build
-doxygen/
-ghdl/
-*.o
-*.pyc
-*.db
 *.swp
-*._*
-*.db
-*.log
+build.info
+
+# Build directories
+build*
+docs/_build/
+# Exception: documentation files whose names start with "build"
+!docs/**/build_*.rst
+# Exception: VS Code extension sources whose names start with "build"
+!vscode-plugin/scripts/build.sh
+!vscode-plugin/src/core/buildEnv.ts
+images*
+bin*
+.Xil*
+.obj*
+.ipynb_checkpoints*
+*.jou
+slprj*
+linux*
+.nfs*
 
 # Only .bit.gz and .mcs.gz should be committed to git
 *.bit
 *.mcs
+*.gz
+*.ltx
+*.hdf
+*.vho
+*.zip
+*.xsa
+*.pdi
+*.bif
+*.elf
+
+# AI Agents
+.vscode/
+.cursor/
+.claude/
+.gsd/
+.planning/
+planning/
+CLAUDE.md
+# Exception: launch configuration of the VS Code extension
+!vscode-plugin/.vscode/
