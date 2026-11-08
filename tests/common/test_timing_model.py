@@ -300,7 +300,8 @@ def test_lcls1_frame_round_trips_seeded_random_streams():
         )
         decoded = timing_model.decode_lcls1_frame(symbols)
 
-        assert decoded == (stream["pulseId"], stream["eventCodes"], stream["dbuff"])
+        # An unset slot is 0x0000 / 00, which the receiver reads as event code 0.
+        assert decoded == (stream["pulseId"], stream["eventCodes"] | 1, stream["dbuff"])
         assert isinstance(decoded, timing_model.Lcls1Frame)
 
 
@@ -320,7 +321,29 @@ def test_lcls1_frame_grammar_matches_the_documented_symbol_positions():
     assert symbols[170] == (0x007D, 0b00)
     assert symbols[172 + 2 * 3] == (0x0003, 0b00)
     assert symbols[172 + 2 * 200] == (0x00C8, 0b00)
-    assert symbols[172 + 2 * 4] == (0x00BC, 0b01)
+    assert symbols[172 + 2 * 4] == (0x0000, 0b00)
+    assert symbols[172 + 2 * 4 + 1] == (0x00BC, 0b01)
+
+
+def test_lcls1_unset_event_code_slots_are_zero_data_symbols_like_the_transmitter():
+    # Positions measured on TimingStreamTx: set codes 1, 7 and 254 appear as
+    # 0x00nn / 00, every other even slot is 0x0000 / 00, odd slots are commas,
+    # and the frame ends with a data-only slot for code 255 that is not sent.
+    dbuff = timing_model.unpack_databuff(int.from_bytes(bytes(range(1, 53)), "little"))
+    symbols = timing_model.encode_lcls1_frame(0x80000001, (1 << 1) | (1 << 7) | (1 << 254), dbuff)
+
+    assert len(symbols) == 684
+    assert symbols[102] == (0x3300, 0b00)
+    assert symbols[104] == (0x3400, 0b00)
+    assert symbols[172] == (0x0000, 0b00)
+    assert symbols[174] == (0x0001, 0b00)
+    assert symbols[176] == (0x0000, 0b00)
+    assert symbols[186] == (0x0007, 0b00)
+    assert symbols[680] == (0x00FE, 0b00)
+    assert symbols[681] == (0x00BC, 0b01)
+    assert symbols[682] == (0x0000, 0b00)
+    assert symbols[683] == (0x00BC, 0b01)
+    assert timing_model.lcls1_idle_symbols(2, start_phase=1) == [(0x0000, 0b00), (0x00BC, 0b01)]
 
 
 def test_decode_lcls1_frame_raises_for_missing_start_and_end():

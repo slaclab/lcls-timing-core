@@ -512,15 +512,23 @@ def unpack_stream(value: int) -> dict:
 #     170          0x007D        event-code block marker
 #     172 + 2n     0x00nn        event code n, present when the code is set
 #
-# The slots between are idle commas 0x00BC / 01. TimingStreamTx fills an
-# unset event-code slot with 0x0000 / 00, which TimingStreamRx reads as event
-# code 0, so the hardware cannot send "code 0 clear". This model keeps
-# event-code 0 lossless by filling unset slots with the comma instead.
+# The odd slots between are the comma 0x00BC / 01. An unset event-code slot is
+# 0x0000 / 00, which is what TimingStreamTx sends (TimingStreamTx.vhd lines 88
+# to 96 set the default x"00" with dataK(0) = 0 on every other clock, and
+# lines 137 to 146 replace it only when the event code bit is set). TimingStreamRx reads any low-lane data symbol outside a
+# comma as an event code, so the receiver sets event code 0 for every frame:
+# an unset slot, a data-buffer byte symbol and the idle fill all read as code
+# 0. Event code 0 therefore cannot be sent as "clear" by the hardware pair, and
+# decode_lcls1_frame reports it as set for every frame that has an unset slot.
+# The first symbol is 0x1C00 / 10 when the idle symbol before the fiducial was
+# 0x0000 / 00 (TimingStreamTx lets the idle default show through the low lane
+# of the start symbol (lines 101 to 108); the other phase gives 0x1CBC / 11.
 LCLS1_FRAME_LEN = 14000
 LCLS1_START_SYMBOL = (0x1C00, 0b10)
 LCLS1_END_SYMBOL = (0x3CBC, 0b11)
 LCLS1_COMMA_SYMBOL = (0x00BC, 0b01)
 LCLS1_MARKER_SYMBOL = (0x007D, 0b00)
+LCLS1_UNSET_SYMBOL = (0x0000, 0b00)
 LCLS1_DATABUFF_BYTES = TIMING_DATABUFF_BITS // 8
 LCLS1_END_INDEX = 2 + 2 * (LCLS1_DATABUFF_BYTES - 1) + 1
 LCLS1_PULSE_INDEX = LCLS1_END_INDEX + 1
@@ -539,7 +547,8 @@ class Lcls1Frame(NamedTuple):
 def encode_lcls1_frame(pulse_id: int, event_codes: int, databuff: dict) -> list[tuple[int, int]]:
     """Encode one LCLS-I frame into (data16, dataK2) symbols, 684 symbols long.
 
-    The caller pads with lcls1_idle_symbols up to LCLS1_FRAME_LEN.
+    The caller pads with lcls1_idle_symbols up to LCLS1_FRAME_LEN; the idle
+    pattern continues the frame's alternation when it starts at phase 1.
     """
     if not isinstance(pulse_id, int) or pulse_id < 0 or pulse_id >> 32:
         raise ValueError(f"pulse id {pulse_id!r} does not fit in 32 bits")
@@ -548,6 +557,7 @@ def encode_lcls1_frame(pulse_id: int, event_codes: int, databuff: dict) -> list[
     packed = pack_databuff(databuff)
 
     symbols = [LCLS1_START_SYMBOL, LCLS1_COMMA_SYMBOL]
+    # TimingStreamTx.vhd lines 110 to 125: one byte every other clock, least significant first.
     for k in range(LCLS1_DATABUFF_BYTES):
         symbols.append((((packed >> (8 * k)) & 0xFF) << 8, 0b00))
         if k < LCLS1_DATABUFF_BYTES - 1:
@@ -558,8 +568,9 @@ def encode_lcls1_frame(pulse_id: int, event_codes: int, databuff: dict) -> list[
         symbols.append(LCLS1_COMMA_SYMBOL)
     symbols.append(LCLS1_MARKER_SYMBOL)
     symbols.append(LCLS1_COMMA_SYMBOL)
+    # TimingStreamTx.vhd lines 137 to 146: slot n is the code when its bit is set, else 0x0000 / 00.
     for code in range(256):
-        symbols.append((code, 0b00) if (event_codes >> code) & 1 else LCLS1_COMMA_SYMBOL)
+        symbols.append((code, 0b00) if (event_codes >> code) & 1 else LCLS1_UNSET_SYMBOL)
         symbols.append(LCLS1_COMMA_SYMBOL)
     return symbols
 
