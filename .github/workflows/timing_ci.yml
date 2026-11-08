@@ -46,6 +46,10 @@ jobs:
           git clone --depth 1 -b main https://github.com/slaclab/ruckus ruckus
           git clone --depth 1 -b main https://github.com/slaclab/surf surf
 
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py surf ruckus ghdl python flake8 vsg
+
       - name: Import HDL libraries
         run: |
           make MODULES=$PWD import
@@ -111,6 +115,10 @@ jobs:
           ghdl --version
           iverilog -V
 
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py surf ruckus ghdl iverilog python cocotb cocotb-test
+
       - name: Import HDL libraries
         run: |
           make MODULES=$PWD import
@@ -155,6 +163,10 @@ jobs:
         run: |
           python -c "import rogue, pyrogue; print(rogue.Version.current())"
 
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py --remote-deps surf ruckus python rogue cocotb cocotb-test
+
       - name: Run Rogue tests
         # PYTHONPATH makes the tests exercise the in-repo python/ package
         # rather than an installed copy.
@@ -183,6 +195,10 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+
+      - name: Tool versions
+        run: |
+          python3 tests/common/tool_versions.py --remote-deps surf ruckus python git
 
       - name: Not a pull request
         if: github.event_name != 'pull_request'
@@ -233,6 +249,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
+
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py --remote-deps surf ruckus python doxygen
 
       - name: Generate Documentation
         run: |

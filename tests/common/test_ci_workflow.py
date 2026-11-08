@@ -13,15 +13,16 @@
 Test methodology:
     Sweep: the parsed workflow: its triggers, job ids and display names, the
         test matrix, the release gate, per-job permissions and timeouts,
-        action pins, and the scripts of the production guard, Rogue, lint,
-        and documentation jobs.
+        action pins, the scripts of the production guard, Rogue, lint, and
+        documentation jobs, and the tool version step of every job.
     Stimulus: yaml.safe_load of the workflow file; the repository tree for
         the matrix legs.
     Checks: renaming a job or matrix leg, dropping a release prerequisite,
         adding a job-level condition to the production guard job, unpinned
         actions, event expressions inside shell scripts, a missing Rogue
         check, packaging steps, and surf or ruckus clones in the
-        documentation job each fail one named test.
+        documentation job each fail one named test, as does a job that drops
+        surf or ruckus from its tool version step or runs it too late.
     Timing: static. No workflow is run and nothing is simulated.
 """
 
@@ -48,6 +49,17 @@ JOB_NAMES = {
 MATRIX_LEGS = ["common", "lcls1_evr", "lcls2_core"]
 RELEASE_NEEDS = {"lint", "test", "rogue_test", "production_guard",
                  "test_and_document"}
+TOOL_ITEMS = {
+    "lint": ["surf", "ruckus", "ghdl", "python", "flake8", "vsg"],
+    "test": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
+             "cocotb-test"],
+    "rogue_test": ["surf", "ruckus", "python", "rogue", "cocotb",
+                   "cocotb-test"],
+    "production_guard": ["surf", "ruckus", "python", "git"],
+    "test_and_document": ["surf", "ruckus", "python", "doxygen"],
+}
+FIRST_WORK_STEP = (r"^(make|python -m pytest|doxygen|"
+                   r'python3 "\$\{RUNNER_TEMP\}/production_guard\.py")')
 
 
 @pytest.fixture(scope="module")
@@ -239,6 +251,43 @@ def test_no_step_packages_the_repository(jobs):
     for job_id, job in jobs.items():
         for _, step, run in step_runs(job):
             assert not banned.search(run), (job_id, step.get("name"))
+
+
+def tool_version_steps(job):
+    return [(i, run) for i, _, run in step_runs(job)
+            if "tests/common/tool_versions.py" in run]
+
+
+@pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
+def test_every_job_logs_the_expected_tool_versions(jobs, job_id):
+    found = tool_version_steps(jobs[job_id])
+    assert len(found) == 1, job_id
+    words = found[0][1].split()
+    items = [w for w in words[2:] if not w.startswith("--")]
+    assert items == TOOL_ITEMS[job_id]
+    assert {"surf", "ruckus"} <= set(items)
+
+
+@pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
+def test_remote_deps_exactly_when_the_job_clones_nothing(jobs, job_id):
+    job = jobs[job_id]
+    clones = any("git clone" in run for _, _, run in step_runs(job))
+    _, run = tool_version_steps(job)[0]
+    assert ("--remote-deps" in run.split()) is (not clones), job_id
+
+
+@pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
+def test_tool_versions_come_before_any_make_pytest_guard_or_doxygen(
+        jobs, job_id):
+    job = jobs[job_id]
+    logged, _ = tool_version_steps(job)[0]
+    for i, _, run in step_runs(job):
+        if re.search(FIRST_WORK_STEP, run.strip(), re.MULTILINE):
+            assert logged < i, (job_id, job["steps"][i].get("name"))
+
+
+def test_the_release_job_declares_no_steps(jobs):
+    assert "steps" not in jobs["gen_release"]
 
 
 def test_workflow_is_ascii():
