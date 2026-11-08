@@ -14,6 +14,9 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
+-- The name matches the vendor package, so the PascalCase rules are switched off.
+-- vsg_off package_008 package_010
 package VCOMPONENTS is
 
 end package VCOMPONENTS;
+-- vsg_on package_008 package_010
