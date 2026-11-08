@@ -28,6 +28,7 @@ from cocotb_test.simulator import run
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = REPO_ROOT / "tests"
 BUILD_SRC_ROOT = REPO_ROOT / "build" / "SRC_VHDL"
+BUILD_VERILOG_ROOT = REPO_ROOT / "build" / "SRC_VERILOG" / "lcls_timing_core"
 
 BASE_GHDL_COMPILE_ARGS = [
     "--std=08",
@@ -418,4 +419,51 @@ def run_lcls_vhdl_test(
         vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
         force_compile=force_compile,
         sim_args=["--assert-level=error"],
+    )
+
+
+def run_icarus_verilog_test(
+    *,
+    test_file: str | Path,
+    toplevel: str,
+    verilog_sources: list[str] | None = None,
+    parameters: dict[str, object] | None = None,
+    extra_env: dict[str, object] | None = None,
+    force_compile: bool = False,
+) -> None:
+    test_file = Path(test_file)
+    # Compile only the toplevel's own file by default: the imported Verilog
+    # files mix timescales, and EvrV1DbusDecode.v instantiates a VHDL entity
+    # that Icarus cannot elaborate.
+    if verilog_sources is None:
+        verilog_sources = [str(BUILD_VERILOG_ROOT / f"{toplevel}.v")]
+
+    missing = [source for source in verilog_sources if not Path(source).is_file()]
+    if missing:
+        raise FileNotFoundError(
+            f"Missing imported Verilog sources {missing}. "
+            "Run `make MODULES=\"$PWD\" import` first."
+        )
+
+    simulator_env = None
+    sim_build_parameters = parameters
+    if extra_env is not None:
+        simulator_env = {key: str(value) for key, value in extra_env.items()}
+        sim_build_parameters = {
+            **({key: str(value) for key, value in parameters.items()} if parameters is not None else {}),
+            **simulator_env,
+        }
+    elif parameters is not None:
+        simulator_env = {key: str(value) for key, value in parameters.items()}
+
+    run(
+        toplevel=toplevel,
+        module=_module_name_from_test_file(test_file),
+        toplevel_lang="verilog",
+        verilog_sources=verilog_sources,
+        parameters=parameters,
+        sim_build=_sim_build_path(test_file, sim_build_parameters),
+        extra_env=simulator_env,
+        simulator="icarus",
+        force_compile=force_compile,
     )
