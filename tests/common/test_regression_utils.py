@@ -26,7 +26,9 @@ Test methodology:
         unchanged; a duplicate file or a re-declared primary unit raises
         ValueError naming the files; parameter sets equal after str()
         share one build directory and any difference gives another; long
-        or slash-bearing suffixes collapse to params-<sha256>.
+        or slash-bearing suffixes collapse to params-<sha256>; the Icarus
+        runner raises FileNotFoundError, without launching a simulator,
+        when a requested Verilog source is missing.
     Timing: none, the helpers only manipulate paths and source text.
 """
 
@@ -168,3 +170,19 @@ def test_sim_build_suffix_hashes_slashes_and_long_values():
     assert hashed.fullmatch(regression_utils._sim_build_suffix({"Path": "a\\b"}))
     assert hashed.fullmatch(regression_utils._sim_build_suffix({"Long": "x" * 200}))
     assert not hashed.fullmatch(regression_utils._sim_build_suffix({"Long": "x" * 100}))
+
+
+def test_icarus_runner_reports_a_missing_verilog_source(tmp_path, monkeypatch):
+    monkeypatch.setattr(regression_utils, "BUILD_VERILOG_ROOT", tmp_path)
+    launched = []
+    monkeypatch.setattr(regression_utils, "run", lambda **kwargs: launched.append(kwargs))
+
+    with pytest.raises(FileNotFoundError) as excinfo:
+        regression_utils.run_icarus_verilog_test(
+            test_file=regression_utils.TESTS_ROOT / "lcls1_evr" / "test_Fake.py",
+            toplevel="Missing",
+        )
+
+    assert IMPORT_HINT in str(excinfo.value)
+    assert str(tmp_path / "Missing.v") in str(excinfo.value)
+    assert launched == []
