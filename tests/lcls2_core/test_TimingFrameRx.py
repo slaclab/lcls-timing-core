@@ -129,6 +129,74 @@ async def framerx_decodes_model_frames(dut):
     clock_task.cancel()
 
 
+PARTIAL_STREAM = 2
+PARTIAL_WORDS = 20
+FULL_STREAMS = (1, 15)
+
+
+def extension_slice(dut, stream_id):
+    return (resolved_int(dut.extensionData) >> ((stream_id - 1) * 512)) & ((1 << 512) - 1)
+
+
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def framerx_extension_segments(dut):
+    """Extension segments appear in their extensionData slice at the modeled placement.
+
+    A 32-word segment fills its 512-bit slice with word 0 in the lowest
+    bits. A 20-word segment is shifted in last and lands at the top of the
+    slice, so its word 0 sits at word index 12; this placement was measured
+    on the production receiver before the model encoded it.
+
+    Propagation sampling: samples are taken 2 ns after the edge.
+    """
+    rng, seed = timing_model.make_rng()
+    dut._log.info(f"random seed {seed}")
+    msg = golden_message()
+    full = {stream_id: rng.getrandbits(512) for stream_id in FULL_STREAMS}
+    partial_words = [rng.getrandbits(16) or 1 for _ in range(PARTIAL_WORDS)]
+    segments = [
+        timing_model.Segment(0, tuple(timing_model.message_words(msg))),
+        *(timing_model.extension_segment(stream_id, full[stream_id]) for stream_id in FULL_STREAMS),
+        timing_model.Segment(PARTIAL_STREAM, tuple(partial_words)),
+    ]
+    symbols = padded(timing_model.encode_frame(segments)) * 2 + timing_model.idle_symbols(100)
+
+    clock_task = await start_receiver(dut)
+    for _ in range(20):
+        await sample_after_tpd(dut.rxClk, propagation_time=2)
+    driver = cocotb.start_soon(drive_symbols(dut, symbols))
+
+    strobe_seen = False
+    for _ in range(STROBE_WAIT_CYCLES):
+        await sample_after_tpd(dut.rxClk, propagation_time=2)
+        if resolved_int(dut.timingMessageStrobe):
+            strobe_seen = True
+            break
+    assert strobe_seen, f"no timingMessageStrobe within {STROBE_WAIT_CYCLES} cycles"
+
+    # extensionValid is registered one cycle after the strobe.
+    await sample_after_tpd(dut.rxClk, propagation_time=2)
+    valid = resolved_int(dut.extensionValid)
+    expected_valid = sum(1 << (stream_id - 1) for stream_id in (*FULL_STREAMS, PARTIAL_STREAM))
+    assert valid == expected_valid, f"extensionValid=0x{valid:04x}, expected 0x{expected_valid:04x}"
+    for stream_id in FULL_STREAMS:
+        value = extension_slice(dut, stream_id)
+        assert value == timing_model.extension_data(timing_model.extension_segment(stream_id, full[stream_id]).words)
+        assert value == full[stream_id], f"stream {stream_id} slice differs from the sent 512 bits"
+    value = extension_slice(dut, PARTIAL_STREAM)
+    assert value == timing_model.extension_data(partial_words), (
+        f"stream {PARTIAL_STREAM} slice 0x{value:0128x} differs from the modeled top-aligned placement"
+    )
+    assert (value >> (16 * 12)) & 0xFFFF == partial_words[0], "word 0 of a 20-word segment is not at word index 12"
+    assert value & ((1 << (16 * 12)) - 1) == 0, "the low 12 words of a 20-word segment are not zero after reset"
+    for stream_id in range(1, 16):
+        if stream_id not in (*FULL_STREAMS, PARTIAL_STREAM):
+            assert extension_slice(dut, stream_id) == 0, f"idle stream {stream_id} slice is not zero"
+
+    driver.cancel()
+    clock_task.cancel()
+
+
 def test_TimingFrameRx():
     run_lcls_vhdl_test(
         test_file=Path(__file__),

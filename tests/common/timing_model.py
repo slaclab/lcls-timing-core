@@ -54,6 +54,8 @@ word. It does not cover the commas or the SOF.
 
 from __future__ import annotations
 
+import os
+import random
 import zlib
 from typing import NamedTuple
 
@@ -272,3 +274,407 @@ def message_frame(msg: dict, stream_id: int = 0) -> list[tuple[int, int]]:
 def idle_symbols(count: int) -> list[tuple[int, int]]:
     """Return ``count`` idle comma symbols."""
     return [IDLE_SYMBOL] * count
+
+
+class DecodedFrame(NamedTuple):
+    """Result of decode_frame: segments, CRC verdict and the received CRC words."""
+
+    segments: list
+    crc_ok: bool
+    crc_words: tuple
+
+
+def decode_frame(symbols) -> DecodedFrame:
+    """Decode (data16, dataK2) symbols into segments and a CRC verdict.
+
+    Leading idle and alignment commas are skipped and symbols after the CRC
+    words are ignored. A structural problem raises ValueError naming the
+    symbol index and value; a CRC mismatch is reported through ``crc_ok``.
+    """
+    symbols = list(symbols)
+    try:
+        start = symbols.index(SOF_SYMBOL)
+    except ValueError:
+        raise ValueError("no SOF symbol 0xB5F7/01 in the symbol list") from None
+
+    def fetch(index, what):
+        if index >= len(symbols):
+            raise ValueError(f"truncated frame: ran out of symbols at index {index} while reading {what}")
+        return symbols[index]
+
+    segments = []
+    covered = []
+    index = start + 1
+    end_of_frame = False
+    while index < len(symbols) and not end_of_frame:
+        data, data_k = symbols[index]
+        index += 1
+        if (data, data_k) == EOF_SYMBOL:
+            covered.append(data)
+            end_of_frame = True
+            continue
+        if data_k != 0b00:
+            raise ValueError(f"expected SOS or EOF at index {index - 1}, got 0x{data:04X}/{data_k:02b}")
+        covered.append(data)
+        words = []
+        end_of_segment = False
+        while index < len(symbols) and not end_of_segment:
+            word, word_k = symbols[index]
+            if (word, word_k) == EOS_SYMBOL:
+                covered.append(word)
+                end_of_segment = True
+            elif word_k != 0b00:
+                raise ValueError(
+                    f"K-character 0x{word:04X}/{word_k:02b} inside a segment at index {index}"
+                )
+            else:
+                words.append(word)
+                covered.append(word)
+            index += 1
+        if not end_of_segment:
+            raise ValueError(
+                f"truncated frame: no EOS after the segment opened by SOS 0x{data:04X} (index {index})"
+            )
+        segments.append(Segment(data >> 12, tuple(words), data & 0x7F, (data >> 7) & 1))
+    if not end_of_frame:
+        raise ValueError(f"truncated frame: no EOF symbol before index {index}")
+
+    low, low_k = fetch(index, "CRC low word")
+    high, high_k = fetch(index + 1, "CRC high word")
+    if low_k != 0b00 or high_k != 0b00:
+        raise ValueError(f"CRC words at index {index} carry a K-character: {low_k:02b} {high_k:02b}")
+    return DecodedFrame(segments, frame_crc_words(covered) == (low, high), (low, high))
+
+
+# Extensions: raw 512-bit TimingExtensionMessageType segments on stream ids 1
+# to 15, which is what TimingFrameRx compiles.
+TIMING_EXTENSION_BITS = 512
+TIMING_EXTENSION_WORDS = 32
+
+
+def extension_segment(stream_id: int, data: int) -> Segment:
+    """Return a 32-word segment holding ``data``, least significant word first."""
+    if not 1 <= stream_id <= 15:
+        raise ValueError(f"extension stream id {stream_id} is outside 1 to 15")
+    if not isinstance(data, int) or data < 0 or data >> TIMING_EXTENSION_BITS:
+        raise ValueError(f"extension data does not fit in {TIMING_EXTENSION_BITS} bits")
+    words = tuple((data >> (16 * k)) & 0xFFFF for k in range(TIMING_EXTENSION_WORDS))
+    return Segment(stream_id, words)
+
+
+def extension_data(words) -> int:
+    """Return the 512-bit value TimingFrameRx presents for a segment.
+
+    Measured on the production receiver: each segment word is shifted into
+    the top of a 32-word register, so a segment of n words lands with its
+    word 0 at word index 32 - n and the last word at index 31. A 20-word
+    segment therefore occupies words 12 to 31. The words below it keep
+    whatever earlier frames shifted in; this model returns zero for them,
+    which is the value after reset.
+    """
+    words = list(words)
+    if not 1 <= len(words) <= TIMING_EXTENSION_WORDS:
+        raise ValueError(f"an extension segment has 1 to {TIMING_EXTENSION_WORDS} words, got {len(words)}")
+    first = TIMING_EXTENSION_WORDS - len(words)
+    return sum(word << (16 * (first + k)) for k, word in enumerate(words))
+
+
+# Default extension layout of default/TimingExtnPkg.vhd (ExptMessageType).
+EXPT_MESSAGE_BITS = 320
+EXPT_STREAM_ID = 2
+EXPT_FIELDS = (
+    ("baseRateSince1Hz", 32, 1),
+    ("baseRateSinceTM", 32, 1),
+    ("irigTimeCode", 256, 1),
+)
+
+
+def pack_expt(values: dict) -> int:
+    """Pack an ExptMessageType dictionary into 320 bits, least significant first.
+
+    default/TimingExtnPkg.vhd is not loaded by any ruckus.tcl, so it is
+    outside the CI import set and this layout is verified only through a
+    test-only wrapper that is given that file explicitly.
+    """
+    return pack_fields(EXPT_FIELDS, values)
+
+
+def unpack_expt(value: int) -> dict:
+    """Split a 320-bit ExptMessageType vector into its fields."""
+    return unpack_fields(EXPT_FIELDS, value)
+
+
+# toSlvNoBsa order: the control(16) word appears again as the modifier word
+# between photonWavelen and mpsLimit, as the RTL does.
+TIMING_MESSAGE_BITS_NO_BSA = 672
+MESSAGE_NO_BSA_FIELDS = (
+    ("pulseId", 64, 1),
+    ("timeStamp", 64, 1),
+    ("fixedRates", 10, 1),
+    ("acRates", 6, 1),
+    ("acTimeSlot", 3, 1),
+    ("acTimeSlotPhase", 12, 1),
+    ("resync", 1, 1),
+    ("beamRequest", 32, 1),
+    ("beamEnergy", 16, 4),
+    ("photonWavelen", 16, 2),
+    ("modifier", 16, 1),
+    ("mpsLimit", 16, 1),
+    ("mpsClass", 4, 16),
+    ("control", 16, 18),
+)
+
+
+def pack_message_no_bsa(msg: dict) -> int:
+    """Return the 672-bit vector toSlvNoBsa produces for a message."""
+    values = {name: msg[name] for name, _, _ in MESSAGE_NO_BSA_FIELDS if name != "modifier"}
+    values["modifier"] = msg["control"][16]
+    return pack_fields(MESSAGE_NO_BSA_FIELDS, values)
+
+
+def unpack_message_no_bsa(value: int) -> dict:
+    """Return the fields toTimingMessageType assigns for a 672-bit vector.
+
+    version, syncStatus, mpsValid, bcsFault and the bsa fields are never
+    assigned on this path. The modifier word is overwritten by control(16)
+    from the trailing control array, so it is dropped.
+    """
+    message = unpack_fields(MESSAGE_NO_BSA_FIELDS, value)
+    del message["modifier"]
+    return message
+
+
+TIMING_DATABUFF_BITS = 416
+DATABUFF_FIELDS = (
+    ("dtype", 16, 1),
+    ("version", 16, 1),
+    ("dmod", 192, 1),
+    ("epicsTime", 64, 1),
+    ("edefAvgDn", 32, 1),
+    ("edefMinor", 32, 1),
+    ("edefMajor", 32, 1),
+    ("edefInit", 32, 1),
+)
+
+TIMING_STREAM_BITS = 704
+STREAM_FIELDS = (
+    ("pulseId", 32, 1),
+    ("eventCodes", 256, 1),
+    *DATABUFF_FIELDS,
+)
+
+
+def pack_databuff(dbuff: dict) -> int:
+    """Return the 416-bit vector TimingPkg toSlv produces for a data buffer."""
+    return pack_fields(DATABUFF_FIELDS, dbuff)
+
+
+def unpack_databuff(value: int) -> dict:
+    """Split a 416-bit data buffer vector into its fields."""
+    return unpack_fields(DATABUFF_FIELDS, value)
+
+
+def pack_stream(stream: dict) -> int:
+    """Return the 704-bit TimingStreamType vector.
+
+    ``stream`` has keys pulseId, eventCodes (a 256-bit integer mask) and
+    dbuff (a data buffer dictionary).
+    """
+    unknown = sorted(set(stream) - {"pulseId", "eventCodes", "dbuff"})
+    if unknown:
+        raise ValueError(f"unknown stream field(s): {', '.join(unknown)}")
+    if "dbuff" not in stream:
+        raise ValueError("missing stream field: dbuff")
+    values = {name: stream[name] for name in ("pulseId", "eventCodes") if name in stream}
+    values.update(stream["dbuff"])
+    return pack_fields(STREAM_FIELDS, values)
+
+
+def unpack_stream(value: int) -> dict:
+    """Split a 704-bit TimingStreamType vector into pulseId, eventCodes and dbuff."""
+    fields = unpack_fields(STREAM_FIELDS, value)
+    return {
+        "pulseId": fields.pop("pulseId"),
+        "eventCodes": fields.pop("eventCodes"),
+        "dbuff": fields,
+    }
+
+
+# LCLS-I stream. Each 16-bit symbol carries two byte lanes: the high lane
+# (data 15:8, dataK 1) holds data-buffer bytes and framing K-characters, the
+# low lane (data 7:0, dataK 0) holds the idle comma, pulse-id bits and event
+# codes. Symbol positions are relative to the K28.0 start symbol:
+#
+#     0            0x1C00 / 10   K28.0, start of the data buffer
+#     2 + 2k       data-buffer byte k, k = 0..51, least significant byte first
+#     105          0x3CBC / 11   K28.1 and K28.5, end of the data buffer
+#     106 + 2j     0x0070 or 0x0071 pulse-id bit j, most significant first
+#     170          0x007D        event-code block marker
+#     172 + 2n     0x00nn        event code n, present when the code is set
+#
+# The slots between are idle commas 0x00BC / 01. TimingStreamTx fills an
+# unset event-code slot with 0x0000 / 00, which TimingStreamRx reads as event
+# code 0, so the hardware cannot send "code 0 clear". This model keeps
+# event-code 0 lossless by filling unset slots with the comma instead.
+LCLS1_FRAME_LEN = 14000
+LCLS1_START_SYMBOL = (0x1C00, 0b10)
+LCLS1_END_SYMBOL = (0x3CBC, 0b11)
+LCLS1_COMMA_SYMBOL = (0x00BC, 0b01)
+LCLS1_MARKER_SYMBOL = (0x007D, 0b00)
+LCLS1_DATABUFF_BYTES = TIMING_DATABUFF_BITS // 8
+LCLS1_END_INDEX = 2 + 2 * (LCLS1_DATABUFF_BYTES - 1) + 1
+LCLS1_PULSE_INDEX = LCLS1_END_INDEX + 1
+LCLS1_MARKER_INDEX = LCLS1_PULSE_INDEX + 2 * 32
+LCLS1_CODE_INDEX = LCLS1_MARKER_INDEX + 2
+
+
+class Lcls1Frame(NamedTuple):
+    """A decoded LCLS-I frame: pulse id, event-code mask and data buffer dictionary."""
+
+    pulse_id: int
+    event_codes: int
+    databuff: dict
+
+
+def encode_lcls1_frame(pulse_id: int, event_codes: int, databuff: dict) -> list[tuple[int, int]]:
+    """Encode one LCLS-I frame into (data16, dataK2) symbols, 684 symbols long.
+
+    The caller pads with lcls1_idle_symbols up to LCLS1_FRAME_LEN.
+    """
+    if not isinstance(pulse_id, int) or pulse_id < 0 or pulse_id >> 32:
+        raise ValueError(f"pulse id {pulse_id!r} does not fit in 32 bits")
+    if not isinstance(event_codes, int) or event_codes < 0 or event_codes >> 256:
+        raise ValueError("event codes must be a 256-bit mask")
+    packed = pack_databuff(databuff)
+
+    symbols = [LCLS1_START_SYMBOL, LCLS1_COMMA_SYMBOL]
+    for k in range(LCLS1_DATABUFF_BYTES):
+        symbols.append((((packed >> (8 * k)) & 0xFF) << 8, 0b00))
+        if k < LCLS1_DATABUFF_BYTES - 1:
+            symbols.append(LCLS1_COMMA_SYMBOL)
+    symbols.append(LCLS1_END_SYMBOL)
+    for bit in range(31, -1, -1):
+        symbols.append((0x70 | ((pulse_id >> bit) & 1), 0b00))
+        symbols.append(LCLS1_COMMA_SYMBOL)
+    symbols.append(LCLS1_MARKER_SYMBOL)
+    symbols.append(LCLS1_COMMA_SYMBOL)
+    for code in range(256):
+        symbols.append((code, 0b00) if (event_codes >> code) & 1 else LCLS1_COMMA_SYMBOL)
+        symbols.append(LCLS1_COMMA_SYMBOL)
+    return symbols
+
+
+def lcls1_idle_symbols(count: int, start_phase: int = 0) -> list[tuple[int, int]]:
+    """Return ``count`` idle symbols alternating the comma and 0x0000 / 00."""
+    pattern = (LCLS1_COMMA_SYMBOL, (0x0000, 0b00))
+    return [pattern[(start_phase + k) % 2] for k in range(count)]
+
+
+def decode_lcls1_frame(symbols) -> Lcls1Frame:
+    """Decode an LCLS-I frame by K-character framing, as TimingStreamRx does.
+
+    The frame starts at the first K28.0 on the high lane. Every symbol after
+    the marker whose low lane is data (dataK 0 low) sets the event code named
+    by its low byte, so a 0x0000 / 00 symbol sets event code 0 exactly as the
+    receiver does. A missing start, end or marker raises ValueError.
+    """
+    symbols = list(symbols)
+    start = next(
+        (i for i, (data, data_k) in enumerate(symbols) if data_k & 0b10 and data >> 8 == K_280),
+        None,
+    )
+    if start is None:
+        raise ValueError("no K28.0 start symbol on the high lane")
+
+    def at(offset):
+        index = start + offset
+        if index >= len(symbols):
+            raise ValueError(f"truncated LCLS-I frame: no symbol at index {index}")
+        return symbols[index]
+
+    end_data, end_k = at(LCLS1_END_INDEX)
+    if not (end_k & 0b10 and end_data >> 8 in (K_281, K_COM)):
+        raise ValueError(
+            f"no K28.1 or K28.5 end of data buffer at index {start + LCLS1_END_INDEX}: "
+            f"0x{end_data:04X}/{end_k:02b}"
+        )
+    packed = 0
+    for k in range(LCLS1_DATABUFF_BYTES):
+        data, data_k = at(2 + 2 * k)
+        if data_k & 0b10:
+            raise ValueError(f"K-character in data-buffer byte {k}: 0x{data:04X}/{data_k:02b}")
+        packed |= (data >> 8) << (8 * k)
+
+    pulse_id = 0
+    for j in range(32):
+        data, data_k = at(LCLS1_PULSE_INDEX + 2 * j)
+        if data_k & 0b01 or data & 0xFF not in (0x70, 0x71):
+            raise ValueError(f"pulse-id bit {j} is not 0x70 or 0x71: 0x{data:04X}/{data_k:02b}")
+        pulse_id = (pulse_id << 1) | (data & 1)
+
+    marker_index = start + LCLS1_MARKER_INDEX
+    if marker_index >= len(symbols) or symbols[marker_index] != LCLS1_MARKER_SYMBOL:
+        raise ValueError(f"no 0x007D event-code marker at index {start + LCLS1_MARKER_INDEX}")
+    event_codes = 0
+    for data, data_k in symbols[start + LCLS1_MARKER_INDEX + 1:]:
+        if not data_k & 0b01:
+            event_codes |= 1 << (data & 0xFF)
+    return Lcls1Frame(pulse_id, event_codes, unpack_databuff(packed))
+
+
+# Seeded randomness: every seeded test takes its generator from make_rng so a
+# failure replays exactly with the logged seed.
+SEED_ENV = "LCLS_TIMING_SEED"
+DEFAULT_SEED = 20261107
+
+
+def make_rng(default: int = DEFAULT_SEED) -> tuple[random.Random, int]:
+    """Return (generator, seed). LCLS_TIMING_SEED overrides ``default``."""
+    raw = os.environ.get(SEED_ENV)
+    if raw is None:
+        seed = default
+    else:
+        try:
+            seed = int(raw.strip())
+        except ValueError:
+            raise ValueError(f"{SEED_ENV} must be an integer, got {raw!r}") from None
+    return random.Random(seed), seed
+
+
+def _random_fields(rng: random.Random, table, skip=()) -> dict:
+    values = {}
+    for name, width, count in table:
+        if name in skip:
+            continue
+        elements = [rng.getrandbits(width) for _ in range(count)]
+        values[name] = elements[0] if count == 1 else elements
+    return values
+
+
+def random_message(rng: random.Random, *, version: int = TIMING_MESSAGE_VERSION) -> dict:
+    """Return a random message with the unused bits absent and a fixed version."""
+    message = _random_fields(rng, MESSAGE_FIELDS, skip=("unused", "version"))
+    message["version"] = version
+    return message
+
+
+def random_databuff(rng: random.Random) -> dict:
+    """Return a random data buffer dictionary."""
+    return _random_fields(rng, DATABUFF_FIELDS)
+
+
+def random_stream(rng: random.Random, *, allow_code_255: bool = False) -> dict:
+    """Return a random LCLS-I stream with a sparse event-code mask.
+
+    TimingStreamTx never transmits event code 255, so bit 255 stays clear
+    unless ``allow_code_255`` is set.
+    """
+    top = 256 if allow_code_255 else 255
+    codes = 0
+    for _ in range(rng.randrange(0, 40)):
+        codes |= 1 << rng.randrange(top)
+    return {
+        "pulseId": rng.getrandbits(32),
+        "eventCodes": codes,
+        "dbuff": random_databuff(rng),
+    }
