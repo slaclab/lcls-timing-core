@@ -55,6 +55,15 @@ Running `.venv/bin/python -m pytest` from the repository root collects only
 `tests/`. Each case is stopped after 900 seconds. Simulator build products go
 to `tests/sim_build/`, which is not tracked.
 
+Two knobs help when a result needs a closer look. This reproduces every known
+defect (those tests fail until the RTL is fixed), and this replays the seeded
+random traffic printed in a failing log:
+
+```bash
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls2_core -k known_issue
+LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls2_core
+```
+
 ## Run what CI runs
 
 Each block mirrors one CI job in `.github/workflows/timing_ci.yml`. Run them
