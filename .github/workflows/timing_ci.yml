@@ -13,9 +13,68 @@
 # secrets.GH_TOKEN
 
 name: LCLS Timing Core Integration
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 jobs:
+
+  lint:
+    name: Linting
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+
+      - name: Clone dependencies
+        run: |
+          git clone --depth 1 -b main https://github.com/slaclab/ruckus ruckus
+          git clone --depth 1 -b main https://github.com/slaclab/surf surf
+
+      - name: Import HDL libraries
+        run: |
+          make MODULES=$PWD import
+
+      - name: Whitespace, non-ASCII, and tabs
+        run: |
+          python tests/common/lint_checks.py text
+
+      - name: Python syntax and flake8
+        run: |
+          python -m compileall -f -q python/ tests/
+          flake8 --count python/ tests/
+
+      - name: VHDL style on new files
+        run: |
+          python tests/common/lint_checks.py vsg
+
+      - name: Compliance audit (warn-only)
+        run: |
+          python tests/common/compliance_audit.py audit tests --output "$RUNNER_TEMP/audit.txt"
+          cat "$RUNNER_TEMP/audit.txt"
+          {
+            echo "### Compliance audit"
+            echo '```'
+            cat "$RUNNER_TEMP/audit.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+# ----------------------------------------------------------------------------
 
   test:
     name: "RTL test: ${{ matrix.module }}"
@@ -26,7 +85,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [lcls2_core]
+        module: [common, lcls1_evr, lcls2_core]
     steps:
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -47,7 +106,7 @@ jobs:
           git clone --depth 1 -b main https://github.com/slaclab/ruckus ruckus
           git clone --depth 1 -b main https://github.com/slaclab/surf surf
 
-      - name: Tool versions
+      - name: Simulator versions
         run: |
           ghdl --version
           iverilog -V
@@ -62,9 +121,103 @@ jobs:
 
 # ----------------------------------------------------------------------------
 
+  rogue_test:
+    name: Rogue Regression Tests
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: lcls-timing-core-rogue-test
+          environment-file: conda-rogue.yml
+          auto-activate: false
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+
+      - name: Verify Rogue
+        # Fail early if the conda environment did not activate; a missing
+        # Rogue would turn every test below into a silent skip.
+        run: |
+          python -c "import rogue, pyrogue; print(rogue.Version.current())"
+
+      - name: Run Rogue tests
+        # PYTHONPATH makes the tests exercise the in-repo python/ package
+        # rather than an installed copy.
+        env:
+          LCLS_REQUIRE_ROGUE: "1"
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -v -n auto tests/rogue
+
+# ----------------------------------------------------------------------------
+
+  production_guard:
+    name: Production Guard
+    # No job-level condition: gen_release needs this job, and a skipped
+    # prerequisite would also skip the release on a tag push.
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      BYPASS: ${{ contains(github.event.pull_request.labels.*.name, 'production-change') }}
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Not a pull request
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Production guard applies to pull_request events only; nothing to check for this event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check production bytes
+        if: github.event_name == 'pull_request'
+        # The guard script comes from the PR base commit when the base has
+        # one, so a pull request cannot rewrite the check that judges it.
+        run: |
+          guard="${RUNNER_TEMP}/production_guard.py"
+          if git cat-file -e "${BASE_SHA}:tests/common/production_guard.py" 2>/dev/null; then
+            git show "${BASE_SHA}:tests/common/production_guard.py" > "$guard"
+            echo "Guard script taken from the PR base commit." >> "$GITHUB_STEP_SUMMARY"
+          else
+            cp tests/common/production_guard.py "$guard"
+            echo "PR base has no guard script; using the PR copy." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          rc=0
+          python3 "${RUNNER_TEMP}/production_guard.py" --base "$BASE_SHA" --head "$HEAD_SHA" || rc=$?
+          if [ "$rc" -eq 1 ] && [ "$BYPASS" = "true" ]; then
+            echo "Bypassed by the production-change label; the guard would have failed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$rc"
+
+# ----------------------------------------------------------------------------
+
   test_and_document:
     name: Test And Generate Documentation
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
 
       # This step checks out a copy of your repository.
@@ -80,13 +233,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
-          python -m pip install --upgrade pip
-          pip install flake8
-
-      - name: Python Syntax Check
-        run: |
-          python -m compileall -f python/
-          flake8 --count python/
 
       - name: Generate Documentation
         run: |
@@ -102,7 +248,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [test_and_document, test]
+    needs: [lint, test, rogue_test, production_guard, test_and_document]
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
