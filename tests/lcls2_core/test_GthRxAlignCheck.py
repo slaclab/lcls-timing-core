@@ -574,7 +574,11 @@ def test_GthRxAlignCheck(gt_type_value):
 
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
-    reason="known issue: GthRxAlignCheck indexes a 40-entry histogram with a 7-bit DRP value; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce",
+    reason=(
+        "known issue: GthRxAlignCheck indexes a 40-entry histogram with a 7-bit DRP value; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/210; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+    ),
 )
 def test_GthRxAlignCheck_known_issue_sample_index():
     run_case("GTHE3", cocotb_test_filter(KNOWN_ISSUE_ENTRYPOINT))

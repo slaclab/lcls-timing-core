@@ -643,7 +643,11 @@ def test_TimingFrameRx():
 
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
-    reason="known issue: TimingFrameRx timingMessageValid and staData(4) lag the strobe by one cycle; set RUN_KNOWN_ISSUE_TESTS=1",
+    reason=(
+        "open question: TimingFrameRx timingMessageValid and staData(4) lag the strobe by one cycle; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/211; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+    ),
 )
 def test_TimingFrameRx_known_issue_valid_on_strobe():
     run_lcls_vhdl_test(

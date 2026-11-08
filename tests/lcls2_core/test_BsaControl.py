@@ -680,6 +680,7 @@ def test_BsaControl(async_regclk):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGPkg rateSel comment disagrees with the sequence-mode field mapping; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/209; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )

@@ -375,6 +375,7 @@ def test_TimingMsgToAxiStream(params):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TimingMsgToAxiStream never ends a frame; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/208; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )

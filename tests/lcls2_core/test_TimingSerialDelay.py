@@ -477,6 +477,7 @@ def test_TimingSerialDelay():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TimingSerialDelay never reads stream_i.ready, so an empty frame merges into the next frame; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/207; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
