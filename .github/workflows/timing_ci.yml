@@ -17,6 +17,51 @@ on: [push]
 
 jobs:
 
+  test:
+    name: "RTL test: ${{ matrix.module }}"
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [lcls2_core]
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl iverilog
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+
+      - name: Clone dependencies
+        run: |
+          git clone --depth 1 -b main https://github.com/slaclab/ruckus ruckus
+          git clone --depth 1 -b main https://github.com/slaclab/surf surf
+
+      - name: Tool versions
+        run: |
+          ghdl --version
+          iverilog -V
+
+      - name: Import HDL libraries
+        run: |
+          make MODULES=$PWD import
+
+      - name: Run tests
+        run: |
+          python -m pytest -v -n auto --dist=worksteal tests/${{ matrix.module }}
+
+# ----------------------------------------------------------------------------
+
   test_and_document:
     name: Test And Generate Documentation
     runs-on: ubuntu-26.04
@@ -34,13 +79,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
+          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
           pip install flake8
-
-      - name: VHDL Syntax Check
-        run: |
-          make
 
       - name: Python Syntax Check
         run: |
@@ -61,7 +102,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [test_and_document]
+    needs: [test_and_document, test]
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
