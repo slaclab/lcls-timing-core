@@ -48,7 +48,10 @@ Test methodology:
         drift of the reviewed tables equals the allowlist, the rows show
         every drift the comparison reports, descriptions are copied from
         the Python source or marked missing, adjacent fields keep their own
-        flagged rows, and rows are sorted by byte offset, bit offset, name.
+        flagged rows, and rows are sorted by byte offset, bit offset, name,
+        the constructor reader returns the arguments, defaults, and
+        ValueError checks of a class, and the API pages are built without
+        importing Rogue.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -56,6 +59,8 @@ Test methodology:
 import ast
 import copy
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -1127,3 +1132,68 @@ def test_yaml_only_page_lists_arrays_without_expanding_them():
     assert [row.name for row in rows][:3] == ["PacketSize", "Enable", "ChannelMask"]
     with pytest.raises(ValueError, match="no top-level key"):
         gen_docs.yaml_only_rows("EvrV2Module.yaml")
+
+
+def test_constructor_reader_reads_evr_core_triggers():
+    path = REPO_ROOT / "python/LclsTimingCore/EvrV2CoreTriggers.py"
+    arguments = dict(pyrogue_ast.read_constructor(path, "EvrV2CoreTriggers"))
+    assert arguments["numTrig"] == "1"
+    assert arguments["dmaEnable"] == "False"
+    assert arguments["tickUnit"] == "'TBD'"
+    assert "**kwargs" in arguments and arguments["**kwargs"] is None
+    assert [name for name, _ in pyrogue_ast.read_constructor(path, "EvrV2CoreTriggers")][0] == "name"
+    ((condition, message),) = pyrogue_ast.read_constructor_checks(path, "EvrV2CoreTriggers")
+    assert "numTrig < 1" in condition and "numTrig > 16" in condition
+    assert "between 1 to 16" in message
+    assert pyrogue_ast.read_constructor_checks(
+        REPO_ROOT / "python/LclsTimingCore/EvrV2TriggerReg.py", "EvrV2TriggerReg"
+    ) == []
+
+
+def test_constructor_reader_handles_synthetic_signatures(tmp_path):
+    source = tmp_path / "Synthetic.py"
+    source.write_text(
+        "import pyrogue as pr\n"
+        "class Synthetic(pr.Device):\n"
+        "    def __init__(self, a, b=2, *rest, c=3, **kwargs):\n"
+        "        if a:\n"
+        "            raise ValueError('a is set')\n"
+        "        if b:\n"
+        "            if c:\n"
+        "                raise ValueError('c nested', 1)\n"
+        "            raise KeyError('not counted')\n"
+        "        if rest:\n"
+        "            raise TypeError('not counted')\n",
+        encoding="utf-8",
+    )
+    assert pyrogue_ast.read_constructor(source, "Synthetic") == [
+        ("a", None), ("b", "2"), ("*rest", None), ("c", "3"), ("**kwargs", None),
+    ]
+    assert pyrogue_ast.read_constructor_checks(source, "Synthetic") == [
+        ("a", "'a is set'"), ("c", "'c nested'"),
+    ]
+    with pytest.raises(ValueError, match="no class Missing"):
+        pyrogue_ast.read_constructor(source, "Missing")
+
+
+def test_api_pages_import_no_rogue():
+    code = (
+        "import sys\n"
+        "sys.path.insert(0, sys.argv[1])\n"
+        "from tests.common import gen_docs\n"
+        "pages = gen_docs.render_pyrogue(sys.argv[1])\n"
+        "assert any(path.startswith('reference/pyrogue/') for path in pages)\n"
+        "loaded = sorted(m for m in sys.modules if m.split('.')[0] in ('rogue', 'pyrogue', 'cocotb', 'LclsTimingCore'))\n"
+        "assert not loaded, loaded\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", code, str(REPO_ROOT)], capture_output=True, text=True, check=False, cwd=REPO_ROOT
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_api_page_shows_constructor_variables_and_register_link():
+    page = render_all(REPO_ROOT)["reference/pyrogue/EvrV2TriggerReg.rst"]
+    assert "``useTap``" in page and "``False``" in page
+    assert ":ref:`EvrV2TriggerReg registers <register-map-evrv2triggerreg>`" in page
+    assert page.count("DelayTapReadback") == 1

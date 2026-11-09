@@ -32,6 +32,7 @@ needs only the standard library, PyYAML, and the helpers beside it.
 from __future__ import annotations
 
 import argparse
+import ast
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -1989,6 +1990,384 @@ def render_registers(repo_root=REPO_ROOT):
 
 
 # ---------------------------------------------------------------------------
+# PyRogue API
+# ---------------------------------------------------------------------------
+
+API_DIR = "reference/pyrogue"
+ROGUE_VERSION = "6.16.0"
+LCLS_PACKAGE = PYTHON_DIR / "LclsTimingCore"
+ISSUE_IN_TEXT_RE = re.compile(r"https://github\.com/slaclab/lcls-timing-core/issues/(\d+)")
+KNOWN_ISSUE_PREFIX = "known issue: "
+REPRODUCE_MARKER = "RUN_KNOWN_ISSUE_TESTS=1"
+PR_DEVICE_ARGUMENTS = ("name", "description", "**kwargs")
+
+# Limits the pages rendered to these classes when set; None renders every class.
+API_CLASSES_FILTER = ("EvrV2TriggerReg",)
+
+
+class ApiVar(NamedTuple):
+    """One declaration of a class page: a variable, a command, or a run of array elements."""
+
+    name: str
+    kind: str
+    offset: object
+    bit: object
+    size: object
+    mode: str
+    cell: str
+    condition: str
+    count: int
+    indexed: bool
+    stride_bits: int
+    description: str
+
+
+class KnownIssue(NamedTuple):
+    test: str
+    what: str
+    issue: str
+
+
+def api_label(class_name):
+    """Return the label of the API page of a class."""
+    return f"api-{slug(class_name)}"
+
+
+def all_device_classes():
+    """Return the sorted names of the pr.Device subclasses in python/LclsTimingCore, read with ast."""
+    found = []
+    for path in sorted(LCLS_PACKAGE.glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in tree.body:
+            is_device = isinstance(node, ast.ClassDef) and any(
+                isinstance(base, ast.Attribute) and base.attr == "Device" for base in node.bases
+            )
+            if is_device:
+                found.append(node.name)
+    return sorted(found)
+
+
+def device_classes():
+    """Return the class names that get an API page, sorted."""
+    names = all_device_classes()
+    return [name for name in names if API_CLASSES_FILTER is None or name in API_CLASSES_FILTER]
+
+
+def rejected_classes():
+    """Return the classes Rogue rejects at root.start(); their variables are read from the source."""
+    return sorted(name for name, block in BLOCKS.items() if block.python_source == "ast")
+
+
+def class_path(class_name):
+    return LCLS_PACKAGE / f"{class_name}.py"
+
+
+def class_known_issues(class_name, rogue_dir=None):
+    """Return [KnownIssue] for the gated tests of tests/rogue/test_<class>.py, read with ast.
+
+    A gated test is a function decorated with ``skipif`` whose ``reason`` names
+    ``RUN_KNOWN_ISSUE_TESTS=1``. The reason has the form ``known issue: <what>;
+    see <issue URL>; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce``; a reason with
+    no issue URL (the interim ``pending issue:`` form) reports the issue as
+    ``pending``.
+    """
+    directory = Path(rogue_dir) if rogue_dir is not None else REPO_ROOT / "tests" / "rogue"
+    path = directory / f"test_{class_name}.py"
+    if not path.is_file():
+        return []
+    found = []
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"), filename=str(path))):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        for decorator in node.decorator_list:
+            if not (isinstance(decorator, ast.Call) and pyrogue_ast._call_name(decorator) == "skipif"):
+                continue
+            for keyword in decorator.keywords:
+                reason = pyrogue_ast._literal(keyword.value) if keyword.arg == "reason" else None
+                if isinstance(reason, str) and REPRODUCE_MARKER in reason:
+                    what = reason.split("; see ", 1)[0].split("; set ", 1)[0]
+                    for prefix in (KNOWN_ISSUE_PREFIX, "pending issue: "):
+                        what = what.removeprefix(prefix)
+                    match = ISSUE_IN_TEXT_RE.search(reason)
+                    link = match.group(0) if match else PENDING_ISSUE
+                    found.append(KnownIssue(node.name, what, link))
+    return sorted(found, key=lambda issue: issue.test)
+
+
+def _count_value(number, arg_set, table):
+    if number is None or isinstance(number, int):
+        return number
+    if number in arg_set.args:
+        return arg_set.args[number]
+    return table.DEFAULTS[number]
+
+
+def enum_cell(base, enum, depends=()):
+    """Return the Base or enum cell: the enum entries, else the base type, else what a link variable follows."""
+    if enum:
+        return "enum " + ", ".join(f"{key}: {value}" for key, value in enum.items())
+    if base is None:
+        return "depends on " + ", ".join(depends) if depends else ""
+    return str(base)
+
+
+def table_variables(class_name, arg_set):
+    """Return the ApiVar list of a built-tree class under one argument set, from its reviewed table."""
+    table = register_tables.load_table(class_name)
+    descriptions = pyrogue_ast.read_descriptions(class_path(class_name))
+    flags = set(arg_set.flags)
+    found = []
+    for row in table.ROWS:
+        if row.when is not None and row.when not in flags:
+            continue
+        count = _count_value(row.number, arg_set, table)
+        if count == 0:
+            continue
+        if row.offset is None:
+            offset = bit = None
+        else:
+            position = register_tables.abs_bit(row.offset, row.bit_offset)
+            offset, bit = (position // WORD_BITS) * 4, position % WORD_BITS
+        enum = row.enum if row.enum is not None else (dict(register_tables.BOOL_ENUM) if row.base == "Bool" else None)
+        cell = enum_cell(row.base, None if row.base == "Bool" else enum, row.depends)
+        found.append(
+            ApiVar(
+                row.name, row.kind, offset, bit, row.bit_size, row.mode, cell, row.when or "",
+                1 if count is None else count, count is not None,
+                (row.stride or 0) * BITS_PER_BYTE, descriptions.get(row.name) or NO_DESCRIPTION,
+            )
+        )
+    return found
+
+
+def ast_variables(class_name):
+    """Return the ApiVar list of a class Rogue rejects, from its own source file read with ast.
+
+    The reader expands every array declaration into elements; elements of one
+    declaration are joined back into one ApiVar with the step between the
+    first two.
+    """
+    path = class_path(class_name)
+    groups = {}
+    for var in pyrogue_ast.read_remote_variables(path):
+        for label, value in (("offset", var.offset), ("bit offset", var.bit_offset), ("bit size", var.bit_size)):
+            if not isinstance(value, int):
+                raise ValueError(f"{path}:{var.line}: {var.name} {label} is not a literal ({value!r})")
+        base, index = split_index(var.name)
+        groups.setdefault((var.line, base), []).append((index, var))
+    found = []
+    for (_, base), elements in groups.items():
+        _, first = elements[0]
+        position = register_tables.abs_bit(first.offset, first.bit_offset)
+        step = 0
+        if len(elements) > 1:
+            second = elements[1][1]
+            step = register_tables.abs_bit(second.offset, second.bit_offset) - position
+        enum = first.enum if first.enum is not None else (dict(register_tables.BOOL_ENUM) if first.base == "Bool" else None)
+        description = first.description if isinstance(first.description, str) and first.description else NO_DESCRIPTION
+        found.append(
+            ApiVar(
+                base, "RemoteVariable", (position // WORD_BITS) * 4, position % WORD_BITS, first.bit_size,
+                first.mode, enum_cell(first.base, None if first.base == "Bool" else enum), first.condition or "",
+                len(elements), elements[0][0] is not None, step, description,
+            )
+        )
+    return found
+
+
+def api_bits(var):
+    if var.size is None or var.bit is None:
+        return ""
+    return f"[{var.bit}]" if var.size == 1 else f"[{var.bit + var.size - 1}:{var.bit}]"
+
+
+def api_offset(var):
+    if var.offset is None:
+        return ""
+    text = literal(f"0x{var.offset:03X}")
+    if var.count > 1:
+        text += f" + {literal(stride_text(var.stride_bits))} * i"
+    return text
+
+
+API_VARIABLE_HEADER = ["Name", "Kind", "Offset", "Bits", "Mode", "Base or enum", "Condition", "Description"]
+API_VARIABLE_WIDTHS = [17, 11, 12, 7, 6, 14, 10, 23]
+
+
+def variables_table(variables):
+    """Return the list-table of ApiVar rows sorted by offset, bit offset, then name, or ``none``."""
+    ordered = sorted(
+        variables, key=lambda var: (var.offset is None, var.offset or 0, var.bit or 0, var.name)
+    )
+    body = []
+    for var in ordered:
+        shown = f"{var.name}[0..{var.count - 1}]" if var.count > 1 else (f"{var.name}[0]" if var.indexed else var.name)
+        body.append(
+            [
+                literal(shown), var.kind, api_offset(var), api_bits(var), var.mode, var.cell,
+                literal(var.condition), var.description,
+            ]
+        )
+    if not body:
+        return "none\n"
+    return list_table(API_VARIABLE_HEADER, body, widths=API_VARIABLE_WIDTHS)
+
+
+def constructor_section(arguments):
+    """Return the Constructor section body for the [(name, default)] list of ``__init__``."""
+    if not arguments:
+        return "none\n"
+    body = [[literal(name), literal(default) if default is not None else ""] for name, default in arguments]
+    specific = [name for name, _ in arguments if name not in PR_DEVICE_ARGUMENTS]
+    lines = [list_table(["Argument", "Default"], body, widths=[25, 75])]
+    if not specific:
+        lines += ["Arguments beyond the ``pr.Device`` defaults: none.", ""]
+    return "\n".join(lines)
+
+
+def checks_section(checks):
+    """Return the Constructor checks body for [(condition, message)], or ``none``."""
+    if not checks:
+        return "none\n"
+    body = [[literal(condition), literal(message)] for condition, message in checks]
+    return "\n".join(
+        ["The constructor raises ``ValueError`` when:", "", list_table(["Condition", "Message"], body, widths=[40, 60])]
+    )
+
+
+def api_children(class_name):
+    """Return [(name, class, offset, count text, stride)] of the child devices of a class."""
+    if class_name in rejected_classes():
+        return [(child.name, child.cls, child.offset, "1", "") for child in pyrogue_ast.read_child_devices(class_path(class_name))]
+    table = register_tables.load_table(class_name)
+    rows = []
+    for child in getattr(table, "CHILDREN", ()):
+        count = "1" if child.number is None else str(child.number)
+        rows.append((child.name.split("[")[0], child.table, child.offset, count, child.stride or ""))
+    return rows
+
+
+def children_section(children):
+    if not children:
+        return "none\n"
+    body = []
+    for name, cls, offset, count, stride in children:
+        target = f":ref:`{cls} <{api_label(cls)}>`" if cls in all_device_classes() else literal(cls)
+        body.append([literal(name), target, literal(f"0x{offset:X}"), count, literal(f"0x{stride:X}") if stride != "" else ""])
+    return list_table(["Name", "Class", "Offset", "Count", "Stride"], body, widths=[25, 30, 15, 15, 15])
+
+
+def register_links(class_name):
+    """Return the RST that points a class at its register page, or at its children's pages."""
+    if class_name in REGISTER_BLOCKS:
+        return f":ref:`{class_name} registers <{page_label(class_name)}>`"
+    targets = [cls for _, cls, _, _, _ in api_children(class_name) if cls in REGISTER_BLOCKS]
+    if not targets:
+        raise ValueError(f"{class_name} has no register page and no child with one")
+    return ", ".join(f":ref:`{cls} registers <{page_label(cls)}>`" for cls in dict.fromkeys(targets))
+
+
+def known_issues_section(class_name):
+    issues = class_known_issues(class_name)
+    if not issues:
+        return "none\n"
+    body = [
+        [literal(issue.test), issue.what, issue_cell([issue.issue])] for issue in issues
+    ]
+    return "\n".join(
+        [
+            f"Each test is skipped unless {literal(REPRODUCE_MARKER)} is set, and fails while the issue stands.",
+            "",
+            list_table(["Test", "What", "Issue"], body, widths=[35, 45, 20]),
+        ]
+    )
+
+
+def variable_sections(class_name):
+    """Return the Variables section body: one table per argument set of a built-tree class, one for a source-read class."""
+    if class_name in rejected_classes():
+        return variables_table(ast_variables(class_name))
+    table = register_tables.load_table(class_name)
+    tables = [(arg_set, variables_table(table_variables(class_name, arg_set))) for arg_set in table.ARG_SETS]
+    if all(text == "none\n" for _, text in tables):
+        return "none\n"
+    parts = []
+    seen = {}
+    for arg_set, text in tables:
+        arguments = ", ".join(literal(f"{key}={value!r}") for key, value in arg_set.args.items()) or "none"
+        parts += [title(f"Arguments {arg_set.id}", "~"), f"Constructor arguments: {arguments}.", ""]
+        if text in seen:
+            parts += [f"Same variables as arguments {seen[text]}.", ""]
+        else:
+            seen[text] = arg_set.id
+            parts.append(text)
+    return "\n".join(parts)
+
+
+def render_api_page(class_name):
+    """Return the page of one device class."""
+    path = class_path(class_name)
+    rejected = class_name in rejected_classes()
+    parts = [
+        f".. _{api_label(class_name)}:\n",
+        title(class_name, "="),
+        f"Source: {repo_link(f'python/LclsTimingCore/{class_name}.py')}. Register table: {register_links(class_name)}.",
+        "",
+    ]
+    if rejected:
+        parts += [
+            f"Rogue {ROGUE_VERSION} rejects this class at ``root.start()``, so its tree cannot be built. The "
+            "variables below are read from the source with ``ast``; the known issues name the declarations "
+            "that Rogue refuses.",
+            "",
+        ]
+    parts += [title("Constructor", "-"), constructor_section(pyrogue_ast.read_constructor(path, class_name))]
+    parts += [title("Constructor checks", "-"), checks_section(pyrogue_ast.read_constructor_checks(path, class_name))]
+    parts += [title("Sub-devices", "-"), children_section(api_children(class_name))]
+    parts += [title("Variables", "-"), variable_sections(class_name)]
+    parts += [title("Known issues", "-"), known_issues_section(class_name)]
+    return "\n".join(parts)
+
+
+def render_api_index(names):
+    rows = []
+    rejected = rejected_classes()
+    for name in names:
+        builds = "no: rejected at ``root.start()``" if name in rejected else "yes"
+        rows.append([f":ref:`{name} <{api_label(name)}>`", builds, register_links(name)])
+    return "\n".join(
+        [
+            title("PyRogue API", "="),
+            "``import LclsTimingCore`` makes every device class below available: the package ``__init__`` star "
+            "imports each module, so ``LclsTimingCore.TPGControl`` and the other classes are one import away. "
+            "Each page lists the constructor arguments with their defaults, the checks the constructor makes, "
+            "the child devices, and the variables with offset, bits, mode, and description. The variables of a "
+            f"class that Rogue {ROGUE_VERSION} builds come from the reviewed table checked against a built tree; "
+            "the five classes Rogue rejects are read from the source. No page imports Rogue.",
+            "",
+            list_table(["Class", f"Builds under Rogue {ROGUE_VERSION}", "Register page"], rows, widths=[30, 30, 40]),
+            ".. toctree::",
+            "   :hidden:",
+            "   :maxdepth: 1",
+            "",
+            *[f"   {name}" for name in names],
+            "",
+        ]
+    )
+
+
+def render_pyrogue(repo_root=REPO_ROOT):
+    """Return {docs-relative path: text} for the PyRogue API index and the page of every device class."""
+    names = device_classes()
+    pages = {f"{API_DIR}/index.rst": render_api_index(names)}
+    for name in names:
+        pages[f"{API_DIR}/{name}.rst"] = render_api_page(name)
+    return pages
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
@@ -1996,6 +2375,7 @@ def render_all(repo_root=REPO_ROOT):
     """Return {docs-relative path: text} of every generated page, sorted by path."""
     pages = render_entities(repo_root)
     pages.update(render_registers(repo_root))
+    pages.update(render_pyrogue(repo_root))
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)
     for path, text in pages.items():

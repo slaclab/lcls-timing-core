@@ -7,5 +7,6 @@ Lookup material for the library, generated from the sources by ``python -m tests
    :maxdepth: 1
 
    entities/index
+   pyrogue/index
    registers/index
    families

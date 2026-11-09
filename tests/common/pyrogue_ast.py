@@ -30,6 +30,9 @@ reads as ``Bool``, absent reads as ``UInt``, a non-attribute expression is
 ``read_child_devices`` lists the ``self.add(<module>.<Class>(...))`` calls of
 a composite device, in source order, with the class name, the ``name`` keyword
 (the class name when absent), and the ``offset`` literal.
+``read_constructor`` returns the ``__init__`` parameters of a class with the
+source text of each default, and ``read_constructor_checks`` the condition and
+message source of every ``if`` in ``__init__`` that raises ``ValueError``.
 ``expected_entries`` turns declarations into the ``Expected`` records that the
 table comparisons use.
 
@@ -186,14 +189,21 @@ def read_remote_variables(path) -> List[RemoteVar]:
         return parse_remote_variables(handle.read(), str(path))
 
 
+LINK_VARIABLE = "LinkVariable"
+
+
 class _CommandReader(ast.NodeVisitor):
-    """Collect (name, description) of every ``RemoteCommand(...)`` call; commands are not register declarations."""
+    """Collect (name, description) of every ``RemoteCommand(...)`` and ``LinkVariable(...)`` call.
+
+    Commands and link variables are not register declarations, so
+    ``read_remote_variables`` never reports them.
+    """
 
     def __init__(self) -> None:
         self.found: List[Tuple[Any, Optional[str]]] = []
 
     def visit_Call(self, node: ast.Call) -> None:
-        if _call_name(node) == REMOTE_COMMAND:
+        if _call_name(node) in (REMOTE_COMMAND, LINK_VARIABLE):
             keywords = {kw.arg: _literal(kw.value) for kw in node.keywords if kw.arg is not None}
             self.found.append((keywords.get("name", NON_LITERAL), keywords.get("description")))
         self.generic_visit(node)
@@ -203,9 +213,9 @@ def read_descriptions(path) -> Dict[str, Optional[str]]:
     """Return {base variable name: description} for the PyRogue file at ``path``.
 
     The base name is the declared ``name`` without an element index, so every
-    element of an array declaration shares one entry. Register variables and
-    ``RemoteCommand`` declarations are both read. The description is the
-    literal ``description`` keyword, None when the declaration has none. A
+    element of an array declaration shares one entry. The description is the
+    literal ``description`` keyword, None when the declaration has none.
+    ``RemoteCommand`` and ``LinkVariable`` declarations are read too. A
     name declared twice (in both branches of an ``if``) keeps its first
     description that is not None.
     """
@@ -387,3 +397,56 @@ def read_child_devices(path) -> List[ChildDevice]:
     reader = _ChildReader()
     reader.visit(tree)
     return reader.found
+
+
+def _init_function(path, class_name) -> ast.FunctionDef:
+    with open(Path(path), "r", encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), filename=str(path))
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef) and node.name == class_name:
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                    return item
+            raise ValueError(f"{path}: class {class_name} has no __init__")
+    raise ValueError(f"{path}: no class {class_name}")
+
+
+def read_constructor(path, class_name) -> List[Tuple[str, Optional[str]]]:
+    """Return [(parameter name, default source or None)] of ``class_name.__init__`` after ``self``.
+
+    Defaults are shown with ``ast.unparse``; a ``*args`` or ``**kwargs``
+    parameter is listed as ``*args`` or ``**kwargs`` with no default. The file
+    is parsed, never run.
+    """
+    args = _init_function(path, class_name).args
+    positional = [*args.posonlyargs, *args.args][1:]
+    defaults: List[Optional[ast.expr]] = [None] * (len(positional) - len(args.defaults)) + list(args.defaults)
+    found = [(arg.arg, None if default is None else ast.unparse(default)) for arg, default in zip(positional, defaults)]
+    if args.vararg is not None:
+        found.append((f"*{args.vararg.arg}", None))
+    found += [
+        (arg.arg, None if default is None else ast.unparse(default))
+        for arg, default in zip(args.kwonlyargs, args.kw_defaults)
+    ]
+    if args.kwarg is not None:
+        found.append((f"**{args.kwarg.arg}", None))
+    return found
+
+
+def read_constructor_checks(path, class_name) -> List[Tuple[str, str]]:
+    """Return [(condition source, message source)] for each ``if`` in ``__init__`` that raises ValueError.
+
+    Only a ``raise ValueError(...)`` written directly in the body of the ``if``
+    counts; the message is the source of the first argument (empty when the
+    call has none).
+    """
+    found = []
+    for node in ast.walk(_init_function(path, class_name)):
+        if not isinstance(node, ast.If):
+            continue
+        for statement in node.body:
+            exc = statement.exc if isinstance(statement, ast.Raise) else None
+            if isinstance(exc, ast.Call) and _call_name(exc) == "ValueError":
+                message = ast.unparse(exc.args[0]) if exc.args else ""
+                found.append((ast.unparse(node.test), message))
+    return found
