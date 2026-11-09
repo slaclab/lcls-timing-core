@@ -1,9 +1,9 @@
 Entities
 ========
 
-The VHDL entities of the library, with their purpose, generics, ports, and the way the regression covers it. The pages are generated from the sources by ``python -m tests.common.gen_docs``; the purposes are authored.
+The VHDL entities and Verilog modules of the library, with their purpose, generics, ports, and the way the regression covers it. The pages are generated from the sources by ``python -m tests.common.gen_docs``; the purposes are authored.
 
-Each entity has one of five verification statuses:
+Each entity or module has one of five verification statuses:
 
 .. list-table::
    :header-rows: 1
@@ -12,7 +12,7 @@ Each entity has one of five verification statuses:
    * - Status
      - Meaning
    * - ``simulated``
-     - A cocotb test runs the entity (or its testbench wrapper) in the GHDL leg of the regression.
+     - A cocotb test runs the entity (or its testbench wrapper) in the regression: in GHDL for a VHDL entity, in Icarus Verilog for a Verilog module.
    * - ``baseline-excluded``
      - GHDL cannot analyze the file today. The regression records the exact GHDL message and fails if it changes or disappears; the issues column links the report.
    * - ``Vivado-only``
@@ -26,3 +26,4 @@ Each entity has one of five verification statuses:
    :maxdepth: 1
 
    core
+   lcls1

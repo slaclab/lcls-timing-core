@@ -3,6 +3,13 @@
 # never copied from the banner header of the file. The generator fails when a
 # rendered file has no entry here or an entry has no rendered file.
 
+LCLS-I/evr/EvrV1TimeStampGenerator.v: >-
+  Free-running 64-bit time stamp for the LCLS-I EVR in a single Clock domain.
+  TimeStamp counts up by 1 on every Clock, and every 330556 clocks a reload
+  puts the seconds counter in bits 63:32 and clears the low word while the
+  seconds counter increments. Reset clears the seconds counter, the reload
+  counter, and TimeStamp.
+
 LCLS-II/core/rtl/BsaControl.vhd: >-
   Older definition of the entity BsaControl, the acquisition state of one BSA
   definition: it counts active cycles down from nToAvg and averages down from

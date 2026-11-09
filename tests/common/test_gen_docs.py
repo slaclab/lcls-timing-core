@@ -58,6 +58,7 @@ from tests.common.gen_docs import (
     issue_cell,
     list_table,
     load_sidecar,
+    read_verilog_unit,
     read_vhdl_unit,
     render_all,
     rendered_files,
@@ -192,6 +193,66 @@ def test_header_description_follows_the_banner_rule(tmp_path):
     assert header_description(absent).found is False
 
 
+TIME_STAMP_GENERATOR = "LCLS-I/evr/EvrV1TimeStampGenerator.v"
+
+
+def test_verilog_reader_parses_the_time_stamp_generator():
+    unit = read_verilog_unit(REPO_ROOT / TIME_STAMP_GENERATOR)
+    assert (unit.kind, unit.name, unit.generics) == ("module", "EvrV1TimeStampGenerator", ())
+    assert [tuple(port) for port in unit.ports] == [
+        ("Clock", "in", "wire"),
+        ("Reset", "in", "wire"),
+        ("TimeStamp", "out", "[63:0]"),
+    ]
+    assert unit.line == 11
+
+
+def test_verilog_reader_reads_parameters_and_ansi_headers(tmp_path):
+    channel = read_verilog_unit(REPO_ROOT / "LCLS-I/evr/EvrV1EventReceiverChannel.v")
+    assert [tuple(generic) for generic in channel.generics] == [
+        ("delayIdle", "parameter [1:0]", "2'b00"),
+        ("delayWait", "parameter [1:0]", "2'b01"),
+        ("delayOut", "parameter [1:0]", "2'b10"),
+    ]
+    assert [port.name for port in channel.ports][:3] == ["Clock", "Reset", "myEvent"]
+    assert tuple(channel.ports[-1]) == ("channelDebug", "out", "[102:0]")
+    source = tmp_path / "Probe.v"
+    source.write_text(
+        "// module Fake(a);\n"
+        "/* module Fake2(b);\n   input b; */\n"
+        "module Probe #(parameter W = 8, parameter [3:0] K = 4'd3) (\n"
+        "    input  wire clk,\n"
+        "    input  [W-1:0] a, b,\n"
+        "    output reg [7:0] q,\n"
+        "    inout  z\n"
+        ");\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    unit = read_verilog_unit(source)
+    assert unit.name == "Probe"
+    assert unit.line == 4
+    assert [tuple(generic) for generic in unit.generics] == [("W", "parameter", "8"), ("K", "parameter [3:0]", "4'd3")]
+    assert [tuple(port) for port in unit.ports] == [
+        ("clk", "in", "wire"),
+        ("a", "in", "[W-1:0]"),
+        ("b", "in", "[W-1:0]"),
+        ("q", "out", "[7:0]"),
+        ("z", "inout", "wire"),
+    ]
+
+
+def test_verilog_reader_rejects_a_port_without_a_direction(tmp_path):
+    source = tmp_path / "Broken.v"
+    source.write_text("module Broken(a, b);\n  input a;\nendmodule\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"Broken\.v.*port b"):
+        read_verilog_unit(source)
+    nothing = tmp_path / "Nothing.v"
+    nothing.write_text("// module Commented(a);\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"Nothing\.v"):
+        read_verilog_unit(nothing)
+
+
 def _purposes():
     return load_sidecar("entity_purposes.yaml")
 
@@ -237,7 +298,8 @@ def test_every_rendered_entity_has_one_status():
                 assert path not in found, f"{path}: a package has no status"
                 continue
             assert found.get(path) in STATUSES, f"{path}: status {found.get(path)!r} is not one of {STATUSES}"
-    assert found[DIVIDER] == "simulated"
+        if tree.key == "core":
+            assert found[DIVIDER] == "simulated"
 
 
 def test_unknown_documentation_tree_is_rejected():
@@ -345,7 +407,7 @@ def _header_sidecar():
 def test_header_issues_match_the_headers():
     sidecar = _header_sidecar()
     for tree in DOC_TREES:
-        files = gen_docs.documented_files(REPO_ROOT, tree)
+        files = rendered_files(REPO_ROOT, tree)
         computed = header_findings(REPO_ROOT, files)
         for kind in ("empty", "missing"):
             expected = {path for path, entry in sidecar.items() if path in files and entry["kind"] == kind}

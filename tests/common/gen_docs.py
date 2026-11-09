@@ -67,7 +67,8 @@ STATUSES = (STATUS_SIMULATED, STATUS_BASELINE, STATUS_VIVADO, STATUS_NOT_SIMULAT
 STATUS_MEANING = (
     (
         STATUS_SIMULATED,
-        "A cocotb test runs the entity (or its testbench wrapper) in the GHDL leg of the regression.",
+        "A cocotb test runs the entity (or its testbench wrapper) in the regression: in GHDL for a VHDL entity, "
+        "in Icarus Verilog for a Verilog module.",
     ),
     (
         STATUS_BASELINE,
@@ -127,21 +128,25 @@ class DocTree:
     """One documented source tree.
 
     ``only``, when not None, is a tuple of repo-relative paths that restricts
-    which documented files the tree page renders.
+    which documented files the tree page renders. ``note`` is an optional
+    paragraph that the page shows before its summary table.
     """
 
     key: str
     title: str
     roots: tuple
     only: tuple | None = None
+    note: str = ""
 
     @property
-    def ruckus(self):
-        return f"{self.roots[0]}/ruckus.tcl"
+    def ruckus_files(self):
+        """Return the ruckus.tcl files, one per root, that load the tree."""
+        return tuple(f"{root}/ruckus.tcl" for root in self.roots)
 
 
 DOC_TREES = (
     DocTree("core", "LCLS-II core", ("LCLS-II/core",)),
+    DocTree("lcls1", "LCLS-I EVR", ("LCLS-I",), only=("LCLS-I/evr/EvrV1TimeStampGenerator.v",)),
 )
 
 
@@ -323,6 +328,150 @@ def read_vhdl_unit(path):
 
 
 # ---------------------------------------------------------------------------
+# Verilog module reader
+# ---------------------------------------------------------------------------
+
+_VERILOG_COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)
+_VERILOG_DIRECTIONS = {"input": "in", "output": "out", "inout": "inout"}
+_VERILOG_DECL_RE = re.compile(
+    r"(?:(?P<net>reg|wire)\s*)?(?:signed\s*)?(?P<range>\[[^\]]*\])?\s*(?P<names>.*)", re.DOTALL
+)
+_VERILOG_ANSI_RE = re.compile(
+    r"(?:(?P<dir>input|output|inout)\s*)?(?:(?P<net>reg|wire)\s*)?(?:signed\s*)?"
+    r"(?P<range>\[[^\]]*\])?\s*(?P<name>\w+)",
+    re.DOTALL,
+)
+
+
+def _blank_comments(text):
+    """Return ``text`` with every comment replaced by its newlines, so line numbers stay valid."""
+    return _VERILOG_COMMENT_RE.sub(lambda match: "\n" * match.group().count("\n"), text)
+
+
+def _split_commas(text):
+    """Split ``text`` at the commas that are outside parentheses, brackets, and braces."""
+    parts, depth, start = [], 0, 0
+    for index, char in enumerate(text):
+        if char in "([{":
+            depth += 1
+        elif char in ")]}":
+            depth -= 1
+        elif char == "," and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _closing_paren(text, start):
+    """Return the index of the parenthesis that closes the one at ``text[start]``, or -1."""
+    depth = 0
+    for index in range(start, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return -1
+
+
+def _verilog_parameters(text):
+    """Return the Generic entries of one ``parameter [range] name = value, ...`` declaration body."""
+    match = re.fullmatch(r"(?:signed\s*)?(?P<range>\[[^\]]*\])?\s*(?P<rest>.*)", text.strip(), re.DOTALL)
+    kind = "parameter" + (" " + re.sub(r"\s+", "", match.group("range")) if match.group("range") else "")
+    generics = []
+    for item in _split_commas(match.group("rest")):
+        name, _, value = item.partition("=")
+        generics.append(Generic(name.strip(), kind, " ".join(value.split())))
+    return generics
+
+
+def read_verilog_unit(path):
+    """Return the DesignUnit (kind ``module``) that Verilog file ``path`` declares.
+
+    Comments are stripped first. Parameters become generics (type text
+    ``parameter``, plus its range when it has one, and the default value
+    text). Each ``input``, ``output``, or ``inout`` declaration becomes one
+    port per name, with the range text (``[63:0]``) or else ``reg`` or ``wire``
+    as the type. Both the non-ANSI style (names in the module header,
+    directions declared in the body) and the ANSI style (directions in the
+    header) are read. Raises ValueError naming the file when it declares no
+    module, and naming the file and the port when a header port has no
+    direction declaration.
+    """
+    path = Path(path)
+    text = _blank_comments(path.read_text(encoding="utf-8", errors="replace"))
+    found = re.search(r"\bmodule\s+(\w+)", text)
+    if found is None:
+        raise ValueError(f"{path}: no module declaration found")
+    name = found.group(1)
+    line = text.count("\n", 0, found.start()) + 1
+    index = found.end()
+    generics = []
+    rest = text[index:]
+    stripped = rest.lstrip()
+    offset = index + (len(rest) - len(stripped))
+    if stripped.startswith("#"):
+        open_at = text.find("(", offset)
+        close_at = _closing_paren(text, open_at)
+        if open_at < 0 or close_at < 0:
+            raise ValueError(f"{path}: unbalanced parameter list of module {name}")
+        for item in _split_commas(text[open_at + 1:close_at]):
+            generics.extend(_verilog_parameters(re.sub(r"^parameter\b", "", item.strip())))
+        offset = close_at + 1
+        stripped = text[offset:].lstrip()
+        offset = len(text) - len(stripped)
+    header = []
+    if stripped.startswith("("):
+        close_at = _closing_paren(text, offset)
+        if close_at < 0:
+            raise ValueError(f"{path}: unbalanced port list of module {name}")
+        header = _split_commas(text[offset + 1:close_at])
+        offset = close_at + 1
+    end = text.find("endmodule", offset)
+    body = text[offset:end if end >= 0 else len(text)]
+    declared = {}
+    for statement in body.split(";"):
+        statement = statement.strip()
+        word = re.match(r"(input|output|inout|parameter)\b", statement)
+        if word is None:
+            continue
+        remainder = statement[word.end():]
+        if word.group(1) == "parameter":
+            generics.extend(_verilog_parameters(remainder))
+            continue
+        decl = _VERILOG_DECL_RE.fullmatch(remainder.strip())
+        kind = re.sub(r"\s+", "", decl.group("range")) if decl.group("range") else decl.group("net") or "wire"
+        for port in _split_commas(decl.group("names")):
+            declared[port] = (_VERILOG_DIRECTIONS[word.group(1)], kind)
+    ports = []
+    if any(re.match(r"(input|output|inout)\b", item) for item in header):
+        current = None
+        for item in header:
+            entry = _VERILOG_ANSI_RE.fullmatch(item)
+            if entry is None:
+                raise ValueError(f"{path}: cannot read the port {item!r} of module {name}")
+            if entry.group("dir"):
+                kind = re.sub(r"\s+", "", entry.group("range")) if entry.group("range") else entry.group("net") or "wire"
+                current = (_VERILOG_DIRECTIONS[entry.group("dir")], kind)
+            if current is None:
+                raise ValueError(f"{path}: port {entry.group('name')} of module {name} has no direction")
+            ports.append(Port(entry.group("name"), *current))
+    else:
+        for port in header:
+            if port not in declared:
+                raise ValueError(f"{path}: port {port} of module {name} has no input, output, or inout declaration")
+            ports.append(Port(port, *declared[port]))
+    return DesignUnit("module", name, tuple(generics), tuple(ports), line)
+
+
+def read_unit(path):
+    """Return the DesignUnit of a VHDL or Verilog file, chosen by suffix."""
+    return read_verilog_unit(path) if str(path).endswith(".v") else read_vhdl_unit(path)
+
+
+# ---------------------------------------------------------------------------
 # Documented files and sidecars
 # ---------------------------------------------------------------------------
 
@@ -463,6 +612,8 @@ def status_detail(status, name, path):
         return f"{status}; {ghdl_analysis.NOT_SIMULATED[key]}"
     if status == STATUS_NOT_LOADED:
         return f"{status}; {source_inventory.UNLOADED_SOURCES[path]}"
+    if status == STATUS_SIMULATED and path.endswith(".v"):
+        return f"{status}; a cocotb test runs the module in Icarus Verilog"
     return status
 
 
@@ -489,12 +640,8 @@ def _tree_by_key(key):
 
 
 def _tree_units(repo_root, tree):
-    """Return {path: DesignUnit} for every documented VHDL file of ``tree``."""
-    return {
-        path: read_vhdl_unit(Path(repo_root) / path)
-        for path in documented_files(repo_root, tree)
-        if path.endswith(".vhd")
-    }
+    """Return {path: DesignUnit} for every documented VHDL and Verilog file of ``tree``."""
+    return {path: read_unit(Path(repo_root) / path) for path in documented_files(repo_root, tree)}
 
 
 def _entity_statuses(repo_root, units, paths=None):
@@ -504,12 +651,12 @@ def _entity_statuses(repo_root, units, paths=None):
     return {
         path: verification_status(path, unit, inventory, repo_root)
         for path, unit in units.items()
-        if unit.kind == "entity" and (paths is None or path in paths)
+        if unit.kind in ("entity", "module") and (paths is None or path in paths)
     }
 
 
 def statuses(repo_root=REPO_ROOT, tree="core"):
-    """Return {path: status} for every documented file of ``tree`` that declares an entity.
+    """Return {path: status} for every documented file of ``tree`` that declares an entity or module.
 
     The render filter is ignored; packages have no status.
     """
@@ -588,11 +735,11 @@ def render_entity_index():
     rows = [[literal(status), meaning] for status, meaning in STATUS_MEANING]
     lines = [
         title("Entities", "="),
-        "The VHDL entities of the library, with their purpose, generics, ports, and the way the "
+        "The VHDL entities and Verilog modules of the library, with their purpose, generics, ports, and the way the "
         "regression covers it. The pages are generated from the sources by ``python -m tests.common.gen_docs``; "
         "the purposes are authored.",
         "",
-        "Each entity has one of five verification statuses:",
+        "Each entity or module has one of five verification statuses:",
         "",
         list_table(["Status", "Meaning"], rows, widths=[30, 70]),
         ".. toctree::",
@@ -609,7 +756,7 @@ def render_tree_page(repo_root, tree, purposes, header_issues):
     units = _tree_units(repo_root, tree)
     rendered = rendered_files(repo_root, tree)
     all_statuses = _entity_statuses(repo_root, units, set(rendered))
-    names = [unit.name.lower() for unit in units.values() if unit.kind == "entity"]
+    names = [unit.name.lower() for unit in units.values() if unit.kind in ("entity", "module")]
     packages = [path for path in rendered if units.get(path) and units[path].kind == "package"]
     entities = sorted(
         (path for path in rendered if path in all_statuses),
@@ -633,11 +780,14 @@ def render_tree_page(repo_root, tree, purposes, header_issues):
                 names.count(unit.name.lower()) > 1,
             )
         )
+    loaders = [repo_link(path) for path in tree.ruckus_files]
+    loaded_by = loaders[0] + " loads" if len(loaders) == 1 else ", ".join(loaders[:-1]) + f", and {loaders[-1]} load"
     lines = [
         title(tree.title, "="),
-        f"{repo_link(tree.ruckus)} loads these sources into the ``lcls_timing_core`` library; a file it does not "
-        "load says so in the Status column.",
+        f"{loaded_by} these sources into the ``lcls_timing_core`` library; a file that is not loaded says so in "
+        "the Status column.",
         "",
+        *([tree.note, ""] if tree.note else []),
         list_table(["Entity", "File", "Status", "Issues"], rows, widths=[20, 40, 25, 15]),
     ]
     if packages:

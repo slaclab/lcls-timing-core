@@ -11,6 +11,9 @@
 # so writing a header or adding a file with an empty one fails the test until
 # this file follows. Production headers are never edited from here.
 
+LCLS-I/evr/EvrV1TimeStampGenerator.v:
+  kind: missing
+  issue: pending
 LCLS-II/core/rtl/CtrControl.vhd:
   kind: contradicts
   header: >-

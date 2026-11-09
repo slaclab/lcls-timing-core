@@ -1,7 +1,7 @@
 LCLS-II core
 ============
 
-:repo:`LCLS-II/core/ruckus.tcl` loads these sources into the ``lcls_timing_core`` library; a file it does not load says so in the Status column.
+:repo:`LCLS-II/core/ruckus.tcl` loads these sources into the ``lcls_timing_core`` library; a file that is not loaded says so in the Status column.
 
 .. list-table::
    :header-rows: 1
