@@ -48,8 +48,13 @@ the simulators read.
 
 ```bash
 .venv/bin/python -m pytest -n auto tests/lcls2_core
+.venv/bin/python -m pytest -n auto tests/lcls2_evr
 .venv/bin/python -m pytest -n auto tests/lcls1_evr
 ```
+
+`tests/lcls2_evr` covers the LCLS-II EVR blocks under GHDL. `tests/lcls1_evr`
+holds both kinds of test: GHDL tests for the LCLS-I VHDL entities and Icarus
+Verilog tests for the four Verilog leaves.
 
 Running `.venv/bin/python -m pytest` from the repository root collects only
 `tests/`. Each case is stopped after 900 seconds. Simulator build products go
@@ -61,7 +66,11 @@ random traffic printed in a failing log:
 
 ```bash
 RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls2_core -k known_issue
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls2_evr -k known_issue
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls1_evr -k known_issue
 LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls2_core
+LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls2_evr
+LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls1_evr
 ```
 
 ## Run what CI runs
@@ -89,6 +98,7 @@ make MODULES=$PWD import
 .venv/bin/python -m pytest -n auto tests/common
 .venv/bin/python -m pytest -n auto tests/lcls2_core
 .venv/bin/python -m pytest -n auto tests/lcls1_evr
+.venv/bin/python -m pytest -n auto tests/lcls2_evr
 ```
 
 The probe behind the GHDL analysis gate prints one line per imported unit:
@@ -134,6 +144,38 @@ to the job summary. The same table is available locally:
 ```bash
 .venv/bin/python tests/common/tool_versions.py surf ruckus ghdl iverilog python
 ```
+
+## Coverage gate and units that are not simulated
+
+`tests/common/test_core_inventory.py` fails when a unit that a `ruckus.tcl`
+loads (LCLS-II/core, LCLS-II/evr, and LCLS-I) has no test of its own. A VHDL
+entity counts as tested only when a test passes it, or its own wrapper, as the
+`toplevel` of `run_lcls_vhdl_test`; a Verilog module only when a test passes it
+to `run_icarus_verilog_test`. Being instantiated inside another unit's wrapper
+does not count. The only units allowed without such a test are the keys of
+`KNOWN_GHDL_UNANALYZABLE` and `NOT_SIMULATED` in `tests/common/ghdl_analysis.py`.
+
+### Not simulated
+
+EvrV1EventReceiver and EvrV1Core analyze cleanly under GHDL but cannot be
+simulated. EvrV1EventReceiver instantiates EvrV1EventReceiverChannel,
+EvrV1TimeofDayReceiver, EvrV1TimeStampGenerator, and EvrV1DbusDecode, which
+are Verilog modules declared as VHDL components. GHDL cannot bind Verilog and
+Icarus cannot elaborate VHDL, so the mixed-language top has no simulator.
+EvrV1Core inherits the limit because it instantiates EvrV1EventReceiver. The
+four Verilog leaves and the VHDL children (EvrV1Reg, EvrV1TimeStampFIFO,
+EvrV1EventRAM256x32, EvrV1HeartBeat) are tested on their own. The reasons are kept in `NOT_SIMULATED`, and the gate fails if a listed
+unit gains a test, so the entry gets removed with it.
+
+### EvrV1DbusDecode and the Databuff model
+
+Icarus rejects an unsized constant in a concatenation of EvrV1DbusDecode.v. The
+regular test therefore compiles a patched copy, generated at test time under
+`tests/sim_build/lcls1_evr/_patched/` and never tracked. The production file is
+only read, and it is compiled as is by the known-issue test. EvrV1DbusDecode
+instantiates a VHDL RAM that Icarus cannot elaborate, so its tests use a
+behavioral Databuff model in `tests/lcls1_evr/models/`; a shared vector set
+checks that the model and the production RAM agree.
 
 ## Tests that need a wrapper
 
