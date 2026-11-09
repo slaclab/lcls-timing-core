@@ -61,7 +61,7 @@ INDEX_RADIX = 4096
 
 ISSUE_URL_RE = re.compile(r"^https://github\.com/slaclab/lcls-timing-core/issues/\d+$")
 PENDING_ISSUE = "pending"
-REQUIRE_FILED_ISSUES = False
+REQUIRE_FILED_ISSUES = True
 
 
 @dataclass(frozen=True)

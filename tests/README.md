@@ -252,6 +252,12 @@ not parse, and the include of `TPGSeqMem.yaml` that does not exist). When one
 of them passes, the defect is fixed; prune the matching entries as described
 under "Pruning after a fix".
 
+Every skip reason that starts with `known issue:` and every `ALLOWLIST` entry
+links a filed slaclab/lcls-timing-core issue. `tests/common/test_known_issue_links.py`
+fails on a reason without the form `known issue: <what>; see <issue URL>; set
+RUN_KNOWN_ISSUE_TESTS=1 to reproduce`, and on an entry left at the pending
+placeholder, so file the issue before adding the skip or the entry.
+
 ### Drift report
 
 `LCLS_DRIFT_REPORT=<path>` makes the drift test write every difference, one
