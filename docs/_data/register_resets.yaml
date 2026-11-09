@@ -1,0 +1,15 @@
+# Reset words of the register pages: block -> variant id -> word byte offset ("0x" + 3 upper-case hex digits)
+# -> {value: whole 32-bit word read after reset, test: <repo path>::<function>, basis: text of that assert}.
+# Each value is copied from the assertion the entry cites, never measured or guessed here; a word without an
+# entry renders "not asserted". The basis is the integer literal the read word is compared with, or the name
+# of the function or constant that computes the expected word.
+EvrV2TriggerReg:
+  default:
+    "0x000": {value: "0x00010000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+    "0x004": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+    "0x008": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+  useTap:
+    "0x000": {value: "0x00010000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+    "0x004": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+    "0x008": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+    "0x00C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}

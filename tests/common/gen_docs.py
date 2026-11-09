@@ -40,7 +40,28 @@ from typing import NamedTuple
 
 import yaml
 
-from tests.common.register_drift import ISSUE_URL_RE, PENDING_ISSUE
+from tests.common import pyrogue_ast, register_tables
+from tests.common.register_drift import (
+    ALLOWLIST,
+    BITS_PER_BYTE,
+    BLOCKS,
+    ISSUE_URL_RE,
+    NAME_MAPS,
+    PENDING_ISSUE,
+    WORD_BITS,
+    RegField,
+    compare_block,
+    coverage_split,
+    from_vhdl,
+    from_yaml,
+    group_fields,
+    pair_kinds,
+    split_index,
+    unresolved_words,
+)
+from tests.common.register_tables import ArgSet
+from tests.common.vhdl_registers import read_decode
+from tests.common.yaml_maps import KNOWN_YAML_DEFECTS, yaml_fields
 from tests.common.vhdl_registers import (
     Token,
     _find_top,
@@ -834,7 +855,8 @@ def render_reference_index(pages):
             title("Reference", "="),
             "Lookup material for the library, generated from the sources by "
             "``python -m tests.common.gen_docs``: entities with their generics and ports, the verification "
-            "status of each, and the FPGA family matrix. Do not edit these pages by hand.",
+            "status of each, the register maps with their reset values and agreement across the RTL, PyRogue, and "
+            "YAML sources, and the FPGA family matrix. Do not edit these pages by hand.",
             "",
             ".. toctree::",
             "   :maxdepth: 1",
@@ -1183,12 +1205,471 @@ def render_families(repo_root=REPO_ROOT):
 
 
 # ---------------------------------------------------------------------------
+# Register maps
+# ---------------------------------------------------------------------------
+
+SIDECAR_RESETS = "register_resets.yaml"
+NO_DESCRIPTION = "no description in source"
+NOT_ASSERTED = "not asserted"
+PYTHON_DIR = REPO_ROOT / "python"
+
+# The blocks that have a register page, in page order.
+REGISTER_BLOCKS = ("EvrV2TriggerReg",)
+
+# The reviewed table arguments of each (block, variant id) whose Python source
+# is a built tree. The flags are the table `when` conditions that match the
+# variant's Python arguments.
+VARIANT_ARG_SETS = {
+    ("EvrV2TriggerReg", "default"): ArgSet("default", {}),
+    ("EvrV2TriggerReg", "useTap"): ArgSet("useTap", {"useTap": True}, ("useTap",)),
+}
+
+RTL_HEADER = ["Offset", "Field", "Bits", "Mode", "Reset", "Python", "YAML", "Description"]
+RTL_WIDTHS = [9, 17, 7, 6, 12, 15, 15, 19]
+
+
+class Sources(NamedTuple):
+    """The three views of one block variant, as the drift comparison reads them."""
+
+    python: list
+    vhdl: object
+    yaml: object
+    yaml_unreadable: bool
+    skip: frozenset
+    decode: object
+
+
+class Entry(NamedTuple):
+    """One register of one array element (or a scalar) with the field each source has for it."""
+
+    name: str
+    element: int
+    indexed: bool
+    fields: dict
+
+
+def python_view(block, variant):
+    """RegFields of the Python class for one variant, from the reviewed tables.
+
+    The tables are the checked copy of what the class builds, so no Rogue
+    object is needed. Register variables and commands are kept, link variables
+    dropped, and every position is the absolute bit split into a word byte
+    address and a bit offset, the way Rogue reports it.
+    """
+    arg_set = VARIANT_ARG_SETS[(block.name, variant.id)]
+    fields = []
+    for entry in register_tables.expand(register_tables.load_table(block.name), arg_set).values():
+        if entry.kind == "LinkVariable":
+            continue
+        if entry.abs_bit is None:
+            raise ValueError(f"{block.name}: {entry.path} has no offset in its table")
+        name, index = split_index(entry.path)
+        fields.append(
+            RegField(
+                block=block.name, name=name, index=index,
+                byte_offset=(entry.abs_bit // WORD_BITS) * 4, bit_offset=entry.abs_bit % WORD_BITS,
+                bit_size=entry.bit_size, mode=entry.mode, source="python", line=0,
+                readable=entry.mode in ("RW", "RO"), writable=entry.mode in ("RW", "WO"),
+            )
+        )
+    return fields
+
+
+def block_sources(block, variant):
+    """Return the Sources of one block variant (the way the Rogue drift test assembles them)."""
+    if block.python_source != "tree":
+        raise ValueError(f"{block.name}: no Python view for source {block.python_source!r}")
+    python = python_view(block, variant)
+    vhdl = None
+    decode = None
+    skip = frozenset()
+    if block.vhdl is not None:
+        decode = read_decode(block.vhdl, generics=variant.generics)
+        vhdl = from_vhdl(decode, block.name)
+        skip = unresolved_words(decode.unresolved)
+    yaml_fields_ = None
+    unreadable = False
+    if block.yaml is not None and variant.compare_yaml:
+        if block.yaml in KNOWN_YAML_DEFECTS:
+            unreadable = True
+        else:
+            yaml_fields_ = from_yaml(yaml_fields(block.yaml), block.name)
+    return Sources(python, vhdl, yaml_fields_, unreadable, skip, decode)
+
+
+def block_comparison(block, variant):
+    """Compare one variant across the sources it has, as the Rogue drift test does without a tree."""
+    sources = block_sources(block, variant)
+    return compare_block(
+        block, variant, sources.python, sources.vhdl, sources.yaml,
+        NAME_MAPS.get(block.name, {}), yaml_unreadable=sources.yaml_unreadable, vhdl_skip=sources.skip,
+    )
+
+
+def _entries(grouped):
+    entries = []
+    for name, by_source in grouped.items():
+        for element in sorted({e for per in by_source.values() for e in per}):
+            fields = {s: per[element] for s, per in by_source.items() if element in per}
+            python = fields.get("python")
+            if python is not None:
+                indexed = python.index is not None
+            else:
+                indexed = any(f.index is not None for f in fields.values())
+            entries.append(Entry(name, element, indexed, fields))
+    return entries
+
+
+def split_entries(block, sources):
+    """Return (RTL-primary entries, entries no readable RTL covers) for one variant."""
+    name_map = NAME_MAPS.get(block.name, {})
+    if sources.vhdl is None:
+        return [], _entries(group_fields(sources.python, None, sources.yaml, name_map))
+    python_in, python_out = coverage_split(sources.python, block.vhdl_window, sources.skip)
+    yaml_in, yaml_out = coverage_split(sources.yaml, block.vhdl_window, sources.skip)
+    vhdl_in = coverage_split(sources.vhdl, block.vhdl_window, sources.skip)[0]
+    inside = _entries(group_fields(python_in, vhdl_in, yaml_in, name_map))
+    outside = _entries(group_fields(python_out, None, yaml_out, name_map))
+    return inside, outside
+
+
+def _primary(entry, order):
+    for source in order:
+        if source in entry.fields:
+            return entry.fields[source]
+    raise ValueError(f"entry {entry.name} holds no field")
+
+
+def _issue_text(block, name, kind):
+    issue = ALLOWLIST.get((block, name, kind))
+    if issue is None:
+        return ""
+    if issue == PENDING_ISSUE:
+        return " (issue pending)"
+    return f" :issue:`{issue.rsplit('/', 1)[1]}`"
+
+
+def _where(field):
+    """Return where a source puts a field: the word address, the bits, and the mode."""
+    return f"at 0x{field.word_byte:03X} {bits_cell(field)} {field.mode}"
+
+
+def _differs(block, name, kinds, field):
+    kinds_text = ", ".join(f"{kind}{_issue_text(block, name, kind)}" for kind in kinds)
+    return f"differs: {kinds_text}\n{_where(field)}"
+
+
+def _absent(block, name, source):
+    return "absent" + _issue_text(block, name, f"missing-in-{source}")
+
+
+def rtl_agreement(block, entry, source, state):
+    """Return the agreement cell of ``source`` (python or yaml) against the RTL field of the entry."""
+    if state != "compared":
+        return state
+    field = entry.fields.get(source)
+    rtl = entry.fields.get("vhdl")
+    if field is None:
+        return _absent(block, entry.name, source)
+    if rtl is None:
+        return _differs(block, entry.name, ["missing-in-vhdl"], field)
+    kinds = pair_kinds(rtl, field)
+    return _differs(block, entry.name, kinds, field) if kinds else "agrees"
+
+
+def python_agreement(block, entry, state):
+    """Return the YAML cell of an entry that has no RTL, judged against the Python field."""
+    if state != "compared":
+        return state
+    python = entry.fields.get("python")
+    yaml_field = entry.fields.get("yaml")
+    if yaml_field is None:
+        return _absent(block, entry.name, "yaml")
+    if python is None:
+        return _differs(block, entry.name, ["missing-in-python"], yaml_field)
+    kinds = pair_kinds(python, yaml_field)
+    return _differs(block, entry.name, kinds, yaml_field) if kinds else "agrees"
+
+
+def yaml_state(block, variant, sources):
+    """Return ``compared``, ``not compared``, or ``map does not parse`` for the YAML source."""
+    if sources.yaml_unreadable:
+        return "map does not parse"
+    return "compared" if sources.yaml is not None else "not compared"
+
+
+def variant_resets(resets, block, variant):
+    """Return {word byte address: word} of the sidecar entries of one variant."""
+    words = resets.get(block.name, {}).get(variant.id, {})
+    return {int(address, 16): int(entry["value"], 16) for address, entry in words.items()}
+
+
+def reset_cell(words, field):
+    """Return the slice of the asserted reset words that ``field`` covers, or ``not asserted``."""
+    size = field.bit_size
+    if size is None:
+        return NOT_ASSERTED
+    low = field.bit_in_word
+    value = 0
+    for count in range((low + size + WORD_BITS - 1) // WORD_BITS):
+        word = words.get(field.word_byte + 4 * count)
+        if word is None:
+            return NOT_ASSERTED
+        value |= word << (WORD_BITS * count)
+    return literal(f"0x{(value >> low) & ((1 << size) - 1):0{(size + 3) // 4}X}")
+
+
+def bits_cell(field):
+    """Return ``[hi:lo]`` (or ``[bit]``) of a field within its word."""
+    low = field.bit_in_word
+    size = field.bit_size
+    if size is None:
+        return "strobe"
+    return f"[{low}]" if size == 1 else f"[{low + size - 1}:{low}]"
+
+
+class RegRow(NamedTuple):
+    """A table row: one entry, or a run of consecutive array elements that share every cell."""
+
+    name: str
+    first: Entry
+    count: int
+    stride: int
+    cells: tuple
+
+
+def collapse(entries, signature, primary_order):
+    """Join consecutive array elements with equal cells and a constant bit stride into one RegRow each."""
+    rows = []
+    by_name = {}
+    for entry in entries:
+        by_name.setdefault(entry.name, []).append(entry)
+    for name, group in by_name.items():
+        group.sort(key=lambda entry: entry.element)
+        run = [group[0]]
+        stride = None
+        for entry in group[1:]:
+            last = run[-1]
+            step = _primary(entry, primary_order).abs_bit - _primary(last, primary_order).abs_bit
+            joins = (
+                entry.indexed
+                and last.indexed
+                and entry.element == last.element + 1
+                and signature(entry) == signature(last)
+                and (stride is None or step == stride)
+            )
+            if joins:
+                stride = step
+                run.append(entry)
+            else:
+                rows.append(RegRow(name, run[0], len(run), stride or 0, signature(run[0])))
+                run, stride = [entry], None
+        rows.append(RegRow(name, run[0], len(run), stride or 0, signature(run[0])))
+    return rows
+
+
+def _row_key(row, primary_order):
+    field = _primary(row.first, primary_order)
+    return (field.word_byte, field.bit_in_word, row.name, row.first.element)
+
+
+def offset_cell(row, primary_order):
+    field = _primary(row.first, primary_order)
+    text = literal(f"0x{field.word_byte:03X}")
+    if row.count == 1:
+        return text
+    step = f"0x{row.stride // BITS_PER_BYTE:X}" if row.stride % WORD_BITS == 0 else f"{row.stride} bits"
+    return f"{text} + {literal(step)} * i"
+
+
+def name_cell(row, sources_order):
+    """Return the field name, and the names the other sources give the same register."""
+    last = row.first.element + row.count - 1
+    if row.count > 1:
+        shown = f"{row.name}[{row.first.element}..{last}]"
+    else:
+        shown = f"{row.name}[{row.first.element}]" if row.first.indexed else row.name
+    lines = [literal(shown)]
+    for source, label in sources_order:
+        field = row.first.fields.get(source)
+        if field is None or field.name == row.name:
+            continue
+        other = field.name
+        if field.index is not None:
+            other += f"[{row.first.element}..{last}]" if row.count > 1 else f"[{field.index}]"
+        lines.append(f"{label}: {literal(other)}")
+    return "\n".join(lines)
+
+
+def description_for(entry, descriptions):
+    if "python" not in entry.fields:
+        return NO_DESCRIPTION
+    return descriptions.get(entry.name) or NO_DESCRIPTION
+
+
+def python_descriptions(block):
+    """Return {Python variable name: description} for a block, read from its class file with ast."""
+    return pyrogue_ast.read_descriptions(PYTHON_DIR / "LclsTimingCore" / f"{block.name}.py")
+
+
+def rtl_table(block, entries, state, words, descriptions):
+    order = ("vhdl", "python", "yaml")
+
+    def signature(entry):
+        field = _primary(entry, order)
+        return (
+            field.bit_size, field.mode, rtl_agreement(block.name, entry, "python", "compared"),
+            rtl_agreement(block.name, entry, "yaml", state), reset_cell(words, field),
+            description_for(entry, descriptions),
+        )
+
+    rows = sorted(collapse(entries, signature, order), key=lambda row: _row_key(row, order))
+    body = []
+    for row in rows:
+        field = _primary(row.first, order)
+        body.append(
+            [
+                offset_cell(row, order),
+                name_cell(row, (("vhdl", "RTL"), ("yaml", "YAML"))),
+                bits_cell(field),
+                field.mode,
+                reset_cell(words, field),
+                rtl_agreement(block.name, row.first, "python", "compared"),
+                rtl_agreement(block.name, row.first, "yaml", state),
+                description_for(row.first, descriptions),
+            ]
+        )
+    return list_table(RTL_HEADER, body, widths=RTL_WIDTHS)
+
+
+def strobe_note(sources, inside):
+    """Return the sentence that names the access strobes no register of the table carries."""
+    if sources.decode is None:
+        return ""
+    named = {field.name for entry in inside for field in [entry.fields.get("vhdl")] if field is not None}
+    strobes = sorted(
+        {
+            (strobe.byte_offset, strobe.kind, strobe.target)
+            for strobe in sources.decode.strobes
+            if f"{strobe.target}!{strobe.kind}" not in named
+        }
+    )
+    if not strobes:
+        return ""
+    items = ", ".join(f"a {kind} of 0x{offset:03X} pulses {literal(target)}" for offset, kind, target in strobes)
+    return f"Access strobes carry no data and are not registers: {items}.\n"
+
+
+def render_variant(block, variant, words, descriptions):
+    sources = block_sources(block, variant)
+    state = yaml_state(block, variant, sources)
+    inside, _ = split_entries(block, sources)
+    generics = ", ".join(f"{literal(key)} = {literal(str(value))}" for key, value in variant.generics.items()) or "none"
+    arguments = ", ".join(literal(f"{key}={value!r}") for key, value in variant.python_args.items()) or "none"
+    lines = [
+        title(f"Variant {variant.id}", "-"),
+        f"RTL generics: {generics}. Python arguments: {arguments}.",
+        "",
+    ]
+    if inside:
+        lines.append(rtl_table(block, inside, state, words, descriptions))
+    lines.append(strobe_note(sources, inside))
+    return "\n".join(lines)
+
+
+def known_differences(block, details):
+    """Return the section that lists every allowlisted drift of the block, or an empty string."""
+    keys = sorted(key for key in ALLOWLIST if key[0] == block.name)
+    if not keys:
+        return ""
+    bullets = []
+    for key in keys:
+        issue = ALLOWLIST[key]
+        link = "issue pending" if issue == PENDING_ISSUE else f":issue:`{issue.rsplit('/', 1)[1]}`"
+        detail = details.get(key, "no longer reported by the comparison")
+        bullets.append(f"   * {literal(key[1])} ({key[2]}): {literal(detail)} {link}")
+    return "\n".join(
+        [
+            title("Known differences", "-"),
+            "The comparison of the sources reports these differences, each recorded against an issue.",
+            "",
+            ".. warning::",
+            "",
+            "   The sources disagree on the following registers; treat the RTL as the measured behavior.",
+            "",
+            *bullets,
+            "",
+        ]
+    )
+
+
+def render_register_page(block, resets=None):
+    """Return the page of one register block: a table per variant, then the known differences."""
+    if resets is None:
+        resets = load_sidecar(SIDECAR_RESETS)
+    descriptions = python_descriptions(block)
+    parts = [title(f"{block.name} registers", "=")]
+    links = []
+    if block.vhdl is not None:
+        links.append(f"Decode file: {repo_link(block.vhdl)}.")
+    links.append(f"Python class: {repo_link(f'python/LclsTimingCore/{block.name}.py')}.")
+    if block.yaml is not None:
+        links.append(f"YAML map: {repo_link(f'yaml/{block.yaml}')}.")
+    parts += [" ".join(links), ""]
+    details = {}
+    for variant in block.variants:
+        parts.append(render_variant(block, variant, variant_resets(resets, block, variant), descriptions))
+        for drift in block_comparison(block, variant).drifts:
+            details.setdefault((drift.block, drift.field, drift.kind), drift.detail)
+    parts.append(known_differences(block, details))
+    return "\n".join(parts)
+
+
+def render_register_index():
+    rows = [
+        ["``agrees``", "the source holds the same position, width, and mode as the RTL field"],
+        ["``differs: <kind>``", "the source disagrees; each kind links the issue that records it"],
+        ["``absent``", "the source has no field for this register"],
+        ["``not compared``", "the variant does not compare this source (the YAML map describes one variant)"],
+        ["``map does not parse``", "the YAML map cannot be read, so none of its fields are compared"],
+    ]
+    return "\n".join(
+        [
+            title("Register maps", "="),
+            "One page per register block. Each table is read from the RTL address decode, one table per "
+            "generic or argument variant. Offset is the byte address of the 32-bit word and Bits the "
+            "position inside it. Mode is read-write (RW), read-only (RO), or write-only (WO) as the RTL decodes "
+            "it. Reset is the slice of the word that a simulation asserts after reset, or ``not asserted`` "
+            "when no test checks it. The Python and YAML columns compare the PyRogue declaration and the "
+            "CPSW map with the RTL field. Description is the ``description`` text of the Python variable.",
+            "",
+            list_table(["Agreement", "Meaning"], rows, widths=[30, 70]),
+            ".. toctree::",
+            "   :maxdepth: 1",
+            "",
+            *[f"   {name}" for name in REGISTER_BLOCKS],
+            "",
+        ]
+    )
+
+
+def render_registers(repo_root=REPO_ROOT):
+    """Return {docs-relative path: text} for the register index and the block pages."""
+    resets = load_sidecar(SIDECAR_RESETS, repo_root)
+    pages = {"reference/registers/index.rst": render_register_index()}
+    for name in REGISTER_BLOCKS:
+        pages[f"reference/registers/{name}.rst"] = render_register_page(BLOCKS[name], resets)
+    return pages
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
 def render_all(repo_root=REPO_ROOT):
     """Return {docs-relative path: text} of every generated page, sorted by path."""
     pages = render_entities(repo_root)
+    pages.update(render_registers(repo_root))
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)
     for path, text in pages.items():

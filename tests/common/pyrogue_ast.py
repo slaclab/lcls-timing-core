@@ -24,6 +24,9 @@ parallel workers: the file is opened read-only and no module state is kept.
 when absent), the last attribute name of the ``base`` expression (``pr.Bool``
 reads as ``Bool``, absent reads as ``UInt``, a non-attribute expression is
 ``NON_LITERAL``), and the ``enum`` literal (None when absent).
+``description`` is the ``description`` keyword when it is a literal string
+(None when absent, ``NON_LITERAL`` when it is not a literal), and
+``read_descriptions`` returns it per base variable name for a class file.
 ``read_child_devices`` lists the ``self.add(<module>.<Class>(...))`` calls of
 a composite device, in source order, with the class name, the ``name`` keyword
 (the class name when absent), and the ``offset`` literal.
@@ -61,6 +64,7 @@ class RemoteVar(NamedTuple):
     overlap_en: bool = False
     base: Any = "UInt"
     enum: Any = None
+    description: Optional[str] = None
 
 
 class ChildDevice(NamedTuple):
@@ -126,6 +130,7 @@ class _Reader(ast.NodeVisitor):
             "overlap_en": keywords.get("overlapEn", False),
             "base": _base_name(raw_base),
             "enum": keywords.get("enum"),
+            "description": keywords.get("description"),
         }
         base = keywords.get("name", NON_LITERAL)
         offset = keywords.get("offset", 0)
@@ -172,6 +177,23 @@ def read_remote_variables(path) -> List[RemoteVar]:
     """Return the declarations of the PyRogue file at ``path``, in source order."""
     with open(Path(path), "r", encoding="utf-8") as handle:
         return parse_remote_variables(handle.read(), str(path))
+
+
+def read_descriptions(path) -> Dict[str, Optional[str]]:
+    """Return {base variable name: description} for the PyRogue file at ``path``.
+
+    The base name is the declared ``name`` without an element index, so every
+    element of an array declaration shares one entry. The description is the
+    literal ``description`` keyword, None when the declaration has none. A
+    name declared twice (in both branches of an ``if``) keeps its first
+    description that is not None.
+    """
+    found: Dict[str, Optional[str]] = {}
+    for var in read_remote_variables(path):
+        name = var.name.split("[", 1)[0]
+        if found.get(name) is None:
+            found[name] = var.description
+    return found
 
 
 def absolute_bits(var: RemoteVar) -> range:

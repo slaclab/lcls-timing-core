@@ -797,11 +797,30 @@ def _position_kind(a: RegField, b: RegField) -> Optional[str]:
     return "offset" if a.word_byte != b.word_byte else "bitOffset"
 
 
-def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, object]]) -> List[Drift]:
-    """Return the drifts between the sources that are present.
+def pair_kinds(a: RegField, b: RegField) -> List[str]:
+    """Return the kinds that separate two fields of one register, in report order.
 
-    None means the source is not compared; an empty list means it is compared
-    and holds nothing, so every field of the other sources is missing there.
+    The position kind (offset or bitOffset), then bitSize, then mode: the
+    same three predicates the drift comparison applies to every pair.
+    """
+    kinds = []
+    position = _position_kind(a, b)
+    if position is not None:
+        kinds.append(position)
+    if a.bit_size is not None and b.bit_size is not None and a.bit_size != b.bit_size:
+        kinds.append("bitSize")
+    if not mode_agrees(a, b):
+        kinds.append("mode")
+    return kinds
+
+
+def group_fields(python, vhdl, yaml, name_map: Dict[str, Dict[str, object]]):
+    """Pair the fields of the sources that are present.
+
+    Returns {Python name: {source: {element: RegField}}}. A field of the RTL
+    or the YAML map joins the Python variable the name map routes it to, and
+    a field no route names keeps its own name. An RTL strobe that no other
+    source names is a side effect, not a register, and is left out.
     """
     sources = {"python": python, "vhdl": vhdl, "yaml": yaml}
     present = [s for s in SOURCES if sources[s] is not None]
@@ -826,10 +845,21 @@ def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, objec
             else:
                 slot[element] = field
 
-    # A strobe no other source names is a side effect, not a register.
     for canonical in [c for c, by in grouped.items()
                       if set(by) == {"vhdl"} and c.endswith(STROBE_SUFFIXES)]:
         del grouped[canonical]
+    return grouped
+
+
+def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, object]]) -> List[Drift]:
+    """Return the drifts between the sources that are present.
+
+    None means the source is not compared; an empty list means it is compared
+    and holds nothing, so every field of the other sources is missing there.
+    """
+    sources = {"python": python, "vhdl": vhdl, "yaml": yaml}
+    present = [s for s in SOURCES if sources[s] is not None]
+    grouped = group_fields(python, vhdl, yaml, name_map)
 
     # Fields that exist in one source only, used to hint at an unmapped rename.
     lonely: Dict[str, List[RegField]] = {s: [] for s in present}
@@ -914,6 +944,25 @@ def unresolved_words(unresolved) -> frozenset:
     return frozenset(words)
 
 
+def coverage_split(fields, vhdl_window: Optional[Tuple[int, int]] = None, vhdl_skip: frozenset = frozenset()):
+    """Return (fields the RTL decode covers, fields it does not) for one source.
+
+    A field is covered when its byte address lies inside vhdl_window (first
+    and last byte, inclusive; None means the whole map) and its word is not
+    one of vhdl_skip (word byte addresses whose RTL arm could not be parsed).
+    None in gives (None, None) out.
+    """
+    if fields is None:
+        return None, None
+
+    def covered(field: RegField) -> bool:
+        if vhdl_window is not None and not vhdl_window[0] <= field.abs_bit // BITS_PER_BYTE <= vhdl_window[1]:
+            return False
+        return field.word_byte not in vhdl_skip
+
+    return [f for f in fields if covered(f)], [f for f in fields if not covered(f)]
+
+
 def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]],
             vhdl_window: Optional[Tuple[int, int]] = None,
             vhdl_skip: frozenset = frozenset()) -> List[Drift]:
@@ -927,19 +976,9 @@ def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]],
     if vhdl is None or (vhdl_window is None and not vhdl_skip):
         return _compare(block, python, vhdl, yaml, name_map)
 
-    def covered(field: RegField) -> bool:
-        if vhdl_window is not None and not vhdl_window[0] <= field.abs_bit // BITS_PER_BYTE <= vhdl_window[1]:
-            return False
-        return field.word_byte not in vhdl_skip
-
-    def split(fields):
-        if fields is None:
-            return None, None
-        return [f for f in fields if covered(f)], [f for f in fields if not covered(f)]
-
-    inside_py, outside_py = split(python)
-    inside_ya, outside_ya = split(yaml)
-    drifts = _compare(block, inside_py, [f for f in vhdl if covered(f)], inside_ya, name_map)
+    inside_py, outside_py = coverage_split(python, vhdl_window, vhdl_skip)
+    inside_ya, outside_ya = coverage_split(yaml, vhdl_window, vhdl_skip)
+    drifts = _compare(block, inside_py, coverage_split(vhdl, vhdl_window, vhdl_skip)[0], inside_ya, name_map)
     drifts += _compare(block, outside_py, None, outside_ya, name_map)
     return sorted(drifts, key=lambda d: (d.block, d.field, d.kind))
 

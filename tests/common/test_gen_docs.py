@@ -37,17 +37,30 @@ Test methodology:
         parameters, port ranges) and a port without a direction is rejected,
         the four GT wrappers that share an entity name get distinct titles,
         and the family matrix and the version checks equal a hand-written
-        table, including two rows for a family that loads two directories.
+        table, including two rows for a family that loads two directories,
+        the reset sidecar follows its schema (seeded extra key, lower-case
+        value, missing key, unknown block, variant, or word are rejected),
+        every sidecar entry cites an assert of an existing function that
+        holds its basis and the text reset (seeded literal mismatch, missing
+        function, basis outside an assert, undefined name are rejected),
+        every sidecar word is a decoded word of its variant, every allowlist
+        entry of a documented block is on its page with its issue link, the
+        drift of the reviewed tables equals the allowlist, the rows show
+        every drift the comparison reports, descriptions are copied from
+        the Python source or marked missing, adjacent fields keep their own
+        flagged rows, and rows are sorted by byte offset, bit offset, name.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
 
+import ast
+import copy
 import re
 from pathlib import Path
 
 import pytest
 
-from tests.common import gen_docs
+from tests.common import gen_docs, pyrogue_ast, register_drift
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
@@ -73,6 +86,7 @@ from tests.common.gen_docs import (
 from tests.common.ghdl_analysis import KNOWN_GHDL_UNANALYZABLE, NOT_SIMULATED
 from tests.common.register_drift import ISSUE_URL_RE
 from tests.common.regression_utils import REPO_ROOT
+from tests.common.vhdl_registers import read_decode
 from tests.common import source_inventory
 from tests.common.source_inventory import UNLOADED_SOURCES
 
@@ -625,3 +639,360 @@ def test_core_tree_renders_every_documented_file():
     core = next(tree for tree in DOC_TREES if tree.key == "core")
     assert core.only is None
     assert rendered_files(REPO_ROOT, core) == gen_docs.documented_files(REPO_ROOT, core)
+
+
+# ---------------------------------------------------------------------------
+# Register pages
+# ---------------------------------------------------------------------------
+
+RESET_WORD_RE = re.compile(r"^0x[0-9A-F]{3}$")
+RESET_VALUE_RE = re.compile(r"^0x[0-9A-F]{8}$")
+RESET_TEST_RE = re.compile(r"^[\w./-]+\.py::\w+$")
+RESET_KEYS = {"value", "test", "basis"}
+LITERAL_RE = re.compile(r"0[xX][0-9a-fA-F]+|\d+")
+
+
+def reset_schema_problems(resets):
+    """Return the problems of a reset mapping against the sidecar schema (empty means valid)."""
+    problems = []
+    if not isinstance(resets, dict):
+        return ["the sidecar is not a mapping"]
+    for block_name, variants in resets.items():
+        block = register_drift.BLOCKS.get(block_name)
+        if block is None:
+            problems.append(f"unknown block {block_name!r}")
+            continue
+        known = {variant.id for variant in block.variants}
+        for variant_id, words in variants.items():
+            if variant_id not in known:
+                problems.append(f"{block_name}: unknown variant {variant_id!r}")
+                continue
+            for word, entry in words.items():
+                where = f"{block_name}/{variant_id}/{word}"
+                if not isinstance(word, str) or not RESET_WORD_RE.match(word):
+                    problems.append(f"{where}: word is not 0x plus three upper-case hex digits")
+                if not isinstance(entry, dict) or set(entry) != RESET_KEYS:
+                    problems.append(f"{where}: entry keys are not exactly {sorted(RESET_KEYS)}")
+                    continue
+                if not isinstance(entry["value"], str) or not RESET_VALUE_RE.match(entry["value"]):
+                    problems.append(f"{where}: value is not 0x plus eight upper-case hex digits")
+                if not isinstance(entry["test"], str) or not RESET_TEST_RE.match(entry["test"]):
+                    problems.append(f"{where}: test is not <repo path>::<function>")
+                if not isinstance(entry["basis"], str) or not entry["basis"]:
+                    problems.append(f"{where}: basis is empty")
+    return problems
+
+
+def defined_names(tree):
+    """Return the names a module defines: functions, module-level assignments, and imports."""
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            names.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            names.update((alias.asname or alias.name).split(".")[0] for alias in node.names)
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            names.update(target.id for target in node.targets if isinstance(target, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
+    return names
+
+
+def cite_problems(entry, source):
+    """Return why an entry's cited function does not support its value (empty means it does)."""
+    tree = ast.parse(source)
+    function = entry["test"].split("::", 1)[1]
+    found = [
+        node for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == function
+    ]
+    if not found:
+        return [f"no function {function} in the cited file"]
+    basis = entry["basis"]
+    token = re.compile(r"(?<!\w)" + re.escape(basis) + r"(?!\w)")
+    segments = [
+        ast.get_source_segment(source, node) or ""
+        for function_node in found
+        for node in ast.walk(function_node)
+        if isinstance(node, ast.Assert)
+    ]
+    if not any(token.search(segment) and "reset" in segment.lower() for segment in segments):
+        return [f"no assert in {function} holds the token {basis!r} and the text 'reset'"]
+    if LITERAL_RE.fullmatch(basis):
+        if int(basis, 0) != int(entry["value"], 16):
+            return [f"literal basis {basis} differs from the value {entry['value']}"]
+    elif basis not in defined_names(tree):
+        return [f"basis {basis!r} is not defined in the cited file"]
+    return []
+
+
+def sidecar_entries(resets):
+    for block_name, variants in resets.items():
+        for variant_id, words in variants.items():
+            for word, entry in words.items():
+                yield block_name, variant_id, word, entry
+
+
+def test_reset_sidecar_schema():
+    resets = load_sidecar("register_resets.yaml")
+    assert resets
+    assert reset_schema_problems(resets) == []
+    extra_key = copy.deepcopy(resets)
+    first = next(iter(sidecar_entries(extra_key)))
+    first[3]["note"] = "a key the schema does not allow"
+    assert any("entry keys" in problem for problem in reset_schema_problems(extra_key))
+    lower = copy.deepcopy(resets)
+    next(iter(sidecar_entries(lower)))[3]["value"] = "0xabcdef01"
+    assert any("upper-case" in problem for problem in reset_schema_problems(lower))
+    missing = copy.deepcopy(resets)
+    del next(iter(sidecar_entries(missing)))[3]["basis"]
+    assert any("entry keys" in problem for problem in reset_schema_problems(missing))
+    assert any("unknown block" in problem for problem in reset_schema_problems({"NoSuchBlock": {}}))
+    assert any(
+        "unknown variant" in problem
+        for problem in reset_schema_problems({"EvrV2TriggerReg": {"nope": {}}})
+    )
+    assert any(
+        "word is not" in problem
+        for problem in reset_schema_problems(
+            {"EvrV2TriggerReg": {"default": {"0x0": dict(value="0x00000000", test="a.py::f", basis="x")}}}
+        )
+    )
+
+
+def test_reset_entries_cite_an_existing_test():
+    resets = load_sidecar("register_resets.yaml")
+    for block_name, variant_id, word, entry in sidecar_entries(resets):
+        path = REPO_ROOT / entry["test"].split("::", 1)[0]
+        assert path.is_file(), f"{block_name}/{variant_id}/{word}: {path} does not exist"
+        problems = cite_problems(entry, path.read_text(encoding="utf-8"))
+        assert not problems, f"{block_name}/{variant_id}/{word}: {problems}"
+
+
+CITED = (
+    "ZERO = 0\n"
+    "def reset_word(word):\n"
+    "    return 0\n"
+    "async def check(dut):\n"
+    "    value = 3\n"
+    "    assert value == 0, 'word read after reset'\n"
+    "    assert value == reset_word(1), 'after reset'\n"
+    "    print(7, 'reset')\n"
+    "def other():\n"
+    "    assert 5 == 5\n"
+)
+
+
+def test_cite_check_accepts_matching_and_rejects_seeded_entries():
+    ok = {"value": "0x00000000", "test": "t.py::check", "basis": "0"}
+    assert cite_problems(ok, CITED) == []
+    assert cite_problems({**ok, "basis": "reset_word"}, CITED) == []
+    assert cite_problems({**ok, "value": "0x00000004"}, CITED), "a literal that differs from the value must fail"
+    assert cite_problems({**ok, "test": "t.py::missing"}, CITED), "a missing function must fail"
+    assert cite_problems({**ok, "basis": "7"}, CITED), "a basis outside any assert must fail"
+    assert cite_problems({**ok, "test": "t.py::other", "basis": "5"}, CITED), "an assert without reset must fail"
+    assert cite_problems({**ok, "basis": "ZERO"}, CITED), "a name that is not inside an assert must fail"
+    named = {**ok, "basis": "reset_word", "test": "t.py::check"}
+    assert cite_problems(named, CITED.replace("def reset_word", "def renamed")), "an undefined name must fail"
+
+
+def test_reset_entries_are_decoded_words():
+    resets = load_sidecar("register_resets.yaml")
+    for block_name, variant_id, word, _ in sidecar_entries(resets):
+        block = register_drift.BLOCKS[block_name]
+        assert block.vhdl is not None, f"{block_name} has no RTL decode, so no word can be asserted"
+        variant = next(v for v in block.variants if v.id == variant_id)
+        decode = read_decode(block.vhdl, generics=variant.generics)
+        words = set()
+        for field in register_drift.from_vhdl(decode, block_name):
+            span = ((field.bit_in_word + (field.bit_size or 1)) + 31) // 32
+            words.update(field.word_byte + 4 * count for count in range(span))
+        assert int(word, 16) in words, f"{block_name}/{variant_id}: {word} is not a decoded word"
+
+
+def page_cells(text):
+    """Return the rows of every list-table in a page as lists of cell texts (continuation lines joined by newline)."""
+    rows = []
+    row = None
+    for line in text.splitlines():
+        if line.startswith("   * - "):
+            row = [[line[len("   * - "):]]]
+            rows.append(row)
+        elif line.startswith("     - ") and row is not None:
+            row.append([line[len("     - "):]])
+        elif line.startswith("       ") and row is not None:
+            row[-1].append(line.strip())
+    return [["\n".join(cell) for cell in each] for each in rows]
+
+
+def test_every_allowlist_entry_is_on_its_page():
+    pages = render_all(REPO_ROOT)
+    for block_name in gen_docs.REGISTER_BLOCKS:
+        page = pages[f"reference/registers/{block_name}.rst"]
+        assert not entries_missing_from(page, block_name, register_drift.ALLOWLIST)
+    checked = {key for key in register_drift.ALLOWLIST if key[0] in gen_docs.REGISTER_BLOCKS}
+    assert checked, "no allowlist entry belongs to a documented block"
+
+
+def entries_missing_from(page, block_name, allowlist):
+    """Return the allowlist keys of a block that the page does not show with their issue link."""
+    missing = []
+    for key, issue in allowlist.items():
+        if key[0] != block_name:
+            continue
+        number = issue.rsplit("/", 1)[1]
+        lines = [line for line in page.splitlines() if line.startswith(f"   * ``{key[1]}`` ({key[2]}):")]
+        if not any(f":issue:`{number}`" in line for line in lines):
+            missing.append(key)
+    return missing
+
+
+def test_allowlist_check_flags_an_entry_missing_from_a_page():
+    key = ("EvrV2TriggerReg", "ComplEn", "bitOffset")
+    page = render_all(REPO_ROOT)["reference/registers/EvrV2TriggerReg.rst"]
+    assert entries_missing_from(page, "EvrV2TriggerReg", {key: register_drift.ALLOWLIST[key]}) == []
+    stripped = "\n".join(line for line in page.splitlines() if not line.startswith("   * ``ComplEn`` (bitOffset)"))
+    assert entries_missing_from(stripped, "EvrV2TriggerReg", {key: register_drift.ALLOWLIST[key]}) == [key]
+    wrong = page.replace(":issue:`214`", ":issue:`999`")
+    assert entries_missing_from(wrong, "EvrV2TriggerReg", {key: register_drift.ALLOWLIST[key]}) == [key]
+
+
+def block_variants(blocks):
+    for name in blocks:
+        block = register_drift.BLOCKS[name]
+        for variant in block.variants:
+            yield block, variant
+
+
+def test_table_drift_matches_the_allowlist():
+    drifts = []
+    for block, variant in block_variants(gen_docs.REGISTER_BLOCKS):
+        drifts.extend(gen_docs.block_comparison(block, variant).drifts)
+    reasons = register_drift.verdict(drifts, register_drift.ALLOWLIST, blocks=set(gen_docs.REGISTER_BLOCKS))
+    assert reasons == []
+
+
+def test_rows_show_every_drift_the_comparison_reports():
+    for block, variant in block_variants(gen_docs.REGISTER_BLOCKS):
+        sources = gen_docs.block_sources(block, variant)
+        reported = {
+            (drift.field, drift.kind) for drift in gen_docs.block_comparison(block, variant).drifts
+        }
+        inside, outside = gen_docs.split_entries(block, sources)
+        state = gen_docs.yaml_state(block, variant, sources)
+        shown = set()
+        for entry in inside:
+            for source in ("python", "yaml"):
+                cell = gen_docs.rtl_agreement(block.name, entry, source, state if source == "yaml" else "compared")
+                if cell.startswith("differs: "):
+                    shown.update((entry.name, kind.split(" ")[0]) for kind in cell.split("\n")[0][9:].split(", "))
+                elif cell.startswith("absent"):
+                    shown.add((entry.name, f"missing-in-{source}"))
+        for entry in outside:
+            cell = gen_docs.python_agreement(block.name, entry, state)
+            if cell.startswith("differs: "):
+                shown.update((entry.name, kind.split(" ")[0]) for kind in cell.split("\n")[0][9:].split(", "))
+            elif cell.startswith("absent"):
+                shown.add((entry.name, "missing-in-yaml"))
+        assert shown == {item for item in reported if not item[0].startswith("<")}, (block.name, variant.id)
+
+
+def description_literals(source):
+    """Return ({descriptions}, {variable names without one}) of the register declarations of a class source."""
+    described, bare = set(), set()
+    for node in ast.walk(ast.parse(source)):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr in ("RemoteVariable", "addRemoteVariables", "RemoteCommand")):
+            continue
+        keywords = {kw.arg: kw.value for kw in node.keywords if kw.arg}
+        name = keywords["name"].value if isinstance(keywords.get("name"), ast.Constant) else None
+        text = keywords.get("description")
+        if isinstance(text, ast.Constant) and isinstance(text.value, str):
+            described.add(text.value)
+        elif name is not None:
+            bare.add(name)
+    return described, bare
+
+
+def description_problems(page, source):
+    """Return the rows whose Description cell is neither source text nor the marker, or hides a described variable."""
+    described, bare = description_literals(source)
+    problems = []
+    for cells in page_cells(page):
+        if len(cells) != len(gen_docs.RTL_HEADER) or cells[0] == "Offset":
+            continue
+        text = cells[-1]
+        name = cells[1].split("\n")[0].strip("`").split("[")[0]
+        if text == gen_docs.NO_DESCRIPTION:
+            if not cells[5].startswith("absent") and name not in bare:
+                problems.append(f"{name}: marked missing but the source describes it")
+        elif text not in described:
+            problems.append(f"{name}: {text!r} is not a description in the source")
+    return problems
+
+
+def test_descriptions_are_copied_or_marked_missing():
+    pages = render_all(REPO_ROOT)
+    for block_name in gen_docs.REGISTER_BLOCKS:
+        path = REPO_ROOT / "python" / "LclsTimingCore" / f"{block_name}.py"
+        source = path.read_text(encoding="utf-8")
+        page = pages[f"reference/registers/{block_name}.rst"]
+        assert description_problems(page, source) == [], block_name
+    page = pages["reference/registers/EvrV2TriggerReg.rst"]
+    source = (REPO_ROOT / "python/LclsTimingCore/EvrV2TriggerReg.py").read_text(encoding="utf-8")
+    assert "Trigger Enable" in page
+    invented = page.replace("Signal polarity", "A description nobody wrote")
+    assert description_problems(invented, source)
+    hidden = page.replace("Signal polarity", gen_docs.NO_DESCRIPTION)
+    assert description_problems(hidden, source)
+
+
+def test_read_descriptions_returns_the_text_per_base_name():
+    source = (
+        "import pyrogue as pr\n"
+        "class A(pr.Device):\n"
+        "    def __init__(self):\n"
+        "        self.add(pr.RemoteVariable(name='One', offset=0, description='first'))\n"
+        "        self.add(pr.RemoteVariable(name='Two', offset=4))\n"
+        "        self.addRemoteVariables(name='Arr', offset=8, number=2, stride=4, description='array')\n"
+    )
+    variables = pyrogue_ast.parse_remote_variables(source)
+    assert [(v.name, v.description) for v in variables] == [
+        ("One", "first"), ("Two", None), ("Arr[0]", "array"), ("Arr[1]", "array"),
+    ]
+    page_source = REPO_ROOT / "python/LclsTimingCore/EvrV2TriggerReg.py"
+    described = pyrogue_ast.read_descriptions(page_source)
+    assert described["EnableTrig"] == "Trigger Enable"
+    assert described["Delay"] == "Delay in ticks"
+
+
+def test_adjacent_fields_get_their_own_flagged_rows():
+    page = render_all(REPO_ROOT)["reference/registers/EvrV2TriggerReg.rst"]
+    default_table = page.split("Variant useTap")[0]
+    rows = {cells[1].split("\n")[0].strip("`"): cells for cells in page_cells(default_table)}
+    assert rows["ComplEn"][2] == "[28]" and rows["ComplAnd"][2] == "[29]"
+    for name in ("ComplEn", "ComplAnd"):
+        assert "differs: bitOffset :issue:`214`" in rows[name][5]
+    assert rows["Source"][5] == "agrees"
+    assert page.count(":issue:`214`") >= 3
+
+
+def test_register_rows_are_sorted_by_offset_bit_then_name():
+    page = render_all(REPO_ROOT)["reference/registers/EvrV2TriggerReg.rst"]
+    for table in page.split("Variant ")[1:]:
+        keys = []
+        for cells in page_cells(table):
+            if cells[0] == "Offset":
+                continue
+            bits = cells[2].strip("[]").split(":")
+            keys.append((int(cells[0].strip("`"), 16), int(bits[-1]), cells[1].split("\n")[0].strip("`")))
+        assert keys == sorted(keys)
+
+
+def test_register_generation_is_idempotent_and_ascii():
+    first = gen_docs.render_registers(REPO_ROOT)
+    assert first == gen_docs.render_registers(REPO_ROOT)
+    for path, text in first.items():
+        text.encode("ascii")
+        assert "\u2013" not in text and "\u2014" not in text, path
