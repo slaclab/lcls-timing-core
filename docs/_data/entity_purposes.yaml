@@ -1,0 +1,12 @@
+# Authored purposes for the entity reference, keyed by repo-relative file path.
+# Each value is one to three plain sentences written from the RTL and its tests,
+# never copied from the banner header of the file. The generator fails when a
+# rendered file has no entry here or an entry has no rendered file.
+
+LCLS-II/core/rtl/Divider.vhd: >-
+  Prescaler that raises trigO for one sysClk cycle every divisor cycles while
+  enable is high, counting from 1 up to divisor and restarting at 1. Holding
+  enable low freezes the count and the trigO level, clear with enable low
+  forces trigO low, and sysReset restarts the count at 1 and drops trigO. A
+  divisor of 0 never matches until the Width-bit counter wraps, so at the
+  default Width of 4 the period is 16 cycles.
