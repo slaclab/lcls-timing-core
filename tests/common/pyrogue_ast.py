@@ -20,6 +20,16 @@ source is never executed, compiled, or imported, and ``pyrogue`` and
 ``rogue`` are never imported, so the reader runs in any test process and in
 parallel workers: the file is opened read-only and no module state is kept.
 
+``overlap_en``, ``base``, and ``enum`` carry the ``overlapEn`` literal (False
+when absent), the last attribute name of the ``base`` expression (``pr.Bool``
+reads as ``Bool``, absent reads as ``UInt``, a non-attribute expression is
+``NON_LITERAL``), and the ``enum`` literal (None when absent).
+``read_child_devices`` lists the ``self.add(<module>.<Class>(...))`` calls of
+a composite device, in source order, with the class name, the ``name`` keyword
+(the class name when absent), and the ``offset`` literal.
+``expected_entries`` turns declarations into the ``Expected`` records that the
+table comparisons use.
+
 ``condition`` is the unparsed test of the innermost enclosing ``if`` (for
 example ``useTap`` or ``dmaEnable``), ``not (<test>)`` inside its ``else``
 branch, and None outside any ``if``. A declaration without ``mode`` is
@@ -29,7 +39,7 @@ reported as ``"RW"``, the PyRogue default, and a missing ``offset`` or
 
 import ast
 from pathlib import Path
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 
 NON_LITERAL = "<non-literal>"
 
@@ -48,6 +58,18 @@ class RemoteVar(NamedTuple):
     mode: str
     condition: Optional[str]
     line: int
+    overlap_en: bool = False
+    base: Any = "UInt"
+    enum: Any = None
+
+
+class ChildDevice(NamedTuple):
+    """One ``self.add(<module>.<Class>(...))`` call of a composite device."""
+
+    name: str
+    cls: str
+    offset: Any
+    line: int
 
 
 def _literal(node: ast.AST) -> Any:
@@ -55,6 +77,14 @@ def _literal(node: ast.AST) -> Any:
         return ast.literal_eval(node)
     except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
         return NON_LITERAL
+
+
+def _base_name(node: Optional[ast.AST]) -> Any:
+    if node is None:
+        return "UInt"
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return NON_LITERAL
 
 
 def _call_name(node: ast.Call) -> str:
@@ -91,6 +121,12 @@ class _Reader(ast.NodeVisitor):
 
     def _record(self, node: ast.Call, kind: str) -> None:
         keywords = {kw.arg: _literal(kw.value) for kw in node.keywords if kw.arg is not None}
+        raw_base = next((kw.value for kw in node.keywords if kw.arg == "base"), None)
+        extra = {
+            "overlap_en": keywords.get("overlapEn", False),
+            "base": _base_name(raw_base),
+            "enum": keywords.get("enum"),
+        }
         base = keywords.get("name", NON_LITERAL)
         offset = keywords.get("offset", 0)
         bit_offset = keywords.get("bitOffset", 0)
@@ -116,10 +152,13 @@ class _Reader(ast.NodeVisitor):
                         mode,
                         condition,
                         node.lineno,
+                        **extra,
                     )
                 )
         else:
-            self.found.append(RemoteVar(base, offset, bit_offset, bit_size, mode, condition, node.lineno))
+            self.found.append(
+                RemoteVar(base, offset, bit_offset, bit_size, mode, condition, node.lineno, **extra)
+            )
 
 
 def parse_remote_variables(source: str, filename: str = "<source>") -> List[RemoteVar]:
@@ -142,3 +181,86 @@ def absolute_bits(var: RemoteVar) -> range:
             raise ValueError(f"{var.name}: {label} is not a literal ({value!r})")
     start = var.offset * BITS_PER_BYTE + var.bit_offset
     return range(start, start + var.bit_size)
+
+
+def expected_entries(variables: List[RemoteVar]) -> Dict[str, Any]:
+    """Return {name: Expected} for declarations read from source.
+
+    The absolute bit position comes from the declared offset and bit offset
+    (None when either is not a literal), a Bool variable gets Rogue's
+    automatic ``False``/``True`` enum, and every entry is a RemoteVariable
+    with no dependencies. Names must be unique, as they are for the classes
+    this is used on.
+    """
+    from tests.common import register_tables
+
+    found: Dict[str, Any] = {}
+    for var in variables:
+        if var.name in found:
+            raise ValueError(f"duplicate declaration {var.name}")
+        if isinstance(var.offset, int) and isinstance(var.bit_offset, int):
+            position = register_tables.abs_bit(var.offset, var.bit_offset)
+        else:
+            position = None
+        enum = var.enum
+        if enum is None and var.base == "Bool":
+            enum = dict(register_tables.BOOL_ENUM)
+        found[var.name] = register_tables.Expected(
+            var.name, position, var.bit_size, var.mode, var.base, enum,
+            "RemoteVariable", var.overlap_en, (),
+        )
+    return found
+
+
+class _ChildReader(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.rogue_aliases = set()
+        self.found: List[ChildDevice] = []
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            if alias.name == "pyrogue":
+                self.rogue_aliases.add(alias.asname or alias.name)
+
+    def visit_Call(self, node: ast.Call) -> None:
+        func = node.func
+        if (
+            isinstance(func, ast.Attribute)
+            and func.attr == "add"
+            and isinstance(func.value, ast.Name)
+            and func.value.id == "self"
+            and node.args
+            and isinstance(node.args[0], ast.Call)
+        ):
+            inner = node.args[0]
+            target = inner.func
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id not in self.rogue_aliases
+            ):
+                keywords = {kw.arg: _literal(kw.value) for kw in inner.keywords if kw.arg is not None}
+                self.found.append(
+                    ChildDevice(
+                        keywords.get("name", target.attr),
+                        target.attr,
+                        keywords.get("offset", 0),
+                        node.lineno,
+                    )
+                )
+        self.generic_visit(node)
+
+
+def read_child_devices(path) -> List[ChildDevice]:
+    """Return the child devices a composite PyRogue file adds, in source order.
+
+    Only ``self.add(<module>.<Class>(...))`` calls count, and a call through
+    the alias that ``import pyrogue as <alias>`` binds (``pr.RemoteVariable``,
+    ``pr.LinkVariable``) is never a child device. The file is parsed, never
+    run.
+    """
+    with open(Path(path), "r", encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), filename=str(path))
+    reader = _ChildReader()
+    reader.visit(tree)
+    return reader.found
