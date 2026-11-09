@@ -185,6 +185,7 @@ begin
    U_SlaveShim : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
          EN_ERROR_RESP => true,
+         HAS_WSTRB     => 1,
          ADDR_WIDTH    => 15)
       port map (
          S_AXI_ACLK      => axilClk,
