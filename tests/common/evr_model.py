@@ -322,3 +322,29 @@ class TriggerModel:
         self.fifo.step(r["fifoReset"], fifo_wr, fifo_rd, fifo_din)
         self.r = v
         return v["state"]
+
+
+def trigger_compl(compl_en: tuple[int, int], compl_and: tuple[int, int], trig_in: int) -> int:
+    """Return the 2-bit trigOut of EvrV2TriggerCompl for the given configuration and trigIn.
+
+    Output i passes trigIn(i) when compl_en[i] is 0; otherwise it is
+    trigIn(0) AND trigIn(1) when compl_and[i] is 1 and trigIn(0) OR trigIn(1)
+    when it is 0. The reset gating and the optional output register are not
+    part of this function: the caller applies rst and, for REG_OUT_G true,
+    delays the result by one clock.
+    """
+    if not 0 <= trig_in <= 3:
+        raise ValueError(f"trig_in must be a 2-bit value, got {trig_in}")
+    if any(bit not in (0, 1) for bit in (*compl_en, *compl_and)):
+        raise ValueError("compl_en and compl_and must hold single bits")
+    low, high = trig_in & 1, (trig_in >> 1) & 1
+    result = 0
+    for index in range(2):
+        if not compl_en[index]:
+            level = (trig_in >> index) & 1
+        elif compl_and[index]:
+            level = low & high
+        else:
+            level = low | high
+        result |= level << index
+    return result

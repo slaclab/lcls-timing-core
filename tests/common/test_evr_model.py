@@ -219,3 +219,30 @@ def test_model_starts_from_reset_state():
     assert model.step(fields(enabled=0), 0, 0) == 0
     model.reset()
     assert model.r["push_state"] == "DISABLED"
+
+
+def test_trigger_compl_pass_through():
+    for trig_in in range(4):
+        for and_bits in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            assert evr_model.trigger_compl((0, 0), and_bits, trig_in) == trig_in
+
+
+def test_trigger_compl_or_and_and():
+    # Vector index t is trigIn: 1 is trigIn(0) only, 2 is trigIn(1) only, 3 is both.
+    # One output complemented at a time; the other passes its own trigIn bit.
+    assert [evr_model.trigger_compl((1, 0), (0, 0), t) for t in range(4)] == [0b00, 0b01, 0b11, 0b11]
+    assert [evr_model.trigger_compl((1, 0), (1, 0), t) for t in range(4)] == [0b00, 0b00, 0b10, 0b11]
+    assert [evr_model.trigger_compl((0, 1), (0, 0), t) for t in range(4)] == [0b00, 0b11, 0b10, 0b11]
+    assert [evr_model.trigger_compl((0, 1), (0, 1), t) for t in range(4)] == [0b00, 0b01, 0b00, 0b11]
+    # Both complemented: each output uses its own complAnd bit.
+    assert [evr_model.trigger_compl((1, 1), (0, 0), t) for t in range(4)] == [0b00, 0b11, 0b11, 0b11]
+    assert [evr_model.trigger_compl((1, 1), (1, 1), t) for t in range(4)] == [0b00, 0b00, 0b00, 0b11]
+    assert [evr_model.trigger_compl((1, 1), (1, 0), t) for t in range(4)] == [0b00, 0b10, 0b10, 0b11]
+    assert [evr_model.trigger_compl((1, 1), (0, 1), t) for t in range(4)] == [0b00, 0b01, 0b01, 0b11]
+
+
+def test_trigger_compl_rejects_bad_input():
+    with pytest.raises(ValueError):
+        evr_model.trigger_compl((0, 0), (0, 0), 4)
+    with pytest.raises(ValueError):
+        evr_model.trigger_compl((2, 0), (0, 0), 0)
