@@ -3,12 +3,108 @@
 # never copied from the banner header of the file. The generator fails when a
 # rendered file has no entry here or an entry has no rendered file.
 
+LCLS-I/evr/EvrV1Core.vhd: >-
+  Top level of the LCLS-I EVR core. It joins the EvrV1Reg AXI-Lite register
+  file on axiClk with the EvrV1EventReceiver on evrClk, which turns the
+  received event codes into 12 trigger outputs, an event stream, and
+  interrupt status. ENDIAN_G true byte-swaps the AXI-Lite data and strobes
+  for a big endian host.
+
+LCLS-I/evr/EvrV1CoreIsrCtrl.vhd: >-
+  Receive and interrupt front end of the LCLS-I EVR. On evrClk it raises
+  rxLinkUp only after gtLinkUp has stayed high without decode or disparity
+  errors for 0xFFFFFF clocks, then registers the GT data and flags later
+  errors on rxError. On an interrupt request it sends an IRQ message on an
+  AXI stream and waits for software, or, when the isrSelect bit at 0x0 is
+  clear, reads the interrupt flags and registers itself over an AXI-Lite
+  master and streams data buffer, event, FIFO full, pulse, heartbeat, and
+  violation messages tagged by TDEST.
+
+LCLS-I/evr/EvrV1Databuff.vhd: >-
+  Dual-clock 2048 byte receive buffer for the LCLS-I data buffer. Bytes are
+  written one at a time on clka at an 11-bit byte address and read back as
+  little endian 32-bit words on clkb at a 9-bit word address, with one clkb
+  clock of read latency. It is four 8-bit surf SimpleDualPortRam lanes with
+  no reset, and words never written read 0 in simulation.
+
+LCLS-I/evr/EvrV1DbusDecode.v: >-
+  Decoder for the LCLS-I data buffer carried on the event stream. After a
+  K28.0 start code it stores alternating filler and data bytes into
+  EvrV1Databuff on EventClock until a K28.1 or K28.5 end code, checks the
+  complemented 16-bit sum in the next two bytes, and reports the byte count
+  on rxSize, dbrx while receiving, dbrdy when a buffer is ready, and dbcs on
+  a checksum error. Icarus rejects the unsized constant in its rxSize
+  assignment, so the regression simulates a patched copy of this file.
+
+LCLS-I/evr/EvrV1EventRAM256x32.vhd: >-
+  True dual-port 256 by 32 bit RAM, a surf TrueDualPortRam in read-first
+  mode, that the LCLS-I EVR uses for its event code maps. Each port has its
+  own clock, enable, write enable, address, and data, reads take one clock,
+  and a write to the address being read returns the old word on that port in
+  the same cycle.
+
+LCLS-I/evr/EvrV1EventReceiver.vhd: >-
+  Event decoder of the LCLS-I EVR on evrClk. The GT receive words feed the
+  data buffer decoder, a time of day receiver, and four 256 by 32 event RAMs
+  (reset, set, pulse, and interrupt maps) that drive twelve
+  EvrV1EventReceiverChannel pulse generators for trigOut. It also queues
+  event time stamps in EvrV1TimeStampFIFO, watches the 0x7A heartbeat code
+  with EvrV1HeartBeat, sets the interrupt flags, and crosses the
+  configuration and status to axiClk through surf synchronizers.
+
+LCLS-I/evr/EvrV1EventReceiverChannel.v: >-
+  One LCLS-I EVR pulse channel. When myEvent rises it waits myDelay ticks
+  and then holds the output for myWidth ticks, where a tick is one Clock or,
+  for a myPreScale above 1, myPreScale clocks; a width of 0 gives no pulse
+  and myPolarity sets the active level. setPulse forces the output on and
+  resetPulse forces it off, with setPulse winning, and Reset returns the
+  channel to idle.
+
+LCLS-I/evr/EvrV1HeartBeat.vhd: >-
+  Heartbeat timeout monitor on eventClk. Event code 0x7A reloads a 32-bit
+  counter from uSecDividerReg, any other code lets it count down, and
+  heartBeatTimeOut pulses for one clock when the count reaches 0. With no
+  0x7A the counter wraps and times out again after 4294967296 clocks, and
+  reset clears the count.
+
+LCLS-I/evr/EvrV1Pkg.vhd: >-
+  The EvrV1StatusType and EvrV1ConfigType records that connect EvrV1Reg to
+  EvrV1EventReceiver. Status carries the time stamps, time stamp FIFO, event
+  RAM read data, interrupt flags, and data buffer state out of the receiver,
+  and config carries the pulse, output map, event RAM, interrupt, and data
+  buffer controls into it. EVR_V1_CONFIG_INIT_C is the all-zero
+  configuration.
+
+LCLS-I/evr/EvrV1Reg.vhd: >-
+  AXI-Lite register file of the LCLS-I EVR on axiClk. It decodes writes into
+  the EvrV1ConfigType outputs (pulse control, prescale, delay, and width for
+  twelve channels, output map, event RAM windows, interrupt control and
+  clear, data buffer control) and builds reads from the EvrV1StatusType
+  input and the firmware version of BUILD_INFO_G. A read after a reset or a
+  time stamp latch write waits LATCH_TS_LATENCY_G clocks, and unmapped,
+  read-only, or unaligned accesses answer DECERR.
+
+LCLS-I/evr/EvrV1TimeStampFIFO.vhd: >-
+  512 word, 72 bit first-word-fall-through FIFO between two clocks for the
+  LCLS-I EVR time stamped event records, built from a surf FifoAsync. It
+  keeps the first 512 words written and drops a word written into a full
+  FIFO; the port named full is the overflow pulse, high for one cycle after
+  such a write, and both data counts are exposed.
+
 LCLS-I/evr/EvrV1TimeStampGenerator.v: >-
   Free-running 64-bit time stamp for the LCLS-I EVR in a single Clock domain.
   TimeStamp counts up by 1 on every Clock, and every 330556 clocks a reload
   puts the seconds counter in bits 63:32 and clears the low word while the
   seconds counter increments. Reset clears the seconds counter, the reload
   counter, and TimeStamp.
+
+LCLS-I/evr/EvrV1TimeofDayReceiver.v: >-
+  Receives the LCLS-I time of day from the event stream. Each 0x70 or 0x71
+  event code shifts a 0 or 1 into a 32-bit seconds word, most significant
+  bit first, and the 0x7D code latches the word into bits 63:32 of TimeStamp
+  with the low word cleared, after which TimeStamp counts up by 1 each
+  clock. secondsShift shows the word as it arrives, and Reset clears the
+  seconds, the bit pointer, and TimeStamp.
 
 LCLS-II/core/rtl/BsaControl.vhd: >-
   Older definition of the entity BsaControl, the acquisition state of one BSA
@@ -283,3 +379,158 @@ LCLS-II/core/tb/TimingSerialDelay_tb.vhd: >-
   of the delay line, and asserts the frame contents, the overflow flag, and
   the delay of each frame. As observed its 8 bit frame tag wraps after about
   169 us and the delay check fails after the wrap.
+
+LCLS-II/evr/rtl/EvrV2Axi.vhd: >-
+  AXI-Lite register block of the LCLS-II EVR channels, on axiClk. Per
+  channel it holds the enable bit and the rateSel and destSel words at a 32
+  byte stride from 0x020 plus a read-only event count, and it has the count
+  reset (0x010) and trigger select (0x014) bits; with DMA_ENABLE_G true it
+  also maps the interrupt, debug, threshold, and BSA words. The
+  channelConfig, irqEnable, rstCount, trigSel, and dmaFullThr outputs follow
+  the registers, and word 0x008 is commented out of the RTL, so it reads 0.
+
+LCLS-II/evr/rtl/EvrV2Cache.vhd: >-
+  Dual-clock capture memory that stores 192-bit entries written on clka and
+  reads each entry back as six 32-bit words on clkb, lowest word first. Both
+  pointers stop at entry 1023, so empty rises only when the read pointer
+  reaches that entry and only word 0 of entry 1023 can be read, as observed
+  with intent unconfirmed.
+
+LCLS-II/evr/rtl/EvrV2ChannelReg.vhd: >-
+  AXI-Lite register file for NCHANNELS_G EVR event-select channels. Each
+  channel group has a 256 byte window (4096 bytes when EVR_CARD_G is true)
+  holding the enable, rateSel, and destSel configuration, the BSA and DMA
+  words when DMA_ENABLE_G is true, and a read-only event count. Group i
+  drives channelConfig(i), and an address one decode window above group 0
+  aliases it.
+
+LCLS-II/evr/rtl/EvrV2CoreChannels.vhd: >-
+  Event-select half of the LCLS-II EVR. An EvrV2ChannelReg on axilClk
+  configures NCHANNELS_G EvrV2EventSelect channels on evrClk, which pick
+  frames from the timing bus after EvrV2FromV1 has converted an LCLS-I
+  stream when evrModeSel is low. trigPulse(i) is high for one step per frame
+  channel i selects, and the output also carries the time stamp, BSA, and
+  dmod fields of the bus; COMMON_CLK_G true drops the clock-domain
+  synchronizers.
+
+LCLS-II/evr/rtl/EvrV2CorePulseGen.vhd: >-
+  Self-contained LCLS-II EVR with 12 channels and 12 trigger outputs behind
+  one AXI-Lite crossbar: EvrV2Axi at AXIL_BASE_ADDR_G and EvrV2TrigReg at
+  +0x200 configure an EvrV2EventSelect per channel and an EvrV2Trigger per
+  output, driven by the timing bus on evrClk. It maps an LCLS-I stream to an
+  LCLS-II message inline when evrModeSel is low and exposes the trigger
+  delay tap load, write, and read ports. Only the trigger groups at 0x200
+  and 0x300 answer, as triggers 2 and 3, as observed with intent
+  unconfirmed.
+
+LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd: >-
+  Trigger half of the LCLS-II EVR. An AXI-Lite crossbar on axilClk places an
+  EvrV2ChannelReg for NCHANNELS_G channels and an EvrV2TrigReg for
+  NTRIGGERS_G triggers at AXIL_BASEADDR_G and at +0x1000 (+0x20000 when
+  EVR_CARD_G is true). On evrClk each trigger is an EvrV2Trigger armed by
+  its channel and fired on the strobe, and each adjacent pair passes through
+  EvrV2TriggerCompl for an optional AND or OR.
+
+LCLS-II/evr/rtl/EvrV2EventSelect.vhd: >-
+  Decides on each strobe whether one event-select channel fires. selectOut
+  is registered one clock after strobeIn when the channel is enabled, its
+  rate selection matches the frame (a fixed rate bit, an AC rate bit gated
+  by the time slot mask, or a bit of one of the 18 control words), and its
+  destination selection matches the beam request; dmaOut adds dmaEnabled. In
+  GHDL a control word index above 17 stops the simulation with an index out
+  of bounds.
+
+LCLS-II/evr/rtl/EvrV2FromV1.vhd: >-
+  Converts an LCLS-I timing stream into an LCLS-II timing message,
+  registered on clk when timingIn.strobe is high. With disable low it
+  rebuilds the pulse ID, time stamp, BSA, AC rate, modifier, and control
+  words from the stream and makes up a beam request destination from dmod
+  bits 61, 60, and 83; with disable high it passes timingIn.message through.
+  Message fields it never assigns keep their previous value, as observed
+  with intent unconfirmed.
+
+LCLS-II/evr/rtl/EvrV2Module.vhd: >-
+  Top level of the small LCLS-II EVR. An AXI-Lite crossbar splits axiClk
+  traffic between EvrV2Axi at AXIL_BASEADDR and EvrV2TrigReg at +0x200, and
+  the channel and trigger configurations cross to evrClk through
+  synchronizers into NCHANNELS_G EvrV2EventSelect units and NTRIGGERS_G
+  EvrV2Trigger units behind an EvrV2FromV1 stage. Event counts cross back to
+  axiClk, and trigOut carries the NTRIGGERS_G outputs.
+
+LCLS-II/evr/rtl/EvrV2Pkg.vhd: >-
+  Types and constants of the LCLS-II EVR: the EvrV2ChannelConfig record (81
+  bits as a vector) and the EvrV2TriggerConfigType record, with their init
+  constants, array types, and conversion functions to and from bit vectors.
+  It also holds the BSA, cache, and DMA record types and the tag constants,
+  and the channel and trigger counts used by the fixed-size EVR.
+
+LCLS-II/evr/rtl/EvrV2TrigReg.vhd: >-
+  AXI-Lite register file for TRIGGERS_C EVR triggers. Each group, 256 bytes
+  (4096 when EVR_CARD_G is true), holds the channel, polarity, complement
+  enable, complement AND, and enable bits in its first word, then the delay
+  and width words; with USE_TAP_C it adds a delay tap word whose write
+  pulses loadTap once and whose upper bits read delay_rd. Group i drives
+  triggerConfig(i).
+
+LCLS-II/evr/rtl/EvrV2Trigger.vhd: >-
+  One EVR trigger output. After its arm input is seen (the channel chosen by
+  config.channel, or any channel in the config.channels mask when USE_MASK_G
+  is true) and the next fire strobe arrives, it queues a pulse in a FIFO
+  that a state machine plays out as an edge config.delay clocks after the
+  strobe lasting config.width clocks. A pulse is skipped when it would start
+  before the previous queued pulse has ended or when the width is 0, and
+  polarity sets the pulse level.
+
+LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd: >-
+  Complementary stage for a pair of trigger outputs. For each output,
+  complEn low passes its own trigIn through, and otherwise the output is the
+  AND (complAnd high) or OR (complAnd low) of both trigIn bits. The result
+  is combinational, or one clock later when REG_OUT_G is true, and trigOut
+  is 0 while rst is high.
+
+LCLS-II/evr/tb/EvrV2_tb.vhd: >-
+  Free-running bench for the EVR blocks with 12 channels and 12 trigger
+  outputs on a 5.4 ns evrClk, with a TPGMini and a TimingDeserializer
+  producing the timing bus for EvrV2EventSelect and EvrV2Trigger instances.
+  It also instantiates EvrV2Dma, EvrV2BsaControl, EvrV2BsaChannel, and
+  EvrV2EventDma and uses an ExptBusType that nothing in the repository
+  declares, so it is stale and GHDL cannot analyze it.
+
+LCLS-II/gthUltraScale+/rtl/TimingGthCoreWrapper.vhd: >-
+  Timing transceiver wrapper for the UltraScale+ GTHE4, built like the
+  Kintex UltraScale wrapper with the TimingGth_fixedlat or, with EXTREF_G,
+  the TimingGth_extref IP core, a dummy channel when DISABLE_TIME_GT_G is
+  true, and an AXI-Lite crossbar for GtRxAlignCheck and the DRP bridge. Its
+  entity is TimingGthCoreWrapper, not TimingGtCoreWrapper, and its TX user
+  clock and data ports have defaults.
+
+LCLS-II/gthUltraScale/rtl/TimingGtCoreWrapper.vhd: >-
+  Timing transceiver wrapper for the Kintex UltraScale GTHE3. It
+  instantiates the TimingGth_fixedlat or, with EXTREF_G, the
+  TimingGth_extref IP core, or ties the channel off with a dummy when
+  DISABLE_TIME_GT_G is true, and an AXI-Lite crossbar gives a surf
+  GtRxAlignCheck and a DRP bridge access to the channel. The IP comes from
+  the coregen directory that ruckus selects by Vivado version.
+
+LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd: >-
+  Timing transceiver wrapper for the Artix-7 GTP: a surf Gtp7Core with the
+  8b10b decoder, the RX and TX output reset synchronizers, and an AXI-Lite
+  to DRP bridge, presenting 16-bit rxData and txData paths with K flags and
+  the timing PHY control and status records. PLL_G selects the PLL and
+  GT_CONFIG_G selects the LCLS-I or LCLS-II line configuration.
+
+LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd: >-
+  Timing transceiver wrapper for the Kintex-7 GTX: a surf Gtx7Core with
+  power-up resets, the 8b10b decoder, RX and TX output reset synchronizers,
+  and an AXI-Lite to DRP bridge. Generics select the CPLL reference clock,
+  whether the reference comes from gtRefClkP and gtRefClkN or from
+  gtRefClkIn, the CDR lock wait, the stable clock period, and the LCLS-I or
+  LCLS-II line configuration.
+
+LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd: >-
+  Timing transceiver wrapper for the UltraScale+ GTYE4, built like the GTH
+  wrappers with the TimingGty_fixedlat or, with EXTREF_G, the
+  TimingGty_extref IP core, a dummy channel when DISABLE_TIME_GT_G is true,
+  and an AXI-Lite crossbar for GtRxAlignCheck and the DRP bridge. With
+  LCLS1_ONLY_G true the local reference core is TimingGty_fixedlat_Lcls1Only
+  instead.

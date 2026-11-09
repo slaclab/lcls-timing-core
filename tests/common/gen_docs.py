@@ -146,7 +146,18 @@ class DocTree:
 
 DOC_TREES = (
     DocTree("core", "LCLS-II core", ("LCLS-II/core",)),
-    DocTree("lcls1", "LCLS-I EVR", ("LCLS-I",), only=("LCLS-I/evr/EvrV1TimeStampGenerator.v",)),
+    DocTree("evr", "LCLS-II EVR", ("LCLS-II/evr",)),
+    DocTree("lcls1", "LCLS-I EVR", ("LCLS-I",)),
+    DocTree(
+        "gt",
+        "Transceiver wrappers",
+        ("LCLS-II/gtp7", "LCLS-II/gtx7", "LCLS-II/gthUltraScale", "LCLS-II/gthUltraScale+", "LCLS-II/gtyUltraScale+"),
+        note=(
+            "These wrappers instantiate Xilinx GT primitives and IP cores, so only Vivado builds them and the "
+            "regression does not simulate them. LCLS-II/ruckus.tcl loads the wrapper directory of the FPGA family "
+            "being built; the family matrix lists which."
+        ),
+    ),
 )
 
 

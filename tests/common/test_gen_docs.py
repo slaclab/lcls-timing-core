@@ -12,7 +12,7 @@
 
 Test methodology:
     Sweep: every generated page under docs/reference, every documented file
-        of every documentation tree (statuses for all 32 core entities), and
+        of every documentation tree (statuses for all 62 entities and modules), and
         every entry of the sidecars under docs/_data. Small synthetic VHDL strings cover the entity reader and
         the page renderers.
     Stimulus: render_all on the real tree (text parsing only, no simulator),
@@ -67,6 +67,7 @@ from tests.common.gen_docs import (
 from tests.common.ghdl_analysis import KNOWN_GHDL_UNANALYZABLE, NOT_SIMULATED
 from tests.common.register_drift import ISSUE_URL_RE
 from tests.common.regression_utils import REPO_ROOT
+from tests.common import source_inventory
 from tests.common.source_inventory import UNLOADED_SOURCES
 
 DIVIDER = "LCLS-II/core/rtl/Divider.vhd"
@@ -307,19 +308,23 @@ def test_unknown_documentation_tree_is_rejected():
         statuses(REPO_ROOT, "nothing")
 
 
-def _core_entity_names():
+def _entity_names():
+    """Return {path: lowercase unit name} of every entity and module in every documentation tree."""
     return {
-        path: read_vhdl_unit(REPO_ROOT / path).name.lower()
-        for path in gen_docs.documented_files(REPO_ROOT, DOC_TREES[0])
-        if read_vhdl_unit(REPO_ROOT / path).kind == "entity"
+        path: unit.name.lower()
+        for tree in DOC_TREES
+        for path, unit in gen_docs._tree_units(REPO_ROOT, tree).items()
+        if unit.kind in ("entity", "module")
     }
 
 
 def test_statuses_match_the_baselines():
-    found = statuses(REPO_ROOT, "core")
-    names = _core_entity_names()
+    found = {}
+    for tree in DOC_TREES:
+        found.update(statuses(REPO_ROOT, tree.key))
+    names = _entity_names()
     assert set(found) == set(names)
-    assert len(found) == 32
+    assert len(found) == 62
     assert all(status in STATUSES for status in found.values())
 
     def by_status(status):
@@ -329,8 +334,11 @@ def test_statuses_match_the_baselines():
     assert {names[path] for path in excluded} == set(KNOWN_GHDL_UNANALYZABLE) & set(names.values())
     assert {Path(path).name for path in excluded} == {
         "TPGMiniReg.vhd", "TPGMiniCore.vhd", "TimingCore.vhd", "TimingGthWrapper.vhd",
+        "EvrV2Module.vhd", "EvrV2_tb.vhd", "EvrV1CoreIsrCtrl.vhd",
     }
-    assert {names[path] for path in by_status("not simulated")} == set(NOT_SIMULATED) & set(names.values())
+    not_simulated = by_status("not simulated")
+    assert {names[path] for path in not_simulated} == set(NOT_SIMULATED) & set(names.values())
+    assert {Path(path).name for path in not_simulated} == {"EvrV1EventReceiver.vhd", "EvrV1Core.vhd"}
     not_loaded = by_status("not simulated: not loaded by any ruckus.tcl")
     expected_unloaded = {
         path
@@ -341,10 +349,18 @@ def test_statuses_match_the_baselines():
     assert {Path(path).name for path in not_loaded} == {
         "BsaControl.vhd", "ClockTime_186MHz.vhd", "TPFifo.vhd", "TPGNotify.vhd",
     }
-    for path in ("LCLS-II/core/rtl/TPGMiniEdefTb.vhd", "LCLS-II/core/tb/TimingSerialDelay_tb.vhd"):
-        assert found[path] == "simulated", path
+    assert "LCLS-II/core/rtl/TPGMiniEdefPkg.vhd" not in found
+    assert found["LCLS-II/core/tb/TimingSerialDelay_tb.vhd"] == "simulated"
+    assert found["LCLS-II/core/rtl/TPGMiniEdefTb.vhd"] == "simulated"
     assert found["LCLS-II/core/rtl/BsaControlv2.vhd"] == "simulated"
-    assert not any(value == "Vivado-only" for value in found.values())
+    vivado = by_status("Vivado-only")
+    assert vivado == {path for path in found if path.startswith(gen_docs.GT_DIRECTORIES)}
+    assert {Path(path).name for path in vivado} == {"TimingGtCoreWrapper.vhd", "TimingGthCoreWrapper.vhd"}
+    assert len(vivado) == 5
+    simulated = by_status("simulated")
+    assert len(simulated) == 62 - 7 - 2 - 4 - 5
+    assert found["LCLS-I/evr/EvrV1TimeStampGenerator.v"] == "simulated"
+    assert all(found[path] == "simulated" for path in found if path.startswith("LCLS-II/evr/rtl/") and path not in excluded)
 
 
 def test_entity_issues_link_the_baseline_and_the_unloaded_files():
@@ -473,6 +489,32 @@ def test_duplicate_entity_names_get_distinct_rows():
     assert rows[loaded][1] == "simulated"
     assert rows[unloaded][0] != rows[loaded][0]
     assert {label for label, _ in rows.values()} == set(labels)
+
+
+def test_every_tracked_rtl_file_is_documented():
+    documented = {path for tree in DOC_TREES for path in gen_docs.documented_files(REPO_ROOT, tree)}
+    assert documented == set(source_inventory.rtl_sources(REPO_ROOT))
+    assert len(documented) == 68
+    assert not any("wrappers" in Path(path).parts for path in documented)
+    assert all(rendered_files(REPO_ROOT, tree) == gen_docs.documented_files(REPO_ROOT, tree) for tree in DOC_TREES)
+
+
+def test_duplicate_gt_wrappers_get_distinct_titles():
+    page = render_all(REPO_ROOT)["reference/entities/gt.rst"]
+    shared = [
+        "LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd",
+        "LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd",
+        "LCLS-II/gthUltraScale/rtl/TimingGtCoreWrapper.vhd",
+        "LCLS-II/gtyUltraScale+/rtl/TimingGtCoreWrapper.vhd",
+    ]
+    titles = re.findall(r"^(TimingGtCoreWrapper \(.*\))$", page, re.MULTILINE)
+    assert titles == [f"TimingGtCoreWrapper ({path})" for path in sorted(shared)]
+    labels = re.findall(r"^\.\. _(entity-[^:]*timinggtcorewrapper[^:]*):$", page, re.MULTILINE)
+    assert len(labels) == len(shared) and len(set(labels)) == len(shared), labels
+    assert re.search(r"^TimingGthCoreWrapper$", page, re.MULTILINE)
+    assert page.count("Vivado-only") >= 5
+    rows = re.findall(r"^   \* - :ref:`(\w+) <entity-[^>]+>`\n     - :repo:`([^`]+)`\n     - Vivado-only$", page, re.MULTILINE)
+    assert len(rows) == 5
 
 
 def test_core_tree_renders_every_documented_file():

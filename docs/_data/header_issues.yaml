@@ -11,7 +11,40 @@
 # so writing a header or adding a file with an empty one fails the test until
 # this file follows. Production headers are never edited from here.
 
+LCLS-I/evr/EvrV1Core.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1CoreIsrCtrl.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1Databuff.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1DbusDecode.v:
+  kind: missing
+  issue: pending
+LCLS-I/evr/EvrV1EventRAM256x32.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1EventReceiver.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1EventReceiverChannel.v:
+  kind: missing
+  issue: pending
+LCLS-I/evr/EvrV1Pkg.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1Reg.vhd:
+  kind: empty
+  issue: pending
+LCLS-I/evr/EvrV1TimeStampFIFO.vhd:
+  kind: empty
+  issue: pending
 LCLS-I/evr/EvrV1TimeStampGenerator.v:
+  kind: missing
+  issue: pending
+LCLS-I/evr/EvrV1TimeofDayReceiver.v:
   kind: missing
   issue: pending
 LCLS-II/core/rtl/CtrControl.vhd:
@@ -73,5 +106,32 @@ LCLS-II/core/rtl/TimingStreamTx.vhd:
     Generates a 16b serial stream of the LCLS-II timing message.
   issue: pending
 LCLS-II/core/rtl/default/TimingExtnPkg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2Axi.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2Cache.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2ChannelReg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2CoreChannels.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2Module.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2Pkg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/rtl/EvrV2TrigReg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/evr/tb/EvrV2_tb.vhd:
   kind: empty
   issue: pending

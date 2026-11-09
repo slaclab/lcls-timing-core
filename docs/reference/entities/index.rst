@@ -26,4 +26,6 @@ Each entity or module has one of five verification statuses:
    :maxdepth: 1
 
    core
+   evr
    lcls1
+   gt
