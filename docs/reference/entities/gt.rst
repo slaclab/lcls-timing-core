@@ -3,7 +3,7 @@ Transceiver wrappers
 
 :repo:`LCLS-II/gtp7/ruckus.tcl`, :repo:`LCLS-II/gtx7/ruckus.tcl`, :repo:`LCLS-II/gthUltraScale/ruckus.tcl`, :repo:`LCLS-II/gthUltraScale+/ruckus.tcl`, and :repo:`LCLS-II/gtyUltraScale+/ruckus.tcl` load these sources into the ``lcls_timing_core`` library; a file that is not loaded says so in the Status column.
 
-These wrappers instantiate Xilinx GT primitives and IP cores, so only Vivado builds them and the regression does not simulate them. LCLS-II/ruckus.tcl loads the wrapper directory of the FPGA family being built; the family matrix lists which.
+These wrappers instantiate Xilinx GT primitives and IP cores, so only Vivado builds them and the regression does not simulate them. LCLS-II/ruckus.tcl loads the wrapper directory of the FPGA family being built; the :doc:`family matrix </reference/families>` lists which.
 
 .. list-table::
    :header-rows: 1
@@ -24,7 +24,7 @@ These wrappers instantiate Xilinx GT primitives and IP cores, so only Vivado bui
    * - :ref:`TimingGtCoreWrapper <entity-lcls-ii-gtp7-rtl-timinggtcorewrapper-vhd>`
      - :repo:`LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd`
      - Vivado-only
-     - none
+     - issue pending
    * - :ref:`TimingGtCoreWrapper <entity-lcls-ii-gtx7-rtl-timinggtcorewrapper-vhd>`
      - :repo:`LCLS-II/gtx7/rtl/TimingGtCoreWrapper.vhd`
      - Vivado-only
@@ -488,7 +488,7 @@ Status: Vivado-only
      - in
      - ``slv(2 downto 0)``
 
-Issues: none
+Issues: issue pending
 
 .. _entity-lcls-ii-gtx7-rtl-timinggtcorewrapper-vhd:
 

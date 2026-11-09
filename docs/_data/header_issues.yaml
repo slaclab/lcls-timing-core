@@ -135,3 +135,7 @@ LCLS-II/evr/rtl/EvrV2TrigReg.vhd:
 LCLS-II/evr/tb/EvrV2_tb.vhd:
   kind: empty
   issue: pending
+LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd:
+  kind: contradicts
+  header: Wrapper for GTX7 Core
+  issue: pending

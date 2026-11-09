@@ -155,7 +155,7 @@ DOC_TREES = (
         note=(
             "These wrappers instantiate Xilinx GT primitives and IP cores, so only Vivado builds them and the "
             "regression does not simulate them. LCLS-II/ruckus.tcl loads the wrapper directory of the FPGA family "
-            "being built; the family matrix lists which."
+            "being built; the :doc:`family matrix </reference/families>` lists which."
         ),
     ),
 )
@@ -824,18 +824,360 @@ def render_reference_index(pages):
         for path in pages
         if (match := re.fullmatch(r"reference/([^/]+)/index\.rst", path))
     )
+    top_pages = [
+        match.group(1)
+        for path in pages
+        if (match := re.fullmatch(r"reference/([^/]+)\.rst", path)) and match.group(1) != "index"
+    ]
     return "\n".join(
         [
             title("Reference", "="),
             "Lookup material for the library, generated from the sources by "
-            "``python -m tests.common.gen_docs``: entities with their generics and ports, and the verification "
-            "status of each. Do not edit these pages by hand.",
+            "``python -m tests.common.gen_docs``: entities with their generics and ports, the verification "
+            "status of each, and the FPGA family matrix. Do not edit these pages by hand.",
             "",
             ".. toctree::",
             "   :maxdepth: 1",
             "",
             *[f"   {entry}/index" for entry in entries],
+            *[f"   {page}" for page in sorted(top_pages)],
             "",
+        ]
+    )
+
+
+# ---------------------------------------------------------------------------
+# FPGA family matrix
+# ---------------------------------------------------------------------------
+
+class FamilyRow(NamedTuple):
+    """One row of the family matrix: a family and one GT directory it loads."""
+
+    family: str
+    directory: str
+    wrapper: str
+    vivado_gate: str
+    coregen: str
+    selection: str
+
+
+LCLS_II_RUCKUS = "LCLS-II/ruckus.tcl"
+
+_TCL_COMMENT_RE = re.compile(r"^[ \t]*#.*$", re.MULTILINE)
+_TCL_IF_RE = re.compile(r"if\s*(?=\{)")
+_TCL_ELSE_RE = re.compile(r"\s*else\s*(?=\{)")
+_TCL_SET_RE = re.compile(r'set\s+(\w+)\s+"([^"]*)"')
+_TCL_LOAD_DIR_RE = re.compile(r'loadSource\s+-lib\s+lcls_timing_core\s+-dir\s+"\$::DIR_PATH/rtl/?"')
+_TCL_LOAD_PATH_RE = re.compile(r'loadSource\s+-lib\s+lcls_timing_core\s+-path\s+"([^"]+)"')
+_TCL_LOAD_IP_RE = re.compile(r'loadIpCore\s+-path\s+"([^"]+)"')
+_TCL_LOAD_XDC_RE = re.compile(r'loadConstraints\s+-path\s+"([^"]+)"')
+_TCL_LOAD_RUCKUS_RE = re.compile(r'loadRuckusTcl\s+"\$::DIR_PATH/([^"]+)"')
+_TCL_VIVADO_RE = re.compile(r"\$::env\(VIVADO_VERSION\)\s*(>=|<)\s*([0-9.]+)")
+_TCL_ENV_EQ_RE = re.compile(r"\[info exists ::env\((\w+)\)\]\s*!=\s*0\s*&&\s*\$::env\(\1\)\s*==\s*1")
+_TCL_ENV_UNSET_RE = re.compile(r"\[info exists ::env\((\w+)\)\]\s*!=\s*1\s*\|\|\s*\$::env\(\1\)\s*==\s*0")
+_TCL_FAMILY_RE = re.compile(r'\$\{family\}\s*(?:eq|==)\s*(?:\{(\w+)\}|"(\w+)")')
+_TCL_LOCK_RE = re.compile(r"\[(?:SubmoduleCheck|VersionCheck)\b[^\]]*\]\s*<\s*0")
+
+_VIVADO_NEGATION = {">=": "<", "<": ">="}
+_ENV_NEGATION = {"=1": "not1", "not1": "=1", "unset_or_0": "set_nonzero", "set_nonzero": "unset_or_0"}
+_ENV_WORDS = {
+    "=1": "{0} = 1",
+    "not1": "{0} not 1",
+    "unset_or_0": "{0} unset or 0",
+    "set_nonzero": "{0} set and not 0",
+}
+
+
+def _tcl_group(text, start):
+    """Return (inner text, index after the closing brace) of the brace group that opens at ``text[start]``."""
+    depth = 0
+    for index in range(start, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start + 1:index], index + 1
+    raise ValueError("unbalanced braces in TCL text")
+
+
+def _tcl_nodes(text):
+    """Parse TCL ``text`` into [("if", condition, then nodes, else nodes) or ("cmd", line)] without executing it."""
+    nodes = []
+    position = 0
+    while position < len(text):
+        rest = text[position:]
+        stripped = rest.lstrip()
+        if not stripped:
+            break
+        position += len(rest) - len(stripped)
+        keyword = _TCL_IF_RE.match(text, position)
+        if keyword:
+            condition, position = _tcl_group(text, keyword.end())
+            body_at = text.find("{", position)
+            if body_at < 0 or text[position:body_at].strip():
+                raise ValueError(f"if without a body: {condition.strip()!r}")
+            then_text, position = _tcl_group(text, body_at)
+            else_text = ""
+            other = _TCL_ELSE_RE.match(text, position)
+            if other:
+                else_text, position = _tcl_group(text, other.end())
+            nodes.append(("if", condition.strip(), _tcl_nodes(then_text), _tcl_nodes(else_text)))
+            continue
+        end = text.find("\n", position)
+        end = len(text) if end < 0 else end
+        nodes.append(("cmd", text[position:end].strip()))
+        position = end + 1
+    return nodes
+
+
+def _tcl_terms(condition):
+    """Return (term when true, term when false) of a known TCL condition, or None for a lock check.
+
+    A term is ("vivado", operator, version), ("env", name, kind), or
+    ("family", names). Raises ValueError for any other condition, so a new
+    kind of test in a ruckus.tcl cannot pass unnoticed.
+    """
+    if _TCL_LOCK_RE.search(condition):
+        return None
+    found = _TCL_VIVADO_RE.fullmatch(condition.strip())
+    if found:
+        op, version = found.groups()
+        return ("vivado", op, version), ("vivado", _VIVADO_NEGATION[op], version)
+    for pattern, kind in ((_TCL_ENV_EQ_RE, "=1"), (_TCL_ENV_UNSET_RE, "unset_or_0")):
+        found = pattern.fullmatch(" ".join(condition.split()))
+        if found:
+            return ("env", found.group(1), kind), ("env", found.group(1), _ENV_NEGATION[kind])
+    names = tuple(first or second for first, second in _TCL_FAMILY_RE.findall(condition))
+    if names:
+        return ("family", names), ("not-family", names)
+    raise ValueError(f"unrecognized TCL condition: {condition!r}")
+
+
+def _tcl_leaves(text):
+    """Return [(terms, command)] for every command of ``text``, each with the terms of the branches it runs under.
+
+    Variables set with ``set name "value"`` are substituted in later
+    commands, and a variable set inside a branch applies to the commands that
+    follow, under that branch's terms.
+    """
+    paths = [((), {})]
+
+    def run(nodes, paths):
+        leaves = []
+        for node in nodes:
+            if node[0] == "cmd":
+                updated = []
+                for terms, env in paths:
+                    assign = _TCL_SET_RE.fullmatch(node[1])
+                    if assign:
+                        env = {**env, assign.group(1): assign.group(2)}
+                    else:
+                        command = re.sub(r"\$\{(\w+)\}", lambda m, env=env: env.get(m.group(1), m.group(0)), node[1])
+                        leaves.append((terms, command))
+                    updated.append((terms, env))
+                paths = updated
+                continue
+            _, condition, then_nodes, else_nodes = node
+            pair = _tcl_terms(condition)
+            if pair is None:
+                continue
+            merged = []
+            for terms, env in paths:
+                for branch_terms, body in (((*terms, pair[0]), then_nodes), ((*terms, pair[1]), else_nodes)):
+                    if _feasible(branch_terms):
+                        inner_leaves, inner_paths = run(body, [(branch_terms, env)])
+                        leaves.extend(inner_leaves)
+                        merged.extend(inner_paths)
+            paths = merged
+        return leaves, paths
+
+    leaves, _ = run(_tcl_nodes(_TCL_COMMENT_RE.sub("", text)), paths)
+    return leaves
+
+
+def _version_key(version):
+    return tuple(int(part) for part in version.split("."))
+
+
+def _vivado_bounds(terms):
+    """Return (lowest allowed version or None, first excluded version or None) of the Vivado terms of ``terms``."""
+    lower = [term[2] for term in terms if term[0] == "vivado" and term[1] == ">="]
+    upper = [term[2] for term in terms if term[0] == "vivado" and term[1] == "<"]
+    return (max(lower, key=_version_key) if lower else None, min(upper, key=_version_key) if upper else None)
+
+
+def _feasible(terms):
+    """Return False when ``terms`` can never hold together.
+
+    That is an empty Vivado range, opposite settings of one variable, or a
+    family that is both required and excluded (a build has one family).
+    """
+    low, high = _vivado_bounds(terms)
+    if low and high and _version_key(low) >= _version_key(high):
+        return False
+    kinds = {}
+    allowed = None
+    excluded = set()
+    for term in terms:
+        if term[0] == "env":
+            kinds.setdefault(term[1], set()).add(term[2])
+        elif term[0] == "family":
+            allowed = set(term[1]) if allowed is None else allowed & set(term[1])
+        elif term[0] == "not-family":
+            excluded.update(term[1])
+    if allowed is not None and not allowed - excluded:
+        return False
+    return not any(_ENV_NEGATION[kind] in found for found in kinds.values() for kind in found)
+
+
+def _collapse_vivado(terms):
+    """Return the text of the Vivado terms of ``terms``: one range such as ``Vivado >= 2016.4 and < 2025.1``."""
+    low, high = _vivado_bounds(terms)
+    if low and high:
+        return f"Vivado >= {low} and < {high}"
+    if low:
+        return f"Vivado >= {low}"
+    if high:
+        return f"Vivado < {high}"
+    return ""
+
+
+def _env_texts(terms):
+    return [_ENV_WORDS[kind].format(name) for term in terms if term[0] == "env" for _, name, kind in [term]]
+
+
+def _condition_text(terms):
+    parts = [text for text in [_collapse_vivado(terms), *_env_texts(terms)] if text]
+    return ", ".join(parts) if parts else "always"
+
+
+def _bullets(lines):
+    lines = list(lines)
+    if not lines:
+        return "none"
+    return lines[0] if len(lines) == 1 else "\n".join(f"- {line}" for line in lines)
+
+
+def _gt_directory_facts(repo_root, directory):
+    """Return (wrapper entity, RTL Vivado gate, coregen lines, selection lines) of one GT directory."""
+    root = Path(repo_root) / "LCLS-II" / directory
+    sources = sorted((root / "rtl").glob("*.vhd"))
+    if len(sources) != 1:
+        raise ValueError(f"LCLS-II/{directory}/rtl: expected one .vhd file, found {len(sources)}")
+    wrapper = read_vhdl_unit(sources[0]).name
+    rtl_gate = ""
+    groups = {}
+    for terms, command in _tcl_leaves((root / "ruckus.tcl").read_text(encoding="utf-8")):
+        if _TCL_LOAD_DIR_RE.fullmatch(command):
+            rtl_gate = _collapse_vivado(terms)
+            continue
+        for pattern, kind in ((_TCL_LOAD_IP_RE, None), (_TCL_LOAD_PATH_RE, None), (_TCL_LOAD_XDC_RE, "xdc")):
+            found = pattern.fullmatch(command)
+            if found:
+                path = found.group(1).replace("$::DIR_PATH/", "")
+                relative, name = path.rsplit("/", 1)
+                stem, _, extension = name.rpartition(".")
+                groups.setdefault((relative, extension or kind, terms), []).append(stem)
+    coregen = []
+    selection_sets = {}
+    for (relative, extension, terms), stems in groups.items():
+        coregen.append(f"{relative} ({extension}): {', '.join(sorted(stems))}; {_condition_text(terms)}")
+        for term in terms:
+            if term[0] == "env":
+                selection_sets.setdefault(term[1], {}).setdefault(term, []).append((relative, extension))
+    selection = []
+    for name, by_term in selection_sets.items():
+        differ_by_directory = len({frozenset(r for r, _ in pairs) for pairs in by_term.values()}) > 1
+        for term, pairs in by_term.items():
+            values = sorted({relative if differ_by_directory else extension for relative, extension in pairs})
+            noun = "directory" if differ_by_directory else "file type"
+            selection.append(f"{_ENV_WORDS[term[2]].format(name)}: {noun} {', '.join(values)}")
+    return wrapper, rtl_gate or "none", coregen, selection
+
+
+def read_family_matrix(repo_root=REPO_ROOT):
+    """Return the FamilyRow list read from LCLS-II/ruckus.tcl and the GT ruckus.tcl files it loads.
+
+    One row per family and GT directory, in the order of LCLS-II/ruckus.tcl,
+    so a family that loads two directories has two rows. The files are only
+    parsed (brace matching and regular expressions), never executed.
+    """
+    repo_root = Path(repo_root)
+    text = (repo_root / LCLS_II_RUCKUS).read_text(encoding="utf-8")
+    pairs = []
+    for terms, command in _tcl_leaves(text):
+        families = [term for term in terms if term[0] == "family"]
+        loaded = _TCL_LOAD_RUCKUS_RE.fullmatch(command)
+        if families and loaded:
+            for family in families[-1][1]:
+                pairs.append((family, loaded.group(1)))
+    facts = {}
+    rows = []
+    for family, directory in pairs:
+        if directory not in facts:
+            facts[directory] = _gt_directory_facts(repo_root, directory)
+        wrapper, gate, coregen, selection = facts[directory]
+        rows.append(FamilyRow(family, directory, wrapper, gate, _bullets(coregen), _bullets(selection)))
+    return rows
+
+
+def read_locks(repo_root=REPO_ROOT):
+    """Return (file, check, name, version) for every VersionCheck and SubmoduleCheck in the tracked ruckus.tcl files.
+
+    The root ruckus.tcl comes first, then the others by path; tests/ is skipped.
+    """
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-files", "--", "*ruckus.tcl"], check=True, capture_output=True, text=True
+    )
+    files = sorted((line for line in result.stdout.splitlines() if not line.startswith("tests/")), key=lambda p: (p != "ruckus.tcl", p))
+    locks = []
+    for path in files:
+        text = _TCL_COMMENT_RE.sub("", (Path(repo_root) / path).read_text(encoding="utf-8"))
+        for match in re.finditer(r"\b(VersionCheck)\s+([0-9.]+)|\b(SubmoduleCheck)\s+\{(\w+)\}\s+\{([0-9.]+)\}", text):
+            if match.group(1):
+                locks.append((path, "VersionCheck", "Vivado", match.group(2)))
+            else:
+                locks.append((path, "SubmoduleCheck", match.group(4), match.group(5)))
+    return locks
+
+
+def render_families(repo_root=REPO_ROOT):
+    """Return reference/families.rst: the family matrix and the version checks."""
+    rows = [
+        [
+            family.family,
+            repo_link(f"LCLS-II/{family.directory}/ruckus.tcl"),
+            family.wrapper,
+            family.vivado_gate,
+            family.coregen,
+            family.selection,
+        ]
+        for family in read_family_matrix(repo_root)
+    ]
+    locks = [[repo_link(path), check, name, version] for path, check, name, version in read_locks(repo_root)]
+    return "\n".join(
+        [
+            title("FPGA families, Vivado, and coregen", "="),
+            f"{repo_link(LCLS_II_RUCKUS)} asks ruckus for the FPGA family of the build and loads the transceiver "
+            "wrapper directories listed here. The table has one row for each family and directory, so a family that "
+            "loads two directories has two rows.",
+            "",
+            list_table(
+                ["Family", "Directory", "Wrapper entity", "Vivado gate on the RTL", "Coregen IP loaded", "Selected by"],
+                rows,
+                widths=[11, 17, 14, 11, 30, 17],
+            ),
+            "The coregen column lists, for each Vivado version range and environment variable setting, the directory, "
+            "the file type, and the IP cores that the directory's ``ruckus.tcl`` loads. Outside the listed ranges the "
+            "directory loads no IP and its ``ruckus.tcl`` prints a warning.",
+            "",
+            "The transceiver wrappers are not simulated in CI, see :doc:`entities/gt`.",
+            "",
+            title("Version checks and locks", "-"),
+            "Every ``VersionCheck`` and ``SubmoduleCheck`` in the repository's ``ruckus.tcl`` files, as found.",
+            "",
+            list_table(["File", "Check", "Name", "Version"], locks, widths=[40, 20, 20, 20]),
         ]
     )
 
@@ -847,6 +1189,7 @@ def render_reference_index(pages):
 def render_all(repo_root=REPO_ROOT):
     """Return {docs-relative path: text} of every generated page, sorted by path."""
     pages = render_entities(repo_root)
+    pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)
     for path, text in pages.items():
         try:

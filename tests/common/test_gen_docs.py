@@ -21,7 +21,7 @@ Test methodology:
     Checks: the empty and missing header sets equal the header sidecar in
         both directions and each contradicts entry pins the current header
         text, sidecar kinds are known and links are issue URLs or pending,
-        the verification status of every core entity follows the CI
+        the verification status of every entity and module follows the CI
         baselines (baseline-excluded, not simulated, and not loaded sets are
         exact), the issues cell orders links by number with pending last,
         an entity without generics or ports renders none, a missing purpose
@@ -32,8 +32,12 @@ Test methodology:
         the purposes sidecar has exactly the rendered files as keys and no
         purpose repeats a banner header, every purpose is one to three plain
         sentences, every rendered entity has one known status, and the two
-        files that declare BsaControl render as distinct rows, and the core
-        tree renders every documented file.
+        files that declare BsaControl render as distinct rows, the four
+        Verilog modules read as declared (non-ANSI and ANSI headers,
+        parameters, port ranges) and a port without a direction is rejected,
+        the four GT wrappers that share an entity name get distinct titles,
+        and the family matrix and the version checks equal a hand-written
+        table, including two rows for a family that loads two directories.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -58,6 +62,8 @@ from tests.common.gen_docs import (
     issue_cell,
     list_table,
     load_sidecar,
+    read_family_matrix,
+    read_locks,
     read_verilog_unit,
     read_vhdl_unit,
     render_all,
@@ -515,6 +521,104 @@ def test_duplicate_gt_wrappers_get_distinct_titles():
     assert page.count("Vivado-only") >= 5
     rows = re.findall(r"^   \* - :ref:`(\w+) <entity-[^>]+>`\n     - :repo:`([^`]+)`\n     - Vivado-only$", page, re.MULTILINE)
     assert len(rows) == 5
+
+
+_GTH_XCI = "LCLS_TIMING_GTH_XCI"
+_GTY_XCI = "LCLS_TIMING_GTY_XCI"
+_GTH = "TimingGth_extref, TimingGth_fixedlat"
+_GTY = "TimingGty_extref, TimingGty_fixedlat"
+
+
+def _bullets(*lines):
+    return "\n".join(f"- {line}" for line in lines)
+
+
+# Written by hand from LCLS-II/ruckus.tcl and the five GT ruckus.tcl files, not produced by the parser.
+_GTH_US_COREGEN = _bullets(
+    f"coregen/2025.1 (xci): {_GTH}; Vivado >= 2025.1, {_GTH_XCI} = 1",
+    f"coregen/2025.1 (dcp): {_GTH}; Vivado >= 2025.1, {_GTH_XCI} not 1",
+    f"coregen/2025.1 (xdc): TimingGth_fixedlat; Vivado >= 2025.1, {_GTH_XCI} not 1",
+    f"coregen/2016.4 (xci): {_GTH}; Vivado >= 2016.4 and < 2025.1, {_GTH_XCI} = 1",
+    f"coregen/2016.4 (dcp): {_GTH}; Vivado >= 2016.4 and < 2025.1, {_GTH_XCI} not 1",
+)
+_GTH_US_SELECT = _bullets(f"{_GTH_XCI} = 1: file type xci", f"{_GTH_XCI} not 1: file type dcp, xdc")
+_GTH_PLUS_COREGEN = _bullets(
+    f"coregen (xci): {_GTH}; Vivado >= 2022.2, {_GTH_XCI} = 1",
+    f"coregen (dcp): {_GTH}; Vivado >= 2022.2, {_GTH_XCI} not 1",
+)
+_GTH_PLUS_SELECT = _bullets(f"{_GTH_XCI} = 1: file type xci", f"{_GTH_XCI} not 1: file type dcp")
+_GTY_COREGEN = _bullets(
+    f"coregen (xci): {_GTY}, TimingGty_fixedlat_Lcls1Only; Vivado >= 2021.1, TIMING_246MHz unset or 0, {_GTY_XCI} = 1",
+    f"coregen (dcp): {_GTY}, TimingGty_fixedlat_Lcls1Only; Vivado >= 2021.1, TIMING_246MHz unset or 0, {_GTY_XCI} not 1",
+    f"coregen/smurf (xci): {_GTY}; Vivado >= 2018.2, TIMING_246MHz set and not 0, {_GTY_XCI} = 1",
+    f"coregen/smurf (dcp): {_GTY}; Vivado >= 2018.2, TIMING_246MHz set and not 0, {_GTY_XCI} not 1",
+)
+_GTY_SELECT = _bullets(
+    "TIMING_246MHz unset or 0: directory coregen",
+    "TIMING_246MHz set and not 0: directory coregen/smurf",
+    f"{_GTY_XCI} = 1: file type xci",
+    f"{_GTY_XCI} not 1: file type dcp",
+)
+_US_PLUS_FAMILIES = ("kintexuplus", "virtexuplus", "virtexuplusHBM", "zynquplus", "zynquplusRFSOC", "qzynquplusRFSOC")
+
+EXPECTED_FAMILIES = [
+    ("artix7", "gtp7", "TimingGtCoreWrapper", "none", "none", "none"),
+    ("kintex7", "gtx7", "TimingGtCoreWrapper", "none", "none", "none"),
+    ("kintexu", "gthUltraScale", "TimingGtCoreWrapper", "Vivado >= 2016.4", _GTH_US_COREGEN, _GTH_US_SELECT),
+    *[(f, "gtyUltraScale+", "TimingGtCoreWrapper", "none", _GTY_COREGEN, _GTY_SELECT) for f in _US_PLUS_FAMILIES],
+    *[
+        (f, "gthUltraScale+", "TimingGthCoreWrapper", "Vivado >= 2022.2", _GTH_PLUS_COREGEN, _GTH_PLUS_SELECT)
+        for f in _US_PLUS_FAMILIES
+    ],
+]
+
+
+def test_family_matrix_matches_the_reviewed_table():
+    assert [tuple(row) for row in read_family_matrix(REPO_ROOT)] == EXPECTED_FAMILIES
+    assert len(EXPECTED_FAMILIES) == 15
+
+
+def test_a_family_that_loads_two_directories_gets_two_rows():
+    rows = read_family_matrix(REPO_ROOT)
+    for family in _US_PLUS_FAMILIES:
+        mine = [row for row in rows if row.family == family]
+        assert [row.directory for row in mine] == ["gtyUltraScale+", "gthUltraScale+"], family
+        assert mine[0].wrapper != mine[1].wrapper
+    assert [row.family for row in rows if row.directory == "gthUltraScale"] == ["kintexu"]
+    page = render_all(REPO_ROOT)["reference/families.rst"]
+    assert page.count("LCLS-II/gtyUltraScale+/ruckus.tcl") == 6
+    assert page.count("LCLS-II/gthUltraScale+/ruckus.tcl") == 6
+    for name in ("LCLS_TIMING_GTH_XCI", "LCLS_TIMING_GTY_XCI", "TIMING_246MHz"):
+        assert name in page
+
+
+def test_family_parser_rejects_an_unknown_condition(tmp_path):
+    (tmp_path / "LCLS-II").mkdir()
+    (tmp_path / "LCLS-II" / "ruckus.tcl").write_text(
+        "if { $::env(SURPRISE) == 3 } {\n   loadRuckusTcl \"$::DIR_PATH/gtp7\"\n}\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="SURPRISE"):
+        read_family_matrix(tmp_path)
+
+
+def test_locks_are_read_from_every_ruckus_file():
+    locks = read_locks(REPO_ROOT)
+    assert locks == [
+        ("ruckus.tcl", "VersionCheck", "Vivado", "2019.1"),
+        ("ruckus.tcl", "SubmoduleCheck", "ruckus", "2.1.2"),
+        ("ruckus.tcl", "SubmoduleCheck", "surf", "2.53.0"),
+        ("LCLS-II/gtx7/ruckus.tcl", "SubmoduleCheck", "surf", "2.74.0"),
+    ]
+    tracked = source_inventory.repo_ruckus_files(REPO_ROOT)
+    assert len(tracked) == 10
+    seen = sum(
+        len(re.findall(r"^[^#\n]*\b(?:VersionCheck|SubmoduleCheck)\b", (REPO_ROOT / path).read_text(encoding="utf-8"), re.MULTILINE))
+        for path in tracked
+    )
+    assert seen == len(locks)
+    page = render_all(REPO_ROOT)["reference/families.rst"]
+    for _, check, name, version in locks:
+        assert name in page and version in page and check in page
 
 
 def test_core_tree_renders_every_documented_file():
