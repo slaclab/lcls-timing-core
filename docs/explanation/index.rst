@@ -12,3 +12,5 @@ wrappers, and the host software fit together, and why they are built that way.
    clocking_cdc
    gt_families
    extension_package
+   tpg
+   bsa

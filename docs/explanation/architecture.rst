@@ -188,7 +188,7 @@ Inside ``TPGMini``, ``TPSerializer``
 segments and ``TimingSerializer``
 (:repo:`LCLS-II/core/rtl/TimingSerializer.vhd`) frames the segments, appends the
 CRC, and produces the words for the transmitter. The pattern generator
-is described on its own page.
+is described on :doc:`tpg`.
 
 The whole transmit chain is checked end to end by looping the serializer output
 back into the receivers in :repo:`tests/lcls2_core/test_TimingLoopback.py`.
