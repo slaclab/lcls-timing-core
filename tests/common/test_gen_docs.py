@@ -54,7 +54,9 @@ Test methodology:
         importing Rogue, every device class has one page with its gated issues,
         and the YAML map page has one section per file with the parse
         failures, the missing include, and the spliced fields of an including
-        map.
+        map, and every message layout include is generated from its model table:
+        the printed ranges equal field_layout, the totals equal the declared
+        sizes, and an empty or zero-width table is rejected.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -68,7 +70,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.common import gen_docs, pyrogue_ast, register_drift, register_tables, yaml_maps
+from tests.common import gen_docs, pyrogue_ast, register_drift, register_tables, timing_model, yaml_maps
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
@@ -1427,3 +1429,52 @@ def test_collapse_yaml_elements_joins_only_regular_device_arrays():
     assert [shown for _, shown in gen_docs.collapse_yaml_elements(inner)] == [None, None]
     single = [row("d[0].x", 0)]
     assert [shown for _, shown in gen_docs.collapse_yaml_elements(single)] == [None]
+
+
+LAYOUT_ROW_RE = re.compile(r"^   \[(\d+):(\d+)\]\s+(\d+(?: x \d+)?)\s+(\S+)$")
+
+
+def parsed_layout(text):
+    """Return [(field, low, high, width text)] read back from a generated layout include."""
+    rows = []
+    for line in text.splitlines():
+        match = LAYOUT_ROW_RE.match(line)
+        if match:
+            high, low, width, field = match.groups()
+            rows.append((field.split("[")[0], int(low), int(high), width))
+    return rows
+
+
+def test_layout_ranges_equal_the_model():
+    pages = gen_docs.render_layouts()
+    assert sorted(pages) == sorted(f"_generated/{name}.inc" for name, *_ in gen_docs.LAYOUTS)
+    for name, _, table, _ in gen_docs.LAYOUTS:
+        text = pages[f"_generated/{name}.inc"]
+        expected = [
+            (field, offset, offset + width * count - 1, str(width) if count == 1 else f"{count} x {width}")
+            for field, (offset, width, count) in timing_model.field_layout(table).items()
+        ]
+        assert parsed_layout(text) == expected, name
+        assert "code-block:: text" in text
+
+
+def test_layout_totals_equal_the_declared_sizes():
+    for name, _, table, total in gen_docs.LAYOUTS:
+        text = gen_docs.render_layouts()[f"_generated/{name}.inc"]
+        rows = parsed_layout(text)
+        assert rows[0][1] == 0 and rows[-1][2] == total - 1, name
+        for (_, _, high, _), (_, low, _, _) in zip(rows, rows[1:]):
+            assert low == high + 1, f"{name}: gap or overlap at bit {low}"
+        assert f"{total} bits, packed least significant bit first" in text
+        assert f"   total: {total} bits" in text
+
+
+def test_layout_rejects_an_empty_or_zero_width_table():
+    with pytest.raises(ValueError, match="layout table Empty is empty"):
+        gen_docs.render_layout("Empty", (), 0)
+    with pytest.raises(ValueError, match="layout table Narrow field a has width 0"):
+        gen_docs.render_layout("Narrow", (("a", 0, 1), ("b", 8, 1)), 8)
+    with pytest.raises(ValueError, match="layout table Sparse field a has width 4 and count 0"):
+        gen_docs.render_layout("Sparse", (("a", 4, 0), ("b", 8, 1)), 8)
+    with pytest.raises(ValueError, match="layout table Short holds 8 bits, expected 9"):
+        gen_docs.render_layout("Short", (("a", 8, 1),), 9)

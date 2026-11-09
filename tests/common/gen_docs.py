@@ -41,7 +41,7 @@ from typing import NamedTuple
 
 import yaml
 
-from tests.common import pyrogue_ast, register_tables
+from tests.common import pyrogue_ast, register_tables, timing_model
 from tests.common.register_drift import (
     ALLOWLIST,
     BITS_PER_BYTE,
@@ -2553,6 +2553,67 @@ def render_yaml_maps(root=YAML_DIR):
 
 
 # ---------------------------------------------------------------------------
+# Message layouts generated from the model tables
+# ---------------------------------------------------------------------------
+
+LAYOUT_INCLUDE_DIR = "_generated"
+
+# (include name, record name, model table, declared size in bits)
+LAYOUTS = (
+    ("timing_message", "TimingMessageType", timing_model.MESSAGE_FIELDS, timing_model.TIMING_MESSAGE_BITS),
+)
+
+
+def layout_rows(table):
+    """Return (bits, width, field) strings per table entry in least significant bit first order."""
+    layout = timing_model.field_layout(table)
+    rows = []
+    for name, (offset, width, count) in layout.items():
+        high = offset + width * count - 1
+        bits = f"[{high}:{offset}]"
+        if count == 1:
+            rows.append((bits, str(width), name))
+        else:
+            rows.append((bits, f"{count} x {width}", f"{name}[0..{count - 1}]"))
+    return rows
+
+
+def render_layout(title, table, total):
+    """Return the text of one layout include for the model ``table``.
+
+    The text is a caption paragraph and a ``code-block:: text`` with one row per
+    field: ``[high:low]`` bit range, element width (``n x w`` for an array), and
+    the field name, least significant bit first. An empty table, a field of zero
+    width or zero count, or a table whose size differs from ``total`` raises
+    ValueError naming the table.
+    """
+    if not table:
+        raise ValueError(f"layout table {title} is empty")
+    for name, width, count in table:
+        if width < 1 or count < 1:
+            raise ValueError(f"layout table {title} field {name} has width {width} and count {count}")
+    size = sum(width * count for _, width, count in table)
+    if size != total:
+        raise ValueError(f"layout table {title} holds {size} bits, expected {total}")
+    rows = layout_rows(table)
+    header = ("bits", "width", "field")
+    widths = [max(len(row[column]) for row in (header, *rows)) for column in range(3)]
+    lines = [f"{title}: {total} bits, packed least significant bit first.", "", ".. code-block:: text", ""]
+    for row in (header, *rows):
+        lines.append(("   " + "  ".join(cell.ljust(widths[index]) for index, cell in enumerate(row))).rstrip())
+    lines.append(f"   total: {total} bits")
+    return "\n".join(lines) + "\n"
+
+
+def render_layouts():
+    """Return {docs-relative path: text} of every layout include."""
+    return {
+        f"{LAYOUT_INCLUDE_DIR}/{name}.inc": render_layout(title_text, table, total)
+        for name, title_text, table, total in LAYOUTS
+    }
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
@@ -2561,6 +2622,7 @@ def render_all(repo_root=REPO_ROOT):
     pages = render_entities(repo_root)
     pages.update(render_registers(repo_root))
     pages.update(render_pyrogue(repo_root))
+    pages.update(render_layouts())
     pages[YAML_MAPS_PAGE] = render_yaml_maps()
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)

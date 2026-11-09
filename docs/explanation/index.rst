@@ -9,6 +9,7 @@ wrappers, and the host software fit together, and why they are built that way.
 
    overview
    architecture
+   timing_message
    clocking_cdc
    gt_families
    extension_package
