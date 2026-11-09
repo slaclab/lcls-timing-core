@@ -2,7 +2,8 @@
 # -> {value: whole 32-bit word read after reset, test: <repo path>::<function>, basis: text of that assert}.
 # Each value is copied from the assertion the entry cites, never measured or guessed here; a word without an
 # entry renders "not asserted". The basis is the integer literal the read word is compared with, or the name
-# of the function or constant that computes the expected word.
+# of the function or constant that computes the expected word. A word that holds a bit the testbench drives
+# from an input (a counter, a status flag) is not listed: its value is the driven pattern, not a reset.
 EvrV2TriggerReg:
   default:
     "0x000": {value: "0x00010000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
@@ -13,3 +14,150 @@ EvrV2TriggerReg:
     "0x004": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
     "0x008": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
     "0x00C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2TrigReg.py::check_walks", basis: reset_word}
+EvrV2ChannelReg:
+  default:
+    "0x000": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x004": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x008": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+  dmaEnable:
+    "0x000": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x004": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x008": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x00C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+    "0x010": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2ChannelReg.py::check_walks", basis: reset_word}
+EvrV2Core:
+  default:
+    "0x000": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x010": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x014": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x018": {value: "0x00FFFFFF", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x020": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x024": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x02C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x030": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x040": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x044": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x04C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x050": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x060": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x064": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x06C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x070": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x080": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x084": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x08C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x090": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0A0": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0A4": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0AC": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0B0": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0C0": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0C4": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0CC": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0D0": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0E0": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0E4": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0EC": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x0F0": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x100": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x104": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x10C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x110": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x120": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x124": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x12C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x130": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x140": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x144": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x14C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x150": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x160": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x164": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x16C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x170": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x180": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x184": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x18C": {value: "0x00000000", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+    "0x190": {value: "0x00000001", test: "tests/lcls2_evr/test_EvrV2Axi.py::check_walks", basis: want}
+GthRxAlignCheck:
+  default:
+    "0x000": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x004": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x008": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x00C": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x010": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x014": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x018": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x01C": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x020": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x024": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+    "0x100": {value: "0x00037E10", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: config_word}
+    "0x104": {value: "0x00000000", test: "tests/lcls2_core/test_GthRxAlignCheck.py::align_reset_values", basis: "0"}
+EvrV1Reg:
+  default:
+    "0x004": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x008": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x00C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x010": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x014": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x020": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x04C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x0A0": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x0A4": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x0A8": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x0AC": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x0B0": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x200": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x204": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x208": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x20C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x210": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x214": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x218": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x21C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x220": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x224": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x228": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x22C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x230": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x234": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x238": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x23C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x240": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x244": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x248": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x24C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x250": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x254": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x258": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x25C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x260": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x264": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x268": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x26C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x270": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x274": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x278": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x27C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x280": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x284": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x288": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x28C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x290": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x294": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x298": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x29C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2A0": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2A4": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2A8": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2AC": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2B0": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2B4": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2B8": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x2BC": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x440": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x444": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x448": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x44C": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x450": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}
+    "0x454": {value: "0x00000000", test: "tests/lcls1_evr/test_EvrV1Reg.py::evrv1reg_walk_writable_words", basis: "0"}

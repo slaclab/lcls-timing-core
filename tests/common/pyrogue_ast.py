@@ -42,12 +42,19 @@ reported as ``"RW"``, the PyRogue default, and a missing ``offset`` or
 
 import ast
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple
+
+from tests.common import register_drift
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+PYTHON_DIR = REPO_ROOT / "python"
+MAX_CHILD_DEPTH = 3
 
 NON_LITERAL = "<non-literal>"
 
 REMOTE_VARIABLE = "RemoteVariable"
 REMOTE_VARIABLES = "addRemoteVariables"
+REMOTE_COMMAND = "RemoteCommand"
 BITS_PER_BYTE = 8
 
 
@@ -179,20 +186,114 @@ def read_remote_variables(path) -> List[RemoteVar]:
         return parse_remote_variables(handle.read(), str(path))
 
 
+class _CommandReader(ast.NodeVisitor):
+    """Collect (name, description) of every ``RemoteCommand(...)`` call; commands are not register declarations."""
+
+    def __init__(self) -> None:
+        self.found: List[Tuple[Any, Optional[str]]] = []
+
+    def visit_Call(self, node: ast.Call) -> None:
+        if _call_name(node) == REMOTE_COMMAND:
+            keywords = {kw.arg: _literal(kw.value) for kw in node.keywords if kw.arg is not None}
+            self.found.append((keywords.get("name", NON_LITERAL), keywords.get("description")))
+        self.generic_visit(node)
+
+
 def read_descriptions(path) -> Dict[str, Optional[str]]:
     """Return {base variable name: description} for the PyRogue file at ``path``.
 
     The base name is the declared ``name`` without an element index, so every
-    element of an array declaration shares one entry. The description is the
+    element of an array declaration shares one entry. Register variables and
+    ``RemoteCommand`` declarations are both read. The description is the
     literal ``description`` keyword, None when the declaration has none. A
     name declared twice (in both branches of an ``if``) keeps its first
     description that is not None.
     """
     found: Dict[str, Optional[str]] = {}
-    for var in read_remote_variables(path):
-        name = var.name.split("[", 1)[0]
+    with open(Path(path), "r", encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), filename=str(path))
+    commands = _CommandReader()
+    commands.visit(tree)
+    reader = _Reader()
+    reader.visit(tree)
+    declared = [(var.name.split("[", 1)[0], var.description) for var in reader.found] + commands.found
+    for name, description in declared:
         if found.get(name) is None:
-            found[name] = var.description
+            found[name] = description
+    return found
+
+
+def _files(path, base: int, prefix: str, depth: int = 0) -> Iterator[Tuple[Path, int, str]]:
+    """Yield (file, byte offset base, name prefix) for a file and its child devices, parent first.
+
+    A composite file adds child devices; each child file is read the same way
+    at the child's offset and its names carry the child's name.
+    """
+    if depth > MAX_CHILD_DEPTH:
+        raise ValueError(f"{path}: child devices nest deeper than three levels")
+    yield Path(path), base, prefix
+    for child in read_child_devices(path):
+        if not isinstance(child.offset, int):
+            raise ValueError(f"{path}:{child.line}: child {child.name} offset is not a literal")
+        yield from _files(
+            Path(path).with_name(f"{child.cls}.py"), base + child.offset, f"{prefix}{child.name}.", depth + 1
+        )
+
+
+def _walk(path, base: int, prefix: str) -> Iterator[Tuple[Path, str, int, RemoteVar]]:
+    """Yield (file, name prefix, byte offset base, declaration) for a file and its child devices."""
+    for file, file_base, file_prefix in _files(path, base, prefix):
+        for var in read_remote_variables(file):
+            yield file, file_prefix, file_base, var
+
+
+def declared_fields(class_name, block, python_dir=None):
+    """RegFields for a class read from its source file, for a class Rogue rejects.
+
+    The declarations are read with ast and never run, so a class whose tree
+    cannot be built is still compared. Array declarations are expanded from
+    their literal number and stride; a composite class (TPG) reads each
+    child's file at the child's offset, and the names carry the child names.
+    """
+    root = Path(python_dir) if python_dir is not None else PYTHON_DIR
+    fields = []
+    for path, prefix, base, var in _walk(root / "LclsTimingCore" / f"{class_name}.py", 0, ""):
+        for label, value in (("offset", var.offset), ("bit_offset", var.bit_offset), ("bit_size", var.bit_size)):
+            if not isinstance(value, int):
+                raise ValueError(f"{path}:{var.line}: {var.name} {label} is not a literal ({value!r})")
+        name, index = register_drift.split_index(prefix + var.name)
+        fields.append(
+            register_drift.RegField(
+                block=block,
+                name=name,
+                index=index,
+                byte_offset=base + var.offset,
+                bit_offset=var.bit_offset,
+                bit_size=var.bit_size,
+                mode=var.mode,
+                source="python",
+                line=var.line,
+                readable=var.mode in ("RW", "RO"),
+                writable=var.mode in ("RW", "WO"),
+            )
+        )
+    return fields
+
+
+def declared_descriptions(class_name, python_dir=None) -> Dict[str, Optional[str]]:
+    """Return {variable name: description} for a class and its child devices, read with ast.
+
+    The name has the element index removed and carries the child device names
+    (``EvrV2ChannelReg.RateSel``), the same name ``declared_fields`` reports.
+    The first description that is not None wins when a name is declared twice.
+    """
+    root = Path(python_dir) if python_dir is not None else PYTHON_DIR
+    found: Dict[str, Optional[str]] = {}
+    for file, _, prefix in _files(root / "LclsTimingCore" / f"{class_name}.py", 0, ""):
+        for base_name, description in read_descriptions(file).items():
+            name = register_drift.split_index(prefix + base_name)[0]
+            if found.get(name) is None:
+                found[name] = description
     return found
 
 

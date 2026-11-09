@@ -86,7 +86,6 @@ RTL generics: ``TRIGGERS_C`` = ``1``, ``USE_TAP_C`` = ``False``, ``EVR_CARD_G`` 
      - not compared
      - Width in ticks
 
-
 Variant useTap
 --------------
 
@@ -130,7 +129,8 @@ RTL generics: ``TRIGGERS_C`` = ``1``, ``USE_TAP_C`` = ``True``, ``EVR_CARD_G`` =
      - ``0x0``
      - differs: bitOffset :issue:`214`
        at 0x000 [29] RW
-     - agrees
+     - differs from Python: bitOffset :issue:`214`
+       at 0x000 [28] RW
      - Enable complementary trigger outputs
    * - ``0x000``
      - ``ComplAnd``
@@ -140,7 +140,8 @@ RTL generics: ``TRIGGERS_C`` = ``1``, ``USE_TAP_C`` = ``True``, ``EVR_CARD_G`` =
      - ``0x0``
      - differs: bitOffset :issue:`214`
        at 0x000 [30] RW
-     - agrees
+     - differs from Python: bitOffset :issue:`214`
+       at 0x000 [29] RW
      - Complementary trigger logic
    * - ``0x000``
      - ``EnableTrig``

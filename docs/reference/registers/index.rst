@@ -1,7 +1,7 @@
 Register maps
 =============
 
-One page per register block. Each table is read from the RTL address decode, one table per generic or argument variant. Offset is the byte address of the 32-bit word and Bits the position inside it. Mode is read-write (RW), read-only (RO), or write-only (WO) as the RTL decodes it. Reset is the slice of the word that a simulation asserts after reset, or ``not asserted`` when no test checks it. The Python and YAML columns compare the PyRogue declaration and the CPSW map with the RTL field. Description is the ``description`` text of the Python variable.
+One page per register block. Each table is read from the RTL address decode, one table per generic or argument variant. Offset is the byte address of the 32-bit word and Bits the position inside it. Mode is read-write (RW), read-only (RO), or write-only (WO) as the RTL decodes it. Reset is the slice of the word that a simulation asserts after reset, or ``not asserted`` when no test checks it; a word that mixes in a bit the testbench drives from an input is not listed. The Python and YAML columns compare the PyRogue declaration and the CPSW map with the RTL field. Description is the ``description`` text of the Python variable.
 
 .. list-table::
    :header-rows: 1
@@ -24,3 +24,10 @@ One page per register block. Each table is read from the RTL address decode, one
    :maxdepth: 1
 
    EvrV2TriggerReg
+   EvrV2ChannelReg
+   EvrV2Core
+   EvrV1Isr
+   GthRxAlignCheck
+   TimingFrameRx
+   TPGMiniCore
+   EvrV1Reg

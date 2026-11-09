@@ -699,6 +699,18 @@ def defined_names(tree):
     return names
 
 
+def assigned_names(functions):
+    """Return the names assigned inside the given function nodes (the computation an assert compares with)."""
+    return {
+        target.id
+        for function in functions
+        for node in ast.walk(function)
+        if isinstance(node, ast.Assign)
+        for target in node.targets
+        if isinstance(target, ast.Name)
+    }
+
+
 def cite_problems(entry, source):
     """Return why an entry's cited function does not support its value (empty means it does)."""
     tree = ast.parse(source)
@@ -722,8 +734,8 @@ def cite_problems(entry, source):
     if LITERAL_RE.fullmatch(basis):
         if int(basis, 0) != int(entry["value"], 16):
             return [f"literal basis {basis} differs from the value {entry['value']}"]
-    elif basis not in defined_names(tree):
-        return [f"basis {basis!r} is not defined in the cited file"]
+    elif basis not in defined_names(tree) | assigned_names(found):
+        return [f"basis {basis!r} is not defined in the cited file or assigned in the cited function"]
     return []
 
 
@@ -795,6 +807,9 @@ def test_cite_check_accepts_matching_and_rejects_seeded_entries():
     assert cite_problems({**ok, "basis": "ZERO"}, CITED), "a name that is not inside an assert must fail"
     named = {**ok, "basis": "reset_word", "test": "t.py::check"}
     assert cite_problems(named, CITED.replace("def reset_word", "def renamed")), "an undefined name must fail"
+    local = "def check():\n    want = compute()\n    assert 1 == want, 'after reset'\ndef other():\n    miss = 2\n"
+    assert cite_problems({**ok, "test": "t.py::check", "basis": "want"}, local) == [], "a local computation is valid"
+    assert cite_problems({**ok, "test": "t.py::check", "basis": "miss"}, local), "another function's local must fail"
 
 
 def test_reset_entries_are_decoded_words():
@@ -873,6 +888,14 @@ def test_table_drift_matches_the_allowlist():
     assert reasons == []
 
 
+KIND_RE = re.compile(r"\b(?:missing-in-\w+|offset|bitOffset|bitSize|mode)\b")
+
+
+def cell_kinds(cell):
+    """Return the drift kinds a cell names on its first line (empty for agrees, not compared, absent)."""
+    return set(KIND_RE.findall(cell.split("\n")[0]))
+
+
 def test_rows_show_every_drift_the_comparison_reports():
     for block, variant in block_variants(gen_docs.REGISTER_BLOCKS):
         sources = gen_docs.block_sources(block, variant)
@@ -885,15 +908,13 @@ def test_rows_show_every_drift_the_comparison_reports():
         for entry in inside:
             for source in ("python", "yaml"):
                 cell = gen_docs.rtl_agreement(block.name, entry, source, state if source == "yaml" else "compared")
-                if cell.startswith("differs: "):
-                    shown.update((entry.name, kind.split(" ")[0]) for kind in cell.split("\n")[0][9:].split(", "))
-                elif cell.startswith("absent"):
+                shown.update((entry.name, kind) for kind in cell_kinds(cell))
+                if cell.startswith("absent"):
                     shown.add((entry.name, f"missing-in-{source}"))
         for entry in outside:
             cell = gen_docs.python_agreement(block.name, entry, state)
-            if cell.startswith("differs: "):
-                shown.update((entry.name, kind.split(" ")[0]) for kind in cell.split("\n")[0][9:].split(", "))
-            elif cell.startswith("absent"):
+            shown.update((entry.name, kind) for kind in cell_kinds(cell))
+            if cell.startswith("absent"):
                 shown.add((entry.name, "missing-in-yaml"))
         assert shown == {item for item in reported if not item[0].startswith("<")}, (block.name, variant.id)
 
@@ -908,7 +929,7 @@ def description_literals(source):
         keywords = {kw.arg: kw.value for kw in node.keywords if kw.arg}
         name = keywords["name"].value if isinstance(keywords.get("name"), ast.Constant) else None
         text = keywords.get("description")
-        if isinstance(text, ast.Constant) and isinstance(text.value, str):
+        if isinstance(text, ast.Constant) and isinstance(text.value, str) and text.value:
             described.add(text.value)
         elif name is not None:
             bare.add(name)
