@@ -13,129 +13,142 @@
 
 LCLS-I/evr/EvrV1Core.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1CoreIsrCtrl.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1Databuff.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1DbusDecode.v:
   kind: missing
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1EventRAM256x32.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1EventReceiver.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1EventReceiverChannel.v:
   kind: missing
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
+LCLS-I/evr/EvrV1HeartBeat.vhd:
+  kind: contradicts
+  header: EvrHeartBeat LED output
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1Pkg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1Reg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1TimeStampFIFO.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1TimeStampGenerator.v:
   kind: missing
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-I/evr/EvrV1TimeofDayReceiver.v:
   kind: missing
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/CtrControl.vhd:
   kind: contradicts
   header: >-
     Translation of BSA DEF to control bits in timing pattern Status
     updates: nToAvgOut, avgToWrOut count up
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/EthTimingModule.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMini.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMiniCore.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMiniEdef.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMiniEdefPkg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMiniEdefTb.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGMiniReg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TPGNotify.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingCore.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingDeserializer.vhd:
   kind: contradicts
   header: >-
     Generates a 16b serial stream of the LCLS-II timing message.
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingFrameRx.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingGthWrapper.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingMsgAxiRingBuffer.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingMsgDelay.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingPkg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/TimingStreamTx.vhd:
   kind: contradicts
   header: >-
     Generates a 16b serial stream of the LCLS-II timing message.
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/core/rtl/default/TimingExtnPkg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2Axi.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2Cache.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2ChannelReg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2CoreChannels.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2Module.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2Pkg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/rtl/EvrV2TrigReg.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
+LCLS-II/evr/rtl/EvrV2Trigger.vhd:
+  kind: contradicts
+  header: >-
+    Pipeline of trigger output state. The trigger output activates
+    config.delay plus 5 clk ticks after fire is asserted and deasserts after
+    config.width clk ticks. The FIFO allows up to 127 triggers to be
+    pipelined. Individual trigger delays and widths have 20 bits range,
+    provided the 127 trigger pipelining is not exceeded.
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/evr/tb/EvrV2_tb.vhd:
   kind: empty
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239
 LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd:
   kind: contradicts
   header: Wrapper for GTX7 Core
-  issue: pending
+  issue: https://github.com/slaclab/lcls-timing-core/issues/239

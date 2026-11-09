@@ -81,7 +81,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.common import gen_docs, pyrogue_ast, register_drift, register_tables, timing_model, yaml_maps
+from tests.common import gen_docs, ghdl_analysis, pyrogue_ast, register_drift, register_tables, timing_model, yaml_maps
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
@@ -408,9 +408,10 @@ def test_entity_issues_link_the_baseline_and_the_unloaded_files():
     units = {path: read_vhdl_unit(REPO_ROOT / path) for path in UNLOADED_SOURCES if path.endswith(".vhd")}
     found = statuses(REPO_ROOT, "core")
     wrapper = "LCLS-II/core/rtl/TimingGthWrapper.vhd"
-    assert entity_issues(wrapper, units[wrapper], found[wrapper]) == ["pending", "pending"]
+    baseline = ghdl_analysis.KNOWN_GHDL_ISSUES["timinggthwrapper"]
+    assert entity_issues(wrapper, units[wrapper], found[wrapper]) == [source_inventory.UNLOADED_SOURCES_ISSUE, baseline]
     notify = "LCLS-II/core/rtl/TPGNotify.vhd"
-    assert entity_issues(notify, units[notify], found[notify]) == ["pending"]
+    assert entity_issues(notify, units[notify], found[notify]) == [source_inventory.UNLOADED_SOURCES_ISSUE]
     divider_unit = read_vhdl_unit(REPO_ROOT / DIVIDER)
     assert entity_issues(DIVIDER, divider_unit, "simulated") == []
 
@@ -1708,11 +1709,13 @@ def test_every_link_source_is_on_the_known_issues_page():
     assert kinds == set(gen_docs.LINK_KINDS), "a link source kind has no entry in the tree"
     absent, _ = _page_problems(sources, text)
     assert not absent, f"issues in a link source and not on the known-issues page: {absent}"
-    pending = [s for s in sources if s.issue == register_drift.PENDING_ISSUE]
-    assert pending, "no pending link source; the pending section would be empty"
-    section = gen_docs.pending_section(text)
-    for source in pending:
-        assert gen_docs.literal(source.entry) in section, f"{source.kind} {source.entry} is not in the pending section"
+    assert not [s for s in sources if s.issue == register_drift.PENDING_ISSUE], "a finding is still pending"
+    assert gen_docs.pending_section(text) == ""
+    unfiled = gen_docs.LinkSource(
+        register_drift.PENDING_ISSUE, gen_docs.KIND_GATED, "tests/x.py::t", "unfiled", "reference/known_issues"
+    )
+    rendered = gen_docs.render_known_issues(REPO_ROOT, [*sources, unfiled])
+    assert gen_docs.literal(unfiled.entry) in gen_docs.pending_section(rendered)
     for source in sources:
         assert gen_docs.literal(source.entry) in text, f"{source.kind} {source.entry} is not on the page"
     # Removing every source of one issue makes the comparison report it.
@@ -1740,10 +1743,13 @@ def test_known_issues_page_orders_issues_by_number_with_pending_last():
     text = (REPO_ROOT / "docs" / gen_docs.KNOWN_ISSUES_PAGE).read_text(encoding="utf-8")
     numbers = gen_docs.page_issue_numbers(text)
     assert numbers == sorted(set(numbers))
-    assert text.index(f"\n{gen_docs.PENDING_SECTION}\n") > text.index(f"\nIssue {numbers[-1]}\n")
-    pending = gen_docs.pending_section(text)
-    assert "\nIssue " not in pending
     sources = gen_docs.link_sources(REPO_ROOT)
+    unfiled = gen_docs.LinkSource(
+        register_drift.PENDING_ISSUE, gen_docs.KIND_GATED, "tests/x.py::t", "unfiled", "reference/known_issues"
+    )
+    rendered = gen_docs.render_known_issues(REPO_ROOT, [unfiled, *sources])
+    assert rendered.index(f"\n{gen_docs.PENDING_SECTION}\n") > rendered.index(f"\nIssue {numbers[-1]}\n")
+    assert "\nIssue " not in gen_docs.pending_section(rendered)
     order = [gen_docs._issue_order(s.issue) for s in sources]
     assert order == sorted(order)
 
@@ -1782,9 +1788,9 @@ def test_gated_rtl_issues_reach_their_entity_rows():
 def test_an_entity_with_several_issues_shows_every_link_in_one_cell():
     pages = render_all(REPO_ROOT)
     row = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "TPGMiniReg")
-    assert _issues_line(pages, row) == "Issues: issue pending, issue pending"
+    assert _issues_line(pages, row) == "Issues: :issue:`234`, :issue:`239`"
     trigger = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "EvrV2Trigger")
-    assert _issues_line(pages, trigger) == "Issues: :issue:`212`, :issue:`217`"
+    assert _issues_line(pages, trigger) == "Issues: :issue:`212`, :issue:`217`, :issue:`239`"
     assert gen_docs.entity_issues(
         DIVIDER, read_vhdl_unit(REPO_ROOT / DIVIDER), "simulated", None, ["https://github.com/slaclab/lcls-timing-core/issues/9"]
     ) == ["https://github.com/slaclab/lcls-timing-core/issues/9"]

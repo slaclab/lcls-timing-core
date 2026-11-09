@@ -350,8 +350,8 @@ is a question in the same issue.
 architecture never reads the generic ``COMMON_CLK_G``, so the channel
 configuration is always synchronized to ``evrClk``, and the synchronized trigger
 configuration that it builds is not the signal the ``EvrV2Trigger`` instances read
-(they take ``triggerConfig`` directly). Both are readings of the RTL; no test pins
-them, because GHDL cannot analyze the unit.
+(they take ``triggerConfig`` directly). Both are readings of the RTL and are asked
+in :issue:`240`; no test pins them, because GHDL cannot analyze the unit.
 
 See also
 --------

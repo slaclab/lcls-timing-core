@@ -272,8 +272,8 @@ UNLOADED_SOURCES: dict[str, str] = {
     "LCLS-II/core/tb/TimingSerialDelay_tb.vhd": "testbench; LCLS-II/core/ruckus.tcl loads no tb directory",
 }
 
-# One issue covers all of the files above; the value becomes its URL once filed.
-UNLOADED_SOURCES_ISSUE = "pending"
+# One issue covers all of the files above.
+UNLOADED_SOURCES_ISSUE = "https://github.com/slaclab/lcls-timing-core/issues/238"
 
 
 def repo_ruckus_files(repo_root):

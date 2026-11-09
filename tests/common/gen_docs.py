@@ -3471,10 +3471,13 @@ def render_known_issues(repo_root=REPO_ROOT, sources=None):
         "no longer differs. The header issues, the unloaded sources, and the YAML baselines work the same way: each "
         "entry names its issue and the regression fails when the entry goes stale.",
         "",
-        "A finding that is not filed on the tracker yet shows as ``issue pending`` here and on the pages that "
-        "show it; the last section lists them.",
-        "",
     ]
+    if PENDING_ISSUE in by_issue:
+        lines += [
+            "A finding that is not filed on the tracker yet shows as ``issue pending`` here and on the pages that "
+            "show it; the last section lists them.",
+            "",
+        ]
     for url in filed:
         number = issue_number(url)
         lines += [title(f"Issue {number}", "-"), f"Tracker: :issue:`{number}`.", "", _sources_table(by_issue[url])]

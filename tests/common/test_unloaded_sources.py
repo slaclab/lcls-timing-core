@@ -68,8 +68,9 @@ def test_unloaded_issue_is_a_link_or_pending():
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: eight RTL files are loaded by no ruckus.tcl, and BsaControl.vhd declares the "
-        "same entity as the loaded BsaControlv2.vhd; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "known issue: eight RTL files are loaded by no ruckus.tcl, and BsaControl.vhd declares the "
+        "same entity as the loaded BsaControlv2.vhd; see https://github.com/slaclab/lcls-timing-core/issues/238; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_unloaded_sources_known_issue_every_rtl_file_is_loaded():

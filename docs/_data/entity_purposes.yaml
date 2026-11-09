@@ -243,8 +243,8 @@ LCLS-II/core/rtl/TPGNotify.vhd: >-
   Interrupt notifier for the pattern generator. When irqEnable and irqReq are
   both high, synchronized to txClk, it counts the event and presents a one
   word AXI-Stream message with the 32 bit count and tDest 0xFF. As observed,
-  nothing in the file clears tValid once it is set, intent unconfirmed, and no
-  ruckus.tcl loads it.
+  nothing in the file clears tValid once it is set, intent unconfirmed (issue
+  240), and no ruckus.tcl loads it.
 
 LCLS-II/core/rtl/TPGPkg.vhd: >-
   Declares the limits and records shared by the pattern generator blocks: the

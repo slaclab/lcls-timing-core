@@ -64,8 +64,9 @@ def submodule_locks(repo_root):
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: the root ruckus.tcl requires surf 2.53.0 while LCLS-II/gtx7/ruckus.tcl "
-        "requires surf 2.74.0; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "known issue: the root ruckus.tcl requires surf 2.53.0 while LCLS-II/gtx7/ruckus.tcl "
+        "requires surf 2.74.0; see https://github.com/slaclab/lcls-timing-core/issues/229; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_ruckus_known_issue_surf_locks_agree():
@@ -159,7 +160,8 @@ def test_release_notes_harness_runs_with_an_ssh_remote(release_notes):
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: releaseNotes.py raises AttributeError on a pull request with no description; "
+        "known issue: releaseNotes.py raises AttributeError on a pull request with no description; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/230; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
@@ -171,7 +173,8 @@ def test_release_notes_known_issue_pull_request_without_description(release_note
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: releaseNotes.py turns an https origin URL into ps://github.com/slaclab/lcls-timing-core; "
+        "known issue: releaseNotes.py turns an https origin URL into ps://github.com/slaclab/lcls-timing-core; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/231; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
@@ -183,7 +186,8 @@ def test_release_notes_known_issue_https_remote(release_notes):
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: setup.py imports distutils, which Python 3.12 removed; "
+        "known issue: setup.py imports distutils, which Python 3.12 removed; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/232; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
@@ -203,7 +207,8 @@ def test_setup_known_issue_imports_on_python_312(tmp_path):
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "pending issue: setup.py appends __version__ to the tracked package __init__.py on every run; "
+        "known issue: setup.py appends __version__ to the tracked package __init__.py on every run; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/233; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )

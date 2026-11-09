@@ -5,8 +5,6 @@ Every known defect and open question of the library on one page, with the test o
 
 A **gated test** is skipped unless the environment variable ``RUN_KNOWN_ISSUE_TESTS=1`` is set. The run ``RUN_KNOWN_ISSUE_TESTS=1 python -m pytest --expect-known-issues -rxX tests/<leg>`` selects only the gated tests and expects each one to fail, so an issue that still reproduces is reported as XFAIL and one that no longer reproduces is reported as XPASS, which fails the run until its skip is removed. A **GHDL baseline** records the exact message GHDL prints for a file it cannot analyze; the regression fails when the message changes or disappears. The **register drift allowlist** lists each difference between the RTL decode, the PyRogue variables, and the YAML map that is known and linked, and a test fails when an entry no longer differs. The header issues, the unloaded sources, and the YAML baselines work the same way: each entry names its issue and the regression fails when the entry goes stale.
 
-A finding that is not filed on the tracker yet shows as ``issue pending`` here and on the pages that show it; the last section lists them.
-
 Issue 207
 ---------
 
@@ -440,10 +438,42 @@ Tracker: :issue:`228`.
      - ``C_RxReset`` (mode); ``ClearRxCounters`` (mode); ``FrameVersion`` (missing-in-python); ``MsgDelayRst`` (missing-in-python); ``MsgNoDelay`` (missing-in-python); ``RxPllReset`` (mode); ``VersionErr`` (missing-in-python); ``timingTSEvCntGray_o`` (missing-in-python, missing-in-yaml)
      - :ref:`TimingFrameRx <register-map-timingframerx>`
 
-Issue pending
--------------
+Issue 229
+---------
 
-These sources hold an ``issue pending`` marker until the finding is filed.
+Tracker: :issue:`229`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/common/test_release_tooling.py::test_ruckus_known_issue_surf_locks_agree``
+     - the root ruckus.tcl requires surf 2.53.0 while LCLS-II/gtx7/ruckus.tcl requires surf 2.74.0
+     - :doc:`/reference/families`
+
+Issue 230
+---------
+
+Tracker: :issue:`230`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/common/test_release_tooling.py::test_release_notes_known_issue_pull_request_without_description``
+     - releaseNotes.py raises AttributeError on a pull request with no description
+     - :doc:`/how-to/release_flow`
+
+Issue 231
+---------
+
+Tracker: :issue:`231`.
 
 .. list-table::
    :header-rows: 1
@@ -455,42 +485,127 @@ These sources hold an ``issue pending`` marker until the finding is filed.
    * - gated test: ``tests/common/test_release_tooling.py::test_release_notes_known_issue_https_remote``
      - releaseNotes.py turns an https origin URL into ps://github.com/slaclab/lcls-timing-core
      - :doc:`/how-to/release_flow`
-   * - gated test: ``tests/common/test_release_tooling.py::test_release_notes_known_issue_pull_request_without_description``
-     - releaseNotes.py raises AttributeError on a pull request with no description
-     - :doc:`/how-to/release_flow`
-   * - gated test: ``tests/common/test_release_tooling.py::test_ruckus_known_issue_surf_locks_agree``
-     - the root ruckus.tcl requires surf 2.53.0 while LCLS-II/gtx7/ruckus.tcl requires surf 2.74.0
-     - :doc:`/reference/families`
-   * - gated test: ``tests/common/test_release_tooling.py::test_setup_known_issue_build_leaves_the_package_unchanged``
-     - setup.py appends __version__ to the tracked package __init__.py on every run
-     - :doc:`/how-to/release_flow`
+
+Issue 232
+---------
+
+Tracker: :issue:`232`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
    * - gated test: ``tests/common/test_release_tooling.py::test_setup_known_issue_imports_on_python_312``
      - setup.py imports distutils, which Python 3.12 removed
      - :doc:`/how-to/release_flow`
-   * - gated test: ``tests/common/test_unloaded_sources.py::test_unloaded_sources_known_issue_every_rtl_file_is_loaded``
-     - eight RTL files are loaded by no ruckus.tcl, and BsaControl.vhd declares the same entity as the loaded BsaControlv2.vhd
-     - :doc:`/reference/entities/core`
-   * - GHDL baseline: ``evrv1coreisrctrl``
-     - GHDL reports ``string length does not match``
-     - :ref:`EvrV1CoreIsrCtrl <entity-lcls-i-evr-evrv1coreisrctrl-vhd>`
-   * - GHDL baseline: ``evrv2_tb``
-     - GHDL reports ``no declaration for "exptbustype"``
-     - :ref:`EvrV2_tb <entity-lcls-ii-evr-tb-evrv2-tb-vhd>`
-   * - GHDL baseline: ``evrv2module``
-     - GHDL reports ``must be locally static``
-     - :ref:`EvrV2Module <entity-lcls-ii-evr-rtl-evrv2module-vhd>`
+
+Issue 233
+---------
+
+Tracker: :issue:`233`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/common/test_release_tooling.py::test_setup_known_issue_build_leaves_the_package_unchanged``
+     - setup.py appends __version__ to the tracked package __init__.py on every run
+     - :doc:`/how-to/release_flow`
+
+Issue 234
+---------
+
+Tracker: :issue:`234`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
    * - GHDL baseline: ``timingcore``
      - GHDL reports ``not locally static``
      - :ref:`TimingCore <entity-lcls-ii-core-rtl-timingcore-vhd>`
-   * - GHDL baseline: ``timinggthwrapper``
-     - GHDL reports ``no declaration for "ieee"``
-     - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
    * - GHDL baseline: ``tpgminicore``
      - GHDL reports ``not locally static``
      - :ref:`TPGMiniCore <entity-lcls-ii-core-rtl-tpgminicore-vhd>`
    * - GHDL baseline: ``tpgminireg``
      - GHDL reports ``not locally static``
      - :ref:`TPGMiniReg <entity-lcls-ii-core-rtl-tpgminireg-vhd>`
+
+Issue 235
+---------
+
+Tracker: :issue:`235`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - GHDL baseline: ``evrv2module``
+     - GHDL reports ``must be locally static``
+     - :ref:`EvrV2Module <entity-lcls-ii-evr-rtl-evrv2module-vhd>`
+
+Issue 236
+---------
+
+Tracker: :issue:`236`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - GHDL baseline: ``evrv1coreisrctrl``
+     - GHDL reports ``string length does not match``
+     - :ref:`EvrV1CoreIsrCtrl <entity-lcls-i-evr-evrv1coreisrctrl-vhd>`
+
+Issue 237
+---------
+
+Tracker: :issue:`237`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - GHDL baseline: ``evrv2_tb``
+     - GHDL reports ``no declaration for "exptbustype"``
+     - :ref:`EvrV2_tb <entity-lcls-ii-evr-tb-evrv2-tb-vhd>`
+
+Issue 238
+---------
+
+Tracker: :issue:`238`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/common/test_unloaded_sources.py::test_unloaded_sources_known_issue_every_rtl_file_is_loaded``
+     - eight RTL files are loaded by no ruckus.tcl, and BsaControl.vhd declares the same entity as the loaded BsaControlv2.vhd
+     - :doc:`/reference/entities/core`
+   * - GHDL baseline: ``timinggthwrapper``
+     - GHDL reports ``no declaration for "ieee"``
+     - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
    * - unloaded sources: ``LCLS-II/core/rtl/BsaControl.vhd``
      - no ruckus.tcl loads the file
      - :ref:`BsaControl <entity-lcls-ii-core-rtl-bsacontrol-vhd>`
@@ -515,6 +630,19 @@ These sources hold an ``issue pending`` marker until the finding is filed.
    * - unloaded sources: ``LCLS-II/core/tb/TimingSerialDelay_tb.vhd``
      - no ruckus.tcl loads the file
      - :ref:`TimingSerialDelayTb <entity-lcls-ii-core-tb-timingserialdelay-tb-vhd>`
+
+Issue 239
+---------
+
+Tracker: :issue:`239`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
    * - header issues: ``LCLS-I/evr/EvrV1Core.vhd``
      - The banner description field is empty
      - :ref:`EvrV1Core <entity-lcls-i-evr-evrv1core-vhd>`
@@ -536,6 +664,9 @@ These sources hold an ``issue pending`` marker until the finding is filed.
    * - header issues: ``LCLS-I/evr/EvrV1EventReceiverChannel.v``
      - The file has no banner description field
      - :ref:`EvrV1EventReceiverChannel <entity-lcls-i-evr-evrv1eventreceiverchannel-v>`
+   * - header issues: ``LCLS-I/evr/EvrV1HeartBeat.vhd``
+     - The banner description contradicts what the file does
+     - :ref:`EvrV1HeartBeat <entity-lcls-i-evr-evrv1heartbeat-vhd>`
    * - header issues: ``LCLS-I/evr/EvrV1Pkg.vhd``
      - The banner description field is empty
      - :ref:`EvrV1Pkg <package-evrv1pkg>`
@@ -629,6 +760,9 @@ These sources hold an ``issue pending`` marker until the finding is filed.
    * - header issues: ``LCLS-II/evr/rtl/EvrV2TrigReg.vhd``
      - The banner description field is empty
      - :ref:`EvrV2TrigReg <entity-lcls-ii-evr-rtl-evrv2trigreg-vhd>`
+   * - header issues: ``LCLS-II/evr/rtl/EvrV2Trigger.vhd``
+     - The banner description contradicts what the file does
+     - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
    * - header issues: ``LCLS-II/evr/tb/EvrV2_tb.vhd``
      - The banner description field is empty
      - :ref:`EvrV2_tb <entity-lcls-ii-evr-tb-evrv2-tb-vhd>`

@@ -14,19 +14,19 @@ LCLS-II EVR
    * - :ref:`EvrV2Axi <entity-lcls-ii-evr-rtl-evrv2axi-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Axi.vhd`
      - simulated
-     - :issue:`215`, issue pending
+     - :issue:`215`, :issue:`239`
    * - :ref:`EvrV2Cache <entity-lcls-ii-evr-rtl-evrv2cache-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Cache.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV2ChannelReg <entity-lcls-ii-evr-rtl-evrv2channelreg-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2ChannelReg.vhd`
      - simulated
-     - :issue:`215`, issue pending
+     - :issue:`215`, :issue:`239`
    * - :ref:`EvrV2CoreChannels <entity-lcls-ii-evr-rtl-evrv2corechannels-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CoreChannels.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CorePulseGen.vhd`
      - simulated
@@ -34,7 +34,7 @@ LCLS-II EVR
    * - :ref:`EvrV2CoreTriggers <entity-lcls-ii-evr-rtl-evrv2coretriggers-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV2EventSelect <entity-lcls-ii-evr-rtl-evrv2eventselect-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2EventSelect.vhd`
      - simulated
@@ -46,15 +46,15 @@ LCLS-II EVR
    * - :ref:`EvrV2Module <entity-lcls-ii-evr-rtl-evrv2module-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Module.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`235`, :issue:`239`
    * - :ref:`EvrV2TrigReg <entity-lcls-ii-evr-rtl-evrv2trigreg-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2TrigReg.vhd`
      - simulated
-     - :issue:`214`, issue pending
+     - :issue:`214`, :issue:`239`
    * - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Trigger.vhd`
      - simulated
-     - :issue:`212`, :issue:`217`
+     - :issue:`212`, :issue:`217`, :issue:`239`
    * - :ref:`EvrV2TriggerCompl <entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd`
      - simulated
@@ -62,7 +62,7 @@ LCLS-II EVR
    * - :ref:`EvrV2_tb <entity-lcls-ii-evr-tb-evrv2-tb-vhd>`
      - :repo:`LCLS-II/evr/tb/EvrV2_tb.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`237`, :issue:`239`
 
 Package files in this tree: :repo:`LCLS-II/evr/rtl/EvrV2Pkg.vhd`.
 
@@ -148,7 +148,7 @@ Status: simulated
      - in
      - ``slv(7 downto 0)``
 
-Issues: :issue:`215`, issue pending
+Issues: :issue:`215`, :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2cache-vhd:
 
@@ -211,7 +211,7 @@ Status: simulated
      - out
      - ``slv(31 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2channelreg-vhd:
 
@@ -280,7 +280,7 @@ Status: simulated
      - in
      - ``Slv32Array(NCHANNELS_G - 1 downto 0)``
 
-Issues: :issue:`215`, issue pending
+Issues: :issue:`215`, :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2corechannels-vhd:
 
@@ -358,7 +358,7 @@ Status: simulated
      - in
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd:
 
@@ -544,7 +544,7 @@ Status: simulated
      - in
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2eventselect-vhd:
 
@@ -733,7 +733,7 @@ Status: baseline-excluded; GHDL analysis reports "must be locally static", which
      - in
      - ``sl``
 
-Issues: issue pending, issue pending
+Issues: :issue:`235`, :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2trigreg-vhd:
 
@@ -802,7 +802,7 @@ Status: simulated
      - in
      - ``Slv6Array(TRIGGERS_C - 1 downto 0)``
 
-Issues: :issue:`214`, issue pending
+Issues: :issue:`214`, :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2trigger-vhd:
 
@@ -868,7 +868,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: :issue:`212`, :issue:`217`
+Issues: :issue:`212`, :issue:`217`, :issue:`239`
 
 .. _entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd:
 
@@ -943,4 +943,4 @@ none
 
 none
 
-Issues: issue pending, issue pending
+Issues: :issue:`237`, :issue:`239`

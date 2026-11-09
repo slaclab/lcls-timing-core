@@ -189,9 +189,9 @@ Every ``VersionCheck`` and ``SubmoduleCheck`` in the repository's ``ruckus.tcl``
      - SubmoduleCheck
      - surf
      - 2.53.0
-     - issue pending
+     - :issue:`229`
    * - :repo:`LCLS-II/gtx7/ruckus.tcl`
      - SubmoduleCheck
      - surf
      - 2.74.0
-     - issue pending
+     - :issue:`229`

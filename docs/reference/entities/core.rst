@@ -14,7 +14,7 @@ LCLS-II core
    * - :ref:`BsaControl <entity-lcls-ii-core-rtl-bsacontrol-vhd>`
      - :repo:`LCLS-II/core/rtl/BsaControl.vhd`
      - not simulated: not loaded by any ruckus.tcl
-     - issue pending
+     - :issue:`238`
    * - :ref:`BsaControl <entity-lcls-ii-core-rtl-bsacontrolv2-vhd>`
      - :repo:`LCLS-II/core/rtl/BsaControlv2.vhd`
      - simulated
@@ -26,11 +26,11 @@ LCLS-II core
    * - :ref:`ClockTime_186MHz <entity-lcls-ii-core-rtl-clocktime-186mhz-vhd>`
      - :repo:`LCLS-II/core/rtl/ClockTime_186MHz.vhd`
      - not simulated: not loaded by any ruckus.tcl
-     - issue pending
+     - :issue:`238`
    * - :ref:`CtrControl <entity-lcls-ii-core-rtl-ctrcontrol-vhd>`
      - :repo:`LCLS-II/core/rtl/CtrControl.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`Divider <entity-lcls-ii-core-rtl-divider-vhd>`
      - :repo:`LCLS-II/core/rtl/Divider.vhd`
      - simulated
@@ -38,7 +38,7 @@ LCLS-II core
    * - :ref:`EthTimingModule <entity-lcls-ii-core-rtl-ethtimingmodule-vhd>`
      - :repo:`LCLS-II/core/rtl/EthTimingModule.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EventSelect <entity-lcls-ii-core-rtl-eventselect-vhd>`
      - :repo:`LCLS-II/core/rtl/EventSelect.vhd`
      - simulated
@@ -50,27 +50,27 @@ LCLS-II core
    * - :ref:`TPFifo <entity-lcls-ii-core-rtl-tpfifo-vhd>`
      - :repo:`LCLS-II/core/rtl/TPFifo.vhd`
      - not simulated: not loaded by any ruckus.tcl
-     - issue pending
+     - :issue:`238`
    * - :ref:`TPGMini <entity-lcls-ii-core-rtl-tpgmini-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMini.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`TPGMiniCore <entity-lcls-ii-core-rtl-tpgminicore-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMiniCore.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`234`, :issue:`239`
    * - :ref:`TPGMiniEdef <entity-lcls-ii-core-rtl-tpgminiedef-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMiniEdef.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`TPGMiniEdefTb <entity-lcls-ii-core-rtl-tpgminiedeftb-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMiniEdefTb.vhd`
      - simulated
-     - issue pending, issue pending
+     - :issue:`238`, :issue:`239`
    * - :ref:`TPGMiniReg <entity-lcls-ii-core-rtl-tpgminireg-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMiniReg.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`234`, :issue:`239`
    * - :ref:`TPGMiniStream <entity-lcls-ii-core-rtl-tpgministream-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGMiniStream.vhd`
      - simulated
@@ -78,7 +78,7 @@ LCLS-II core
    * - :ref:`TPGNotify <entity-lcls-ii-core-rtl-tpgnotify-vhd>`
      - :repo:`LCLS-II/core/rtl/TPGNotify.vhd`
      - not simulated: not loaded by any ruckus.tcl
-     - issue pending, issue pending
+     - :issue:`238`, :issue:`239`
    * - :ref:`TPSerializer <entity-lcls-ii-core-rtl-tpserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/TPSerializer.vhd`
      - simulated
@@ -86,27 +86,27 @@ LCLS-II core
    * - :ref:`TimingCore <entity-lcls-ii-core-rtl-timingcore-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingCore.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`234`, :issue:`239`
    * - :ref:`TimingDeserializer <entity-lcls-ii-core-rtl-timingdeserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingDeserializer.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingFrameRx.vhd`
      - simulated
-     - :issue:`211`, issue pending
+     - :issue:`211`, :issue:`239`
    * - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingGthWrapper.vhd`
      - baseline-excluded
-     - issue pending, issue pending, issue pending
+     - :issue:`238`, :issue:`239`
    * - :ref:`TimingMsgAxiRingBuffer <entity-lcls-ii-core-rtl-timingmsgaxiringbuffer-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingMsgAxiRingBuffer.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`TimingMsgDelay <entity-lcls-ii-core-rtl-timingmsgdelay-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingMsgDelay.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`TimingMsgToAxiStream <entity-lcls-ii-core-rtl-timingmsgtoaxistream-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingMsgToAxiStream.vhd`
      - simulated
@@ -130,7 +130,7 @@ LCLS-II core
    * - :ref:`TimingStreamTx <entity-lcls-ii-core-rtl-timingstreamtx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingStreamTx.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`WordSerializer <entity-lcls-ii-core-rtl-wordserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/WordSerializer.vhd`
      - simulated
@@ -138,7 +138,7 @@ LCLS-II core
    * - :ref:`TimingSerialDelayTb <entity-lcls-ii-core-tb-timingserialdelay-tb-vhd>`
      - :repo:`LCLS-II/core/tb/TimingSerialDelay_tb.vhd`
      - simulated
-     - issue pending
+     - :issue:`238`
 
 Package files in this tree: :repo:`LCLS-II/core/rtl/TPGMiniEdefPkg.vhd`, :repo:`LCLS-II/core/rtl/TPGPkg.vhd`, :repo:`LCLS-II/core/rtl/TimingPkg.vhd`, :repo:`LCLS-II/core/rtl/default/TimingExtnPkg.vhd`.
 
@@ -230,7 +230,7 @@ Status: not simulated: not loaded by any ruckus.tcl; declares entity BsaControl,
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`238`
 
 .. _entity-lcls-ii-core-rtl-bsacontrolv2-vhd:
 
@@ -458,7 +458,7 @@ Status: not simulated: not loaded by any ruckus.tcl; no file in the repository i
      - out
      - ``slv(63 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`238`
 
 .. _entity-lcls-ii-core-rtl-ctrcontrol-vhd:
 
@@ -536,7 +536,7 @@ Status: simulated
      - out
      - ``slv(31 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-divider-vhd:
 
@@ -668,7 +668,7 @@ Status: simulated
      - in
      - ``AxiStreamSlaveType``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-eventselect-vhd:
 
@@ -911,7 +911,7 @@ Status: not simulated: not loaded by any ruckus.tcl; no file in the repository i
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`238`
 
 .. _entity-lcls-ii-core-rtl-tpgmini-vhd:
 
@@ -986,7 +986,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpgminicore-vhd:
 
@@ -1070,7 +1070,7 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - out
      - ``AxiLiteWriteSlaveType``
 
-Issues: issue pending, issue pending
+Issues: :issue:`234`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpgminiedef-vhd:
 
@@ -1148,7 +1148,7 @@ Status: simulated
      - out
      - ``EdefTSType``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpgminiedeftb-vhd:
 
@@ -1169,7 +1169,7 @@ none
 
 none
 
-Issues: issue pending, issue pending
+Issues: :issue:`238`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpgminireg-vhd:
 
@@ -1256,7 +1256,7 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - in
      - ``sl``
 
-Issues: issue pending, issue pending
+Issues: :issue:`234`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpgministream-vhd:
 
@@ -1337,7 +1337,7 @@ TPGNotify
 
 File: :repo:`LCLS-II/core/rtl/TPGNotify.vhd`
 
-Interrupt notifier for the pattern generator. When irqEnable and irqReq are both high, synchronized to txClk, it counts the event and presents a one word AXI-Stream message with the 32 bit count and tDest 0xFF. As observed, nothing in the file clears tValid once it is set, intent unconfirmed, and no ruckus.tcl loads it.
+Interrupt notifier for the pattern generator. When irqEnable and irqReq are both high, synchronized to txClk, it counts the event and presents a one word AXI-Stream message with the 32 bit count and tDest 0xFF. As observed, nothing in the file clears tValid once it is set, intent unconfirmed (issue 240), and no ruckus.tcl loads it.
 
 Status: not simulated: not loaded by any ruckus.tcl; no file in the repository instantiates TPGNotify
 
@@ -1379,7 +1379,7 @@ Status: not simulated: not loaded by any ruckus.tcl; no file in the repository i
      - out
      - ``AxiStreamMasterType``
 
-Issues: issue pending, issue pending
+Issues: :issue:`238`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-tpserializer-vhd:
 
@@ -1583,7 +1583,7 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - in
      - ``AxiStreamSlaveType``
 
-Issues: issue pending, issue pending
+Issues: :issue:`234`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timingdeserializer-vhd:
 
@@ -1652,7 +1652,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timingframerx-vhd:
 
@@ -1721,7 +1721,7 @@ Status: simulated
      - out
      - ``slv(4 downto 0)``
 
-Issues: :issue:`211`, issue pending
+Issues: :issue:`211`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timinggthwrapper-vhd:
 
@@ -1802,7 +1802,7 @@ Status: baseline-excluded; GHDL analysis reports "no declaration for "ieee"", wh
      - out
      - ``slv(1 downto 0)``
 
-Issues: issue pending, issue pending, issue pending
+Issues: :issue:`238`, :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timingmsgaxiringbuffer-vhd:
 
@@ -1880,7 +1880,7 @@ Status: simulated
      - out
      - ``AxiLiteWriteSlaveType``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timingmsgdelay-vhd:
 
@@ -1943,7 +1943,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-timingmsgtoaxistream-vhd:
 
@@ -2387,7 +2387,7 @@ Status: simulated
      - out
      - ``slv(1 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-ii-core-rtl-wordserializer-vhd:
 
@@ -2465,4 +2465,4 @@ none
 
 none
 
-Issues: issue pending
+Issues: :issue:`238`

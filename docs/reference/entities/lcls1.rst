@@ -14,51 +14,51 @@ LCLS-I EVR
    * - :ref:`EvrV1Core <entity-lcls-i-evr-evrv1core-vhd>`
      - :repo:`LCLS-I/evr/EvrV1Core.vhd`
      - not simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1CoreIsrCtrl <entity-lcls-i-evr-evrv1coreisrctrl-vhd>`
      - :repo:`LCLS-I/evr/EvrV1CoreIsrCtrl.vhd`
      - baseline-excluded
-     - issue pending, issue pending
+     - :issue:`236`, :issue:`239`
    * - :ref:`EvrV1Databuff <entity-lcls-i-evr-evrv1databuff-vhd>`
      - :repo:`LCLS-I/evr/EvrV1Databuff.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1DbusDecode <entity-lcls-i-evr-evrv1dbusdecode-v>`
      - :repo:`LCLS-I/evr/EvrV1DbusDecode.v`
      - simulated
-     - :issue:`216`, issue pending
+     - :issue:`216`, :issue:`239`
    * - :ref:`EvrV1EventRAM256x32 <entity-lcls-i-evr-evrv1eventram256x32-vhd>`
      - :repo:`LCLS-I/evr/EvrV1EventRAM256x32.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1EventReceiver <entity-lcls-i-evr-evrv1eventreceiver-vhd>`
      - :repo:`LCLS-I/evr/EvrV1EventReceiver.vhd`
      - not simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1EventReceiverChannel <entity-lcls-i-evr-evrv1eventreceiverchannel-v>`
      - :repo:`LCLS-I/evr/EvrV1EventReceiverChannel.v`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1HeartBeat <entity-lcls-i-evr-evrv1heartbeat-vhd>`
      - :repo:`LCLS-I/evr/EvrV1HeartBeat.vhd`
      - simulated
-     - none
+     - :issue:`239`
    * - :ref:`EvrV1Reg <entity-lcls-i-evr-evrv1reg-vhd>`
      - :repo:`LCLS-I/evr/EvrV1Reg.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1TimeStampFIFO <entity-lcls-i-evr-evrv1timestampfifo-vhd>`
      - :repo:`LCLS-I/evr/EvrV1TimeStampFIFO.vhd`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1TimeStampGenerator <entity-lcls-i-evr-evrv1timestampgenerator-v>`
      - :repo:`LCLS-I/evr/EvrV1TimeStampGenerator.v`
      - simulated
-     - issue pending
+     - :issue:`239`
    * - :ref:`EvrV1TimeofDayReceiver <entity-lcls-i-evr-evrv1timeofdayreceiver-v>`
      - :repo:`LCLS-I/evr/EvrV1TimeofDayReceiver.v`
      - simulated
-     - issue pending
+     - :issue:`239`
 
 Package files in this tree: :repo:`LCLS-I/evr/EvrV1Pkg.vhd`.
 
@@ -162,7 +162,7 @@ Status: not simulated; it instantiates EvrV1EventReceiver, so it inherits the sa
      - in
      - ``slv(1 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1coreisrctrl-vhd:
 
@@ -312,7 +312,7 @@ Status: baseline-excluded; GHDL analysis reports "string length does not match",
      - out
      - ``slv(1 downto 0)``
 
-Issues: issue pending, issue pending
+Issues: :issue:`236`, :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1databuff-vhd:
 
@@ -369,7 +369,7 @@ Status: simulated
      - out
      - ``slv(31 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1dbusdecode-v:
 
@@ -444,7 +444,7 @@ none
      - out
      - ``[73:0]``
 
-Issues: :issue:`216`, issue pending
+Issues: :issue:`216`, :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1eventram256x32-vhd:
 
@@ -516,7 +516,7 @@ Status: simulated
      - out
      - ``slv(31 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1eventreceiver-vhd:
 
@@ -594,7 +594,7 @@ Status: not simulated; it instantiates EvrV1EventReceiverChannel, EvrV1TimeofDay
      - in
      - ``slv(1 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1eventreceiverchannel-v:
 
@@ -669,7 +669,7 @@ Status: simulated; a cocotb test runs the module in Icarus Verilog
      - out
      - ``[102:0]``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1heartbeat-vhd:
 
@@ -720,7 +720,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1reg-vhd:
 
@@ -798,7 +798,7 @@ Status: simulated
      - in
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1timestampfifo-vhd:
 
@@ -867,7 +867,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1timestampgenerator-v:
 
@@ -903,7 +903,7 @@ none
      - out
      - ``[63:0]``
 
-Issues: issue pending
+Issues: :issue:`239`
 
 .. _entity-lcls-i-evr-evrv1timeofdayreceiver-v:
 
@@ -948,4 +948,4 @@ none
      - out
      - ``[31:0]``
 
-Issues: issue pending
+Issues: :issue:`239`

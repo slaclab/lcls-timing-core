@@ -73,19 +73,19 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     "timinggthwrapper": 'no declaration for "ieee"',
 }
 
-# Unit name (lowercase) to the filed slaclab/lcls-timing-core issue, or
-# "pending" (register_drift.PENDING_ISSUE) until it is filed. Five root causes
-# are filed as five issues: tpgminireg, tpgminicore, and timingcore share the
-# TPGMiniReg case-choice issue, and each of the other four units has its own.
-# The values become issue URLs when the issues are filed.
+# Unit name (lowercase) to the filed slaclab/lcls-timing-core issue. Five
+# distinct issues cover the seven units: tpgminireg, tpgminicore, and
+# timingcore share the TPGMiniReg case-choice issue, timinggthwrapper shares
+# the unloaded files issue (no file instantiates it, and it is an unfinished
+# template), and evrv2module, evrv1coreisrctrl, and evrv2_tb have one each.
 KNOWN_GHDL_ISSUES: dict[str, str] = {
-    "tpgminireg": PENDING_ISSUE,
-    "tpgminicore": PENDING_ISSUE,
-    "timingcore": PENDING_ISSUE,
-    "evrv2module": PENDING_ISSUE,
-    "evrv1coreisrctrl": PENDING_ISSUE,
-    "evrv2_tb": PENDING_ISSUE,
-    "timinggthwrapper": PENDING_ISSUE,
+    "tpgminireg": "https://github.com/slaclab/lcls-timing-core/issues/234",
+    "tpgminicore": "https://github.com/slaclab/lcls-timing-core/issues/234",
+    "timingcore": "https://github.com/slaclab/lcls-timing-core/issues/234",
+    "evrv2module": "https://github.com/slaclab/lcls-timing-core/issues/235",
+    "evrv1coreisrctrl": "https://github.com/slaclab/lcls-timing-core/issues/236",
+    "evrv2_tb": "https://github.com/slaclab/lcls-timing-core/issues/237",
+    "timinggthwrapper": "https://github.com/slaclab/lcls-timing-core/issues/238",
 }
 
 # Units that analyze cleanly (so they must never be listed in
