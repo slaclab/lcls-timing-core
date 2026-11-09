@@ -141,17 +141,7 @@ class DocTree:
 
 
 DOC_TREES = (
-    DocTree(
-        "core",
-        "LCLS-II core",
-        ("LCLS-II/core",),
-        only=(
-            "LCLS-II/core/rtl/Divider.vhd",
-            "LCLS-II/core/rtl/TPGMiniReg.vhd",
-            "LCLS-II/core/rtl/BsaControl.vhd",
-            "LCLS-II/core/rtl/BsaControlv2.vhd",
-        ),
-    ),
+    DocTree("core", "LCLS-II core", ("LCLS-II/core",)),
 )
 
 

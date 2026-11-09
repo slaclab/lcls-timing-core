@@ -32,7 +32,8 @@ Test methodology:
         the purposes sidecar has exactly the rendered files as keys and no
         purpose repeats a banner header, every purpose is one to three plain
         sentences, every rendered entity has one known status, and the two
-        files that declare BsaControl render as distinct rows.
+        files that declare BsaControl render as distinct rows, and the core
+        tree renders every documented file.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -232,6 +233,9 @@ def test_every_rendered_entity_has_one_status():
         rendered = rendered_files(REPO_ROOT, tree)
         found = gen_docs._entity_statuses(REPO_ROOT, units, set(rendered))
         for path in rendered:
+            if units[path].kind == "package":
+                assert path not in found, f"{path}: a package has no status"
+                continue
             assert found.get(path) in STATUSES, f"{path}: status {found.get(path)!r} is not one of {STATUSES}"
     assert found[DIVIDER] == "simulated"
 
@@ -407,3 +411,9 @@ def test_duplicate_entity_names_get_distinct_rows():
     assert rows[loaded][1] == "simulated"
     assert rows[unloaded][0] != rows[loaded][0]
     assert {label for label, _ in rows.values()} == set(labels)
+
+
+def test_core_tree_renders_every_documented_file():
+    core = next(tree for tree in DOC_TREES if tree.key == "core")
+    assert core.only is None
+    assert rendered_files(REPO_ROOT, core) == gen_docs.documented_files(REPO_ROOT, core)
