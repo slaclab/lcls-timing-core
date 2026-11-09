@@ -29,7 +29,7 @@ Test methodology:
 
 import pytest
 
-from tests.common import evr_model
+from tests.common import evr_model, timing_model
 
 RESET_CYCLES = 3
 DEPTHS = [0, 1, 4, 16, 28, 127]
@@ -246,3 +246,95 @@ def test_trigger_compl_rejects_bad_input():
         evr_model.trigger_compl((0, 0), (0, 0), 4)
     with pytest.raises(ValueError):
         evr_model.trigger_compl((2, 0), (0, 0), 0)
+
+
+def select_config(**values):
+    return {**evr_model.CHANNEL_CONFIG_DEFAULTS, **values}
+
+
+def select_message(**values):
+    return {**timing_model.default_message(), **values}
+
+
+def test_rate_select_fixed_mode():
+    msg = select_message(fixedRates=0b0000000101)
+    levels = [evr_model.rate_select(select_config(rateSel=index), msg, 0) for index in range(16)]
+    assert levels == [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    top = select_message(fixedRates=0b1000000000)
+    assert evr_model.rate_select(select_config(rateSel=9), top, 0) == 1
+    assert evr_model.rate_select(select_config(rateSel=10), select_message(fixedRates=0x3FF), 0) == 0
+
+
+def test_rate_select_ac_mode():
+    msg = select_message(acRates=0b100101, acTimeSlot=3)
+    mask_bit = 1 << (3 + 2)
+    levels = [evr_model.rate_select(select_config(rateSel=(1 << 11) | mask_bit | index), msg, 0) for index in range(8)]
+    assert levels == [1, 0, 1, 0, 0, 1, 0, 0]
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | 0), msg, 0) == 0
+    other_slot = select_message(acRates=0b111111, acTimeSlot=2)
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | mask_bit), other_slot, 0) == 0
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | (1 << 4)), other_slot, 0) == 1
+
+
+def test_rate_select_ac_mode_edge_slots():
+    # Slots 0 and 7 read mask bits 2 and 9: observed, intent unconfirmed.
+    msg0 = select_message(acRates=0b111111, acTimeSlot=0)
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | (1 << 2)), msg0, 0) == 1
+    msg7 = select_message(acRates=0b111111, acTimeSlot=7)
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | (1 << 9)), msg7, 0) == 1
+    assert evr_model.rate_select(select_config(rateSel=(1 << 11) | (1 << 8)), msg7, 0) == 0
+
+
+def test_rate_select_control_and_reserved_modes():
+    for bit in range(16):
+        word = 1 << bit
+        assert evr_model.rate_select(select_config(rateSel=(2 << 11) | bit), select_message(), word) == 1
+        assert evr_model.rate_select(select_config(rateSel=(2 << 11) | ((bit + 1) % 16)), select_message(), word) == 0
+    full = select_message(fixedRates=0x3FF, acRates=0x3F)
+    assert evr_model.rate_select(select_config(rateSel=(3 << 11)), full, 0xFFFF) == 0
+
+
+def test_dest_select_modes():
+    mask = 1 << 5
+    for beam_request, want in ((0x51, 1), (0x41, 0), (0x50, 0), (0x40, 0)):
+        msg = select_message(beamRequest=beam_request)
+        assert evr_model.dest_select(select_config(destSel=(0 << 16) | mask), msg) == want
+    for beam_request, want in ((0x51, 0), (0x41, 1), (0x50, 1), (0x40, 1)):
+        msg = select_message(beamRequest=beam_request)
+        assert evr_model.dest_select(select_config(destSel=(1 << 16) | mask), msg) == want
+    for beam_request in (0x51, 0x41, 0x00):
+        msg = select_message(beamRequest=beam_request)
+        assert evr_model.dest_select(select_config(destSel=2 << 16), msg) == 1
+        assert evr_model.dest_select(select_config(destSel=(3 << 16) | 0xFFFF), msg) == 0
+
+
+def test_dest_select_top_mask_bit_and_bit_18():
+    msg = select_message(beamRequest=0xF1)
+    assert evr_model.dest_select(select_config(destSel=1 << 15), msg) == 1
+    assert evr_model.dest_select(select_config(destSel=(1 << 18) | (1 << 15)), msg) == 1
+    assert evr_model.dest_select(select_config(destSel=(1 << 18) | (2 << 16)), msg) == 1
+    assert evr_model.dest_select(select_config(destSel=(1 << 18)), select_message()) == 0
+
+
+def test_event_select_model_registers_outputs_and_control_word():
+    model = evr_model.EventSelectModel()
+    config = select_config(enabled=1, dmaEnabled=1, rateSel=(2 << 11) | (3 << 4) | 5, destSel=2 << 16)
+    control = [0] * 18
+    control[3] = 1 << 5
+    msg = select_message(control=control)
+    # The control word is registered a clock behind: the first strobe sees the old word.
+    assert model.step(config, 1, msg) == (0, 0)
+    assert model.step(config, 1, msg) == (1, 1)
+    assert model.step(config, 0, msg) == (0, 0)
+    assert model.step({**config, "dmaEnabled": 0}, 1, msg) == (1, 0)
+    assert model.step({**config, "enabled": 0}, 1, msg) == (0, 0)
+    model.reset()
+    assert model.control_word == 0
+
+
+def test_event_select_model_refuses_control_index_overflow():
+    model = evr_model.EventSelectModel()
+    for index in (18, 31):
+        with pytest.raises(ValueError, match="out of bounds"):
+            model.step(select_config(enabled=1, rateSel=index << 4), 1, select_message())
+    model.step(select_config(enabled=1, rateSel=17 << 4), 1, select_message())

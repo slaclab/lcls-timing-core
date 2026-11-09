@@ -369,15 +369,34 @@ def rate_select(config: dict, message: dict, control_word: int) -> int:
         if index >= FIXED_RATE_COUNT:
             return 0
         return (message["fixedRates"] >> index) & 1
-    raise NotImplementedError(f"rate mode {mode}")
+    if mode == 1:
+        # The mask bit for the current time slot sits at rateSel(acTimeSlot + 2);
+        # slots 0 and 7 read bits 2 and 9 (observed, intent unconfirmed).
+        if not (rate_sel >> (message["acTimeSlot"] + 2)) & 1:
+            return 0
+        index = rate_sel & 0x7
+        if index >= AC_RATE_COUNT:
+            return 0
+        return (message["acRates"] >> index) & 1
+    if mode == 2:
+        return (control_word >> (rate_sel & 0xF)) & 1
+    return 0
 
 
 def dest_select(config: dict, message: dict) -> int:
     """Return the combinational destSel level of EvrV2EventSelect."""
-    mode = (config["destSel"] >> 16) & 3
+    dest_sel = config["destSel"]
+    mode = (dest_sel >> 16) & 3
+    beam = message["beamRequest"]
+    requested = (beam & 1) and (dest_sel >> ((beam >> 4) & 0xF)) & 1
     if mode == 2:
         return 1
-    raise NotImplementedError(f"destination mode {mode}")
+    if mode == 1:
+        return 0 if requested else 1
+    if mode == 0:
+        return 1 if requested else 0
+    # Mode 3 never selects and destSel(18) has no effect (observed, intent unconfirmed).
+    return 0
 
 
 class EventSelectModel:
