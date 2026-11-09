@@ -10,3 +10,28 @@ LCLS-II/core/rtl/Divider.vhd: >-
   forces trigO low, and sysReset restarts the count at 1 and drops trigO. A
   divisor of 0 never matches until the Width-bit counter wraps, so at the
   default Width of 4 the period is 16 cycles.
+
+LCLS-II/core/rtl/BsaControl.vhd: >-
+  Older definition of the entity BsaControl, the acquisition state of one BSA
+  definition: it counts active cycles down from nToAvg and averages down from
+  avgToWr, and treats an avgToWr of 0 as persist, as observed, intent
+  unconfirmed. It has no tmo and tmocnt timeout inputs and no ruckus.tcl loads
+  it, so the definition in use for this entity is BsaControlv2.vhd.
+
+LCLS-II/core/rtl/BsaControlv2.vhd: >-
+  Acquisition state of one BSA definition in the txclk domain: after the
+  bsadef init input rises while enabled it pulses bsaInit, then drives
+  bsaActive while the selected rate and destination match, bsaAvgDone at each
+  average boundary set by nToAvg, and bsaDone after avgToWr averages, or never
+  when avgToWr is 0xFFFF. The nToAvgOut and avgToWrOut status outputs count
+  up, and the optional tmo and tmocnt inputs can assert bsaDone after an
+  average. This is the definition of entity BsaControl that ruckus loads.
+
+LCLS-II/core/rtl/TPGMiniReg.vhd: >-
+  AXI-Lite register block of TPGMiniCore. It decodes the clock select, base
+  divisor, fixed rate, pulse ID, timestamp, interval, and BSA definition
+  registers into the TPGConfigType and TPGMiniEdefConfigType outputs, returns
+  TPGStatusType counters on reads, and drives txReset, txLoopback, and
+  txInhibit, while irqEnable and irqReq are tied low. GHDL cannot analyze this
+  file, so its registers are checked through the PyRogue model and the
+  register drift check.

@@ -31,7 +31,8 @@ Test methodology:
         Divider.vhd in declaration order and rejects a file with no unit,
         the purposes sidecar has exactly the rendered files as keys and no
         purpose repeats a banner header, every purpose is one to three plain
-        sentences, and every rendered entity has one known status.
+        sentences, every rendered entity has one known status, and the two
+        files that declare BsaControl render as distinct rows.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -387,3 +388,22 @@ def test_header_findings_report_empty_and_missing(tmp_path):
     (tmp_path / "B.vhd").write_text("library ieee;\n", encoding="utf-8")
     (tmp_path / "C.vhd").write_text("-- Description: text\n----------\nlibrary ieee;\n", encoding="utf-8")
     assert header_findings(tmp_path, ["A.vhd", "B.vhd", "C.vhd"]) == {"A.vhd": "empty", "B.vhd": "missing"}
+
+
+def test_duplicate_entity_names_get_distinct_rows():
+    pages = render_all(REPO_ROOT)
+    core = pages["reference/entities/core.rst"]
+    loaded = "LCLS-II/core/rtl/BsaControlv2.vhd"
+    unloaded = "LCLS-II/core/rtl/BsaControl.vhd"
+    titles = re.findall(r"^(BsaControl \(.*\))$", core, re.MULTILINE)
+    assert titles == [f"BsaControl ({unloaded})", f"BsaControl ({loaded})"]
+    labels = re.findall(r"^\.\. _(entity-[^:]*bsacontrol[^:]*):$", core, re.MULTILINE)
+    assert len(labels) == 2 and len(set(labels)) == 2, labels
+    rows = {}
+    for match in re.finditer(r"^   \* - :ref:`BsaControl <(entity-[^>]+)>`\n     - :repo:`([^`]+)`\n     - (.+)$", core, re.MULTILINE):
+        rows[match.group(2)] = (match.group(1), match.group(3))
+    assert set(rows) == {loaded, unloaded}
+    assert rows[unloaded][1] == "not simulated: not loaded by any ruckus.tcl"
+    assert rows[loaded][1] == "simulated"
+    assert rows[unloaded][0] != rows[loaded][0]
+    assert {label for label, _ in rows.values()} == set(labels)
