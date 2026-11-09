@@ -1,3 +1,5 @@
+.. _register-map-evrv2core:
+
 EvrV2Core registers
 ===================
 

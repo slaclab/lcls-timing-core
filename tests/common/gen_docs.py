@@ -45,6 +45,7 @@ from tests.common.register_drift import (
     ALLOWLIST,
     BITS_PER_BYTE,
     BLOCKS,
+    COVERED_BY_LEAVES,
     ISSUE_URL_RE,
     NAME_MAPS,
     PENDING_ISSUE,
@@ -61,7 +62,7 @@ from tests.common.register_drift import (
 )
 from tests.common.register_tables import ArgSet
 from tests.common.vhdl_registers import read_decode
-from tests.common.yaml_maps import KNOWN_YAML_DEFECTS, yaml_fields
+from tests.common.yaml_maps import INCLUDE_RE, KNOWN_YAML_DEFECTS, YAML_CLASSIFICATION, load, yaml_fields
 from tests.common.vhdl_registers import (
     Token,
     _find_top,
@@ -1213,17 +1214,12 @@ NO_DESCRIPTION = "no description in source"
 NOT_ASSERTED = "not asserted"
 PYTHON_DIR = REPO_ROOT / "python"
 
-# The blocks that have a register page, in page order.
-REGISTER_BLOCKS = (
-    "EvrV2TriggerReg",
-    "EvrV2ChannelReg",
-    "EvrV2Core",
-    "EvrV1Isr",
-    "GthRxAlignCheck",
-    "TimingFrameRx",
-    "TPGMiniCore",
-    "EvrV1Reg",
-)
+# The blocks that have a register page, in page order: every block of the drift comparison.
+REGISTER_BLOCKS = tuple(BLOCKS)
+
+# Maps that describe no PyRogue class and no RTL decode here, documented from the YAML on one page.
+YAML_ONLY_MAPS = tuple(sorted(name for name, kind in YAML_CLASSIFICATION.items() if kind == "shape"))
+YAML_ONLY_PAGE = "reference/registers/yaml_only.rst"
 
 # The reviewed table arguments of each (block, variant id) whose Python source
 # is a built tree. The flags are the table `when` conditions that match the
@@ -1241,6 +1237,11 @@ VARIANT_ARG_SETS = {
     ("TPGMiniCore", "default"): ArgSet("default", {}),
     ("TPGMiniCore", "narrays1"): ArgSet("narrays1", {"NARRAYSBSA": 1}),
     ("TPGMiniCore", "narrays4"): ArgSet("narrays4", {"NARRAYSBSA": 4}),
+    ("TPGControl", "default"): ArgSet("default", {}),
+    ("LclsTriggerPulse", "default"): ArgSet("default", {}),
+    ("EvrV2CoreTriggers", "default"): ArgSet(
+        "default", {"numTrig": 16, "dmaEnable": True, "useTap": True}, ("dmaEnable", "useTap")
+    ),
 }
 
 RTL_HEADER = ["Offset", "Field", "Bits", "Mode", "Reset", "Python", "YAML", "Description"]
@@ -1369,6 +1370,13 @@ def _issue_text(block, name, kind):
     return f" :issue:`{issue.rsplit('/', 1)[1]}`"
 
 
+def state_cell(block, state):
+    """Return the cell of a source that is not compared; an unreadable map links its block-level issue."""
+    if state == "map does not parse":
+        return state + _issue_text(block, "<yaml>", "missing-in-yaml")
+    return state
+
+
 def step_text(step):
     """Return the per-element step of a source as text: bytes when it is whole words, else bits."""
     if not step:
@@ -1405,7 +1413,7 @@ def rtl_agreement(block, entry, source, state, step=0, location=True):
     whether two elements share a row).
     """
     if state != "compared":
-        return state
+        return state_cell(block, state)
     field = entry.fields.get(source)
     rtl = entry.fields.get("vhdl")
     if field is None:
@@ -1427,7 +1435,7 @@ def rtl_agreement(block, entry, source, state, step=0, location=True):
 def python_agreement(block, entry, state, step=0, location=True):
     """Return the YAML cell of an entry that has no RTL, judged against the Python field."""
     if state != "compared":
-        return state
+        return state_cell(block, state)
     python = entry.fields.get("python")
     yaml_field = entry.fields.get("yaml")
     if yaml_field is None:
@@ -1533,14 +1541,17 @@ def _row_key(row, primary_order):
     return (field.word_byte, field.bit_in_word, row.name, row.first.element)
 
 
+def stride_text(step):
+    """Return a per-element step in bits as bytes when it is whole words, else as bits."""
+    return f"0x{step // BITS_PER_BYTE:X}" if step % WORD_BITS == 0 else f"{step} bits"
+
+
 def offset_cell(row, primary_order):
     field = _primary(row.first, primary_order)
     text = literal(f"0x{field.word_byte:03X}")
     if row.count == 1:
         return text
-    step = row.strides[field.source]
-    shown = f"0x{step // BITS_PER_BYTE:X}" if step % WORD_BITS == 0 else f"{step} bits"
-    return f"{text} + {literal(shown)} * i"
+    return f"{text} + {literal(stride_text(row.strides[field.source]))} * i"
 
 
 def name_cell(row, sources_order):
@@ -1568,9 +1579,26 @@ def description_for(entry, descriptions):
     return descriptions.get(entry.name) or NO_DESCRIPTION
 
 
+def table_descriptions(class_name):
+    """Return {variable name: description} of a class and the children its reviewed table names."""
+    found = dict(pyrogue_ast.read_descriptions(PYTHON_DIR / "LclsTimingCore" / f"{class_name}.py"))
+    for child in getattr(register_tables.load_table(class_name), "CHILDREN", ()):
+        prefix = child.name.split("[")[0] + "."
+        for name, text in table_descriptions(child.table).items():
+            found.setdefault(prefix + name, text)
+    return found
+
+
 def python_descriptions(block):
-    """Return {Python variable name: description} for a block, read from its class file with ast."""
-    return pyrogue_ast.declared_descriptions(block.name)
+    """Return {Python variable name: description} for a block, read from its class files with ast.
+
+    A built-tree block follows the children its reviewed table names, because
+    its source adds them in a loop; a source-read block follows the child
+    devices written as literals.
+    """
+    if block.python_source == "ast":
+        return pyrogue_ast.declared_descriptions(block.name)
+    return table_descriptions(block.name)
 
 
 def rtl_table(block, entries, state, words, descriptions):
@@ -1676,22 +1704,38 @@ def strobe_note(sources, inside):
     return f"Access strobes carry no data and are not registers: {items}.\n"
 
 
+def yaml_defect_table(block):
+    """Return the one-row table that names the parse error of an unreadable YAML map and its issue."""
+    kind, line, fragment = KNOWN_YAML_DEFECTS[block.yaml]
+    lines = (REPO_ROOT / "yaml" / block.yaml).read_text(encoding="utf-8").splitlines()
+    spliced = any(INCLUDE_RE.match(text) for text in lines)
+    where = f"line {line}" + (" of the text after the includes are spliced in" if spliced else "")
+    issue = _issue_text(block.name, "<yaml>", "missing-in-yaml").strip() or "none"
+    row = [repo_link(f"yaml/{block.yaml}"), f"{literal(kind)} at {where}: {fragment}", issue]
+    return list_table(["YAML map", "Parse error", "Issue"], [row], widths=[30, 55, 15])
+
+
 def render_variant(block, variant, words, descriptions):
     sources = block_sources(block, variant)
     state = yaml_state(block, variant, sources)
     inside, outside = split_entries(block, sources)
-    generics = ", ".join(f"{literal(key)} = {literal(str(value))}" for key, value in variant.generics.items()) or "none"
     arguments = ", ".join(literal(f"{key}={value!r}") for key, value in variant.python_args.items()) or "none"
-    lines = [
-        title(f"Variant {variant.id}", "-"),
-        f"RTL generics: {generics}. Python arguments: {arguments}.",
-        "",
-    ]
+    if block.vhdl is None:
+        header = f"Python arguments: {arguments}."
+    else:
+        generics = (
+            ", ".join(f"{literal(key)} = {literal(str(value))}" for key, value in variant.generics.items()) or "none"
+        )
+        header = f"RTL generics: {generics}. Python arguments: {arguments}."
+    lines = [title(f"Variant {variant.id}", "-"), header, ""]
+    if state == "map does not parse":
+        lines.append(yaml_defect_table(block))
     if inside:
         lines.append(rtl_table(block, inside, state, words, descriptions))
     lines += [note for note in (strobe_note(sources, inside), decode_notes(block, sources)) if note]
     if outside:
-        lines += ["Registers without RTL in the repository (the Python view, with the YAML agreement):", ""]
+        if block.vhdl is not None:
+            lines += ["Registers without RTL in the repository (the Python view, with the YAML agreement):", ""]
         lines.append(python_table(block, outside, state, descriptions))
     return "\n".join(lines)
 
@@ -1722,12 +1766,58 @@ def known_differences(block, details):
     )
 
 
+def page_label(name):
+    """Return the label of the page of a register block (the target of the child links)."""
+    return f"register-map-{slug(name)}"
+
+
+def child_rows(block):
+    """Return [name, class, offset, count, stride] for the child devices of a composite block, or []."""
+    if block.python_source == "ast":
+        path = PYTHON_DIR / "LclsTimingCore" / f"{block.name}.py"
+        return [[child.name, child.cls, child.offset, 1, ""] for child in pyrogue_ast.read_child_devices(path)]
+    table = register_tables.load_table(block.name)
+    arg_set = VARIANT_ARG_SETS[(block.name, block.variants[0].id)]
+    rows = []
+    for child in getattr(table, "CHILDREN", ()):
+        number = child.number
+        count = number if number is None or isinstance(number, int) else arg_set.args.get(number, table.DEFAULTS[number])
+        rows.append([child.name.split("[")[0], child.table, child.offset, 1 if count is None else count, child.stride or ""])
+    return rows
+
+
+def child_table(block):
+    """Return the table of child devices of a composite block (each class links its own register page), or ''."""
+    rows = child_rows(block)
+    if not rows:
+        return ""
+    body = []
+    for name, cls, offset, count, stride in rows:
+        target = f":ref:`{cls} <{page_label(cls)}>`" if cls in REGISTER_BLOCKS else literal(cls)
+        body.append(
+            [literal(name), target, literal(f"0x{offset:X}"), str(count), literal(f"0x{stride:X}") if stride != "" else ""]
+        )
+    return "\n".join(
+        [
+            "The class adds these child devices; their registers appear below with the child name in front.",
+            "",
+            list_table(["Child", "Class", "Offset", "Count", "Stride"], body, widths=[25, 30, 15, 10, 20]),
+        ]
+    )
+
+
 def render_register_page(block, resets=None):
     """Return the page of one register block: a table per variant, then the known differences."""
     if resets is None:
         resets = load_sidecar(SIDECAR_RESETS)
     descriptions = python_descriptions(block)
-    parts = [title(f"{block.name} registers", "=")]
+    parts = [f".. _{page_label(block.name)}:\n", title(f"{block.name} registers", "=")]
+    if block.vhdl is None:
+        parts += [
+            "No RTL in repo: the firmware that implements this block lives outside this repository, so the "
+            "tables show the PyRogue declarations and how the YAML map agrees with them.",
+            "",
+        ]
     links = []
     if block.vhdl is not None:
         links.append(f"Decode file: {repo_link(block.vhdl)}.")
@@ -1735,6 +1825,9 @@ def render_register_page(block, resets=None):
     if block.yaml is not None:
         links.append(f"YAML map: {repo_link(f'yaml/{block.yaml}')}.")
     parts += [" ".join(links), ""]
+    composite = child_table(block)
+    if composite:
+        parts += [composite]
     details = {}
     for variant in block.variants:
         parts.append(render_variant(block, variant, variant_resets(resets, block, variant), descriptions))
@@ -1748,37 +1841,150 @@ def render_register_index():
     rows = [
         ["``agrees``", "the source holds the same position, width, and mode as the RTL field"],
         ["``differs: <kind>``", "the source disagrees; each kind links the issue that records it"],
+        ["``differs from Python: <kind>``", "the YAML field differs from the Python variable in that kind"],
         ["``absent``", "the source has no field for this register"],
         ["``not compared``", "the variant does not compare this source (the YAML map describes one variant)"],
         ["``map does not parse``", "the YAML map cannot be read, so none of its fields are compared"],
     ]
+    with_rtl = [name for name in REGISTER_BLOCKS if BLOCKS[name].vhdl is not None]
+    without = [name for name in REGISTER_BLOCKS if BLOCKS[name].vhdl is None]
+    covered = [
+        f"* {literal(name)}: {reason}." for name, reason in COVERED_BY_LEAVES.items()
+    ]
     return "\n".join(
         [
             title("Register maps", "="),
-            "One page per register block. Each table is read from the RTL address decode, one table per "
-            "generic or argument variant. Offset is the byte address of the 32-bit word and Bits the "
+            "One page per register block. Each table of a block with RTL is read from the RTL address decode, one "
+            "table per generic or argument variant. Offset is the byte address of the 32-bit word and Bits the "
             "position inside it. Mode is read-write (RW), read-only (RO), or write-only (WO) as the RTL decodes "
             "it. Reset is the slice of the word that a simulation asserts after reset, or ``not asserted`` "
             "when no test checks it; a word that mixes in a bit the testbench drives from an input is not "
             "listed. The Python and YAML columns compare the PyRogue declaration and the "
-            "CPSW map with the RTL field. Description is the ``description`` text of the Python variable.",
+            "CPSW map with the RTL field. Description is the ``description`` text of the Python variable. "
+            "A block with no RTL here is shown from its Python declarations, and the YAML column compares the "
+            "map with them.",
             "",
             list_table(["Agreement", "Meaning"], rows, widths=[30, 70]),
+            "Classes that hold no registers of their own are covered by their children:",
+            "",
+            *covered,
+            "",
             ".. toctree::",
             "   :maxdepth: 1",
+            "   :caption: Blocks with RTL in this repository",
             "",
-            *[f"   {name}" for name in REGISTER_BLOCKS],
+            *[f"   {name}" for name in with_rtl],
+            "",
+            ".. toctree::",
+            "   :maxdepth: 1",
+            "   :caption: Blocks implemented outside this repository",
+            "",
+            *[f"   {name}" for name in without],
+            "",
+            ".. toctree::",
+            "   :maxdepth: 1",
+            "   :caption: YAML maps with no Python class",
+            "",
+            "   yaml_only",
             "",
         ]
     )
 
 
+class YamlRow(NamedTuple):
+    name: str
+    offset: int
+    lsb: int
+    size: int
+    mode: str
+    count: int
+    stride: int
+    description: str
+
+
+def yaml_only_rows(name):
+    """Return the YamlRow list of a YAML map without expanding its arrays; raises ValueError naming the problem.
+
+    The registers are the IntField children of the top-level key named after the file. A map that is an
+    anchored fragment (the registers sit directly under the key, to be merged into another map) is read the
+    same way. MMIODev children are entered once per element.
+    """
+    loaded = load(name)
+    if loaded.error is not None:
+        raise ValueError(f"{name} does not parse: {loaded.error}")
+    stem = Path(name).stem
+    node = (loaded.data or {}).get(stem)
+    if not isinstance(node, dict):
+        raise ValueError(f"{name} has no top-level key {stem!r}")
+
+    def walk(parent, base, prefix):
+        children = parent.get("children") or {
+            key: value for key, value in parent.items() if isinstance(value, dict) and "class" in value
+        }
+        for key, child in children.items():
+            if not isinstance(child, dict):
+                continue
+            at = child.get("at") or {}
+            offset, count, stride = at.get("offset", 0), at.get("nelms", 1), at.get("stride", 0)
+            kind = child.get("class")
+            if kind == "IntField":
+                yield YamlRow(
+                    f"{prefix}{key}", base + offset, child.get("lsBit", 0), child.get("sizeBits", 32),
+                    child["mode"], count if "nelms" in at else 1, stride, str(child.get("description") or ""),
+                )
+            elif kind == "MMIODev":
+                for element in range(count):
+                    suffix = f"[{element}]" if "nelms" in at else ""
+                    yield from walk(child, base + offset + element * stride, f"{prefix}{key}{suffix}.")
+
+    rows = list(walk(node, 0, ""))
+    if not rows:
+        raise ValueError(f"{name} holds no register under {stem!r}")
+    return rows
+
+
+def yaml_only_section(name):
+    stem = Path(name).stem
+    lines = [title(f"{stem}.yaml", "-"), f"YAML map: {repo_link(f'yaml/{name}')}.", ""]
+    try:
+        rows = yaml_only_rows(name)
+    except ValueError as error:
+        lines += [f"The registers cannot be listed: {literal(str(error))}", ""]
+        return "\n".join(lines)
+    body = []
+    for row in sorted(rows, key=lambda row: (row.offset, row.lsb, row.name)):
+        field = RegField("", row.name, None, row.offset, row.lsb, row.size, row.mode, "yaml", 0, True, True)
+        offset = literal(f"0x{field.word_byte:03X}")
+        shown = row.name
+        if row.count > 1:
+            offset += f" + {literal(stride_text(row.stride * BITS_PER_BYTE))} * i"
+            shown = f"{row.name}[0..{row.count - 1}]"
+        body.append([offset, literal(shown), bits_cell(field), row.mode, row.description])
+    lines.append(list_table(["Offset", "Field", "Bits", "Mode", "Description"], body, widths=[18, 22, 10, 8, 42]))
+    return "\n".join(lines)
+
+
+def render_yaml_only():
+    """Return the page of the YAML maps that describe no PyRogue class and no RTL decode in the repository."""
+    return "\n".join(
+        [
+            title("YAML-only register maps", "="),
+            "These CPSW maps describe no PyRogue class and no RTL decode in this repository, so they are listed "
+            "as the YAML states them: the byte address of the word, the bits inside it, the mode, and the "
+            "description. An array is one row with its element step.",
+            "",
+            *[yaml_only_section(name) for name in YAML_ONLY_MAPS],
+        ]
+    )
+
+
 def render_registers(repo_root=REPO_ROOT):
-    """Return {docs-relative path: text} for the register index and the block pages."""
+    """Return {docs-relative path: text} for the register index, the block pages, and the YAML-only page."""
     resets = load_sidecar(SIDECAR_RESETS, repo_root)
     pages = {"reference/registers/index.rst": render_register_index()}
     for name in REGISTER_BLOCKS:
         pages[f"reference/registers/{name}.rst"] = render_register_page(BLOCKS[name], resets)
+    pages[YAML_ONLY_PAGE] = render_yaml_only()
     return pages
 
 

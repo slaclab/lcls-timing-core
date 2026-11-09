@@ -1,3 +1,5 @@
+.. _register-map-evrv2triggerreg:
+
 EvrV2TriggerReg registers
 =========================
 

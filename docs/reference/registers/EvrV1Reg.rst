@@ -1,3 +1,5 @@
+.. _register-map-evrv1reg:
+
 EvrV1Reg registers
 ==================
 

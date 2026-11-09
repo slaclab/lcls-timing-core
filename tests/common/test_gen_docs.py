@@ -60,7 +60,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.common import gen_docs, pyrogue_ast, register_drift
+from tests.common import gen_docs, pyrogue_ast, register_drift, yaml_maps
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
@@ -937,27 +937,49 @@ def description_literals(source):
 
 
 def description_problems(page, source):
-    """Return the rows whose Description cell is neither source text nor the marker, or hides a described variable."""
+    """Return the rows whose Description cell is neither source text nor the marker, or hides a described variable.
+
+    Both table shapes are read: the RTL-primary table (eight columns, Python agreement in column 6) and the
+    Python-view table (six columns, where a YAML-only register is the row that says missing-in-python).
+    """
     described, bare = description_literals(source)
     problems = []
     for cells in page_cells(page):
-        if len(cells) != len(gen_docs.RTL_HEADER) or cells[0] == "Offset":
+        if len(cells) not in (len(gen_docs.RTL_HEADER), len(gen_docs.PYTHON_HEADER)) or cells[0] == "Offset":
+            continue
+        if not cells[0].startswith("``0x"):
             continue
         text = cells[-1]
-        name = cells[1].split("\n")[0].strip("`").split("[")[0]
+        name = cells[1].split("\n")[0].strip("`").split("[")[0].split(".")[-1]
+        python_absent = (
+            cells[5].startswith("absent") if len(cells) == len(gen_docs.RTL_HEADER) else "missing-in-python" in cells[4]
+        )
         if text == gen_docs.NO_DESCRIPTION:
-            if not cells[5].startswith("absent") and name not in bare:
+            if not python_absent and name not in bare:
                 problems.append(f"{name}: marked missing but the source describes it")
         elif text not in described:
             problems.append(f"{name}: {text!r} is not a description in the source")
     return problems
 
 
+CLASS_FILES = {
+    "TPG": ("TPG", "TPGControl", "TPGStatus", "TPGSeqState", "TPGSeqJump"),
+    "EvrV2CoreTriggers": ("EvrV2CoreTriggers", "EvrV2ChannelReg", "EvrV2TriggerReg"),
+}
+
+
+def class_source(block_name):
+    """Return the text of the class file of a block and, for a composite, of its child classes."""
+    return "\n".join(
+        (REPO_ROOT / "python" / "LclsTimingCore" / f"{name}.py").read_text(encoding="utf-8")
+        for name in CLASS_FILES.get(block_name, (block_name,))
+    )
+
+
 def test_descriptions_are_copied_or_marked_missing():
     pages = render_all(REPO_ROOT)
     for block_name in gen_docs.REGISTER_BLOCKS:
-        path = REPO_ROOT / "python" / "LclsTimingCore" / f"{block_name}.py"
-        source = path.read_text(encoding="utf-8")
+        source = class_source(block_name)
         page = pages[f"reference/registers/{block_name}.rst"]
         assert description_problems(page, source) == [], block_name
     page = pages["reference/registers/EvrV2TriggerReg.rst"]
@@ -999,16 +1021,22 @@ def test_adjacent_fields_get_their_own_flagged_rows():
     assert page.count(":issue:`214`") >= 3
 
 
-def test_register_rows_are_sorted_by_offset_bit_then_name():
-    page = render_all(REPO_ROOT)["reference/registers/EvrV2TriggerReg.rst"]
-    for table in page.split("Variant ")[1:]:
-        keys = []
-        for cells in page_cells(table):
+def test_register_rows_are_sorted_by_offset_then_bit():
+    for path, page in render_all(REPO_ROOT).items():
+        if not path.startswith("reference/registers/") or path.endswith(("index.rst", "yaml_only.rst")):
+            continue
+        last = None
+        for cells in page_cells(page):
             if cells[0] == "Offset":
+                last = None
                 continue
+            if not cells[0].startswith("``0x"):
+                continue
+            offset = int(cells[0].split("``")[1], 16)
             bits = cells[2].strip("[]").split(":")
-            keys.append((int(cells[0].strip("`"), 16), int(bits[-1]), cells[1].split("\n")[0].strip("`")))
-        assert keys == sorted(keys)
+            key = (offset, 0 if bits == ["strobe"] else int(bits[-1]))
+            assert last is None or last <= key, f"{path}: row {cells[1]!r} is out of order"
+            last = key
 
 
 def test_register_generation_is_idempotent_and_ascii():
@@ -1017,3 +1045,85 @@ def test_register_generation_is_idempotent_and_ascii():
     for path, text in first.items():
         text.encode("ascii")
         assert "\u2013" not in text and "\u2014" not in text, path
+
+
+def test_every_block_and_shape_map_has_a_page():
+    pages = render_all(REPO_ROOT)
+    assert gen_docs.REGISTER_BLOCKS == tuple(register_drift.BLOCKS)
+    for name in register_drift.BLOCKS:
+        assert f"reference/registers/{name}.rst" in pages
+    shape = {name for name, kind in yaml_maps.YAML_CLASSIFICATION.items() if kind == "shape"}
+    assert set(gen_docs.YAML_ONLY_MAPS) == shape
+    drift_maps = {name for name, kind in yaml_maps.YAML_CLASSIFICATION.items() if kind == "drift"}
+    assert drift_maps == {block.yaml for block in register_drift.BLOCKS.values()}
+    only = pages[gen_docs.YAML_ONLY_PAGE]
+    for name in shape:
+        assert f"\n{name}\n{'-' * len(name)}\n" in only, f"no section for {name}"
+    index = pages["reference/registers/index.rst"]
+    for name, reason in register_drift.COVERED_BY_LEAVES.items():
+        assert name in index and reason in index
+    listed = set()
+    in_toctree = False
+    for line in index.splitlines():
+        if line.startswith(".. toctree::"):
+            in_toctree = True
+        elif in_toctree and line.startswith("   ") and not line.strip().startswith(":"):
+            listed.add(line.strip())
+        elif in_toctree and line and not line.startswith(" "):
+            in_toctree = False
+    assert listed == set(register_drift.BLOCKS) | {"yaml_only"}
+    registers = {path for path in pages if path.startswith("reference/registers/")}
+    assert registers == {"reference/registers/index.rst", gen_docs.YAML_ONLY_PAGE} | {
+        f"reference/registers/{name}.rst" for name in register_drift.BLOCKS
+    }
+
+
+def test_no_rtl_pages_say_so():
+    pages = render_all(REPO_ROOT)
+    without = sorted(name for name, block in register_drift.BLOCKS.items() if block.vhdl is None)
+    assert without == sorted(
+        ["TPGControl", "LclsTriggerPulse", "EvrV2CoreTriggers", "TPGStatus", "TPGSeqJump", "TPGSeqState", "TPG"]
+    )
+    for name, block in register_drift.BLOCKS.items():
+        page = pages[f"reference/registers/{name}.rst"]
+        assert ("No RTL in repo:" in page) == (block.vhdl is None), name
+        assert ("     - Reset\n" in page) == (block.vhdl is not None), name
+
+
+def test_unparseable_maps_show_the_parse_error_and_its_issue():
+    pages = render_all(REPO_ROOT)
+    for file, (kind, line, fragment) in yaml_maps.KNOWN_YAML_DEFECTS.items():
+        page = pages[f"reference/registers/{Path(file).stem}.rst"]
+        assert f"``{kind}`` at line {line}" in page and fragment in page
+        assert "map does not parse :issue:`218`" in page
+        assert "``<yaml>`` (missing-in-yaml)" in page
+
+
+def test_composite_pages_link_their_children():
+    pages = render_all(REPO_ROOT)
+    tpg = pages["reference/registers/TPG.rst"]
+    for child in ("TPGControl", "TPGStatus", "TPGSeqState", "TPGSeqJump"):
+        assert f":ref:`{child} <register-map-{child.lower()}>`" in tpg
+        assert f".. _register-map-{child.lower()}:" in pages[f"reference/registers/{child}.rst"]
+    triggers = pages["reference/registers/EvrV2CoreTriggers.rst"]
+    assert ":ref:`EvrV2ChannelReg <register-map-evrv2channelreg>`" in triggers
+    assert "``0x1000``" in triggers and "16" in triggers
+
+
+def test_arrays_collapse_into_one_row_with_an_offset_note():
+    page = render_all(REPO_ROOT)["reference/registers/EvrV2Core.rst"]
+    assert "``0x200`` + ``0x10`` * i" in page
+    assert "``TriggerChannel[0..11]``" in page
+    assert page.count("TriggerChannel[") == 1
+
+
+def test_yaml_only_page_lists_arrays_without_expanding_them():
+    only = render_all(REPO_ROOT)[gen_docs.YAML_ONLY_PAGE]
+    assert "``dram[0..536870911]``" in only and "``0x000`` + ``0x8`` * i" in only
+    assert "EvrV2Module.yaml has no top-level key 'EvrV2Module'" in only
+    assert "``PacketSize``" in only and "BLD max packet size in words" in only
+    assert only.count("``TriggerFineDelay[0..11]``") == 2
+    rows = gen_docs.yaml_only_rows("BldAxiStream.yaml")
+    assert [row.name for row in rows][:3] == ["PacketSize", "Enable", "ChannelMask"]
+    with pytest.raises(ValueError, match="no top-level key"):
+        gen_docs.yaml_only_rows("EvrV2Module.yaml")

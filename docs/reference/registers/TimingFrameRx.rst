@@ -1,3 +1,5 @@
+.. _register-map-timingframerx:
+
 TimingFrameRx registers
 =======================
 

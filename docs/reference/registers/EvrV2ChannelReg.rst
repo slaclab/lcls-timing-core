@@ -1,3 +1,5 @@
+.. _register-map-evrv2channelreg:
+
 EvrV2ChannelReg registers
 =========================
 

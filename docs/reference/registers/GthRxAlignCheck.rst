@@ -1,3 +1,5 @@
+.. _register-map-gthrxaligncheck:
+
 GthRxAlignCheck registers
 =========================
 
