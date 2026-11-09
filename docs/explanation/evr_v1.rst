@@ -5,7 +5,8 @@ The LCLS-I event receiver, ``EvrV1``, is the older of the two EVR personalities.
 It decodes an event-code stream (one 8-bit event code per clock on a 16-bit
 link word, with K-character flags), runs those codes through programmable maps
 to twelve pulse channels, and exposes a register file over AXI-Lite. It does
-not use the LCLS-II timing frame, so it does not depend on ``TimingRx``.
+not use the LCLS-II timing frame, so it does not depend on ``TimingRx``. The LCLS-II
+personality is described on the :doc:`evr_v2` page.
 
 Structure
 ---------
