@@ -26,10 +26,12 @@ therefore compares the absolute bit position, byte address * 8 + bit offset,
 never the two numbers separately.
 """
 
+import argparse
 import contextlib
 import importlib
 import os
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -390,3 +392,53 @@ def written_bits(log):
                 if value >> bit & 1:
                     bits.add((address + offset) * 8 + bit)
     return bits
+
+
+def main(argv=None):
+    """Run the drift check over named blocks of a copy of the package.
+
+    ``python -m tests.rogue.rogue_tree drift --python-dir DIR BLOCK [BLOCK ...]``
+    puts DIR in front of sys.path, refuses to run (exit 2) unless
+    LclsTimingCore is imported from under DIR, compares every variant of each
+    named block, and prints one line per reason the allowlist verdict fails
+    (an unlisted drift, or a listed entry of the named blocks that no longer
+    drifts). The exit code is 1 when any reason is printed and 0 otherwise.
+    """
+    parser = argparse.ArgumentParser(prog="python -m tests.rogue.rogue_tree")
+    commands = parser.add_subparsers(dest="command", required=True)
+    drift = commands.add_parser("drift", help="compare blocks of a copy of the package")
+    drift.add_argument("--python-dir", required=True, help="directory that holds LclsTimingCore")
+    drift.add_argument("blocks", nargs="+", help="block names, as in register_drift.BLOCKS")
+    args = parser.parse_args(argv)
+
+    unknown = [name for name in args.blocks if name not in register_drift.BLOCKS]
+    if unknown:
+        print(f"unknown block: {', '.join(unknown)}", file=sys.stderr)
+        return 2
+    package_dir = Path(args.python_dir).resolve()
+    sys.path.insert(0, str(package_dir))
+    try:
+        package = importlib.import_module("LclsTimingCore")
+    except ImportError as error:
+        print(f"cannot import LclsTimingCore from {package_dir}: {error}", file=sys.stderr)
+        return 2
+    location = Path(package.__file__).resolve()
+    if package_dir not in location.parents:
+        print(f"LclsTimingCore was imported from {location}, outside {package_dir}", file=sys.stderr)
+        return 2
+    global PYTHON_DIR
+    PYTHON_DIR = package_dir
+
+    drifts = []
+    for name in args.blocks:
+        block = register_drift.BLOCKS[name]
+        for variant in block.variants:
+            drifts.extend(variant_result(block, variant).drifts)
+    reasons = register_drift.verdict(drifts, register_drift.ALLOWLIST, blocks=set(args.blocks))
+    for reason in reasons:
+        print(reason)
+    return 1 if reasons else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
