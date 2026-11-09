@@ -180,9 +180,7 @@ async def run_case(bench, channels, triggers, steps, label):
     return samples, model
 
 
-def fixed_frame(fixed_rates=1, **fields):
-    """Return a bus step with the given fixedRates and message fields."""
-    return cb.make_step(cb.frame_message(fixedRates=fixed_rates, **fields), cb.blank_stream())
+fixed_frame = cb.fixed_frame
 
 
 def fixed_channel(index=0, **fields):
@@ -238,23 +236,6 @@ async def coretriggers_one_trigger_end_to_end(dut):
     bench.stop()
 
 
-def groups_to_walk(count):
-    """Return every group index for up to four groups, otherwise the first and the last."""
-    return list(range(count)) if count <= 4 else [0, count - 1]
-
-
-def expected_word(layout, defaults, word):
-    """Return ``(reset value, read-back mask)`` of a register word with no optional generic enabled."""
-    reset = 0
-    mask = 0
-    for entry in layout[word]:
-        if entry.condition is not None or entry.mode != "RW":
-            continue
-        mask |= ((1 << entry.width) - 1) << entry.lsb
-        reset |= defaults[entry.name] << entry.lsb
-    return reset, mask
-
-
 @cocotb.test(timeout_time=10, timeout_unit="ms")
 async def coretriggers_register_walk(dut):
     """The composite address map reads back the channel and trigger layouts at the active stride.
@@ -277,11 +258,11 @@ async def coretriggers_register_walk(dut):
             word for word, fields in layout.items() if any(entry.condition is None for entry in fields)
         ]
         absent = [word for word in layout if word not in present]
-        for group in groups_to_walk(count):
+        for group in cb.groups_to_walk(count):
             base = address(group, CARD)
             for word in present:
                 walk = await rw.walk_word(bench.master, base + word, lambda: 0, settle, {}, ignore=())
-                reset, mask = expected_word(layout, defaults, word)
+                reset, mask = cb.expected_word(layout, defaults, word)
                 assert walk.reset_value == reset, (
                     f"{kind} {group} word 0x{word:02X} reads 0x{walk.reset_value:08X} after reset, "
                     f"expected 0x{reset:08X}"

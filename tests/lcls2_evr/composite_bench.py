@@ -136,6 +136,28 @@ def build_schedule(frames, spacing, *, lead=2, tail=40, idle=None):
     return steps, strobe_steps
 
 
+def fixed_frame(fixed_rates=1, **fields):
+    """Return a strobe step with the given fixedRates and message fields and an all-zero stream."""
+    return make_step(frame_message(fixedRates=fixed_rates, **fields), blank_stream())
+
+
+def groups_to_walk(count):
+    """Return every group index for up to four groups, otherwise the first and the last."""
+    return list(range(count)) if count <= 4 else [0, count - 1]
+
+
+def expected_word(layout, defaults, word):
+    """Return ``(reset value, read-back mask)`` of a register word with no optional generic enabled."""
+    reset = 0
+    mask = 0
+    for entry in layout[word]:
+        if entry.condition is not None or entry.mode != "RW":
+            continue
+        mask |= ((1 << entry.width) - 1) << entry.lsb
+        reset |= defaults[entry.name] << entry.lsb
+    return reset, mask
+
+
 def edges(levels, bit=0):
     """Return ``[(index, level), ...]`` for each change of bit ``bit`` along ``levels``."""
     result = []
@@ -153,9 +175,9 @@ def rises(levels, bit=0):
     return [index for index, level in edges(levels, bit) if level == 1]
 
 
-def channel_address(index, card):
-    """Return the AXI-Lite address of channel register group ``index``."""
-    return CHANNEL_BASE + index * rw.group_size(card)
+def channel_address(index, card, base=CHANNEL_BASE):
+    """Return the AXI-Lite address of channel register group ``index`` (``base`` is where group 0 sits)."""
+    return base + index * rw.group_size(card)
 
 
 def trigger_address(index, card):
@@ -229,9 +251,10 @@ class ChannelPathModel:
 class Bench:
     """Clocks, resets, an AXI-Lite master and the evrClk step driver for one composite wrapper."""
 
-    def __init__(self, dut, common_clk):
+    def __init__(self, dut, common_clk, channel_base=CHANNEL_BASE):
         self.dut = dut
         self.common_clk = common_clk
+        self.channel_base = channel_base
         self.master = None
         self.clock_tasks: List = []
         self.cycle = 0
@@ -324,7 +347,7 @@ class Bench:
         """Read the event count of channel ``index`` after a bounded wait for it to cross back."""
         for _ in range(COUNT_SETTLE_CLOCKS):
             await sample_after_tpd(self.dut.axilClk, propagation_time=PROPAGATION_NS)
-        return await self.read(channel_address(index, card) + 0x08)
+        return await self.read(channel_address(index, card, self.channel_base) + 0x08)
 
     async def program(self, card, channels, triggers=None):
         """Write channel and trigger configuration dictionaries, enable words last.
@@ -334,7 +357,7 @@ class Bench:
         """
         for index, fields in sorted(channels.items()):
             config = {**evr_model.CHANNEL_CONFIG_DEFAULTS, **fields}
-            base = channel_address(index, card)
+            base = channel_address(index, card, self.channel_base)
             await self.write(base + 0x04, channel_rate_dest_word(config))
             await self.write(base + 0x00, config["enabled"])
         for index, fields in sorted((triggers or {}).items()):
