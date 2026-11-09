@@ -407,7 +407,7 @@ def test_EvrV2ChannelReg(params):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2ChannelReg.py covers 18 of the 19 RTL destSel bits; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/215; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2ChannelReg_known_issue_field_width():

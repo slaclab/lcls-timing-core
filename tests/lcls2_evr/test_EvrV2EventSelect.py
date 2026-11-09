@@ -418,7 +418,7 @@ def test_EvrV2EventSelect():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2EventSelect indexes the 18-word control array with rateSel(8:4) up to 31 "
-        "and GHDL aborts at 18; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "and GHDL aborts at 18; see https://github.com/slaclab/lcls-timing-core/issues/213; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2EventSelect_known_issue_control_index():

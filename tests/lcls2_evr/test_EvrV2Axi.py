@@ -531,7 +531,7 @@ def test_EvrV2Axi(params):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2Core.py channel variables disagree with the EvrV2Axi decode in width and channel count; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/215; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2Axi_known_issue_channel_width():

@@ -583,7 +583,7 @@ def test_EvrV1DbusDecode_patched_copy():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV1DbusDecode.v has an unsized constant in a concatenation that Icarus rejects; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/216; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV1DbusDecode_known_issue_unpatched():

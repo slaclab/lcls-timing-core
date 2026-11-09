@@ -536,7 +536,7 @@ def test_EvrV2Trigger_mask():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2Trigger with polarity 0 idles low until the first pulse completes; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/217; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2Trigger_known_issue_polarity_idle():
@@ -547,7 +547,7 @@ def test_EvrV2Trigger_known_issue_polarity_idle():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2Trigger indexes arm with a channel at or above CHANNELS_C and GHDL aborts; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/212; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2Trigger_known_issue_channel_index():
