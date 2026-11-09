@@ -430,3 +430,48 @@ class EventSelectModel:
         dma = selected & config["dmaEnabled"]
         self.control_word = message["control"][index]
         return selected, dma
+
+
+def from_v1(stream: dict, previous: dict) -> dict:
+    """Return the message EvrV2FromV1 holds after one strobe with disable low.
+
+    ``stream`` is the dictionary timing_model.unpack_stream returns and
+    ``previous`` the message dictionary before the strobe. Fields the RTL
+    never assigns (version, resync, syncStatus, mpsValid, bcsFault) keep their
+    previous value; every other field is rebuilt from the stream.
+    """
+    dbuff = stream["dbuff"]
+    dmod = dbuff["dmod"]
+    epics = dbuff["epicsTime"]
+    init = dbuff["edefInit"]
+    mask64 = (1 << 64) - 1
+    not_init = ~init & mask64
+
+    def dmod_bits(high: int, low: int) -> int:
+        return (dmod >> low) & ((1 << (high - low + 1)) - 1)
+
+    out = dict(previous)
+    out["pulseId"] = ((stream["pulseId"] & 0x1FFFF) << 47) | (((epics >> 17) & 0x7FFF) << 32) | (epics >> 32)
+    out["timeStamp"] = ((epics & 0xFFFFFFFF) << 32) | (epics >> 32)
+    out["bsaInit"] = init
+    out["bsaActive"] = (dbuff["edefMinor"] & init) | (dmod_bits(147, 128) & not_init)
+    out["bsaAvgDone"] = (dbuff["edefMajor"] & init) | (dbuff["edefAvgDn"] & not_init)
+    out["bsaDone"] = dbuff["edefAvgDn"]
+    out["fixedRates"] = 0
+    out["acRates"] = 1 | (dmod_bits(152, 148) << 1)
+    out["acTimeSlot"] = dmod_bits(127, 125)
+    out["beamEnergy"] = [dmod_bits(16 * k + 15, 16 * k) for k in range(4)]
+    out["photonWavelen"] = [dmod_bits(79, 64), dmod_bits(95, 80)]
+    out["mpsLimit"] = dmod_bits(127, 112)
+    out["mpsClass"] = [dmod_bits(131 + 4 * i, 128 + 4 * i) for i in range(16)]
+    codes = stream["eventCodes"]
+    control = [(codes >> (16 * i)) & 0xFFFF for i in range(16)]
+    control += [dmod_bits(111, 96), 0]
+    out["control"] = control
+    destination = 2
+    if (dmod >> 61) & 1:
+        destination = 0
+    if (dmod >> 60) & 1:
+        destination = 1
+    out["beamRequest"] = (destination << 4) | ((dmod >> 83) & 1)
+    return out

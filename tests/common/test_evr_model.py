@@ -338,3 +338,75 @@ def test_event_select_model_refuses_control_index_overflow():
         with pytest.raises(ValueError, match="out of bounds"):
             model.step(select_config(enabled=1, rateSel=index << 4), 1, select_message())
     model.step(select_config(enabled=1, rateSel=17 << 4), 1, select_message())
+
+
+def v1_stream(pulse_id=0, event_codes=0, **dbuff):
+    values = {"dtype": 0, "version": 0, "dmod": 0, "epicsTime": 0, "edefAvgDn": 0, "edefMinor": 0, "edefMajor": 0,
+              "edefInit": 0}
+    values.update(dbuff)
+    return {"pulseId": pulse_id, "eventCodes": event_codes, "dbuff": values}
+
+
+def test_from_v1_time_fields():
+    out = evr_model.from_v1(v1_stream(pulse_id=0x12345, epicsTime=0x0123456789ABCDEF), timing_model.default_message())
+    assert out["pulseId"] == (0x12345 << 47) | (0x44D5 << 32) | 0x01234567
+    assert out["timeStamp"] == 0x89ABCDEF01234567
+    # Only the low 17 bits of the LCLS-I pulse id are kept.
+    wide = evr_model.from_v1(v1_stream(pulse_id=0xFFFE0000), timing_model.default_message())
+    assert wide["pulseId"] == 0
+
+
+def test_from_v1_event_codes_and_modifier_words():
+    codes = (0xABCD << 0) | (0x1234 << 16) | (0xFFFF << (16 * 15))
+    dmod = 0
+    for word, value in enumerate((0x1111, 0x2222, 0x3333, 0x4444, 0x5555, 0x6666, 0x7777, 0x8888)):
+        dmod |= value << (16 * word)
+    out = evr_model.from_v1(v1_stream(event_codes=codes, dmod=dmod), timing_model.default_message())
+    assert out["control"][0] == 0xABCD and out["control"][1] == 0x1234 and out["control"][15] == 0xFFFF
+    assert out["control"][2] == 0 and out["control"][17] == 0
+    assert out["control"][16] == 0x7777
+    assert out["beamEnergy"] == [0x1111, 0x2222, 0x3333, 0x4444]
+    assert out["photonWavelen"] == [0x5555, 0x6666]
+    assert out["mpsLimit"] == 0x8888
+
+
+def test_from_v1_mps_class_and_ac_fields():
+    # mpsClass(5) to mpsClass(7) share dmod(163:148) with the acRates bits, so the two are checked apart.
+    dmod = 0
+    for i in range(16):
+        dmod |= (i & 0xF) << (128 + 4 * i)
+    out = evr_model.from_v1(v1_stream(dmod=dmod), timing_model.default_message())
+    assert out["mpsClass"] == list(range(16))
+    # dmod(152:148) is the low bit of mpsClass(6) (0) above mpsClass(5) (0101): 00101, then acRates(0) = 1.
+    assert out["acRates"] == 0b001011
+    ac = evr_model.from_v1(v1_stream(dmod=(0b101 << 125) | (0b10110 << 148)), timing_model.default_message())
+    assert ac["acTimeSlot"] == 0b101
+    assert ac["acRates"] == 0b101101
+    assert ac["fixedRates"] == 0
+
+
+def test_from_v1_bsa_fields():
+    with_init = evr_model.from_v1(
+        v1_stream(edefInit=0x0000FFFF, edefMinor=0x12345678, edefMajor=0x9ABCDEF0, edefAvgDn=0x0F0F0F0F,
+                  dmod=0xFFFFF << 128),
+        timing_model.default_message(),
+    )
+    assert with_init["bsaInit"] == 0x0000FFFF
+    assert with_init["bsaActive"] == 0x00005678 | 0xF0000
+    assert with_init["bsaAvgDone"] == 0x0000DEF0 | 0x0F0F0000
+    assert with_init["bsaDone"] == 0x0F0F0F0F
+
+
+def test_from_v1_destination_rule():
+    base = timing_model.default_message()
+    for dmod, want in ((0, 2), (1 << 61, 0), (1 << 60, 1), ((1 << 61) | (1 << 60), 1)):
+        assert evr_model.from_v1(v1_stream(dmod=dmod), base)["beamRequest"] == want << 4
+    assert evr_model.from_v1(v1_stream(dmod=1 << 83), base)["beamRequest"] == (2 << 4) | 1
+
+
+def test_from_v1_keeps_unassigned_fields():
+    previous = {**timing_model.default_message(), "version": 7, "resync": 1, "syncStatus": 1, "mpsValid": 1, "bcsFault": 1}
+    out = evr_model.from_v1(v1_stream(), previous)
+    for name in ("version", "resync", "syncStatus", "mpsValid", "bcsFault"):
+        assert out[name] == previous[name]
+    assert previous["version"] == 7 and out is not previous
