@@ -62,7 +62,7 @@ How a firmware project consumes it
 A project's ``ruckus.tcl`` loads this repository with ``loadRuckusTcl``. The
 root :repo:`ruckus.tcl` loads the LCLS-I and LCLS-II trees, and
 :repo:`LCLS-II/ruckus.tcl` loads the core, the EVR, and the one GT directory that
-matches the target family. Every source is compiled into the VHDL library
+matches the target family (see :doc:`gt_families`). Every source is compiled into the VHDL library
 ``lcls_timing_core``, and the code uses the ``surf`` library for AXI-Lite
 plumbing, FIFOs, and clock-domain synchronizers, so the project must also load
 ``surf``. The root script pins ``ruckus`` and ``surf`` versions and requires

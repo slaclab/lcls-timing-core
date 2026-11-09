@@ -8,3 +8,7 @@ wrappers, and the host software fit together, and why they are built that way.
    :maxdepth: 1
 
    overview
+   architecture
+   clocking_cdc
+   gt_families
+   extension_package
