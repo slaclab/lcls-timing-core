@@ -63,7 +63,16 @@ from tests.common.register_drift import (
 )
 from tests.common.register_tables import ArgSet
 from tests.common.vhdl_registers import read_decode
-from tests.common.yaml_maps import INCLUDE_RE, KNOWN_YAML_DEFECTS, YAML_CLASSIFICATION, load, yaml_fields
+from tests.common.yaml_maps import (
+    INCLUDE_RE,
+    KNOWN_MISSING_INCLUDE_ISSUES,
+    KNOWN_YAML_DEFECT_ISSUES,
+    KNOWN_YAML_DEFECTS,
+    YAML_CLASSIFICATION,
+    YAML_DIR,
+    load,
+    yaml_fields,
+)
 from tests.common.vhdl_registers import (
     Token,
     _find_top,
@@ -1903,14 +1912,14 @@ class YamlRow(NamedTuple):
     description: str
 
 
-def yaml_only_rows(name):
+def yaml_only_rows(name, root=YAML_DIR):
     """Return the YamlRow list of a YAML map without expanding its arrays; raises ValueError naming the problem.
 
     The registers are the IntField children of the top-level key named after the file. A map that is an
     anchored fragment (the registers sit directly under the key, to be merged into another map) is read the
     same way. MMIODev children are entered once per element.
     """
-    loaded = load(name)
+    loaded = load(name, root=root)
     if loaded.error is not None:
         raise ValueError(f"{name} does not parse: {loaded.error}")
     stem = Path(name).stem
@@ -1944,6 +1953,23 @@ def yaml_only_rows(name):
     return rows
 
 
+def yaml_row_cells(row, shown=None):
+    """Return the (offset, field, bits) cells of a YamlRow; an array is one row with its element step.
+
+    ``shown`` replaces the field name when the row already carries its own
+    element range (see ``collapse_yaml_elements``).
+    """
+    field = RegField("", row.name, None, row.offset, row.lsb, row.size, row.mode, "yaml", 0, True, True)
+    offset = literal(f"0x{field.word_byte:03X}")
+    if shown is None:
+        shown = row.name
+        if row.count > 1:
+            shown = f"{row.name}[0..{row.count - 1}]"
+    if row.count > 1:
+        offset += f" + {literal(stride_text(row.stride * BITS_PER_BYTE))} * i"
+    return offset, literal(shown), bits_cell(field)
+
+
 def yaml_only_section(name):
     stem = Path(name).stem
     lines = [title(f"{stem}.yaml", "-"), f"YAML map: {repo_link(f'yaml/{name}')}.", ""]
@@ -1954,13 +1980,8 @@ def yaml_only_section(name):
         return "\n".join(lines)
     body = []
     for row in sorted(rows, key=lambda row: (row.offset, row.lsb, row.name)):
-        field = RegField("", row.name, None, row.offset, row.lsb, row.size, row.mode, "yaml", 0, True, True)
-        offset = literal(f"0x{field.word_byte:03X}")
-        shown = row.name
-        if row.count > 1:
-            offset += f" + {literal(stride_text(row.stride * BITS_PER_BYTE))} * i"
-            shown = f"{row.name}[0..{row.count - 1}]"
-        body.append([offset, literal(shown), bits_cell(field), row.mode, row.description])
+        offset, shown, bits = yaml_row_cells(row)
+        body.append([offset, shown, bits, row.mode, row.description])
     lines.append(list_table(["Offset", "Field", "Bits", "Mode", "Description"], body, widths=[18, 22, 10, 8, 42]))
     return "\n".join(lines)
 
@@ -2364,6 +2385,174 @@ def render_pyrogue(repo_root=REPO_ROOT):
 
 
 # ---------------------------------------------------------------------------
+# YAML register maps
+# ---------------------------------------------------------------------------
+
+YAML_MAPS_PAGE = "reference/yaml_maps.rst"
+YAML_FIELD_HEADER = ["Field", "Offset", "Bits", "Mode"]
+YAML_FIELD_WIDTHS = [40, 25, 15, 20]
+
+
+def yaml_label(name):
+    """Return the label of the section of one YAML map."""
+    return f"yaml-map-{slug(Path(name).stem)}"
+
+
+def yaml_block(name):
+    """Return the register block that compares the YAML map, or None."""
+    for block in BLOCKS.values():
+        if block.yaml == name:
+            return block
+    return None
+
+
+def yaml_includes(name, root=YAML_DIR):
+    """Return the file names the map includes directly, in line order."""
+    text = (Path(root) / name).read_text(encoding="utf-8")
+    return [match.group(1) for line in text.splitlines() if (match := INCLUDE_RE.match(line))]
+
+
+def yaml_register_link(name):
+    block = yaml_block(name)
+    if block is not None:
+        return f":ref:`{block.name} registers <{page_label(block.name)}>`"
+    return ":doc:`YAML-only register maps <registers/yaml_only>`" if name in YAML_ONLY_MAPS else ""
+
+
+def yaml_parse_status(name, loaded, root=YAML_DIR):
+    """Return the text of the parse status of a loaded map, with the error and its issue when it fails."""
+    if loaded.error is None:
+        return "parses"
+    problem, line = loaded.error
+    spliced = bool(yaml_includes(name, root))
+    where = f"line {line}" + (" of the text after the includes are spliced in" if spliced else "")
+    issue = KNOWN_YAML_DEFECT_ISSUES.get(name)
+    tail = f" ({issue_cell([issue])})" if issue else ""
+    return f"does not parse: {literal(loaded.error_class)} at {where}: {problem}{tail}"
+
+
+def yaml_top_level(loaded):
+    """Return the top-level nodes of a loaded map as ``name`` (class) strings."""
+    nodes = []
+    for key, value in (loaded.data or {}).items():
+        kind = value.get("class") if isinstance(value, dict) else None
+        nodes.append(f"{literal(str(key))} ({kind or 'no class'})")
+    return nodes
+
+
+_ELEMENT_RE = re.compile(r"^([^\[\]]+)\[(\d+)\]\.(.+)$")
+
+
+def collapse_yaml_elements(rows):
+    """Return [(YamlRow, field name or None)] with the same field of consecutive device elements joined.
+
+    A field named ``dev[i].field`` that appears for elements 0 to N-1 of one
+    device array, at a constant step between elements, becomes one row named
+    ``dev[0..N-1].field`` with that step. A field of an irregular array, or one
+    that is itself an array, keeps one row per element.
+    """
+    groups = {}
+    kept = []
+    for row in rows:
+        match = _ELEMENT_RE.match(row.name) if row.count == 1 else None
+        if match is None:
+            kept.append((row, None))
+            continue
+        head, element, rest = match.group(1), int(match.group(2)), match.group(3)
+        groups.setdefault((head, rest, row.lsb, row.size, row.mode), []).append((element, row))
+    for (head, rest, *_), members in groups.items():
+        members.sort(key=lambda member: member[0])
+        steps = {second[1].offset - first[1].offset for first, second in zip(members, members[1:])}
+        regular = [element for element, _ in members] == list(range(len(members))) and len(steps) == 1
+        if len(members) > 1 and regular:
+            first = members[0][1]
+            joined = first._replace(name=f"{head}[0..{len(members) - 1}].{rest}", count=len(members), stride=steps.pop())
+            kept.append((joined, joined.name))
+        else:
+            kept.extend((row, None) for _, row in members)
+    return kept
+
+
+def yaml_map_section(name, root=YAML_DIR):
+    """Return the section of one YAML map: classification, includes, parse status, top-level nodes, and fields."""
+    loaded = load(name, root=root)
+    kind = YAML_CLASSIFICATION.get(name, "unclassified")
+    meaning = {
+        "drift": "compared with the PyRogue class and the RTL decode",
+        "shape": "checked for structure only",
+    }.get(kind, "not classified")
+    lines = [f".. _{yaml_label(name)}:\n", title(name, "-"), f"YAML map: {repo_link(f'yaml/{name}')}.", ""]
+    register = yaml_register_link(name)
+    lines.append(f"Classification: {literal(kind)} ({meaning})." + (f" Register page: {register}." if register else ""))
+    lines.append("")
+    includes = yaml_includes(name, root)
+    if includes:
+        issue = KNOWN_MISSING_INCLUDE_ISSUES.get(name)
+        lines += ["Includes:", ""]
+        for include in includes:
+            if include in loaded.missing_includes:
+                flag = " (not found beside the map" + (f", {issue_cell([issue])}" if issue else "") + ")"
+            else:
+                flag = ""
+            lines.append(f"* {literal(include)}{flag}")
+        lines.append("")
+    else:
+        lines += ["Includes: none.", ""]
+    lines += [f"Parse status: {yaml_parse_status(name, loaded, root)}.", ""]
+    if loaded.error is None:
+        top = yaml_top_level(loaded)
+        lines += [f"Top-level nodes: {', '.join(top) if top else 'none'}.", ""]
+    try:
+        rows = yaml_only_rows(name, root)
+    except ValueError as error:
+        reason = "the map does not parse" if loaded.error is not None else literal(str(error))
+        lines += [f"The fields cannot be listed: {reason}.", ""]
+        return "\n".join(lines)
+    body = []
+    for row, shown in sorted(collapse_yaml_elements(rows), key=lambda pair: (pair[0].offset, pair[0].lsb, pair[0].name)):
+        offset, field, bits = yaml_row_cells(row, shown)
+        body.append([field, offset, bits, row.mode])
+    if includes:
+        lines += [f"The fields include those spliced in from {', '.join(literal(include) for include in includes)}.", ""]
+    lines.append(list_table(YAML_FIELD_HEADER, body, widths=YAML_FIELD_WIDTHS))
+    return "\n".join(lines)
+
+
+def render_yaml_maps(root=YAML_DIR):
+    """Return the text of the YAML register map reference: a summary table and one section per map."""
+    names = sorted(path.name for path in Path(root).glob("*.yaml"))
+    rows = []
+    for name in names:
+        loaded = load(name, root=root)
+        includes = yaml_includes(name, root)
+        listed = ", ".join(
+            literal(include) + (" (missing)" if include in loaded.missing_includes else "") for include in includes
+        )
+        parses = "yes" if loaded.error is None else f"no: {literal(loaded.error_class)}"
+        rows.append(
+            [
+                f":ref:`{name} <{yaml_label(name)}>`", YAML_CLASSIFICATION.get(name, "unclassified"), parses,
+                listed, yaml_register_link(name),
+            ]
+        )
+    return "\n".join(
+        [
+            title("YAML register maps", "="),
+            "The maps in ``yaml/`` are CPSW register descriptions. Each one mirrors a PyRogue class of the same name "
+            "(the ``drift`` maps, compared field by field on the register pages) or describes a block with no "
+            "PyRogue class here (the ``shape`` maps). A line ``#include <file>`` pulls in another map before "
+            "the YAML is parsed, so an including map lists the fields it splices in. The fields are flattened "
+            "with the CPSW defaults: offset 0, ``nelms`` 1, ``stride`` 0, ``lsBit`` 0, and ``sizeBits`` 32. "
+            "An array is one row with its element step. A map that does not parse is shown with its error and "
+            "its issue instead of fields.",
+            "",
+            list_table(["File", "Classification", "Parses", "Includes", "Register page"], rows, widths=[22, 12, 14, 30, 22]),
+            *[yaml_map_section(name, root) for name in names],
+        ]
+    )
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
@@ -2372,6 +2561,7 @@ def render_all(repo_root=REPO_ROOT):
     pages = render_entities(repo_root)
     pages.update(render_registers(repo_root))
     pages.update(render_pyrogue(repo_root))
+    pages[YAML_MAPS_PAGE] = render_yaml_maps()
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)
     for path, text in pages.items():

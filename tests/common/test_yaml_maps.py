@@ -27,11 +27,15 @@ Test methodology:
         finding that disappears fails until its entry is removed. Two gated
         tests state the intended end state (the include resolves, every map
         parses) and fail while the maps are defective.
+        The issue links recorded beside the baselines equal the links in the
+        skip reasons of those two gated tests.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
 
+import ast
 import os
+import re
 import textwrap
 from pathlib import Path
 
@@ -101,6 +105,34 @@ def test_yaml_known_issue_tpgseqmem_include(loaded):
 def test_yaml_known_issue_every_file_parses(loaded):
     failing = sorted(name for name, result in loaded.items() if result.error is not None)
     assert not failing, f"these maps do not parse: {failing}"
+
+
+def gated_reason_url(function_name):
+    """Return the issue URL in the skip reason of the named gated test of this module, read with ast."""
+    tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == function_name:
+            for decorator in node.decorator_list:
+                for keyword in getattr(decorator, "keywords", ()):
+                    if keyword.arg == "reason":
+                        found = re.findall(
+                            r"https://github\.com/slaclab/lcls-timing-core/issues/\d+", ast.literal_eval(keyword.value)
+                        )
+                        assert len(found) == 1, f"{function_name}: expected one issue URL in the reason, found {found}"
+                        return found[0]
+    raise AssertionError(f"no gated test {function_name} with a skip reason")
+
+
+def test_yaml_issue_links_match_the_gated_reasons():
+    parse_url = gated_reason_url("test_yaml_known_issue_every_file_parses")
+    include_url = gated_reason_url("test_yaml_known_issue_tpgseqmem_include")
+    assert sorted(ym.KNOWN_YAML_DEFECT_ISSUES) == sorted(ym.KNOWN_YAML_DEFECTS)
+    assert sorted(ym.KNOWN_MISSING_INCLUDE_ISSUES) == sorted(ym.KNOWN_MISSING_INCLUDES)
+    assert set(ym.KNOWN_YAML_DEFECT_ISSUES.values()) == {parse_url}
+    assert set(ym.KNOWN_MISSING_INCLUDE_ISSUES.values()) == {include_url}
+    assert parse_url != include_url
+    with pytest.raises(AssertionError, match="no gated test"):
+        gated_reason_url("test_yaml_modes_are_rw_or_ro")
 
 
 def _write(root, name, text):

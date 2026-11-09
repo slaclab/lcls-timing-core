@@ -51,7 +51,10 @@ Test methodology:
         flagged rows, and rows are sorted by byte offset, bit offset, name,
         the constructor reader returns the arguments, defaults, and
         ValueError checks of a class, and the API pages are built without
-        importing Rogue.
+        importing Rogue, every device class has one page with its gated issues,
+        and the YAML map page has one section per file with the parse
+        failures, the missing include, and the spliced fields of an including
+        map.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -1333,3 +1336,94 @@ def test_api_pages_and_variables_are_sorted():
                 last = key
                 checked += 1
     assert checked > 200
+
+
+def yaml_section(page, name):
+    """Return the text of the section of one YAML map in the generated YAML page."""
+    marker = f"\n{name}\n{'-' * len(name)}\n"
+    assert marker in page, f"no section for {name}"
+    return page.split(marker, 1)[1].split("\n.. _yaml-map-", 1)[0]
+
+
+def test_yaml_page_documents_every_map_in_file_order():
+    pages = render_all(REPO_ROOT)
+    page = pages[gen_docs.YAML_MAPS_PAGE]
+    on_disk = sorted(path.name for path in (REPO_ROOT / "yaml").glob("*.yaml"))
+    assert len(on_disk) == 20
+    assert on_disk == sorted(yaml_maps.YAML_CLASSIFICATION)
+    positions = [page.index(f"\n{name}\n{'-' * len(name)}\n") for name in on_disk]
+    assert positions == sorted(positions)
+    assert "yaml_maps" in pages["reference/index.rst"]
+    for name in on_disk:
+        section = yaml_section(page, name)
+        assert f"Classification: ``{yaml_maps.YAML_CLASSIFICATION[name]}``" in section
+        assert "Parse status:" in section and "Includes" in section
+    summary = page_cells(page.split(f"\n{on_disk[0]}\n")[0])
+    assert [cells[0] for cells in summary][1:] == [f":ref:`{name} <yaml-map-{Path(name).stem.lower()}>`" for name in on_disk]
+
+
+def test_yaml_page_links_the_parse_failures_and_the_missing_include():
+    page = render_all(REPO_ROOT)[gen_docs.YAML_MAPS_PAGE]
+    assert page.count(":issue:`218`") >= 3 and page.count(":issue:`219`") >= 1
+    for name, (kind, line, fragment) in yaml_maps.KNOWN_YAML_DEFECTS.items():
+        section = yaml_section(page, name)
+        assert f"``{kind}`` at line {line}" in section and fragment in section
+        assert ":issue:`218`" in section
+        assert "The fields cannot be listed: the map does not parse." in section
+    tpg = yaml_section(page, "TPG.yaml")
+    assert "``TPGSeqMem.yaml`` (not found beside the map, :issue:`219`)" in tpg
+    assert "after the includes are spliced in" in tpg
+    assert "after the includes" not in yaml_section(page, "TPGControl.yaml")
+    assert "Parse status: parses." in yaml_section(page, "EvrV2TriggerReg.yaml")
+    assert ":ref:`EvrV2TriggerReg registers <register-map-evrv2triggerreg>`" in yaml_section(page, "EvrV2TriggerReg.yaml")
+
+
+def write_yaml(root, name, text):
+    root.mkdir(parents=True, exist_ok=True)
+    (root / name).write_text(text, encoding="utf-8")
+
+
+def test_including_map_names_the_included_file_and_lists_the_spliced_fields(tmp_path):
+    write_yaml(tmp_path, "inc.yaml", "Shared: &Shared\n  class: IntField\n  mode: RO\n  sizeBits: 8\n")
+    write_yaml(
+        tmp_path,
+        "a.yaml",
+        "#include inc.yaml\n"
+        "a:\n  class: MMIODev\n  children:\n"
+        "    Own:\n      class: IntField\n      mode: RW\n      at:\n        offset: 0x0\n"
+        "    Spliced:\n      <<: *Shared\n      at:\n        offset: 0x10\n",
+    )
+    section = gen_docs.yaml_map_section("a.yaml", root=tmp_path)
+    assert "* ``inc.yaml``" in section
+    assert "spliced in from ``inc.yaml``" in section
+    cells = {row[0]: row for row in page_cells(section)}
+    assert cells["``Own``"][1:] == ["``0x000``", "[31:0]", "RW"]
+    assert cells["``Spliced``"][1:] == ["``0x010``", "[7:0]", "RO"]
+    real = yaml_section(render_all(REPO_ROOT)[gen_docs.YAML_MAPS_PAGE], "EvrV2CoreTriggers.yaml")
+    assert "``EvrV2ChannelReg.yaml``" in real and "``EvrV2TriggerReg.yaml``" in real
+    assert "``EvrV2TriggerReg[0..15].Delay``" in real
+
+
+def test_yaml_map_that_does_not_parse_is_shown_with_its_error(tmp_path):
+    write_yaml(tmp_path, "bad.yaml", "a: b: c\n")
+    section = gen_docs.yaml_map_section("bad.yaml", root=tmp_path)
+    assert "``ScannerError`` at line 1" in section and "mapping values are not allowed here" in section
+    assert "The fields cannot be listed: the map does not parse." in section
+    assert ":issue:" not in section
+    page = gen_docs.render_yaml_maps(root=tmp_path)
+    assert "no: ``ScannerError``" in page and "\nbad.yaml\n--------\n" in page
+
+
+def test_collapse_yaml_elements_joins_only_regular_device_arrays():
+    def row(name, offset, count=1):
+        return gen_docs.YamlRow(name, offset, 0, 32, "RW", count, 4 if count > 1 else 0, "")
+
+    regular = [row(f"d[{i}].x", 0x10 * i) for i in range(4)]
+    (joined, shown), = gen_docs.collapse_yaml_elements(regular)
+    assert shown == "d[0..3].x" and joined.count == 4 and joined.stride == 0x10 and joined.offset == 0
+    irregular = [row("d[0].x", 0), row("d[1].x", 0x10), row("d[2].x", 0x30)]
+    assert [shown for _, shown in gen_docs.collapse_yaml_elements(irregular)] == [None, None, None]
+    inner = [row("d[0].x", 0, count=2), row("d[1].x", 0x10, count=2)]
+    assert [shown for _, shown in gen_docs.collapse_yaml_elements(inner)] == [None, None]
+    single = [row("d[0].x", 0)]
+    assert [shown for _, shown in gen_docs.collapse_yaml_elements(single)] == [None]

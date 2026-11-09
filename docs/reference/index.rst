@@ -10,3 +10,4 @@ Lookup material for the library, generated from the sources by ``python -m tests
    pyrogue/index
    registers/index
    families
+   yaml_maps

@@ -192,8 +192,20 @@ KNOWN_YAML_DEFECTS = {
     "TPGSeqState.yaml": ("ScannerError", 27, "mapping values are not allowed here"),
 }
 
+# The issue that records each baseline above, by file. A test compares these
+# links with the reasons of the gated tests that reproduce the defects.
+KNOWN_YAML_DEFECT_ISSUES = {
+    "TPG.yaml": "https://github.com/slaclab/lcls-timing-core/issues/218",
+    "TPGControl.yaml": "https://github.com/slaclab/lcls-timing-core/issues/218",
+    "TPGSeqState.yaml": "https://github.com/slaclab/lcls-timing-core/issues/218",
+}
+
 # Include targets that do not exist in yaml/, by including file.
 KNOWN_MISSING_INCLUDES = {"TPG.yaml": ("TPGSeqMem.yaml",)}
+
+KNOWN_MISSING_INCLUDE_ISSUES = {
+    "TPG.yaml": "https://github.com/slaclab/lcls-timing-core/issues/219",
+}
 
 
 def load_all(*, root=YAML_DIR):
