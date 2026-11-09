@@ -1,0 +1,58 @@
+# Files whose banner Description is empty, missing, or contradicts what the
+# file does, keyed by repo-relative path.
+#
+#   kind: empty        the Description field has no text
+#   kind: missing      the file has no Description field in its first 60 lines
+#   kind: contradicts  the Description describes something the file does not
+#                      do; the entry also carries the current text as header
+#
+# Each entry links a filed issue or says pending until one is filed. The
+# empty and missing entries are checked against the files in both directions,
+# so writing a header or adding a file with an empty one fails the test until
+# this file follows. Production headers are never edited from here.
+
+LCLS-II/core/rtl/EthTimingModule.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMini.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMiniCore.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMiniEdef.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMiniEdefPkg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMiniEdefTb.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGMiniReg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TPGNotify.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingCore.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingFrameRx.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingGthWrapper.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingMsgAxiRingBuffer.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingMsgDelay.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingPkg.vhd:
+  kind: empty
+  issue: pending
+LCLS-II/core/rtl/default/TimingExtnPkg.vhd:
+  kind: empty
+  issue: pending

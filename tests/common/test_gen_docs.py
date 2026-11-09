@@ -18,7 +18,10 @@ Test methodology:
     Stimulus: render_all on the real tree (text parsing only, no simulator),
         a temporary docs directory for the freshness check, and synthetic
         design units for the renderers.
-    Checks: the verification status of every core entity follows the CI
+    Checks: the empty and missing header sets equal the header sidecar in
+        both directions and each contradicts entry pins the current header
+        text, sidecar kinds are known and links are issue URLs or pending,
+        the verification status of every core entity follows the CI
         baselines (baseline-excluded, not simulated, and not loaded sets are
         exact), the issues cell orders links by number with pending last,
         an entity without generics or ports renders none, a missing purpose
@@ -49,6 +52,7 @@ from tests.common.gen_docs import (
     entity_issues,
     entity_section,
     header_description,
+    header_findings,
     issue_cell,
     list_table,
     load_sidecar,
@@ -58,6 +62,7 @@ from tests.common.gen_docs import (
     statuses,
 )
 from tests.common.ghdl_analysis import KNOWN_GHDL_UNANALYZABLE, NOT_SIMULATED
+from tests.common.register_drift import ISSUE_URL_RE
 from tests.common.regression_utils import REPO_ROOT
 from tests.common.source_inventory import UNLOADED_SOURCES
 
@@ -326,3 +331,59 @@ def test_missing_purpose_or_status_raises():
         entity_section(path, _unit(), None, "simulated", "simulated", "none", False)
     with pytest.raises(ValueError, match=path):
         entity_section(path, _unit(), "Does nothing.", None, "", "none", False)
+
+
+def _header_sidecar():
+    return load_sidecar("header_issues.yaml")
+
+
+def test_header_issues_match_the_headers():
+    sidecar = _header_sidecar()
+    for tree in DOC_TREES:
+        files = gen_docs.documented_files(REPO_ROOT, tree)
+        computed = header_findings(REPO_ROOT, files)
+        for kind in ("empty", "missing"):
+            expected = {path for path, entry in sidecar.items() if path in files and entry["kind"] == kind}
+            found = {path for path, value in computed.items() if value == kind}
+            assert not found - expected, f"{kind} headers with no entry in docs/_data/header_issues.yaml: {sorted(found - expected)}"
+            assert not expected - found, (
+                f"entries whose header is no longer {kind}; remove them from docs/_data/header_issues.yaml: "
+                f"{sorted(expected - found)}"
+            )
+    for path, entry in sidecar.items():
+        if entry["kind"] != "contradicts":
+            continue
+        current = header_description(REPO_ROOT / path)
+        assert current.found and current.text == entry["header"], (
+            f"{path}: the header changed; if it was fixed, remove the entry from docs/_data/header_issues.yaml"
+        )
+
+
+def test_header_issue_links_are_urls_or_pending():
+    for path, entry in _header_sidecar().items():
+        assert entry["issue"] == "pending" or ISSUE_URL_RE.match(entry["issue"]), f"{path}: bad issue link {entry['issue']!r}"
+        assert (REPO_ROOT / path).is_file(), f"{path}: no such file"
+
+
+def test_header_issue_kinds_are_known():
+    for path, entry in _header_sidecar().items():
+        assert set(entry) <= {"kind", "issue", "header"}, f"{path}: unknown keys {sorted(entry)}"
+        assert entry["kind"] in gen_docs.HEADER_KINDS, f"{path}: unknown kind {entry['kind']!r}"
+        if entry["kind"] == "contradicts":
+            assert entry.get("header"), f"{path}: a contradicts entry needs the pinned header text"
+        else:
+            assert "header" not in entry, f"{path}: only a contradicts entry carries a header"
+
+
+def test_header_issue_joins_the_issues_cell():
+    unit = read_vhdl_unit(REPO_ROOT / DIVIDER)
+    sidecar = {DIVIDER: {"kind": "empty", "issue": "https://github.com/slaclab/lcls-timing-core/issues/300"}}
+    assert entity_issues(DIVIDER, unit, "simulated", sidecar) == ["https://github.com/slaclab/lcls-timing-core/issues/300"]
+    assert entity_issues(DIVIDER, unit, "simulated", {}) == []
+
+
+def test_header_findings_report_empty_and_missing(tmp_path):
+    (tmp_path / "A.vhd").write_text("-- Description:\n----------\nlibrary ieee;\n", encoding="utf-8")
+    (tmp_path / "B.vhd").write_text("library ieee;\n", encoding="utf-8")
+    (tmp_path / "C.vhd").write_text("-- Description: text\n----------\nlibrary ieee;\n", encoding="utf-8")
+    assert header_findings(tmp_path, ["A.vhd", "B.vhd", "C.vhd"]) == {"A.vhd": "empty", "B.vhd": "missing"}

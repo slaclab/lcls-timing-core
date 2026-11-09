@@ -98,6 +98,8 @@ GT_DIRECTORIES = (
 )
 
 SIDECAR_PURPOSES = "entity_purposes.yaml"
+SIDECAR_HEADER_ISSUES = "header_issues.yaml"
+HEADER_KINDS = ("empty", "missing", "contradicts")
 
 
 class Generic(NamedTuple):
@@ -395,6 +397,23 @@ def header_description(path):
     return HeaderDescription(True, text, start + 1, last + 1)
 
 
+def header_findings(repo_root, files):
+    """Return {path: "empty" or "missing"} for the files of ``files`` whose banner Description has no text.
+
+    ``empty`` is a Description field with no text after it; ``missing`` is a
+    file with no Description field in its first 60 lines. Files with text are
+    left out. ``contradicts`` is a judgment, so it is never computed.
+    """
+    findings = {}
+    for path in files:
+        description = header_description(Path(repo_root) / path)
+        if not description.found:
+            findings[path] = "missing"
+        elif not description.text:
+            findings[path] = "empty"
+    return findings
+
+
 # ---------------------------------------------------------------------------
 # Verification status
 # ---------------------------------------------------------------------------
@@ -497,11 +516,12 @@ def statuses(repo_root=REPO_ROOT, tree="core"):
     return _entity_statuses(repo_root, _tree_units(repo_root, _tree_by_key(tree)))
 
 
-def entity_issues(path, unit, status):
+def entity_issues(path, unit, status, header_issues=None):
     """Return the issue links of one entity row.
 
-    The GHDL issue of a baseline-excluded entity, and the unloaded-files issue
-    of every file in UNLOADED_SOURCES whatever its status.
+    The GHDL issue of a baseline-excluded entity, the unloaded-files issue of
+    every file in UNLOADED_SOURCES whatever its status, and the header issue
+    of the file when ``header_issues`` (the header sidecar) has an entry.
     """
     ghdl_analysis, source_inventory = _baselines()
     links = []
@@ -509,6 +529,8 @@ def entity_issues(path, unit, status):
         links.append(ghdl_analysis.KNOWN_GHDL_ISSUES[unit.name.lower()])
     if path in source_inventory.UNLOADED_SOURCES:
         links.append(source_inventory.UNLOADED_SOURCES_ISSUE)
+    if header_issues and path in header_issues:
+        links.append(header_issues[path]["issue"])
     return links
 
 
@@ -582,7 +604,7 @@ def render_entity_index():
     return "\n".join(lines)
 
 
-def render_tree_page(repo_root, tree, purposes):
+def render_tree_page(repo_root, tree, purposes, header_issues):
     """Return the page of one tree: the summary table and one section per rendered entity."""
     units = _tree_units(repo_root, tree)
     rendered = rendered_files(repo_root, tree)
@@ -598,7 +620,7 @@ def render_tree_page(repo_root, tree, purposes):
     for path in entities:
         unit = units[path]
         status = all_statuses[path]
-        issues = issue_cell(entity_issues(path, unit, status))
+        issues = issue_cell(entity_issues(path, unit, status, header_issues))
         rows.append([f":ref:`{unit.name} <entity-{slug(path)}>`", repo_link(path), status, issues])
         sections.append(
             entity_section(
@@ -627,9 +649,10 @@ def render_tree_page(repo_root, tree, purposes):
 def render_entities(repo_root=REPO_ROOT):
     """Return {docs-relative path: text} for the entity index and the tree pages."""
     purposes = load_sidecar(SIDECAR_PURPOSES, repo_root)
+    header_issues = load_sidecar(SIDECAR_HEADER_ISSUES, repo_root)
     pages = {"reference/entities/index.rst": render_entity_index()}
     for tree in DOC_TREES:
-        pages[f"reference/entities/{tree.key}.rst"] = render_tree_page(repo_root, tree, purposes)
+        pages[f"reference/entities/{tree.key}.rst"] = render_tree_page(repo_root, tree, purposes, header_issues)
     return pages
 
 
