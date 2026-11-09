@@ -30,7 +30,7 @@ LCLS-II core
    * - :ref:`CtrControl <entity-lcls-ii-core-rtl-ctrcontrol-vhd>`
      - :repo:`LCLS-II/core/rtl/CtrControl.vhd`
      - simulated
-     - none
+     - issue pending
    * - :ref:`Divider <entity-lcls-ii-core-rtl-divider-vhd>`
      - :repo:`LCLS-II/core/rtl/Divider.vhd`
      - simulated
@@ -90,7 +90,7 @@ LCLS-II core
    * - :ref:`TimingDeserializer <entity-lcls-ii-core-rtl-timingdeserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingDeserializer.vhd`
      - simulated
-     - none
+     - issue pending
    * - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingFrameRx.vhd`
      - simulated
@@ -130,7 +130,7 @@ LCLS-II core
    * - :ref:`TimingStreamTx <entity-lcls-ii-core-rtl-timingstreamtx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingStreamTx.vhd`
      - simulated
-     - none
+     - issue pending
    * - :ref:`WordSerializer <entity-lcls-ii-core-rtl-wordserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/WordSerializer.vhd`
      - simulated
@@ -536,7 +536,7 @@ Status: simulated
      - out
      - ``slv(31 downto 0)``
 
-Issues: none
+Issues: issue pending
 
 .. _entity-lcls-ii-core-rtl-divider-vhd:
 
@@ -1652,7 +1652,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: issue pending
 
 .. _entity-lcls-ii-core-rtl-timingframerx-vhd:
 
@@ -2387,7 +2387,7 @@ Status: simulated
      - out
      - ``slv(1 downto 0)``
 
-Issues: none
+Issues: issue pending
 
 .. _entity-lcls-ii-core-rtl-wordserializer-vhd:
 

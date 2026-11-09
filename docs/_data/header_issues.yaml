@@ -11,6 +11,12 @@
 # so writing a header or adding a file with an empty one fails the test until
 # this file follows. Production headers are never edited from here.
 
+LCLS-II/core/rtl/CtrControl.vhd:
+  kind: contradicts
+  header: >-
+    Translation of BSA DEF to control bits in timing pattern Status
+    updates: nToAvgOut, avgToWrOut count up
+  issue: pending
 LCLS-II/core/rtl/EthTimingModule.vhd:
   kind: empty
   issue: pending
@@ -38,6 +44,11 @@ LCLS-II/core/rtl/TPGNotify.vhd:
 LCLS-II/core/rtl/TimingCore.vhd:
   kind: empty
   issue: pending
+LCLS-II/core/rtl/TimingDeserializer.vhd:
+  kind: contradicts
+  header: >-
+    Generates a 16b serial stream of the LCLS-II timing message.
+  issue: pending
 LCLS-II/core/rtl/TimingFrameRx.vhd:
   kind: empty
   issue: pending
@@ -52,6 +63,11 @@ LCLS-II/core/rtl/TimingMsgDelay.vhd:
   issue: pending
 LCLS-II/core/rtl/TimingPkg.vhd:
   kind: empty
+  issue: pending
+LCLS-II/core/rtl/TimingStreamTx.vhd:
+  kind: contradicts
+  header: >-
+    Generates a 16b serial stream of the LCLS-II timing message.
   issue: pending
 LCLS-II/core/rtl/default/TimingExtnPkg.vhd:
   kind: empty
