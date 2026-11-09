@@ -60,26 +60,38 @@ Running `.venv/bin/python -m pytest` from the repository root collects only
 `tests/`. Each case is stopped after 900 seconds. Simulator build products go
 to `tests/sim_build/`, which is not tracked.
 
-Two knobs help when a result needs a closer look. This reproduces every known
-defect (those tests fail until the RTL is fixed), and this replays the seeded
-random traffic printed in a failing log:
+Two knobs help when a result needs a closer look. The first runs only the
+tests that document a known issue; they are skipped by default. With
+`--expect-known-issues` each one is expected to fail: an issue that still
+reproduces reports XFAIL and the run exits 0, and an issue that no longer
+reproduces fails with `[XPASS(strict)]` and its issue link, so the skip and its
+allowlist or baseline entry can be pruned. The option needs
+`RUN_KNOWN_ISSUE_TESTS=1` and exits with a usage error without it. The second
+knob replays the seeded random traffic printed in a failing log:
 
 ```bash
-RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls2_core -k known_issue
-RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls2_evr -k known_issue
-RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/lcls1_evr -k known_issue
-RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto tests/common -k known_issue
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto --expect-known-issues -rxX tests/lcls2_core
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto --expect-known-issues -rxX tests/lcls2_evr
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto --expect-known-issues -rxX tests/lcls1_evr
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n auto --expect-known-issues -rxX tests/common
 RUN_KNOWN_ISSUE_TESTS=1 LCLS_REQUIRE_ROGUE=1 PYTHONPATH=$PWD/python \
-    micromamba run -p ./rogue-env python -m pytest -n auto tests/rogue -k known_issue
+    micromamba run -p ./rogue-env python -m pytest -n auto --expect-known-issues -rxX tests/rogue
 LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls2_core
 LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls2_evr
 LCLS_TIMING_SEED=<n> .venv/bin/python -m pytest -n auto tests/lcls1_evr
 ```
 
+When `GITHUB_STEP_SUMMARY` is set, a run with the option also appends a table
+with one row per selected test: whether it still reproduces, and the issue
+link from its skip reason. CI runs the same commands as the manual
+`Known issues` jobs (Actions, Run workflow).
+
 ## Run what CI runs
 
 Each block mirrors one CI job in `.github/workflows/timing_ci.yml`. Run them
-from the repository root after the bootstrap above.
+from the repository root after the bootstrap above. The two manual jobs,
+`Known issues: <leg>` and `Known issues: rogue`, run only on a manual dispatch
+and use the `--expect-known-issues` commands of the Run section.
 
 Linting (job `Linting`):
 
@@ -238,18 +250,21 @@ What each family of files checks:
 ### Known defects
 
 Some tests state the intended end state and fail while the defect exists. They
-are skipped by default and run with `RUN_KNOWN_ISSUE_TESTS=1`:
+are skipped by default and run with `RUN_KNOWN_ISSUE_TESTS=1`. Add
+`--expect-known-issues` to run only those tests and report each as XFAIL while
+it still fails:
 
 ```bash
 RUN_KNOWN_ISSUE_TESTS=1 LCLS_REQUIRE_ROGUE=1 PYTHONPATH=$PWD/python \
-    micromamba run -p ./rogue-env python -m pytest -n 0 tests/rogue -k known_issue
-RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n 0 tests/common -k known_issue
+    micromamba run -p ./rogue-env python -m pytest -n 0 --expect-known-issues -rxX tests/rogue
+RUN_KNOWN_ISSUE_TESTS=1 .venv/bin/python -m pytest -n 0 --expect-known-issues -rxX tests/common
 ```
 
 Seven tests of `tests/rogue` fail (five bit overlaps that Rogue rejects, and
 two in `TPGMiniCore`) and two of `tests/common` fail (the YAML maps that do
 not parse, and the include of `TPGSeqMem.yaml` that does not exist). When one
-of them passes, the defect is fixed; prune the matching entries as described
+of them passes, `--expect-known-issues` reports `[XPASS(strict)]` with its
+issue link: the defect is fixed; prune the matching entries as described
 under "Pruning after a fix".
 
 Every skip reason that starts with `known issue:` and every `ALLOWLIST` entry

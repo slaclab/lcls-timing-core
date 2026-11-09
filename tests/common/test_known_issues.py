@@ -25,7 +25,10 @@ Test methodology:
         the run exits 0; a fixed issue exits 1 with XPASS(strict) and its
         reason text; the option without the variable exits 4 with the usage
         message; without the option the gated tests skip and the plain test
-        passes; selection follows the skipif mark, not the test name.
+        passes; selection follows the skipif mark, not the test name; with
+        GITHUB_STEP_SUMMARY set the run appends one table row per selected
+        test (verdict and issue link) and without the option the file is not
+        touched; under pytest-xdist the table is written exactly once.
     Timing: each subprocess is bounded by its 120 s timeout.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -33,6 +36,7 @@ Test methodology:
 import os
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -138,3 +142,43 @@ def test_selection_uses_the_mark_not_the_name(tmp_path):
     assert "test_reproducing_known_issue XFAIL" in result.stdout, result.stdout
     assert "test_known_issue_lookalike" not in result.stdout, result.stdout
     assert "1 deselected" in result.stdout, result.stdout
+
+
+def table_rows(text):
+    """Return the data rows of the markdown table as lists of stripped cells."""
+    rows = [line for line in text.splitlines() if line.startswith("|")]
+    return [[cell.strip() for cell in row.strip("|").split("|")] for row in rows[2:]]
+
+
+def test_step_summary_lists_every_selected_test(tmp_path):
+    write_tree(tmp_path, ["reproducing", "fixed", "open_question"])
+    summary = tmp_path / "summary.md"
+    run_pytest(tmp_path, "--expect-known-issues", variable="1", summary=summary)
+    text = summary.read_text(encoding="utf-8")
+    assert text.startswith("### Known issues")
+    assert "| Test | Verdict | Issue |" in text
+    rows = {row[0]: row[1:] for row in table_rows(text)}
+    assert rows == {
+        "test_sample.py::test_reproducing_known_issue": ["reproduces", REPRODUCING_URL],
+        "test_sample.py::test_fixed_known_issue": ["no longer reproduces", FIXED_URL],
+        "test_sample.py::test_open_question_known_issue": ["reproduces", "none in reason"],
+    }
+
+
+def test_no_summary_without_the_option(tmp_path):
+    write_tree(tmp_path, ["reproducing"])
+    summary = tmp_path / "summary.md"
+    summary.write_text(textwrap.dedent("""\
+        existing
+        """), encoding="utf-8")
+    run_pytest(tmp_path, variable="1", summary=summary)
+    assert summary.read_text(encoding="utf-8") == "existing\n"
+
+
+def test_step_summary_is_written_once_under_xdist(tmp_path):
+    write_tree(tmp_path, ["reproducing", "fixed", "open_question"])
+    summary = tmp_path / "summary.md"
+    run_pytest(tmp_path, "--expect-known-issues", "-n", "2", variable="1", summary=summary)
+    text = summary.read_text(encoding="utf-8")
+    assert text.count("### Known issues") == 1, text
+    assert len(table_rows(text)) == 3, text

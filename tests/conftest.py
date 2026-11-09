@@ -16,7 +16,12 @@ import find_libpython
 from cocotb_tools import config
 
 # pytest reads hook functions from the conftest namespace.
-from tests.common.known_issues import pytest_addoption, pytest_collection_modifyitems, pytest_configure  # noqa: F401
+from tests.common.known_issues import (  # noqa: F401
+    pytest_addoption,
+    pytest_collection_modifyitems,
+    pytest_configure,
+    pytest_terminal_summary,
+)
 
 
 def _export_gpi_users() -> None:

@@ -90,3 +90,44 @@ def pytest_collection_modifyitems(config, items):
     kept, dropped = select_known_issues(items)
     config.hook.pytest_deselected(items=dropped)
     items[:] = kept
+
+
+def _report_text(report):
+    """Return the reason text of a report: the xfail reason or the failure text."""
+    return f"{getattr(report, 'wasxfail', '')} {report.longrepr or ''}"
+
+
+def known_issue_rows(stats):
+    """Return one (node id, verdict, issue link) row per selected test, in report order."""
+    rows = []
+    for key in ("xfailed", "failed", "error"):
+        for report in stats.get(key, []):
+            text = _report_text(report)
+            if key == "xfailed":
+                verdict = "reproduces"
+            elif key == "failed" and "XPASS(strict)" in text:
+                verdict = "no longer reproduces"
+            else:
+                verdict = "error"
+            match = ISSUE_URL_RE.search(text)
+            rows.append((report.nodeid, verdict, match.group(0) if match else "none in reason"))
+    return rows
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    # Under pytest-xdist each worker also reaches this hook, with only its
+    # own empty statistics; the controller alone reports.
+    if not config.getoption("expect_known_issues", False) or hasattr(config, "workerinput"):
+        return
+    rows = known_issue_rows(terminalreporter.stats)
+    terminalreporter.section("known issues")
+    for nodeid, verdict, issue in rows:
+        terminalreporter.write_line(f"{verdict}: {nodeid} ({issue})")
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    lines = ["### Known issues", "", "`" + " ".join(config.args) + "`", "", "| Test | Verdict | Issue |", "| --- | --- | --- |"]
+    for row in rows:
+        lines.append("| " + " | ".join(cell.replace("|", "\\|") for cell in row) + " |")
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")

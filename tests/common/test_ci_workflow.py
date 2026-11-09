@@ -12,11 +12,11 @@
 
 Test methodology:
     Sweep: the two parsed workflows: their triggers, job ids and display
-        names, the test matrix, the manual known-issue jobs, the release
-        gate, per-job permissions and timeouts, action pins, the scripts of
-        the production guard, Rogue, lint, and documentation jobs, the
-        documentation deploy gate, and the tool version step of every job
-        that declares steps.
+        names, the test matrix, the manual known-issue jobs (RTL matrix and
+        Rogue), the release gate, per-job permissions and timeouts, action
+        pins, the scripts of the production guard, Rogue, lint, and
+        documentation jobs, the documentation deploy gate, and the tool
+        version step of every job that declares steps.
     Stimulus: yaml.safe_load of both workflow files; the repository tree for
         the matrix legs.
     Checks: renaming a job or matrix leg, dropping a release prerequisite,
@@ -60,6 +60,7 @@ JOB_NAMES = {
     "test": "RTL test: ${{ matrix.module }}",
     "rogue_test": "Rogue Regression Tests",
     "known_issues": "Known issues: ${{ matrix.module }}",
+    "known_issues_rogue": "Known issues: rogue",
     "production_guard": "Production Guard",
     "docs": "Documentation",
 }
@@ -71,6 +72,8 @@ TOOL_ITEMS = {
              "cocotb-test"],
     "known_issues": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
                      "cocotb-test"],
+    "known_issues_rogue": ["surf", "ruckus", "python", "rogue", "cocotb",
+                           "cocotb-test"],
     "rogue_test": ["surf", "ruckus", "python", "rogue", "cocotb",
                    "cocotb-test"],
     "production_guard": ["surf", "ruckus", "python", "git"],
@@ -164,12 +167,15 @@ def test_known_issue_jobs_run_only_on_dispatch(jobs):
 
 
 def test_known_issue_jobs_invert_the_gated_tests(jobs):
+    for job_id in ("known_issues", "known_issues_rogue"):
+        step = [s for s in jobs[job_id]["steps"]
+                if "-m pytest" in s.get("run", "")][0]
+        assert step["env"]["RUN_KNOWN_ISSUE_TESTS"] == "1", job_id
+        assert "--expect-known-issues" in step["run"], job_id
+        assert "-rxX" in step["run"], job_id
     job = jobs["known_issues"]
-    step = [s for s in job["steps"] if "-m pytest" in s.get("run", "")][0]
-    assert step["env"]["RUN_KNOWN_ISSUE_TESTS"] == "1"
-    assert "--expect-known-issues" in step["run"]
-    assert "-rxX" in step["run"]
-    assert "tests/${{ matrix.module }}" in step["run"]
+    assert "tests/${{ matrix.module }}" in [
+        s for s in job["steps"] if "-m pytest" in s.get("run", "")][0]["run"]
     assert job["strategy"]["matrix"]["module"] == MATRIX_LEGS
     assert job["strategy"]["fail-fast"] is False
 
@@ -246,8 +252,12 @@ def test_production_guard_bypasses_only_a_failure_with_the_label(jobs):
     assert 'exit "$rc"' in run
 
 
-def test_rogue_job_verifies_rogue_before_any_pytest_step(jobs):
-    job = jobs["rogue_test"]
+ROGUE_JOBS = ["rogue_test", "known_issues_rogue"]
+
+
+@pytest.mark.parametrize("job_id", ROGUE_JOBS)
+def test_rogue_job_verifies_rogue_before_any_pytest_step(jobs, job_id):
+    job = jobs[job_id]
     verify = first_index(job, r"import rogue, pyrogue")
     pytest_step = first_index(job, r"-m pytest")
     assert verify is not None and pytest_step is not None
@@ -255,8 +265,9 @@ def test_rogue_job_verifies_rogue_before_any_pytest_step(jobs):
     assert job["defaults"]["run"]["shell"] == "bash -el {0}"
 
 
-def test_rogue_job_builds_the_conda_environment_and_requires_rogue(jobs):
-    job = jobs["rogue_test"]
+@pytest.mark.parametrize("job_id", ROGUE_JOBS)
+def test_rogue_job_builds_conda_environment_and_requires_rogue(jobs, job_id):
+    job = jobs[job_id]
     conda = [s for s in job["steps"] if "setup-miniconda" in s.get("uses", "")]
     assert len(conda) == 1
     inputs = conda[0]["with"]
