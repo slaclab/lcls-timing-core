@@ -95,7 +95,8 @@ def test_TPGStatus_overlap_pairs():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGStatus.py declares CountSeq with a stride of 2 bytes for 32 bit counters, so "
-        "neighbouring elements overlap and Rogue rejects the tree; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "neighbouring elements overlap and Rogue rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/228; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPGStatus_known_issue_overlap(rogue_build):

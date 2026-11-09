@@ -18,7 +18,8 @@ intended.
 Each row is an array of 1024 words (stride 4). Class is declared at byte 1
 with bit offset 0, which puts it at absolute bit 8 of the word, on bits 8 to
 11 of StartAddr (12 bits wide). yaml/TPGSeqJump.yaml puts Class at bit 4 of
-byte 1, absolute bit 12, which does not overlap StartAddr.
+byte 1, absolute bit 12, which does not overlap StartAddr. Tracked in
+https://github.com/slaclab/lcls-timing-core/issues/220.
 """
 
 from tests.common.register_tables import ArgSet, Row

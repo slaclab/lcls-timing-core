@@ -28,7 +28,8 @@ ROWS = (
     # Recorded as declared: 64 variables of 32 bits at a stride of 4. The
     # firmware histogram is 40 samples of 8 bits packed four per word (ten
     # words), so the declaration and the RTL disagree; the register drift
-    # check reports that disagreement.
+    # check reports that disagreement:
+    # https://github.com/slaclab/lcls-timing-core/issues/224
     Row("PhaseCount", offset=0x00, bit_offset=0, bit_size=32, mode="RO", number=64, stride=4),
     Row("PhaseTarget", offset=0x100, bit_offset=0, bit_size=7, mode="RW"),
     Row("Mask", offset=0x100, bit_offset=8, bit_size=7, mode="RW"),

@@ -102,7 +102,8 @@ def test_TPGSeqState_overlap_pairs():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGSeqState.py declares SeqCondACount, SeqCondBCount, SeqCondCCount, and SeqCondDCount "
-        "at the same bit of byte 4, so Rogue rejects the tree; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "at the same bit of byte 4, so Rogue rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/221; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPGSeqState_known_issue_overlap(rogue_build):

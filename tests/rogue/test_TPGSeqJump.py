@@ -94,7 +94,8 @@ def test_TPGSeqJump_overlap_pairs():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGSeqJump.py declares Class at byte 1 bit 0, overlapping bits 8 to 11 of StartAddr, "
-        "so Rogue rejects the tree; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "so Rogue rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/220; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPGSeqJump_known_issue_overlap(rogue_build):

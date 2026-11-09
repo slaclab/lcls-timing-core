@@ -16,9 +16,10 @@ at root.start(), so the rows are empty and CHILDREN is a snapshot of the
 placement read from source.
 
 TPGStatus and TPGSeqJump are both placed at 0x400. yaml/TPG.yaml carries the
-same placement with "is this correct?" comments, so the intent is
-unconfirmed. The leaf tables of the four children are separate modules and
-are not expanded for TPG here.
+same placement with "is this correct?" comments; the intent is asked in
+https://github.com/slaclab/lcls-timing-core/issues/228.
+The leaf tables of the four children are separate modules and are not
+expanded for TPG here.
 """
 
 from tests.common.register_tables import ArgSet, Child

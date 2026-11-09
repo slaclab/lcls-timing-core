@@ -80,8 +80,10 @@ def test_TPG_child_placement():
 @pytest.mark.skipif(
     KNOWN_ISSUE_SKIP,
     reason=(
-        "known issue: TPG.py inherits the TPGStatus CountSeq overlap (and the other leaf overlaps), and also adds "
-        "TPGStatus and TPGSeqJump both at 0x400, so Rogue rejects the tree; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "known issue: TPG.py inherits the TPGStatus CountSeq overlap (and the TPGSeqJump and TPGSeqState "
+        "overlaps of issues 220 and 221), and also adds TPGStatus and TPGSeqJump both at 0x400, so Rogue "
+        "rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/228; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPG_known_issue_overlap(rogue_build):

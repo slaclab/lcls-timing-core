@@ -194,7 +194,7 @@ def test_TPGMiniCore_narraysbsa_5_rejected():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGMiniCore.py declares BsaAvgToWr with a stride of 8 where TPGMiniReg decodes "
-        "16 bytes per sequence; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "16 bytes per sequence; see https://github.com/slaclab/lcls-timing-core/issues/222; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPGMiniCore_known_issue_bsa_avg_to_wr_stride(rogue_build):
@@ -214,7 +214,8 @@ def test_TPGMiniCore_known_issue_bsa_avg_to_wr_stride(rogue_build):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPGMiniCore.py declares BsaActive with a byte stride where TPGMiniReg decodes "
-        "one bit per sequence, so NARRAYSBSA above 4 is rejected; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "one bit per sequence, so NARRAYSBSA above 4 is rejected; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/223; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_TPGMiniCore_known_issue_narraysbsa_32(rogue_build):

@@ -83,7 +83,7 @@ def test_only_unresolved_include_is_tpgseqmem(loaded):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPG.yaml includes TPGSeqMem.yaml, which does not exist in yaml/; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/219; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_yaml_known_issue_tpgseqmem_include(loaded):
@@ -95,7 +95,7 @@ def test_yaml_known_issue_tpgseqmem_include(loaded):
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: TPG.yaml, TPGControl.yaml, and TPGSeqState.yaml do not parse; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/218; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_yaml_known_issue_every_file_parses(loaded):

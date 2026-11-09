@@ -30,7 +30,9 @@ Two stride declarations differ from the register decode in TPGMiniReg.vhd:
 BsaAvgToWr has a stride of 8 where the RTL indexes the sequences 16 bytes
 apart, so element 1 shares word 0x210 with BsaSequenceSelect[1],
 BsaSequenceBitSelect[1], and BsaDestMode[1]; and BsaActive uses a byte stride
-where the RTL decodes element i as bit i of the word at 0x1FC.
+where the RTL decodes element i as bit i of the word at 0x1FC. Tracked in
+https://github.com/slaclab/lcls-timing-core/issues/222 and
+https://github.com/slaclab/lcls-timing-core/issues/223.
 """
 
 from tests.common.register_tables import ArgSet, Row
@@ -72,7 +74,8 @@ ROWS = (
     Row("BsaCompleteWr", offset=0x50, bit_offset=0, bit_size=64, mode="WO", overlap_en=True),
     Row("BsaCompleteRd", offset=0x50, bit_offset=0, bit_size=64, mode="RO", overlap_en=True),
     # Byte stride where TPGMiniReg decodes element i as bit i of the word at
-    # 0x1FC; element 4 lands on 0x200, so NARRAYSBSA 5 and above is rejected.
+    # 0x1FC; element 4 lands on 0x200, so NARRAYSBSA 5 and above is rejected:
+    # https://github.com/slaclab/lcls-timing-core/issues/223
     Row("BsaActive", offset=0x1FC, bit_offset=0, bit_size=1, mode="RW", number=N, stride=1),
     Row("BsaRateSelMode", offset=0x200, bit_offset=0, bit_size=2, mode="RW", number=N, stride=16,
         enum={0: "FixedRate", 1: "ACRate", 2: "Sequencer"}, overlap_en=True),
@@ -97,7 +100,8 @@ ROWS = (
         overlap_en=True),
     # Stride 8 where TPGMiniReg indexes the sequences 16 bytes apart: element 1
     # builds at 0x210 bit 16 and shares those bits with BsaSequenceSelect[1],
-    # BsaSequenceBitSelect[1], and BsaDestMode[1].
+    # BsaSequenceBitSelect[1], and BsaDestMode[1]:
+    # https://github.com/slaclab/lcls-timing-core/issues/222
     Row("BsaAvgToWr", offset=0x208, bit_offset=16, bit_size=16, mode="RW", number=N, stride=8,
         overlap_en=True),
     Row("BsaMaxSeverity", offset=0x208, bit_offset=14, bit_size=2, mode="RW", number=N, stride=16,

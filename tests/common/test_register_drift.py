@@ -271,7 +271,7 @@ def test_every_python_class_is_compared_or_covered_by_its_leaves():
 def test_validate_allowlist_block_level_entries():
     issue = "https://github.com/slaclab/lcls-timing-core/issues/1"
     rd.validate_allowlist({("X", "<yaml>", "missing-in-yaml"): issue})
-    rd.validate_allowlist({("X", "<vhdl>", "missing-in-vhdl"): rd.PENDING_ISSUE})
+    rd.validate_allowlist({("X", "<vhdl>", "missing-in-vhdl"): rd.PENDING_ISSUE}, require_filed=False)
     with pytest.raises(ValueError):
         rd.validate_allowlist({("X", "<yaml>", "offset"): issue})
     with pytest.raises(ValueError):
@@ -283,7 +283,8 @@ def test_the_reviewed_allowlist_has_no_unreferenced_placeholder_kind():
     # names this repository.
     rd.validate_allowlist(rd.ALLOWLIST)
     assert set(rd.ALLOWLIST.values()) <= {rd.PENDING_ISSUE} | {
-        f"https://github.com/slaclab/lcls-timing-core/issues/{n}" for n in (214, 215, 217)
+        f"https://github.com/slaclab/lcls-timing-core/issues/{n}"
+        for n in (214, 215, 217, 218, 222, 223, 224, 225, 226, 227, 228)
     }
 
 

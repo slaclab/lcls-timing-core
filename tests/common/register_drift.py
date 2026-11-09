@@ -430,7 +430,14 @@ NAME_MAPS: Dict[str, Dict[str, Dict[str, str]]] = {
 _ISSUE_214 = "https://github.com/slaclab/lcls-timing-core/issues/214"
 _ISSUE_215 = "https://github.com/slaclab/lcls-timing-core/issues/215"
 _ISSUE_217 = "https://github.com/slaclab/lcls-timing-core/issues/217"
-_P = PENDING_ISSUE
+_ISSUE_218 = "https://github.com/slaclab/lcls-timing-core/issues/218"
+_ISSUE_222 = "https://github.com/slaclab/lcls-timing-core/issues/222"
+_ISSUE_223 = "https://github.com/slaclab/lcls-timing-core/issues/223"
+_ISSUE_224 = "https://github.com/slaclab/lcls-timing-core/issues/224"
+_ISSUE_225 = "https://github.com/slaclab/lcls-timing-core/issues/225"
+_ISSUE_226 = "https://github.com/slaclab/lcls-timing-core/issues/226"
+_ISSUE_227 = "https://github.com/slaclab/lcls-timing-core/issues/227"
+_ISSUE_228 = "https://github.com/slaclab/lcls-timing-core/issues/228"
 
 ALLOWLIST: Dict[Tuple[str, str, str], str] = {
     # EvrV2TriggerReg: the Python variables sit one bit above the RTL decode
@@ -470,65 +477,65 @@ ALLOWLIST: Dict[Tuple[str, str, str], str] = {
     # trigger delay at 0x204 and a trigger width at 0x208, while Python puts
     # the trigger delay at 0x208 and has no width (no RTL in this repository
     # decodes the trigger section).
-    ("EvrV2Core", "ChannelEventCnt", "mode"): _P,
-    ("EvrV2Core", "GlobalEventCnt", "mode"): _P,
-    ("EvrV2Core", "LinkAddr", "missing-in-python"): _P,
-    ("EvrV2Core", "LinkAddr", "missing-in-vhdl"): _P,
-    ("EvrV2Core", "TriggerDelay", "offset"): _P,
-    ("EvrV2Core", "TriggerWidth", "missing-in-python"): _P,
+    ("EvrV2Core", "ChannelEventCnt", "mode"): _ISSUE_217,
+    ("EvrV2Core", "GlobalEventCnt", "mode"): _ISSUE_217,
+    ("EvrV2Core", "LinkAddr", "missing-in-python"): _ISSUE_228,
+    ("EvrV2Core", "LinkAddr", "missing-in-vhdl"): _ISSUE_228,
+    ("EvrV2Core", "TriggerDelay", "offset"): _ISSUE_217,
+    ("EvrV2Core", "TriggerWidth", "missing-in-python"): _ISSUE_217,
 
     # GthRxAlignCheck: Python declares 64 phase counters of 32 bits at a
     # stride of 4 bytes, read only, while the RTL and the YAML map hold 40
     # samples of 8 bits packed four to a word.
-    ("GthRxAlignCheck", "PhaseCount", "offset"): _P,
-    ("GthRxAlignCheck", "PhaseCount", "bitSize"): _P,
-    ("GthRxAlignCheck", "PhaseCount", "mode"): _P,
-    ("GthRxAlignCheck", "PhaseCount", "missing-in-vhdl"): _P,
-    ("GthRxAlignCheck", "PhaseCount", "missing-in-yaml"): _P,
+    ("GthRxAlignCheck", "PhaseCount", "offset"): _ISSUE_224,
+    ("GthRxAlignCheck", "PhaseCount", "bitSize"): _ISSUE_224,
+    ("GthRxAlignCheck", "PhaseCount", "mode"): _ISSUE_228,
+    ("GthRxAlignCheck", "PhaseCount", "missing-in-vhdl"): _ISSUE_224,
+    ("GthRxAlignCheck", "PhaseCount", "missing-in-yaml"): _ISSUE_224,
     # GthRxAlignCheck question: Python and the YAML map show the last phase as
     # a 7 bit read-only field, the RTL stores 16 bits behind a read-write
     # decode.
-    ("GthRxAlignCheck", "LastPhase", "bitSize"): _P,
-    ("GthRxAlignCheck", "LastPhase", "mode"): _P,
+    ("GthRxAlignCheck", "LastPhase", "bitSize"): _ISSUE_228,
+    ("GthRxAlignCheck", "LastPhase", "mode"): _ISSUE_228,
 
     # TimingFrameRx questions: the YAML map has no write-only mode, so three
     # Python write-only strobes read read-write there; and four registers
     # that the RTL decodes and the YAML map lists (the frame version and the
     # message delay controls) have no Python variable, as does the gray coded
     # time stamp event counter at 0x40 that only the RTL decodes.
-    ("TimingFrameRx", "C_RxReset", "mode"): _P,
-    ("TimingFrameRx", "ClearRxCounters", "mode"): _P,
-    ("TimingFrameRx", "RxPllReset", "mode"): _P,
-    ("TimingFrameRx", "FrameVersion", "missing-in-python"): _P,
-    ("TimingFrameRx", "MsgDelayRst", "missing-in-python"): _P,
-    ("TimingFrameRx", "MsgNoDelay", "missing-in-python"): _P,
-    ("TimingFrameRx", "VersionErr", "missing-in-python"): _P,
-    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-python"): _P,
-    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-yaml"): _P,
+    ("TimingFrameRx", "C_RxReset", "mode"): _ISSUE_228,
+    ("TimingFrameRx", "ClearRxCounters", "mode"): _ISSUE_228,
+    ("TimingFrameRx", "RxPllReset", "mode"): _ISSUE_228,
+    ("TimingFrameRx", "FrameVersion", "missing-in-python"): _ISSUE_228,
+    ("TimingFrameRx", "MsgDelayRst", "missing-in-python"): _ISSUE_228,
+    ("TimingFrameRx", "MsgNoDelay", "missing-in-python"): _ISSUE_228,
+    ("TimingFrameRx", "VersionErr", "missing-in-python"): _ISSUE_228,
+    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-python"): _ISSUE_228,
+    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-yaml"): _ISSUE_228,
 
     # TPGMiniCore defects: BsaActive uses a one byte stride where the RTL has
     # one bit per sequence in a single word, and BsaAvgToWr uses a stride of 8
     # bytes where every other field of the BSA definition uses 16. The fixed
     # rate divisors are 32 bits in Python and the YAML map and 20 bits in the
     # RTL.
-    ("TPGMiniCore", "BsaActive", "bitOffset"): _P,
-    ("TPGMiniCore", "BsaAvgToWr", "offset"): _P,
-    ("TPGMiniCore", "FixedRateDiv", "bitSize"): _P,
+    ("TPGMiniCore", "BsaActive", "bitOffset"): _ISSUE_223,
+    ("TPGMiniCore", "BsaAvgToWr", "offset"): _ISSUE_222,
+    ("TPGMiniCore", "FixedRateDiv", "bitSize"): _ISSUE_225,
     # TPGMiniCore questions: six Python write-only variables read read-write
     # in the YAML map (it has no write-only mode); three Python read-write
     # strobes are write-only in the RTL; and the 64 BSA status words at 0x400
     # that the RTL reads have no Python variable and no YAML entry.
-    ("TPGMiniCore", "BsaCompleteWr", "mode"): _P,
-    ("TPGMiniCore", "CountIntervalReset", "mode"): _P,
-    ("TPGMiniCore", "PulseIdWr", "mode"): _P,
-    ("TPGMiniCore", "RateReload", "mode"): _P,
-    ("TPGMiniCore", "TStampWr", "mode"): _P,
-    ("TPGMiniCore", "TxReset", "mode"): _P,
-    ("TPGMiniCore", "Lcls1BsaStart", "mode"): _P,
-    ("TPGMiniCore", "PulseIdSet", "mode"): _P,
-    ("TPGMiniCore", "TStampSet", "mode"): _P,
-    ("TPGMiniCore", "bsastatus", "missing-in-python"): _P,
-    ("TPGMiniCore", "bsastatus", "missing-in-yaml"): _P,
+    ("TPGMiniCore", "BsaCompleteWr", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "CountIntervalReset", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "PulseIdWr", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "RateReload", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "TStampWr", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "TxReset", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "Lcls1BsaStart", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "PulseIdSet", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "TStampSet", "mode"): _ISSUE_228,
+    ("TPGMiniCore", "bsastatus", "missing-in-python"): _ISSUE_228,
+    ("TPGMiniCore", "bsastatus", "missing-in-yaml"): _ISSUE_228,
 
     # EvrV1Reg: the interrupt flag word at 0x08 is declared as a write-only
     # IrqFlagWr and a read-only IrqFlagRd on the same bits, where the YAML map
@@ -536,44 +543,44 @@ ALLOWLIST: Dict[Tuple[str, str, str], str] = {
     ("EvrV1Reg", "IrqFlagWr", "mode"): _ISSUE_217,
     ("EvrV1Reg", "IrqFlagRd", "missing-in-yaml"): _ISSUE_217,
     # EvrV1Reg question: the RTL reads bit 31 of that word as zero (31 bits).
-    ("EvrV1Reg", "IrqFlagRd", "bitSize"): _P,
+    ("EvrV1Reg", "IrqFlagRd", "bitSize"): _ISSUE_217,
     # EvrV1Reg defects: the internal event enable is 32 bits in Python and the
     # YAML map and 1 bit in the RTL, and the internal event count is 1 bit
     # against 32 (the widths look swapped); the output map is one 16 bit entry
     # per word in Python, while the RTL packs two entries per word, the lower
     # numbered entry in the upper half.
-    ("EvrV1Reg", "IntEventEn", "bitSize"): _P,
-    ("EvrV1Reg", "IntEventCount", "bitSize"): _P,
-    ("EvrV1Reg", "OutputMap", "offset"): _P,
-    ("EvrV1Reg", "OutputMap", "bitOffset"): _P,
+    ("EvrV1Reg", "IntEventEn", "bitSize"): _ISSUE_226,
+    ("EvrV1Reg", "IntEventCount", "bitSize"): _ISSUE_226,
+    ("EvrV1Reg", "OutputMap", "offset"): _ISSUE_227,
+    ("EvrV1Reg", "OutputMap", "bitOffset"): _ISSUE_227,
     # EvrV1Reg question: sixteen arrays in the YAML map give a number of
     # elements and no stride (twelve pulse generators, the output map, and the
     # two map RAMs), so every element sits at the first address; the CPSW
     # default stride is not known here.
-    **{("EvrV1Reg", f"Pulse{pulse:02d}", "offset"): _P for pulse in range(12)},
+    **{("EvrV1Reg", f"Pulse{pulse:02d}", "offset"): _ISSUE_228 for pulse in range(12)},
     # EvrV1Reg questions: the YAML map lists two map RAMs that Python leaves
     # out and the RTL decodes as memory windows (the second RAM is at 0x6000 in
     # the map and at 0x5000 in the RTL); the RTL decodes a data buffer control
     # word at 0x20 and a time stamp FIFO at 0x70 that neither Python nor the
     # YAML map declare.
-    ("EvrV1Reg", "MapRam1", "missing-in-python"): _P,
-    ("EvrV1Reg", "MapRam1", "missing-in-vhdl"): _P,
-    ("EvrV1Reg", "MapRam2", "missing-in-python"): _P,
-    ("EvrV1Reg", "MapRam2", "missing-in-vhdl"): _P,
-    ("EvrV1Reg", "DataBufferControl", "missing-in-python"): _P,
-    ("EvrV1Reg", "DataBufferControl", "missing-in-yaml"): _P,
-    ("EvrV1Reg", "TimestampFifo", "missing-in-python"): _P,
-    ("EvrV1Reg", "TimestampFifo", "missing-in-yaml"): _P,
+    ("EvrV1Reg", "MapRam1", "missing-in-python"): _ISSUE_228,
+    ("EvrV1Reg", "MapRam1", "missing-in-vhdl"): _ISSUE_228,
+    ("EvrV1Reg", "MapRam2", "missing-in-python"): _ISSUE_228,
+    ("EvrV1Reg", "MapRam2", "missing-in-vhdl"): _ISSUE_228,
+    ("EvrV1Reg", "DataBufferControl", "missing-in-python"): _ISSUE_228,
+    ("EvrV1Reg", "DataBufferControl", "missing-in-yaml"): _ISSUE_228,
+    ("EvrV1Reg", "TimestampFifo", "missing-in-python"): _ISSUE_228,
+    ("EvrV1Reg", "TimestampFifo", "missing-in-yaml"): _ISSUE_228,
 
     # TPGStatus question: the YAML map gives the trigger counts a misspelled
     # stride key, so its elements all sit at the first address.
-    ("TPGStatus", "CountTrig", "offset"): _P,
+    ("TPGStatus", "CountTrig", "offset"): _ISSUE_228,
 
     # The YAML maps that do not parse: nothing in these blocks can be
     # compared with them.
-    ("TPGControl", "<yaml>", "missing-in-yaml"): _P,
-    ("TPGSeqState", "<yaml>", "missing-in-yaml"): _P,
-    ("TPG", "<yaml>", "missing-in-yaml"): _P,
+    ("TPGControl", "<yaml>", "missing-in-yaml"): _ISSUE_218,
+    ("TPGSeqState", "<yaml>", "missing-in-yaml"): _ISSUE_218,
+    ("TPG", "<yaml>", "missing-in-yaml"): _ISSUE_218,
 }
 
 

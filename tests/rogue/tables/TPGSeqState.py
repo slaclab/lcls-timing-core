@@ -19,8 +19,11 @@ Each row is an array of 50 entries. SeqIndex is a 32 bit word every 8 bytes.
 The four condition counts (SeqCondACount to SeqCondDCount) are all 8 bits at
 byte 4, bit 0. SeqCondACount, SeqCondCCount, and SeqCondDCount have a stride
 of 8, so they share one byte in every entry; SeqCondBCount has a stride of 64,
-so element i lands on the byte of element 8 * i of the others. The firmware
-layout is unconfirmed.
+so element i lands on the byte of element 8 * i of the others. The bit
+offsets are tracked in
+https://github.com/slaclab/lcls-timing-core/issues/221, and the
+SeqCondBCount stride is asked in
+https://github.com/slaclab/lcls-timing-core/issues/228.
 """
 
 from tests.common.register_tables import ArgSet, Row

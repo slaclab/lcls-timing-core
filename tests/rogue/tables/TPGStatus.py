@@ -17,7 +17,7 @@ intended.
 
 CountSeq is an array of 64 counters of 32 bits with a stride of 2 bytes, so
 each counter shares two bytes with the next one. The intended stride is
-unconfirmed.
+asked in https://github.com/slaclab/lcls-timing-core/issues/228.
 """
 
 from tests.common.register_tables import ArgSet, Row
