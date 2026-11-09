@@ -348,3 +348,66 @@ def trigger_compl(compl_en: tuple[int, int], compl_and: tuple[int, int], trig_in
             level = low | high
         result |= level << index
     return result
+
+
+EVENT_SELECT_CONTROL_WORDS = 18
+FIXED_RATE_COUNT = 10
+AC_RATE_COUNT = 6
+
+
+def rate_select(config: dict, message: dict, control_word: int) -> int:
+    """Return the combinational rateSel level of EvrV2EventSelect.
+
+    ``config`` is a channel configuration dictionary, ``message`` a timing
+    message dictionary and ``control_word`` the registered control word (the
+    value controlWord holds, one clock behind the message).
+    """
+    rate_sel = config["rateSel"]
+    mode = (rate_sel >> 11) & 3
+    if mode == 0:
+        index = rate_sel & 0xF
+        if index >= FIXED_RATE_COUNT:
+            return 0
+        return (message["fixedRates"] >> index) & 1
+    raise NotImplementedError(f"rate mode {mode}")
+
+
+def dest_select(config: dict, message: dict) -> int:
+    """Return the combinational destSel level of EvrV2EventSelect."""
+    mode = (config["destSel"] >> 16) & 3
+    if mode == 2:
+        return 1
+    raise NotImplementedError(f"destination mode {mode}")
+
+
+class EventSelectModel:
+    """Register-for-register model of EvrV2EventSelect.
+
+    ``step`` is called once per clock with the inputs stable just before a
+    rising edge and returns (selectOut, dmaOut) as they read just after it.
+    """
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self) -> None:
+        """Return to the power-up state: controlWord is zero."""
+        self.control_word = 0
+
+    def step(self, config: dict, strobe: int, message: dict) -> tuple[int, int]:
+        """Advance one clock and return (selectOut, dmaOut) after the edge."""
+        index = (config["rateSel"] >> 4) & 0x1F
+        if index >= EVENT_SELECT_CONTROL_WORDS:
+            raise ValueError(
+                f"rateSel(8:4) is {index}: EvrV2EventSelect indexes its "
+                f"{EVENT_SELECT_CONTROL_WORDS} word control array out of bounds and the simulator aborts"
+            )
+        selected = (
+            rate_select(config, message, self.control_word)
+            & dest_select(config, message)
+            & strobe
+            & config["enabled"]
+        )
+        dma = selected & config["dmaEnabled"]
+        self.control_word = message["control"][index]
+        return selected, dma
