@@ -92,6 +92,10 @@ CHANNEL_CONFIG_DEFAULTS = {
 # after the cycle in which fire is high (measured on the RTL).
 FIRE_TO_RISE_CYCLES = 4
 
+# A fire that comes fewer than this many cycles after an accepted fire is lost:
+# the state machine spends two cycles pushing and re-arming (measured on the RTL).
+MIN_FIRE_SPACING = 3
+
 
 def pack_trigger_config(**fields) -> int:
     """Return the 87-bit vector EvrV2Pkg toSlv produces; missing keys take the defaults."""
@@ -118,6 +122,18 @@ def bit_size(n: int) -> int:
     if n < 0:
         raise ValueError(f"bit_size needs a non-negative value, got {n}")
     return max(1, n.bit_length())
+
+
+def queue_capacity(trig_depth: int) -> int:
+    """Return how many pulses EvrV2Trigger accepts while none has left its queue.
+
+    The formula 2 ** bit_size(trig_depth) + 1 is measured at trig_depth 0, 1, 4,
+    16, 28 and 127 and only assumed at any other depth. Each pulse takes two
+    queue entries (a rising and a falling level), the queue address is
+    bit_size(trig_depth) + 1 bits wide, and the entry the trigger logic is
+    already counting down is not part of the stored total.
+    """
+    return 2 ** bit_size(trig_depth) + 1
 
 
 class _SurfFifoSync:
