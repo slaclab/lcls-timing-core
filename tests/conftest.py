@@ -15,6 +15,9 @@ import os
 import find_libpython
 from cocotb_tools import config
 
+# pytest reads hook functions from the conftest namespace.
+from tests.common.known_issues import pytest_addoption, pytest_collection_modifyitems, pytest_configure  # noqa: F401
+
 
 def _export_gpi_users() -> None:
     """Export GPI_USERS on behalf of cocotb-test.

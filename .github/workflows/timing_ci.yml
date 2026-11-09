@@ -17,6 +17,7 @@ on:
   push:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
 
 jobs:
 
@@ -126,6 +127,66 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest -v -n auto --dist=worksteal tests/${{ matrix.module }}
+
+# ----------------------------------------------------------------------------
+
+  # Manual only. Runs the tests that are skipped by default because they
+  # document a known issue and expects each one to fail: green means every
+  # known issue still reproduces. A leg turns red naming the test and its
+  # issue when a fix lands; prune that skip and its allowlist or baseline
+  # entry then. A broken simulator install also reads as reproducing, so the
+  # push and pull_request legs remain the real gate and this job only detects
+  # drift. Drop a leg from this matrix when its last known issue is fixed,
+  # because a leg with no test selected exits 5.
+  known_issues:
+    name: "Known issues: ${{ matrix.module }}"
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [common, lcls1_evr, lcls2_core, lcls2_evr]
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl iverilog
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+
+      - name: Clone dependencies
+        run: |
+          git clone --depth 1 -b main https://github.com/slaclab/ruckus ruckus
+          git clone --depth 1 -b main https://github.com/slaclab/surf surf
+
+      - name: Simulator versions
+        run: |
+          ghdl --version
+          iverilog -V
+
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py surf ruckus ghdl iverilog python cocotb cocotb-test
+
+      - name: Import HDL libraries
+        run: |
+          make MODULES=$PWD import
+
+      - name: Run known-issue tests
+        env:
+          RUN_KNOWN_ISSUE_TESTS: "1"
+        run: |
+          python -m pytest -v -n auto --dist=worksteal --expect-known-issues -rxX tests/${{ matrix.module }}
 
 # ----------------------------------------------------------------------------
 

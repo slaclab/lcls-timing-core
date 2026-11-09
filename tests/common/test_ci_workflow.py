@@ -12,15 +12,18 @@
 
 Test methodology:
     Sweep: the two parsed workflows: their triggers, job ids and display
-        names, the test matrix, the release gate, per-job permissions and
-        timeouts, action pins, the scripts of the production guard, Rogue,
-        lint, and documentation jobs, the documentation deploy gate, and the
-        tool version step of every job that declares steps.
+        names, the test matrix, the manual known-issue jobs, the release
+        gate, per-job permissions and timeouts, action pins, the scripts of
+        the production guard, Rogue, lint, and documentation jobs, the
+        documentation deploy gate, and the tool version step of every job
+        that declares steps.
     Stimulus: yaml.safe_load of both workflow files; the repository tree for
         the matrix legs.
     Checks: renaming a job or matrix leg, dropping a release prerequisite,
         adding a job-level condition to the production guard or the
-        documentation caller job, a write scope on any job but the
+        documentation caller job, a manual job that runs on push or
+        pull_request or that lacks the inversion option, a release that
+        waits for a manual job, a write scope on any job but the
         documentation deploy job and its caller, a deploy that is not gated
         to a direct push to main, a build that is not strict, unpinned
         actions, event expressions inside shell scripts, a missing Rogue
@@ -45,6 +48,7 @@ PINNED_ACTION = re.compile(r"^[\w.-]+/[\w.-]+(/[\w./-]+)?@[0-9a-f]{40}$")
 PR_TYPES = {"opened", "synchronize", "reopened", "labeled", "unlabeled"}
 DEPLOY_GATE = ("github.event_name == 'push' && github.ref == "
                "'refs/heads/main' && !inputs.build_only")
+DISPATCH_GATE = "github.event_name == 'workflow_dispatch'"
 RELEASE_GATE = ("github.event_name == 'push' && "
                 "startsWith(github.ref, 'refs/tags/')")
 BUILD_COMMAND = "sphinx-build -W --keep-going docs/ docs/_build/html"
@@ -55,6 +59,7 @@ JOB_NAMES = {
     "lint": "Linting",
     "test": "RTL test: ${{ matrix.module }}",
     "rogue_test": "Rogue Regression Tests",
+    "known_issues": "Known issues: ${{ matrix.module }}",
     "production_guard": "Production Guard",
     "docs": "Documentation",
 }
@@ -64,6 +69,8 @@ TOOL_ITEMS = {
     "lint": ["surf", "ruckus", "ghdl", "python", "flake8", "vsg"],
     "test": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
              "cocotb-test"],
+    "known_issues": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
+                     "cocotb-test"],
     "rogue_test": ["surf", "ruckus", "python", "rogue", "cocotb",
                    "cocotb-test"],
     "production_guard": ["surf", "ruckus", "python", "git"],
@@ -114,9 +121,9 @@ def first_index(job, pattern):
     return None
 
 
-def test_triggers_are_push_and_pull_request_with_label_types(workflow):
+def test_triggers_are_push_pull_request_and_dispatch(workflow):
     triggers = workflow.get("on", workflow.get(True))
-    assert set(triggers) == {"push", "pull_request"}
+    assert set(triggers) == {"push", "pull_request", "workflow_dispatch"}
     assert set(triggers["pull_request"]["types"]) == PR_TYPES
 
 
@@ -147,6 +154,29 @@ def test_release_needs_every_job(jobs):
     assert set(release["needs"]) == RELEASE_NEEDS
     assert release["uses"] == REUSABLE_RELEASE
     assert release["if"] == RELEASE_GATE
+
+
+def test_known_issue_jobs_run_only_on_dispatch(jobs):
+    found = [job_id for job_id in jobs if job_id.startswith("known_issues")]
+    assert found
+    for job_id in found:
+        assert jobs[job_id]["if"] == DISPATCH_GATE, job_id
+
+
+def test_known_issue_jobs_invert_the_gated_tests(jobs):
+    job = jobs["known_issues"]
+    step = [s for s in job["steps"] if "-m pytest" in s.get("run", "")][0]
+    assert step["env"]["RUN_KNOWN_ISSUE_TESTS"] == "1"
+    assert "--expect-known-issues" in step["run"]
+    assert "-rxX" in step["run"]
+    assert "tests/${{ matrix.module }}" in step["run"]
+    assert job["strategy"]["matrix"]["module"] == MATRIX_LEGS
+    assert job["strategy"]["fail-fast"] is False
+
+
+def test_release_does_not_wait_for_manual_jobs(jobs):
+    assert not [job_id for job_id in jobs["gen_release"]["needs"]
+                if job_id.startswith("known_issues")]
 
 
 def test_production_guard_has_no_job_level_condition(jobs):
