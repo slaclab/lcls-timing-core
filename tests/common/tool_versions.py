@@ -15,10 +15,10 @@ Usage::
     python tests/common/tool_versions.py [--remote-deps] [--title TITLE] \\
         ITEM [ITEM ...]
 
-Items: surf, ruckus, ghdl, iverilog, doxygen, git, python, cocotb,
-cocotb-test, flake8, vsg, rogue. Rows appear in the order the items are
-given. The table goes to stdout and, when GITHUB_STEP_SUMMARY is set, is
-appended to that file.
+Items: surf, ruckus, ghdl, iverilog, git, python, cocotb, cocotb-test,
+flake8, vsg, rogue, sphinx, sphinx-rtd-theme, sphinx-copybutton. Rows appear
+in the order the items are given. The table goes to stdout and, when
+GITHUB_STEP_SUMMARY is set, is appended to that file.
 
 surf and ruckus are reported as the commit SHA of the job's own clone (the
 surf/ and ruckus/ directories in the current directory). With --remote-deps
@@ -136,7 +136,6 @@ RESOLVERS = {
     "ruckus": _dependency("ruckus"),
     "ghdl": _command_line(["ghdl", "--version"]),
     "iverilog": _iverilog,
-    "doxygen": _command_line(["doxygen", "--version"]),
     "git": _command_line(["git", "--version"]),
     "python": _python,
     "cocotb": _distribution("cocotb"),
@@ -144,6 +143,9 @@ RESOLVERS = {
     "flake8": _distribution("flake8"),
     "vsg": _distribution("vsg"),
     "rogue": _rogue,
+    "sphinx": _distribution("sphinx"),
+    "sphinx-rtd-theme": _distribution("sphinx-rtd-theme"),
+    "sphinx-copybutton": _distribution("sphinx-copybutton"),
 }
 
 

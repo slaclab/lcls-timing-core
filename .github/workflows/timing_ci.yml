@@ -228,49 +228,30 @@ jobs:
 
 # ----------------------------------------------------------------------------
 
-  test_and_document:
-    name: Test And Generate Documentation
-    runs-on: ubuntu-26.04
-    timeout-minutes: 30
+  docs:
+    name: Documentation
+    # No job-level condition: gen_release needs this job, and a skipped
+    # prerequisite would also skip the release on a tag push.
+    # The reusable workflow's deploy job declares pages and id-token write,
+    # which a caller must grant even though build_only keeps that job skipped.
     permissions:
       contents: read
-    steps:
-
-      # This step checks out a copy of your repository.
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: 3.12
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
-
-      - name: Tool versions
-        run: |
-          python tests/common/tool_versions.py --remote-deps surf ruckus python doxygen
-
-      - name: Generate Documentation
-        run: |
-          doxygen Doxyfile
-
-      - name: Deploy Documentation
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
-        with:
-          github_token: ${{ secrets.GH_TOKEN }}
-          publish_dir: doxygen/html
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
+    with:
+      build_only: true
 
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, rogue_test, production_guard, test_and_document]
+    # A manual run on a tag ref must never publish a release.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [lint, test, rogue_test, production_guard, docs]
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
+      # The ruckus workflow declares version as a required input but never
+      # reads it.
       version: '1.0.0'
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}

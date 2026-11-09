@@ -8,21 +8,25 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-"""Structural tests of .github/workflows/timing_ci.yml.
+"""Structural tests of .github/workflows/timing_ci.yml and docs.yml.
 
 Test methodology:
-    Sweep: the parsed workflow: its triggers, job ids and display names, the
-        test matrix, the release gate, per-job permissions and timeouts,
-        action pins, the scripts of the production guard, Rogue, lint, and
-        documentation jobs, and the tool version step of every job.
-    Stimulus: yaml.safe_load of the workflow file; the repository tree for
+    Sweep: the two parsed workflows: their triggers, job ids and display
+        names, the test matrix, the release gate, per-job permissions and
+        timeouts, action pins, the scripts of the production guard, Rogue,
+        lint, and documentation jobs, the documentation deploy gate, and the
+        tool version step of every job that declares steps.
+    Stimulus: yaml.safe_load of both workflow files; the repository tree for
         the matrix legs.
     Checks: renaming a job or matrix leg, dropping a release prerequisite,
-        adding a job-level condition to the production guard job, unpinned
+        adding a job-level condition to the production guard or the
+        documentation caller job, a write scope on any job but the
+        documentation deploy job and its caller, a deploy that is not gated
+        to a direct push to main, a build that is not strict, unpinned
         actions, event expressions inside shell scripts, a missing Rogue
-        check, packaging steps, and surf or ruckus clones in the
-        documentation job each fail one named test, as does a job that drops
-        surf or ruckus from its tool version step or runs it too late.
+        check, packaging steps, and a returning legacy doc generator each
+        fail one named test, as does a job that drops surf or ruckus from
+        its tool version step or runs it too late.
     Timing: static. No workflow is run and nothing is simulated.
 """
 
@@ -34,21 +38,28 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_FILE = REPO_ROOT / ".github" / "workflows" / "timing_ci.yml"
+DOCS_FILE = REPO_ROOT / ".github" / "workflows" / "docs.yml"
 
 REUSABLE_RELEASE = "slaclab/ruckus/.github/workflows/gen_release.yml@main"
 PINNED_ACTION = re.compile(r"^[\w.-]+/[\w.-]+(/[\w./-]+)?@[0-9a-f]{40}$")
 PR_TYPES = {"opened", "synchronize", "reopened", "labeled", "unlabeled"}
+DEPLOY_GATE = ("github.event_name == 'push' && github.ref == "
+               "'refs/heads/main' && !inputs.build_only")
+RELEASE_GATE = ("github.event_name == 'push' && "
+                "startsWith(github.ref, 'refs/tags/')")
+BUILD_COMMAND = "sphinx-build -W --keep-going docs/ docs/_build/html"
+# The alternation and the bracket keep the searched words out of this file.
+LEGACY_DOC_RE = re.compile(r"doxy(?:gen|file)|peace[i]ris", re.IGNORECASE)
 
 JOB_NAMES = {
     "lint": "Linting",
     "test": "RTL test: ${{ matrix.module }}",
     "rogue_test": "Rogue Regression Tests",
     "production_guard": "Production Guard",
-    "test_and_document": "Test And Generate Documentation",
+    "docs": "Documentation",
 }
 MATRIX_LEGS = ["common", "lcls1_evr", "lcls2_core", "lcls2_evr"]
-RELEASE_NEEDS = {"lint", "test", "rogue_test", "production_guard",
-                 "test_and_document"}
+RELEASE_NEEDS = {"lint", "test", "rogue_test", "production_guard", "docs"}
 TOOL_ITEMS = {
     "lint": ["surf", "ruckus", "ghdl", "python", "flake8", "vsg"],
     "test": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
@@ -56,9 +67,11 @@ TOOL_ITEMS = {
     "rogue_test": ["surf", "ruckus", "python", "rogue", "cocotb",
                    "cocotb-test"],
     "production_guard": ["surf", "ruckus", "python", "git"],
-    "test_and_document": ["surf", "ruckus", "python", "doxygen"],
+    "docs.yml:build": ["surf", "ruckus", "python", "sphinx",
+                       "sphinx-rtd-theme", "sphinx-copybutton"],
+    "docs.yml:deploy": ["surf", "ruckus", "python", "git"],
 }
-FIRST_WORK_STEP = (r"^(make|python -m pytest|doxygen|"
+FIRST_WORK_STEP = (r"^(make|python -m pytest|sphinx-build|"
                    r'python3 "\$\{RUNNER_TEMP\}/production_guard\.py")')
 
 
@@ -70,6 +83,20 @@ def workflow():
 @pytest.fixture(scope="module")
 def jobs(workflow):
     return workflow["jobs"]
+
+
+@pytest.fixture(scope="module")
+def docs_workflow():
+    return yaml.safe_load(DOCS_FILE.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def tool_jobs(jobs, docs_workflow):
+    """Every job that declares steps, keyed as in TOOL_ITEMS."""
+    found = {job_id: job for job_id, job in jobs.items() if "steps" in job}
+    for job_id, job in docs_workflow["jobs"].items():
+        found["docs.yml:" + job_id] = job
+    return found
 
 
 def step_runs(job):
@@ -119,24 +146,28 @@ def test_release_needs_every_job(jobs):
     release = jobs["gen_release"]
     assert set(release["needs"]) == RELEASE_NEEDS
     assert release["uses"] == REUSABLE_RELEASE
-    assert "if" not in release
+    assert release["if"] == RELEASE_GATE
 
 
 def test_production_guard_has_no_job_level_condition(jobs):
     assert "if" not in jobs["production_guard"]
 
 
+def test_docs_job_has_no_condition(jobs):
+    assert "if" not in jobs["docs"]
+
+
 def test_jobs_have_read_permissions_and_a_timeout(jobs):
     for job_id, job in jobs.items():
-        if job_id == "gen_release":
+        if job_id in ("gen_release", "docs"):
             continue
         assert job["permissions"] == {"contents": "read"}, job_id
         assert isinstance(job["timeout-minutes"], int), job_id
 
 
-def test_third_party_actions_are_pinned_to_a_commit(jobs):
+def test_third_party_actions_are_pinned_to_a_commit(jobs, docs_workflow):
     seen = 0
-    for job_id, job in jobs.items():
+    for job_id, job in [*jobs.items(), *docs_workflow["jobs"].items()]:
         for step in job.get("steps", []):
             if "uses" in step:
                 seen += 1
@@ -145,8 +176,8 @@ def test_third_party_actions_are_pinned_to_a_commit(jobs):
     assert seen > 0
 
 
-def test_no_shell_script_reads_an_event_expression(jobs):
-    for job_id, job in jobs.items():
+def test_no_shell_script_reads_an_event_expression(jobs, docs_workflow):
+    for job_id, job in [*jobs.items(), *docs_workflow["jobs"].items()]:
         for _, step, run in step_runs(job):
             assert "github.event" not in run, (job_id, step.get("name"))
 
@@ -236,19 +267,81 @@ def test_rtl_leg_installs_both_simulators_and_runs_its_own_tests(jobs):
     assert first_index(job, r"-m pytest .*tests/\$\{\{ matrix\.module \}\}")
 
 
-def test_documentation_job_builds_doxygen_without_the_dependencies(jobs):
-    job = jobs["test_and_document"]
-    runs = "\n".join(run for _, _, run in step_runs(job))
-    assert "doxygen Doxyfile" in runs
-    assert not re.search(r"git clone|make |flake8", runs)
-    deploy = [s for s in job["steps"] if "gh-pages" in s.get("uses", "")][0]
-    assert deploy["if"] == "startsWith(github.ref, 'refs/tags/')"
+def test_docs_job_calls_the_reusable_build(jobs):
+    job = jobs["docs"]
+    assert job["uses"] == "./.github/workflows/docs.yml"
+    assert job["with"] == {"build_only": True}
+    assert job["permissions"] == {"contents": "read", "pages": "write",
+                                  "id-token": "write"}
 
 
-def test_no_step_packages_the_repository(jobs):
+def test_only_the_deploy_and_its_caller_hold_write_scopes(jobs,
+                                                          docs_workflow):
+    read_only = {"contents": "read"}
+    for job_id, job in jobs.items():
+        if job_id in ("docs", "gen_release"):
+            continue
+        assert job["permissions"] == read_only, ("timing_ci.yml", job_id)
+    # gen_release is a reusable-workflow caller with no permissions block;
+    # a later grant of any scope, pages or id-token included, must fail here.
+    assert "permissions" not in jobs["gen_release"]
+    for job_id, job in docs_workflow["jobs"].items():
+        if job_id == "deploy":
+            continue
+        assert job["permissions"] == read_only, ("docs.yml", job_id)
+    assert docs_workflow["jobs"]["deploy"]["permissions"] == {
+        "contents": "read", "pages": "write", "id-token": "write"}
+
+
+def test_docs_workflow_triggers_and_input(workflow, docs_workflow):
+    triggers = docs_workflow.get("on", docs_workflow.get(True))
+    assert set(triggers) == {"push", "workflow_call"}
+    build_only = triggers["workflow_call"]["inputs"]["build_only"]
+    assert build_only["type"] == "boolean"
+    assert build_only["default"] is False
+    assert docs_workflow["permissions"] == {"contents": "read"}
+    assert "concurrency" not in docs_workflow
+    assert "concurrency" not in workflow
+
+
+def test_docs_build_is_strict_and_full_history(docs_workflow):
+    job = docs_workflow["jobs"]["build"]
+    steps = job["steps"]
+    assert steps[0]["uses"].startswith("actions/checkout@")
+    assert steps[0]["with"]["fetch-depth"] == 0
+    assert first_index(job, r"pip install -r docs/requirements\.txt")
+    runs = [run.strip() for _, _, run in step_runs(job)]
+    assert BUILD_COMMAND in runs
+    upload = steps[-1]
+    assert upload["uses"].startswith("actions/upload-pages-artifact@")
+    assert upload["if"] == DEPLOY_GATE
+    assert upload["with"]["path"] == "docs/_build/html"
+    assert sum("upload-pages-artifact" in s.get("uses", "")
+               for s in steps) == 1
+
+
+def test_docs_deploy_is_gated_and_serialized(docs_workflow):
+    deploy = docs_workflow["jobs"]["deploy"]
+    assert deploy["needs"] == "build"
+    assert deploy["if"] == DEPLOY_GATE
+    assert deploy["environment"]["name"] == "github-pages"
+    assert deploy["concurrency"] == {"group": "pages",
+                                     "cancel-in-progress": False}
+    assert "concurrency" not in docs_workflow["jobs"]["build"]
+    assert deploy["steps"][-1]["uses"].startswith("actions/deploy-pages@")
+    assert deploy["steps"][-1]["id"] == "deployment"
+
+
+def test_no_legacy_doc_generator_remains():
+    for path in (WORKFLOW_FILE, DOCS_FILE):
+        text = path.read_text(encoding="utf-8")
+        assert not LEGACY_DOC_RE.search(text), path.name
+
+
+def test_no_step_packages_the_repository(jobs, docs_workflow):
     banned = re.compile(r"setup\.py|pip install (-e )?\.(\s|$)|conda build"
                         r"|python -m build|PYTHONPATH=.*pip install")
-    for job_id, job in jobs.items():
+    for job_id, job in [*jobs.items(), *docs_workflow["jobs"].items()]:
         for _, step, run in step_runs(job):
             assert not banned.search(run), (job_id, step.get("name"))
 
@@ -259,8 +352,8 @@ def tool_version_steps(job):
 
 
 @pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
-def test_every_job_logs_the_expected_tool_versions(jobs, job_id):
-    found = tool_version_steps(jobs[job_id])
+def test_every_job_logs_the_expected_tool_versions(tool_jobs, job_id):
+    found = tool_version_steps(tool_jobs[job_id])
     assert len(found) == 1, job_id
     words = found[0][1].split()
     items = [w for w in words[2:] if not w.startswith("--")]
@@ -268,18 +361,22 @@ def test_every_job_logs_the_expected_tool_versions(jobs, job_id):
     assert {"surf", "ruckus"} <= set(items)
 
 
+def test_every_job_with_steps_is_in_the_tool_table(tool_jobs):
+    assert set(tool_jobs) == set(TOOL_ITEMS)
+
+
 @pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
-def test_remote_deps_exactly_when_the_job_clones_nothing(jobs, job_id):
-    job = jobs[job_id]
+def test_remote_deps_exactly_when_the_job_clones_nothing(tool_jobs, job_id):
+    job = tool_jobs[job_id]
     clones = any("git clone" in run for _, _, run in step_runs(job))
     _, run = tool_version_steps(job)[0]
     assert ("--remote-deps" in run.split()) is (not clones), job_id
 
 
 @pytest.mark.parametrize("job_id", sorted(TOOL_ITEMS))
-def test_tool_versions_come_before_any_make_pytest_guard_or_doxygen(
-        jobs, job_id):
-    job = jobs[job_id]
+def test_tool_versions_come_before_any_make_pytest_guard_or_build(
+        tool_jobs, job_id):
+    job = tool_jobs[job_id]
     logged, _ = tool_version_steps(job)[0]
     for i, _, run in step_runs(job):
         if re.search(FIRST_WORK_STEP, run.strip(), re.MULTILINE):
@@ -290,5 +387,7 @@ def test_the_release_job_declares_no_steps(jobs):
     assert "steps" not in jobs["gen_release"]
 
 
-def test_workflow_is_ascii():
-    WORKFLOW_FILE.read_bytes().decode("ascii")
+@pytest.mark.parametrize("path", [WORKFLOW_FILE, DOCS_FILE],
+                         ids=["timing_ci.yml", "docs.yml"])
+def test_workflow_is_ascii(path):
+    path.read_bytes().decode("ascii")

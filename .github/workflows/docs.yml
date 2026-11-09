@@ -1,0 +1,94 @@
+# ----------------------------------------------------------------------------
+# Title      : LCLS Timing Core documentation
+# ----------------------------------------------------------------------------
+# This file is part of the 'LCLS Timing Core library'. It is subject to
+# the license terms in the LICENSE.txt file found in the top-level directory
+# of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of the 'LCLS Timing Core library', including this file, may be
+# copied, modified, propagated, or distributed except according to the terms
+# contained in the LICENSE.txt file.
+# ----------------------------------------------------------------------------
+
+name: Docs
+on:
+  push:
+  workflow_call:
+    inputs:
+      build_only:
+        description: Build and check the site without publishing it
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+
+  build:
+    name: Build documentation
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12
+
+      - name: Install Sphinx
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Tool versions
+        run: |
+          python tests/common/tool_versions.py --remote-deps surf ruckus python sphinx sphinx-rtd-theme sphinx-copybutton
+
+      - name: Build documentation (strict)
+        run: |
+          sphinx-build -W --keep-going docs/ docs/_build/html
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.build_only
+        with:
+          path: docs/_build/html
+
+# ----------------------------------------------------------------------------
+
+  # Runs only for a direct push to main. The github-pages environment must
+  # allow main, and the repository admin must switch Settings, Pages, Source
+  # to GitHub Actions before the first deploy.
+  deploy:
+    name: Deploy documentation
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.build_only
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Tool versions
+        run: |
+          python3 tests/common/tool_versions.py --remote-deps surf ruckus python git
+
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+# ----------------------------------------------------------------------------

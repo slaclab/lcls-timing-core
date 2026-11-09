@@ -225,7 +225,7 @@ def test_a_failure_leaves_the_summary_untouched(monkeypatch, tmp_path):
     summary.write_text("earlier text\n")
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
     monkeypatch.setattr(tv, "_run", lambda argv: "")
-    assert tv.main(["python", "doxygen"]) == 1
+    assert tv.main(["python", "ghdl"]) == 1
     assert summary.read_text() == "earlier text\n"
 
 
