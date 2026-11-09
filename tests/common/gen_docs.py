@@ -41,7 +41,7 @@ from typing import NamedTuple
 
 import yaml
 
-from tests.common import pyrogue_ast, register_tables, timing_model
+from tests.common import evr_model, pyrogue_ast, register_tables, timing_model
 from tests.common.register_drift import (
     ALLOWLIST,
     BITS_PER_BYTE,
@@ -2561,6 +2561,22 @@ LAYOUT_INCLUDE_DIR = "_generated"
 # (include name, record name, model table, declared size in bits)
 LAYOUTS = (
     ("timing_message", "TimingMessageType", timing_model.MESSAGE_FIELDS, timing_model.TIMING_MESSAGE_BITS),
+    (
+        "timing_message_no_bsa",
+        "TimingMessageType without BSA (toSlvNoBsa)",
+        timing_model.MESSAGE_NO_BSA_FIELDS,
+        timing_model.TIMING_MESSAGE_BITS_NO_BSA,
+    ),
+    ("expt_message", "ExptMessageType", timing_model.EXPT_FIELDS, timing_model.EXPT_MESSAGE_BITS),
+    ("lcls1_databuff", "TimingDataBuffType", timing_model.DATABUFF_FIELDS, timing_model.TIMING_DATABUFF_BITS),
+    ("lcls1_stream", "TimingStreamType", timing_model.STREAM_FIELDS, timing_model.TIMING_STREAM_BITS),
+    (
+        "evr_trigger_config",
+        "EvrV2TriggerConfigType",
+        evr_model.TRIGGER_CONFIG_FIELDS,
+        evr_model.TRIGGER_CONFIG_BITS,
+    ),
+    ("evr_channel_config", "EvrV2ChannelConfig", evr_model.CHANNEL_CONFIG_FIELDS, evr_model.CHANNEL_CONFIG_BITS),
 )
 
 
@@ -2614,6 +2630,170 @@ def render_layouts():
 
 
 # ---------------------------------------------------------------------------
+# Wire frames generated from the model encoders
+# ---------------------------------------------------------------------------
+
+SYMBOL_HEADER = ("symbols", "sequence", "data16", "K flags")
+
+
+def hex16(word):
+    return f"0x{word:04X}"
+
+
+def lcls2_symbol_labels(symbols):
+    """Return (name, value text) per symbol of an LCLS-II frame built by the model encoder.
+
+    The commas and the start, end of segment, and end of frame symbols are named
+    after the model constants; the first symbol after a start or an end of
+    segment is the start of segment word, the words up to the next end of
+    segment are data, and the two symbols after the end of frame are the CRC.
+    """
+    named = {
+        timing_model.ALIGN_SYMBOL: "alignment comma",
+        timing_model.SOF_SYMBOL: "SOF",
+        timing_model.EOS_SYMBOL: "EOS",
+        timing_model.EOF_SYMBOL: "EOF",
+        timing_model.IDLE_SYMBOL: "idle comma",
+    }
+    labels = []
+    state = "head"
+    for symbol in symbols:
+        if symbol in named:
+            labels.append((named[symbol], hex16(symbol[0])))
+            state = {"SOF": "sos", "EOS": "sos", "EOF": "crc low"}.get(named[symbol], state)
+        elif state == "sos":
+            labels.append(("SOS", hex16(symbol[0])))
+            state = "words"
+        elif state == "words":
+            labels.append(("data words", "data"))
+        elif state == "crc low":
+            labels.append(("CRC low word", hex16(symbol[0])))
+            state = "crc high"
+        elif state == "crc high":
+            labels.append(("CRC high word", hex16(symbol[0])))
+            state = "end"
+        else:
+            raise ValueError(f"unexpected symbol {hex16(symbol[0])}/{symbol[1]:02b} outside a frame")
+    return labels
+
+
+def lcls1_symbol_labels(symbols):
+    """Return (name, value text) per symbol of an LCLS-I frame built by the model encoder.
+
+    The regions come from the index constants of the model: the start symbol,
+    the data buffer bytes, the end symbol, the pulse id bits, the marker, and
+    the 256 event-code slots, with a comma on every other clock.
+    """
+    if len(symbols) != timing_model.LCLS1_CODE_INDEX + 2 * 256:
+        raise ValueError(f"an LCLS-I frame has {timing_model.LCLS1_CODE_INDEX + 512} symbols, got {len(symbols)}")
+    labels = []
+    for index, symbol in enumerate(symbols):
+        if index == 0:
+            label = ("start", hex16(symbol[0]))
+        elif index == timing_model.LCLS1_END_INDEX:
+            label = ("end", hex16(symbol[0]))
+        elif index == timing_model.LCLS1_MARKER_INDEX:
+            label = ("event-code marker", hex16(symbol[0]))
+        elif symbol == timing_model.LCLS1_COMMA_SYMBOL:
+            label = ("comma", hex16(symbol[0]))
+        elif index < timing_model.LCLS1_END_INDEX:
+            label = ("data buffer byte", "data")
+        elif index < timing_model.LCLS1_MARKER_INDEX:
+            label = ("pulse id bit", "0x0070 or 0x0071")
+        elif symbol == timing_model.LCLS1_UNSET_SYMBOL:
+            label = ("unset code slot", hex16(symbol[0]))
+        else:
+            label = ("event code", hex16(symbol[0]))
+        labels.append(label)
+    return labels
+
+
+def symbol_runs(symbols, labels):
+    """Collapse symbols into runs, then fold a pair of single-symbol runs that repeats.
+
+    Returns rows of (symbol count, sequence, data16 text, K flags text). Equal
+    consecutive (name, value, K) symbols form one run; a repetition of two
+    one-symbol runs in alternation, such as a comma between data bytes, is one
+    row reading ``n x (first, second)``.
+    """
+    if not symbols:
+        raise ValueError("a symbol run needs at least one symbol")
+    if len(symbols) != len(labels):
+        raise ValueError(f"{len(symbols)} symbols but {len(labels)} labels")
+    runs = []
+    for symbol, (name, value) in zip(symbols, labels):
+        key = (name, value, f"{symbol[1]:02b}")
+        if runs and runs[-1][0] == key:
+            runs[-1][1] += 1
+        else:
+            runs.append([key, 1])
+    rows = []
+    index = 0
+    while index < len(runs):
+        first = runs[index]
+        reps = 0
+        if index + 1 < len(runs) and first[1] == 1 and runs[index + 1][1] == 1:
+            second = runs[index + 1]
+            while (
+                index + 2 * reps + 1 < len(runs)
+                and runs[index + 2 * reps][0] == first[0]
+                and runs[index + 2 * reps + 1][0] == second[0]
+                and runs[index + 2 * reps][1] == 1
+                and runs[index + 2 * reps + 1][1] == 1
+            ):
+                reps += 1
+        if reps >= 2:
+            (name1, value1, k1), (name2, value2, k2) = first[0], second[0]
+            rows.append((str(2 * reps), f"{reps} x ({name1}, {name2})", f"{value1}, {value2}", f"{k1}, {k2}"))
+            index += 2 * reps
+        else:
+            name, value, k = first[0]
+            rows.append((str(first[1]), name, value, k))
+            index += 1
+    return rows
+
+
+def render_symbol_run(title, symbols, labels):
+    """Return the text of one frame include: a caption and a ``code-block:: text`` of the runs.
+
+    ``labels`` is one (name, value text) per symbol; see lcls2_symbol_labels and
+    lcls1_symbol_labels. The K flags column is dataK as two bits, the K flag of
+    the high byte and then of the low byte.
+    """
+    rows = symbol_runs(symbols, labels)
+    widths = [max(len(row[column]) for row in (SYMBOL_HEADER, *rows)) for column in range(4)]
+    lines = [
+        f"{title}: {len(symbols)} symbols, one per clock.",
+        "",
+        ".. code-block:: text",
+        "",
+    ]
+    for row in (SYMBOL_HEADER, *rows):
+        lines.append(("   " + "  ".join(cell.ljust(widths[index]) for index, cell in enumerate(row))).rstrip())
+    lines.append(f"   total: {len(symbols)} symbols")
+    return "\n".join(lines) + "\n"
+
+
+def render_frames():
+    """Return {docs-relative path: text} of the frame includes, produced by the model encoders."""
+    frame2 = timing_model.message_frame(timing_model.default_message())
+    databuff = {name: 0 for name, _, _ in timing_model.DATABUFF_FIELDS}
+    frame1 = timing_model.encode_lcls1_frame(0, 0, databuff)
+    return {
+        f"{LAYOUT_INCLUDE_DIR}/lcls2_frame.inc": render_symbol_run(
+            "LCLS-II frame of the default message on stream 0 (every field at its reset value)",
+            frame2,
+            lcls2_symbol_labels(frame2),
+        ),
+        f"{LAYOUT_INCLUDE_DIR}/lcls1_frame.inc": render_symbol_run(
+            "LCLS-I frame for pulse id 0, no event code set, and an all-zero data buffer, without the idle fill",
+            frame1,
+            lcls1_symbol_labels(frame1),
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
@@ -2623,6 +2803,7 @@ def render_all(repo_root=REPO_ROOT):
     pages.update(render_registers(repo_root))
     pages.update(render_pyrogue(repo_root))
     pages.update(render_layouts())
+    pages.update(render_frames())
     pages[YAML_MAPS_PAGE] = render_yaml_maps()
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)

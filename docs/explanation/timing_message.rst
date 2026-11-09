@@ -10,7 +10,7 @@ and the message to AXI stream converter) read its fields. The record travels
 inside ``TimingBusType`` next to a strobe and a valid flag.
 
 The message is 944 bits, which is 59 sixteen-bit words, and the frame carries
-it as a single segment of the wire frame. The constants
+it as a single segment (see :doc:`lcls2_frame`). The constants
 ``TIMING_MESSAGE_BITS_C`` (944) and ``TIMING_MESSAGE_WORDS_C`` (59) give the
 size. The current format version is ``x"0001"``, which added the photon
 wavelength words; ``TIMING_MESSAGE_INIT_C`` carries that version and sets every
@@ -84,7 +84,7 @@ field, and it compares ``toSlv`` and ``toTimingMessageType`` with the model for
 all-zero, all-ones, and seeded random messages.
 
 A shorter vector is also accepted by ``toTimingMessageType``: the variant without
-BSA, which has 672 bits. On that path the
+BSA described on :doc:`lcls2_frame`, which has 672 bits. On that path the
 conversion leaves ``version``, ``syncStatus``, ``mpsValid``, ``bcsFault``, and
 the four BSA fields unassigned. That is observed and the intent is not
 confirmed; it is open as :issue:`211`.

@@ -10,6 +10,8 @@ wrappers, and the host software fit together, and why they are built that way.
    overview
    architecture
    timing_message
+   lcls2_frame
+   lcls1_stream
    clocking_cdc
    gt_families
    extension_package

@@ -54,8 +54,21 @@ put them together.
 The shared types and the configuration records are in ``EvrV2Pkg``
 (:repo:`LCLS-II/evr/rtl/EvrV2Pkg.vhd`). A channel configuration is 81 bits wide
 and a trigger configuration is 87 bits wide (31 bits plus two 28-bit counters);
-both cross from the AXI-Lite clock to the EVR clock as a packed vector. The
-bit layouts of the two records are generated and are not drawn on this page.
+both cross from the AXI-Lite clock to the EVR clock as a packed vector.
+
+Configuration records
+~~~~~~~~~~~~~~~~~~~~~
+
+The bit layouts below are generated from the layout tables of the regression's
+model, :repo:`tests/common/evr_model.py`, which the register block tests
+(:repo:`tests/lcls2_evr/test_EvrV2ChannelReg.py` and
+:repo:`tests/lcls2_evr/test_EvrV2TrigReg.py`) use to decode the packed
+configuration vectors that the RTL outputs. Fields are packed from bit 0 in the
+order ``toSlv`` assigns them in ``EvrV2Pkg``.
+
+.. include:: ../_generated/evr_channel_config.inc
+
+.. include:: ../_generated/evr_trigger_config.inc
 
 How the regression tests this block
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

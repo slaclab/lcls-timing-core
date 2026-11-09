@@ -1478,3 +1478,55 @@ def test_layout_rejects_an_empty_or_zero_width_table():
         gen_docs.render_layout("Sparse", (("a", 4, 0), ("b", 8, 1)), 8)
     with pytest.raises(ValueError, match="layout table Short holds 8 bits, expected 9"):
         gen_docs.render_layout("Short", (("a", 8, 1),), 9)
+
+
+FRAME_ROW_RE = re.compile(r"^   (\d+)\s{2,}(\S.*?)\s{2,}")
+
+
+def frame_rows(text):
+    """Return [(symbol count, sequence)] of the run rows of a generated frame include."""
+    return [(int(match.group(1)), match.group(2)) for match in map(FRAME_ROW_RE.match, text.splitlines()) if match]
+
+
+def test_frame_diagrams_follow_the_model_encoders():
+    pages = gen_docs.render_frames()
+    assert sorted(pages) == ["_generated/lcls1_frame.inc", "_generated/lcls2_frame.inc"]
+
+    frame2 = timing_model.message_frame(timing_model.default_message())
+    text2 = pages["_generated/lcls2_frame.inc"]
+    rows2 = frame_rows(text2)
+    assert sum(count for count, _ in rows2) == len(frame2)
+    assert [row for row in rows2 if row[1] == "data words"] == [(timing_model.TIMING_MESSAGE_WORDS, "data words")]
+    assert [name for _, name in rows2] == [
+        "alignment comma", "SOF", "SOS", "data words", "EOS", "EOF", "CRC low word", "CRC high word",
+    ]
+    assert f"0x{timing_model.SOF_SYMBOL[0]:04X}" in text2 and f"total: {len(frame2)} symbols" in text2
+    low, high = frame2[-2][0], frame2[-1][0]
+    assert f"0x{low:04X}" in text2 and f"0x{high:04X}" in text2
+
+    databuff = {name: 0 for name, _, _ in timing_model.DATABUFF_FIELDS}
+    frame1 = timing_model.encode_lcls1_frame(0, 0, databuff)
+    text1 = pages["_generated/lcls1_frame.inc"]
+    rows1 = frame_rows(text1)
+    assert sum(count for count, _ in rows1) == len(frame1) == timing_model.LCLS1_CODE_INDEX + 512
+    assert (2 * timing_model.LCLS1_DATABUFF_BYTES, f"{timing_model.LCLS1_DATABUFF_BYTES} x (comma, data buffer byte)") in rows1
+    assert (64, "32 x (pulse id bit, comma)") in rows1
+    assert (512, "256 x (comma, unset code slot)") in rows1
+    assert f"0x{timing_model.LCLS1_START_SYMBOL[0]:04X}" in text1 and f"total: {len(frame1)} symbols" in text1
+
+
+def test_symbol_runs_collapse_equal_symbols_and_fold_alternating_pairs():
+    comma = (0x00BC, 0b01)
+    data = (0x0000, 0b00)
+    labels = [("comma", "0x00BC"), ("byte", "data")] * 3 + [("comma", "0x00BC")] * 2 + [("end", "0x1")]
+    rows = gen_docs.symbol_runs([comma, data] * 3 + [comma] * 2 + [(1, 0b11)], labels)
+    assert rows == [
+        ("6", "3 x (comma, byte)", "0x00BC, data", "01, 00"),
+        ("2", "comma", "0x00BC", "01"),
+        ("1", "end", "0x1", "11"),
+    ]
+    assert gen_docs.symbol_runs([comma, data], labels[:2])[0] == ("1", "comma", "0x00BC", "01")
+    with pytest.raises(ValueError, match="at least one symbol"):
+        gen_docs.symbol_runs([], [])
+    with pytest.raises(ValueError, match="1 symbols but 2 labels"):
+        gen_docs.symbol_runs([comma], labels[:2])
