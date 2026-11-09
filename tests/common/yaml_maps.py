@@ -41,6 +41,7 @@ class YamlLoad(NamedTuple):
     data: Optional[dict]
     missing_includes: List[str]
     error: Optional[Tuple[str, Optional[int]]]
+    error_class: Optional[str] = None
 
 
 class YamlField(NamedTuple):
@@ -91,7 +92,8 @@ def load(name: str) -> YamlLoad:
     except yaml.YAMLError as error:
         mark = getattr(error, "problem_mark", None)
         problem = getattr(error, "problem", None) or str(error)
-        return YamlLoad(None, missing, (problem, mark.line + 1 if mark else None))
+        line = mark.line + 1 if mark else None
+        return YamlLoad(None, missing, (problem, line), type(error).__name__)
 
 
 def flatten(node, base: int = 0, prefix: str = ""):
@@ -132,3 +134,82 @@ def yaml_fields(name: str) -> List[YamlField]:
     if not isinstance(node, dict):
         raise ValueError(f"{name} has no top-level key {stem!r}")
     return list(flatten(node))
+
+
+# Every yaml/*.yaml is either compared against the Python and RTL sides by the
+# drift check ("drift") or only checked for shape ("shape"): the five shape
+# maps describe no register block that Python or the RTL decode mirrors one to
+# one.
+YAML_CLASSIFICATION = {
+    "AmcCarrierDRAM.yaml": "shape",
+    "BldAxiStream.yaml": "shape",
+    "EvrV1Isr.yaml": "drift",
+    "EvrV1Reg.yaml": "drift",
+    "EvrV2ChannelReg.yaml": "drift",
+    "EvrV2Core.yaml": "drift",
+    "EvrV2CoreTriggers.yaml": "drift",
+    "EvrV2Module.yaml": "shape",
+    "EvrV2PulsegenRegs.yaml": "shape",
+    "EvrV2TriggerPulse.yaml": "shape",
+    "EvrV2TriggerReg.yaml": "drift",
+    "GthRxAlignCheck.yaml": "drift",
+    "LclsTriggerPulse.yaml": "drift",
+    "TPG.yaml": "drift",
+    "TPGControl.yaml": "drift",
+    "TPGMiniCore.yaml": "drift",
+    "TPGSeqJump.yaml": "drift",
+    "TPGSeqState.yaml": "drift",
+    "TPGStatus.yaml": "drift",
+    "TimingFrameRx.yaml": "drift",
+}
+
+# Maps that do not parse after include splicing: (error class, line, message
+# fragment). TPGControl.yaml and TPGSeqState.yaml fail on their own text, so
+# their lines are file lines. TPG.yaml fails because it splices both; its line
+# counts the spliced text (TPGControl.yaml line 58 after the 11 lines that
+# precede the first include of TPG.yaml).
+KNOWN_YAML_DEFECTS = {
+    "TPG.yaml": ("ScannerError", 69, "mapping values are not allowed here"),
+    "TPGControl.yaml": ("ScannerError", 58, "mapping values are not allowed here"),
+    "TPGSeqState.yaml": ("ScannerError", 27, "mapping values are not allowed here"),
+}
+
+# Include targets that do not exist in yaml/, by including file.
+KNOWN_MISSING_INCLUDES = {"TPG.yaml": ("TPGSeqMem.yaml",)}
+
+
+def load_all():
+    """Return {file: YamlLoad} for every yaml/*.yaml, sorted by file name."""
+    return {path.name: load(path.name) for path in sorted(YAML_DIR.glob("*.yaml"))}
+
+
+def defect_verdict(results, baseline=None) -> List[str]:
+    """Return sorted reasons where results differ from the parse-failure baseline.
+
+    A parse failure that is not listed fails, a listed file that now parses
+    fails until its entry is removed, and a listed file that fails differently
+    (class, line, or message) fails.
+    """
+    baseline = KNOWN_YAML_DEFECTS if baseline is None else baseline
+    reasons = []
+    for name in sorted(set(results) | set(baseline)):
+        expected = baseline.get(name)
+        result = results.get(name)
+        if result is None:
+            reasons.append(f"{name}: listed in KNOWN_YAML_DEFECTS but no such file was loaded; remove the entry")
+        elif result.error is None:
+            if expected is not None:
+                reasons.append(f"{name}: listed in KNOWN_YAML_DEFECTS but now parses; remove the entry")
+        else:
+            problem, line = result.error
+            if expected is None:
+                reasons.append(f"{name}: new parse failure: {result.error_class}: {problem} (line {line})")
+                continue
+            kind, want_line, fragment = expected
+            if result.error_class != kind or (want_line is not None and line != want_line) or fragment not in problem:
+                reasons.append(
+                    f"{name}: parse failure differs from KNOWN_YAML_DEFECTS "
+                    f"(expected {kind} at line {want_line} containing {fragment!r}; "
+                    f"got {result.error_class} at line {line}: {problem})"
+                )
+    return sorted(reasons)
