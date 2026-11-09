@@ -68,9 +68,10 @@ jobs:
         run: |
           python tests/common/lint_checks.py vsg
 
-      - name: Compliance audit (warn-only)
+      - name: Compliance audit
         run: |
-          python tests/common/compliance_audit.py audit tests --output "$RUNNER_TEMP/audit.txt"
+          rc=0
+          python tests/common/compliance_audit.py audit tests --fail-on-findings --output "$RUNNER_TEMP/audit.txt" || rc=$?
           cat "$RUNNER_TEMP/audit.txt"
           {
             echo "### Compliance audit"
@@ -78,6 +79,7 @@ jobs:
             cat "$RUNNER_TEMP/audit.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
 
 # ----------------------------------------------------------------------------
 

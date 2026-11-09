@@ -8,7 +8,7 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-"""Unit tests for the warn-only regression compliance audit.
+"""Unit tests for the regression compliance audit.
 
 Test methodology:
     Sweep: one small Python source string (or temporary directory tree)
@@ -20,7 +20,8 @@ Test methodology:
         repo_root so the real repository is never audited.
     Checks: the rule ids reported, finding de-duplication keys, sorted and
         byte-identical output across runs, the files-audited count, exit
-        code 0 for every audit (warn-only) and 2 for a missing path, and
+        code 0 without --fail-on-findings, 1 with it when a finding
+        exists, and 2 for a missing path, and
         that auditing leaves the audited tree unchanged.
     Timing: none, the audit only parses source text (no simulator).
 """
@@ -148,6 +149,37 @@ def test_audit_exits_zero_with_findings_and_reports_the_file_count(
     assert code == 0
     assert "tests/test_a.py:1: missing-methodology" in out
     assert "2 file(s) audited" in out
+
+
+def test_fail_on_findings_exits_one_and_still_writes_the_report(
+        tmp_path, capsys):
+    make_tree(tmp_path, {"tests/test_a.py": "def test_a():\n    pass\n"})
+    report = {}
+    for flag, name in ((None, "plain.txt"), ("--fail-on-findings", "flag.txt")):
+        argv = ["audit", "tests", "--output", str(tmp_path / name)]
+        if flag:
+            argv.append(flag)
+        report[name] = (audit.main(argv, repo_root=tmp_path),
+                        (tmp_path / name).read_text(encoding="utf-8"))
+    capsys.readouterr()
+    assert report["plain.txt"][0] == 0
+    assert report["flag.txt"][0] == 1
+    assert "missing-methodology" in report["plain.txt"][1]
+    assert report["flag.txt"][1] == report["plain.txt"][1]
+
+
+def test_fail_on_findings_exits_zero_on_a_compliant_tree(tmp_path, capsys):
+    make_tree(tmp_path, {
+        "tests/test_b.py": METHODOLOGY + "def test_b():\n    pass\n"})
+    code = audit.main(["audit", "tests", "--fail-on-findings"],
+                      repo_root=tmp_path)
+    assert code == 0
+    assert "0 finding(s)" in capsys.readouterr().out
+
+
+def test_fail_on_findings_exits_zero_on_the_real_tests(capsys):
+    code = audit.main(["audit", "tests", "--fail-on-findings"])
+    assert code == 0, capsys.readouterr().out
 
 
 def test_audit_of_an_empty_directory_reports_zero_files(tmp_path, capsys):

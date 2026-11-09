@@ -863,10 +863,18 @@ def main(argv: list[str] | None = None, repo_root: Path = REPO_ROOT) -> int:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    audit_parser = subparsers.add_parser("audit", help="report compliance screening signals")
+    audit_parser = subparsers.add_parser(
+        "audit",
+        help="report compliance screening signals; CI runs it with --fail-on-findings",
+    )
     audit_parser.add_argument("paths", nargs="*", default=["tests"])
     audit_parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     audit_parser.add_argument("--output", help="write the report to this path")
+    audit_parser.add_argument(
+        "--fail-on-findings",
+        action="store_true",
+        help="exit 1 when the audit reports any finding",
+    )
 
     inventory_parser = subparsers.add_parser(
         "inventory",
@@ -921,7 +929,7 @@ def main(argv: list[str] | None = None, repo_root: Path = REPO_ROOT) -> int:
             else:
                 content = _audit_text(findings, files_audited)
             _write_output(content, args.output)
-            return 0
+            return 1 if args.fail_on_findings and findings else 0
 
         if args.command == "inventory":
             content = json.dumps(

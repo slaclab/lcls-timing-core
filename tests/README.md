@@ -100,11 +100,11 @@ Linting (job `Linting`):
 .venv/bin/python -m compileall -f -q python/ tests/
 .venv/bin/flake8 --count python/ tests/
 .venv/bin/python tests/common/lint_checks.py --include-untracked vsg
-.venv/bin/python tests/common/compliance_audit.py audit tests
+.venv/bin/python tests/common/compliance_audit.py audit tests --fail-on-findings
 ```
 
-The audit only reports; it never changes the exit status. CI scans tracked
-files, so `--include-untracked` is for local use before `git add`.
+CI fails the lint job on any audit finding and scans tracked files, so
+`--include-untracked` is for local use before `git add`.
 
 RTL legs (job `RTL test: <leg>`), one per directory under `tests/`:
 

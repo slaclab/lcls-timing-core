@@ -295,7 +295,12 @@ def test_lint_job_runs_every_check_in_ci_order(jobs):
     assert None not in indices, indices
     assert indices == sorted(indices)
     audit = [s for s in job["steps"] if "compliance_audit" in s.get("run", "")]
-    assert "$GITHUB_STEP_SUMMARY" in audit[0]["run"]
+    assert audit[0]["name"] == "Compliance audit"
+    run = audit[0]["run"]
+    assert "--fail-on-findings" in run
+    assert 'exit "$rc"' in run
+    assert "$GITHUB_STEP_SUMMARY" in run
+    assert run.index("$GITHUB_STEP_SUMMARY") < run.index('exit "$rc"')
     assert "continue-on-error" not in audit[0]
     clones = [r for _, _, r in step_runs(job) if "git clone" in r]
     assert any("slaclab/surf" in c and "slaclab/ruckus" in c for c in clones)
