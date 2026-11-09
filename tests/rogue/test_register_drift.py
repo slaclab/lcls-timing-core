@@ -49,7 +49,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.common import ast_constants, register_drift, vhdl_registers, yaml_maps
+from tests.common import ast_constants, register_drift, register_tables, vhdl_registers, yaml_maps
 from tests.rogue import rogue_tree
 
 CASES = [
@@ -167,6 +167,26 @@ def test_source_reader_rejects_a_non_literal_declaration(tmp_path):
     )
     with pytest.raises(ValueError, match="not a literal"):
         rogue_tree.ast_python_fields("Loop", "Loop", python_dir=tmp_path)
+
+
+def test_shared_helpers_serve_the_per_class_copies(rogue_build):
+    """find_overlaps can ignore the declared flag, and all_ones picks the top value."""
+    _, device, _ = rogue_build("TPGMiniCore")
+    entries = rogue_tree.tree_entries(device)
+    assert register_tables.find_overlaps(entries) == []
+    pairs = register_tables.find_overlaps(
+        entries, ignore_flag=True, honored={"BsaCompleteWr", "BsaCompleteRd"}
+    )
+    assert pairs == [
+        ("BsaAvgToWr[1]", "BsaDestMode[1]"),
+        ("BsaAvgToWr[1]", "BsaSequenceBitSelect[1]"),
+        ("BsaAvgToWr[1]", "BsaSequenceSelect[1]"),
+    ]
+    assert rogue_tree.all_ones(entries["FixedRateDiv[0]"]) == 0xFFFFFFFF
+    assert rogue_tree.all_ones(entries["BsaFixedRate[0]"]) == 6
+    assert rogue_tree.all_ones(entries["TxPolarity"]) == 1
+    boolean = register_tables.Expected("B", 0, 1, "RW", "Bool", None, "RemoteVariable", False, ())
+    assert rogue_tree.all_ones(boolean) is True
 
 
 def test_allowlist_is_well_formed():

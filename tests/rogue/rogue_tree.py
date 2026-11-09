@@ -274,6 +274,15 @@ def check_table(device, class_name, arg_set):
     return register_tables.diff_variables(expected, tree_entries(device))
 
 
+def all_ones(entry):
+    """The value that sets every bit of a variable: True, the last enum key, or all ones."""
+    if entry.base == "Bool":
+        return True
+    if entry.enum:
+        return list(entry.enum)[-1]
+    return (1 << entry.bit_size) - 1
+
+
 def round_trip_values(var):
     """Boundary values to write: all ones, one, and the top bit; or the enum ends."""
     if isinstance(var._base, pr.Bool):

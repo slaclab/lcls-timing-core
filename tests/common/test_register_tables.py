@@ -157,3 +157,14 @@ def test_load_table_evrv2triggerreg():
     table = rt.load_table("EvrV2TriggerReg")
     assert table.CLASS == "EvrV2TriggerReg"
     assert table.ARG_SETS[0].id == "default" and table.ARG_SETS[0].args == {}
+
+
+def test_find_overlaps_can_ignore_the_declared_flag():
+    def entry(path, start, flagged):
+        return rt.Expected(path, start, 8, "RW", "UInt", None, "RemoteVariable", flagged, ())
+
+    # A covers bits 0 to 7, B bits 4 to 11, C bits 6 to 13; only A and B carry the flag.
+    entries = {"A": entry("A", 0, True), "B": entry("B", 4, True), "C": entry("C", 6, False)}
+    assert rt.find_overlaps(entries) == [("A", "C"), ("B", "C")]
+    assert rt.find_overlaps(entries, ignore_flag=True) == [("A", "B"), ("A", "C"), ("B", "C")]
+    assert rt.find_overlaps(entries, ignore_flag=True, honored={"A", "B"}) == [("A", "C"), ("B", "C")]

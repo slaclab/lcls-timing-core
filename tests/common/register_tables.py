@@ -164,11 +164,14 @@ def diff_variables(expected: Dict[str, Expected], actual: Dict[str, Expected]) -
     return sorted(messages)
 
 
-def find_overlaps(entries: Dict[str, Expected]) -> List[Tuple[str, str]]:
+def find_overlaps(entries: Dict[str, Expected], ignore_flag: bool = False,
+                  honored=frozenset()) -> List[Tuple[str, str]]:
     """Return sorted path pairs whose absolute bit ranges share at least one bit.
 
     A pair is skipped when both variables carry overlap_en, and LinkVariables
-    have no bits of their own.
+    have no bits of their own. With ignore_flag the declared overlap_en is
+    ignored, except for the variables named in honored; a class whose array
+    variables all carry the flag needs this to see an overlap among them.
     """
     ranges = sorted(
         (entry.abs_bit, entry.abs_bit + entry.bit_size, entry)
@@ -180,7 +183,11 @@ def find_overlaps(entries: Dict[str, Expected]) -> List[Tuple[str, str]]:
         for other_start, _, second in ranges[i + 1:]:
             if other_start >= end:
                 break
-            if first.overlap_en and second.overlap_en:
+            flagged = [
+                entry.overlap_en and (not ignore_flag or entry.path in honored)
+                for entry in (first, second)
+            ]
+            if all(flagged):
                 continue
             pairs.add(tuple(sorted((first.path, second.path))))
     return sorted(pairs)
