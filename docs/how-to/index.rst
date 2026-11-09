@@ -8,3 +8,5 @@ familiarity with FPGA toolchains and PyRogue.
    :maxdepth: 1
 
    run_regression
+   add_wrapper_test
+   release_flow
