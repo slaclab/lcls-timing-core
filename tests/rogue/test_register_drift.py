@@ -12,43 +12,37 @@
 
 Test methodology:
     Sweep: every block in register_drift.BLOCKS, in sorted order, once per
-        argument variant (for EvrV2TriggerReg the default arguments and
-        useTap), so the parametrized ids are identical across xdist workers.
+        argument variant (for example EvrV2TriggerReg with the default
+        arguments and useTap, TimingFrameRx with each clock select mode,
+        TPGMiniCore with 1, 2, and 4 BSA arrays), so the parametrized ids are
+        identical across xdist workers.
     Stimulus: the device class is built at base address 0 under a Rogue root
         with the variant's arguments; the VHDL decode file is parsed with the
-        variant's generics; the YAML map is flattened only for a variant
+        variant's generics; the YAML map is flattened only for the variant
         whose arguments enable every optional register, because the map has
-        no conditional fields.
-    Checks: register_drift.compare reports byte offset, bit offset, bit
+        no conditional fields. A block with no RTL in the repository is
+        compared between Python and YAML alone, and a YAML map that does not
+        parse is one block-level finding.
+    Checks: register_drift.compare_block reports byte offset, bit offset, bit
         size, access mode, and presence per field, and verdict fails on any
         drift that is not in ALLOWLIST. A second test fails on any ALLOWLIST
-        entry that no longer drifts, and a third validates the entries.
-    Timing: no simulator and no polling; the Rogue root runs on an in-process
-        memory and every root is stopped when its test ends.
+        entry that no longer drifts and writes the drift report when
+        LCLS_DRIFT_REPORT names a path; a third validates the entries; two
+        more check that every block has its sources and that the name maps
+        keep every pairing of the earlier register tests.
+    Timing: no simulator and no polling; each Rogue root runs on an
+        in-process memory and is stopped before the next one is built.
     Propagation sampling: not applicable, a register map has no propagation
         delay.
 """
 
+import os
+from pathlib import Path
+
 import pytest
 
-from tests.common import register_drift, vhdl_registers, yaml_maps
+from tests.common import ast_constants, register_drift, vhdl_registers, yaml_maps
 from tests.rogue import rogue_tree
-
-
-def _drifts(block, variant, make):
-    _, device, _ = make(block.name, **variant.python_args)
-    python = rogue_tree.python_fields(device, block.name)
-    vhdl = None
-    if block.vhdl is not None:
-        decode = vhdl_registers.read_decode(block.vhdl, generics=variant.generics)
-        vhdl = register_drift.from_vhdl(decode, block.name)
-    yaml = None
-    if block.yaml is not None and variant.compare_yaml:
-        yaml = register_drift.from_yaml(yaml_maps.yaml_fields(block.yaml), block.name)
-    return register_drift.compare(
-        block.name, python, vhdl, yaml, register_drift.NAME_MAPS.get(block.name, {})
-    )
-
 
 CASES = [
     pytest.param(block, variant, id=f"{name}-{variant.id}")
@@ -56,26 +50,78 @@ CASES = [
     for variant in block.variants
 ]
 
+# The name maps of the earlier register testbenches, as (file, constant, block).
+EARLIER_MAPS = (
+    ("tests/lcls2_evr/test_EvrV2Axi.py", "NAME_MAP", "EvrV2Core"),
+    ("tests/lcls2_evr/test_EvrV2ChannelReg.py", "NAME_MAP", "EvrV2ChannelReg"),
+    ("tests/lcls2_evr/test_EvrV2TrigReg.py", "NAME_MAP", "EvrV2TriggerReg"),
+)
+
+# Earlier RTL names that the decode reports under another spelling: the
+# interrupt request is the local register sReg, and the global event count is
+# the thirteenth entry of the event count mux.
+EARLIER_ALIASES = {
+    ("EvrV2Core", "irqReq"): "sReg",
+    ("EvrV2Core", "globalCount"): "eventCount[12]",
+}
+
+
+def _all_results():
+    return [
+        rogue_tree.variant_result(block, variant)
+        for _, block in sorted(register_drift.BLOCKS.items())
+        for variant in block.variants
+    ]
+
 
 @pytest.mark.parametrize("block, variant", CASES)
-def test_block_has_no_unlisted_drift(rogue_build, block, variant):
-    drifts = _drifts(block, variant, rogue_build)
-    reasons = register_drift.verdict(drifts, register_drift.ALLOWLIST, blocks=set())
+def test_block_has_no_unlisted_drift(block, variant):
+    result = rogue_tree.variant_result(block, variant)
+    reasons = register_drift.verdict(result.drifts, register_drift.ALLOWLIST, blocks=set())
     unlisted = [r for r in reasons if r.startswith("unlisted drift")]
     assert unlisted == [], "\n".join(unlisted)
 
 
-def test_allowlist_entries_still_drift(rogue_build):
-    drifts = []
-    for _, block in sorted(register_drift.BLOCKS.items()):
-        for variant in block.variants:
-            drifts.extend(_drifts(block, variant, rogue_build))
+def test_allowlist_entries_still_drift():
+    results = _all_results()
+    drifts = [drift for result in results for drift in result.drifts]
     reasons = register_drift.verdict(
         drifts, register_drift.ALLOWLIST, blocks=set(register_drift.BLOCKS)
     )
+    report = os.environ.get("LCLS_DRIFT_REPORT")
+    if report:
+        register_drift.write_report(report, register_drift.format_report(results, register_drift.ALLOWLIST))
     stale = [r for r in reasons if r.startswith("listed in ALLOWLIST")]
     assert stale == [], "\n".join(stale)
 
 
 def test_allowlist_is_well_formed():
     register_drift.validate_allowlist(register_drift.ALLOWLIST)
+
+
+def test_name_maps_cover_earlier_maps():
+    """Every Python to RTL pair of the earlier testbenches is in NAME_MAPS."""
+    missing = []
+    for path, constant, block in EARLIER_MAPS:
+        earlier = ast_constants.read_constants(path, [constant])[constant]
+        assert earlier, f"{path} {constant} is empty"
+        ours = register_drift.NAME_MAPS[block]
+        for python_name, rtl_name in sorted(earlier.items()):
+            rtl_name = EARLIER_ALIASES.get((block, rtl_name), rtl_name)
+            if python_name == rtl_name:
+                continue
+            if ours.get(python_name, {}).get("vhdl", python_name) != rtl_name:
+                missing.append((block, python_name, rtl_name))
+    assert missing == []
+
+
+def test_every_block_has_sources():
+    for name, block in register_drift.BLOCKS.items():
+        assert block.name == name
+        if block.vhdl is not None:
+            assert block.vhdl in vhdl_registers.DECODE_FILES, (name, block.vhdl)
+            assert vhdl_registers.DECODE_FILES[block.vhdl] == name, (name, block.vhdl)
+        assert block.yaml in yaml_maps.YAML_CLASSIFICATION, (name, block.yaml)
+        assert yaml_maps.YAML_CLASSIFICATION[block.yaml] == "drift", (name, block.yaml)
+        assert sum(variant.compare_yaml for variant in block.variants) == 1, name
+        assert (Path(__file__).resolve().parents[2] / "python" / "LclsTimingCore" / f"{name}.py").is_file()

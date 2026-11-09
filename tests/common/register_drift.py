@@ -20,11 +20,15 @@ of offsets never shows up as drift: equal positions are no drift, a different
 
 ``verdict`` applies the allowlist contract: a drift that is not listed fails,
 and a listed entry that no longer drifts fails, so the list shrinks when a
-fix lands. Every allowlist value is a link to a filed issue. The module uses
-only the standard library, so the engine runs without Rogue.
+fix lands. Every allowlist value links an issue, or is the pending
+placeholder until the finding behind it is filed. ``compare_block`` and
+``format_report`` describe what was compared and write the drift report. The
+module uses only the standard library, so the engine runs without Rogue.
 """
 
+import os
 import re
+import tempfile
 from dataclasses import dataclass
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
@@ -42,6 +46,18 @@ KINDS = (
 )
 
 SOURCES = ("python", "vhdl", "yaml")
+
+# A block-level finding stands in for field comparisons against a source that
+# cannot be read (a YAML map that does not parse): the field is one of these
+# keys and the kind is the value.
+BLOCK_SENTINELS = {"<yaml>": "missing-in-yaml", "<vhdl>": "missing-in-vhdl"}
+
+STROBE_SUFFIXES = ("!write", "!read")
+
+INDEX_GROUP_RE = re.compile(r"\[(\d+)\]")
+# Several index groups in one path (a child array holding an array) combine as
+# outer * INDEX_RADIX + inner; the radix exceeds every array length in the maps.
+INDEX_RADIX = 4096
 
 ISSUE_URL_RE = re.compile(r"^https://github\.com/slaclab/lcls-timing-core/issues/\d+$")
 PENDING_ISSUE = "pending"
@@ -75,6 +91,19 @@ class RegField:
         return self.abs_bit % WORD_BITS
 
 
+def split_index(path: str) -> Tuple[str, Optional[int]]:
+    """Return (name without index groups, element index) for a variable path.
+
+    ``Name[3]`` is ("Name", 3) and ``Group[2].Name`` is ("Group.Name", 2), so
+    the allowlist key names a field once however many elements drift.
+    """
+    groups = INDEX_GROUP_RE.findall(path)
+    index: Optional[int] = None
+    for group in groups:
+        index = int(group) if index is None else index * INDEX_RADIX + int(group)
+    return INDEX_GROUP_RE.sub("", path), index
+
+
 class Drift(NamedTuple):
     block: str
     field: str
@@ -100,6 +129,13 @@ class Block:
     python_source: str = "tree"
 
 
+def _single(generics: dict, python_args: Optional[dict] = None, compare_yaml: bool = True) -> Tuple[Variant, ...]:
+    return (Variant("default", python_args or {}, generics, compare_yaml),)
+
+
+# Each block names one variant that is compared with the YAML map: the one
+# whose arguments enable every optional register, because the map has no
+# conditional fields.
 BLOCKS = {
     "EvrV2TriggerReg": Block(
         "EvrV2TriggerReg",
@@ -110,10 +146,78 @@ BLOCKS = {
             Variant("useTap", {"useTap": True}, {"TRIGGERS_C": 1, "USE_TAP_C": True, "EVR_CARD_G": False}, True),
         ),
     ),
+    "EvrV2ChannelReg": Block(
+        "EvrV2ChannelReg",
+        "LCLS-II/evr/rtl/EvrV2ChannelReg.vhd",
+        "EvrV2ChannelReg.yaml",
+        (
+            Variant("default", {}, {"NCHANNELS_G": 1, "EVR_CARD_G": False, "DMA_ENABLE_G": False}, False),
+            Variant("dmaEnable", {"dmaEnable": True},
+                    {"NCHANNELS_G": 1, "EVR_CARD_G": False, "DMA_ENABLE_G": True}, True),
+        ),
+    ),
+    # The Python class declares twelve channels, and the RTL decodes only the
+    # control and channel words below 0x200; the trigger section at 0x200 has
+    # no RTL in this repository.
+    "EvrV2Core": Block(
+        "EvrV2Core",
+        "LCLS-II/evr/rtl/EvrV2Axi.vhd",
+        "EvrV2Core.yaml",
+        _single({"DMA_ENABLE_G": True, "CHANNELS_C": 12}),
+        vhdl_window=(0x000, 0x1FF),
+    ),
+    "EvrV1Isr": Block(
+        "EvrV1Isr", "LCLS-I/evr/EvrV1CoreIsrCtrl.vhd", "EvrV1Isr.yaml", _single({}),
+    ),
+    "GthRxAlignCheck": Block(
+        "GthRxAlignCheck", "LCLS-II/core/rtl/GthRxAlignCheck.vhd", "GthRxAlignCheck.yaml", _single({}),
+    ),
+    # The RW or RO mode of three registers follows the clock select mode, and
+    # the YAML map describes the selectable one.
+    "TimingFrameRx": Block(
+        "TimingFrameRx",
+        "LCLS-II/core/rtl/TimingRx.vhd",
+        "TimingFrameRx.yaml",
+        (
+            Variant("SELECT", {"clkselMode": "SELECT"}, {"CLKSEL_MODE_G": "SELECT"}, True),
+            Variant("LCLSII", {"clkselMode": "LCLSII"}, {"CLKSEL_MODE_G": "LCLSII"}, False),
+        ),
+    ),
+    # The default of two BSA arrays is the count the YAML map anchors.
+    "TPGMiniCore": Block(
+        "TPGMiniCore",
+        "LCLS-II/core/rtl/TPGMiniReg.vhd",
+        "TPGMiniCore.yaml",
+        (
+            Variant("default", {}, {"NARRAYS_BSA": 2}, True),
+            Variant("narrays1", {"NARRAYSBSA": 1}, {"NARRAYS_BSA": 1}, False),
+            Variant("narrays4", {"NARRAYSBSA": 4}, {"NARRAYS_BSA": 4}, False),
+        ),
+    ),
+    "TPGControl": Block("TPGControl", None, "TPGControl.yaml", _single({})),
+    "LclsTriggerPulse": Block("LclsTriggerPulse", None, "LclsTriggerPulse.yaml", _single({})),
+    # Sixteen trigger and channel groups, the count the YAML map anchors, with
+    # every optional register of the groups present.
+    "EvrV2CoreTriggers": Block(
+        "EvrV2CoreTriggers",
+        None,
+        "EvrV2CoreTriggers.yaml",
+        _single({}, {"numTrig": 16, "dmaEnable": True, "useTap": True}),
+    ),
+}
+
+# Classes with no map or decode file of their own: every register they hold
+# belongs to a child class that is compared directly.
+COVERED_BY_LEAVES = {
+    "EvrV2CoreChannels": "no YAML map and no decode file; its only child EvrV2ChannelReg is compared directly",
 }
 
 # python name -> {"vhdl": name, "yaml": name}; a missing source key means the
-# name is the same in that source.
+# name is the same in that source. A VHDL name such as "eventCount[12]" pairs
+# one element of an RTL array with a single Python variable, and a name such
+# as "pulseId@0x58" is one of several decodes of the same RTL target. A key
+# that is no Python variable (VersionErr) names a register only the YAML map
+# and the RTL carry, so it can be paired with its RTL name.
 NAME_MAPS: Dict[str, Dict[str, Dict[str, str]]] = {
     "EvrV2TriggerReg": {
         # The RTL record names the trigger enable "enabled" and the source
@@ -128,13 +232,255 @@ NAME_MAPS: Dict[str, Dict[str, Dict[str, str]]] = {
         "DelayTap": {"vhdl": "delayTap"},
         "DelayTapReadback": {"vhdl": "delay_rd"},
     },
+    "EvrV2ChannelReg": {
+        "EnableReg": {"vhdl": "enabled", "yaml": "Enable"},
+        "BsaEnabled": {"vhdl": "bsaEnabled"},
+        "dmaEnabled": {"vhdl": "dmaEnabled", "yaml": "DmaEnabled"},
+        # Python splits the RTL rate select into RateSel and RateType and the
+        # destination select into DestSel and DestType. The first name listed
+        # owns the RTL field; the type variables are the extra high bits.
+        "RateSel": {"vhdl": "rateSel"},
+        "RateType": {"vhdl": "rateSel"},
+        "DestSel": {"vhdl": "destSel"},
+        "DestType": {"vhdl": "destSel"},
+        "Count": {"vhdl": "eventCount"},
+        "BsaWindowDelay": {"vhdl": "bsaActiveDelay"},
+        "BsaWindowSetup": {"vhdl": "bsaActiveSetup"},
+        "BsaWindowWidth": {"vhdl": "bsaActiveWidth"},
+    },
+    "EvrV2Core": {
+        "IrqEnable": {"vhdl": "irqEnable"},
+        # The decode reports the interrupt request through its local register
+        # "sReg"; the testbench signal for it is irqReq.
+        "IrqStatus": {"vhdl": "sReg"},
+        "gtxDebug": {"yaml": "GtxDebug"},
+        "CountReset": {"vhdl": "countReset"},
+        "ModeSel": {"vhdl": "trigSel"},
+        "DmaFullThr": {"vhdl": "dmaFullThr"},
+        "ChannelEnable": {"vhdl": "enabled"},
+        "ChannelBsaEnable": {"vhdl": "bsaEnabled"},
+        "ChannelDmaEnable": {"vhdl": "dmaEnabled"},
+        "ChannelRateSel": {"vhdl": "rateSel"},
+        "ChannelDestSel": {"vhdl": "destSel"},
+        "ChannelEventCnt": {"vhdl": "eventCount"},
+        "ChannelBsaDelay": {"vhdl": "bsaActiveDelay"},
+        "ChannelBsaSetup": {"vhdl": "bsaActiveSetup"},
+        "ChannelBsaWidth": {"vhdl": "bsaActiveWidth"},
+        # The global count is the thirteenth entry of the RTL event count mux.
+        "GlobalEventCnt": {"vhdl": "eventCount[12]"},
+        # The trigger section has no RTL in this repository; these are the
+        # EvrV2TrigReg names the earlier testbench paired with it.
+        "TriggerChannel": {"vhdl": "channel"},
+        "TriggerPolarity": {"vhdl": "polarity"},
+        "TriggerEnable": {"vhdl": "enabled"},
+        "TriggerDelay": {"vhdl": "delay"},
+        "TriggerFineDelay": {"vhdl": "delayTap"},
+    },
+    "EvrV1Isr": {
+        "IsrSelect": {"vhdl": "isrSelect"},
+    },
+    "GthRxAlignCheck": {
+        # The RTL stores 40 phase samples of 8 bits; the YAML map keeps the
+        # Python name for them.
+        "PhaseCount": {"vhdl": "sample"},
+        "PhaseTarget": {"vhdl": "tgt"},
+        "Mask": {"vhdl": "mask", "yaml": "PhaseMask"},
+        "ResetLen": {"vhdl": "rstlen"},
+        "LastPhase": {"vhdl": "last"},
+        # Python declares the raw counters; TxClkFreq and RxClkFreq are
+        # LinkVariables that convert them, and the YAML map holds the raw
+        # register under the converted name.
+        "TxClkFreqRaw": {"vhdl": "txClkFreq", "yaml": "TxClkFreq"},
+        "RxClkFreqRaw": {"vhdl": "rxClkFreq", "yaml": "RxClkFreq"},
+    },
+    "TimingFrameRx": {
+        "sofCount": {"vhdl": "axilStatusCounters12[0]"},
+        "eofCount": {"vhdl": "axilStatusCounters12[1]"},
+        "FidCount": {"vhdl": "axilStatusCounters12[2]"},
+        "CrcErrCount": {"vhdl": "axilStatusCounters12[3]"},
+        "RxClkCount": {"vhdl": "axilStatusCounters3[0]"},
+        "RxRstCount": {"vhdl": "axilStatusCounters3[1]"},
+        "RxDecErrCount": {"vhdl": "axilStatusCounters3[2]"},
+        "RxDspErrCount": {"vhdl": "axilStatusCounters3[3]"},
+        "BypassDoneCount": {"vhdl": "rxStatusCount[0]"},
+        "BypassResetCount": {"vhdl": "rxStatusCount[1]"},
+        "TxClkCount": {"vhdl": "txClkCntS"},
+        "ClearRxCounters": {"vhdl": "cntRst", "yaml": "RxCountReset"},
+        "RxLinkUp": {"vhdl": "axilRxLinkUp"},
+        "RxPolarity": {"vhdl": "polarity"},
+        "C_RxReset": {"vhdl": "reset", "yaml": "RxReset"},
+        "ClkSel": {"vhdl": "clkSel"},
+        "RxDown": {"vhdl": "rxDown"},
+        "BypassRst": {"vhdl": "bufferByRst"},
+        "RxPllReset": {"vhdl": "pllReset", "yaml": "RxPLLReset"},
+        "ModeSel": {"vhdl": "modeSel"},
+        "ModeSelEn": {"vhdl": "modeSelEn"},
+        "MsgDelay": {"vhdl": "messageDelay"},
+        # Registers the YAML map and the RTL carry and Python does not.
+        "VersionErr": {"vhdl": "axilVsnErr"},
+        "MsgNoDelay": {"vhdl": "streamNoDelay"},
+        "MsgDelayRst": {"vhdl": "messageDelayRst"},
+        "FrameVersion": {"vhdl": "axilVersion"},
+    },
+    "TPGMiniCore": {
+        "TxPolarity": {"vhdl": "txPolarity"},
+        "TxLoopback": {"vhdl": "txLoopback"},
+        "TxInhibit": {"vhdl": "txInhibit"},
+        "BaseControl": {"vhdl": "baseDivisor"},
+        # The RTL reads the 64 bit pulse id and time stamp as two words.
+        "PulseIdRd": {"vhdl": "pulseId@0x8"},
+        "TStampRd": {"vhdl": "timeStamp@0x10"},
+        "FixedRateDiv": {"vhdl": "FixedRateDivisors"},
+        "RateReload": {"vhdl": "FixedRateDivisors!write"},
+        "BsaCompleteWr": {"vhdl": "bsaClear"},
+        "BsaCompleteRd": {"vhdl": "bsaComplete"},
+        "PulseIdWr": {"vhdl": "pulseId@0x58"},
+        "TStampWr": {"vhdl": "timeStamp@0x60"},
+        "TxReset": {"vhdl": "txReset"},
+        "CountIntervalReset": {"vhdl": "intervalRst"},
+        "PulseIdSet": {"vhdl": "pulseIdWrEn"},
+        "TStampSet": {"vhdl": "timeStampWrEn"},
+        # The first write of the Lcls1 BSA block raises the RTL edef strobe.
+        "Lcls1BsaStart": {"vhdl": "wrEn!write"},
+        # The RTL spells these bsaDef targets with mixed case in the case
+        # decode (bsadefRateMode, bsadefDestInclM, bsadefNToAvg).
+        "BsaActive": {"vhdl": "init"},
+        "BsaRateSelMode": {"vhdl": "bsadefRateMode"},
+        "BsaFixedRate": {"vhdl": "bsaDefFixedRate"},
+        "BsaACRate": {"vhdl": "bsaDefACRate"},
+        "BsaACTSMask": {"vhdl": "bsaDefACTSMask"},
+        "BsaSequenceSelect": {"vhdl": "bsaDefSeqSel"},
+        "BsaSequenceBitSelect": {"vhdl": "bsaDefSeqBit"},
+        "BsaDestMode": {"vhdl": "bsaDefDestMode"},
+        "BsaDestInclusiveMask": {"vhdl": "bsadefDestInclM"},
+        "BsaDestExclusiveMask": {"vhdl": "bsaDefDestExclM"},
+        "BsaNtoAvg": {"vhdl": "bsadefNToAvg"},
+        "BsaMaxSeverity": {"vhdl": "bsaDefMaxSevr"},
+        "BsaAvgToWr": {"vhdl": "bsaDefAvgToWr"},
+        "ClkCnt": {"vhdl": "count186M"},
+        "SyncErrCnt": {"vhdl": "countSyncE"},
+        "PllCnt": {"vhdl": "pllChanged"},
+        "CountInterval": {"vhdl": "interval"},
+        "BaseRateCount": {"vhdl": "countBRT"},
+    },
+    "EvrV2CoreTriggers": {
+        "EvrV2ChannelReg.EnableReg": {"yaml": "EvrV2ChannelReg.Enable"},
+        "EvrV2ChannelReg.dmaEnabled": {"yaml": "EvrV2ChannelReg.DmaEnabled"},
+        "EvrV2TriggerReg.EnableTrig": {"yaml": "EvrV2TriggerReg.Enable"},
+    },
 }
 
-# (block, field, kind) -> filed issue link. field has the [i] index stripped.
+# (block, field, kind) -> issue link. field has the [i] index stripped, and a
+# field of a child group carries the group name (EvrV2ChannelReg.RateSel).
+# Every entry links a filed issue, or the placeholder PENDING_ISSUE until the
+# finding behind it is filed. The list is reviewed by hand and shrinks when a
+# fix lands; it is never generated by a test.
+_ISSUE_214 = "https://github.com/slaclab/lcls-timing-core/issues/214"
+_ISSUE_215 = "https://github.com/slaclab/lcls-timing-core/issues/215"
+_ISSUE_217 = "https://github.com/slaclab/lcls-timing-core/issues/217"
+_P = PENDING_ISSUE
+
 ALLOWLIST: Dict[Tuple[str, str, str], str] = {
-    # The Python variables sit one bit above the RTL decode and the YAML map.
-    ("EvrV2TriggerReg", "ComplEn", "bitOffset"): "https://github.com/slaclab/lcls-timing-core/issues/214",
-    ("EvrV2TriggerReg", "ComplAnd", "bitOffset"): "https://github.com/slaclab/lcls-timing-core/issues/214",
+    # EvrV2TriggerReg: the Python variables sit one bit above the RTL decode
+    # and the YAML map.
+    ("EvrV2TriggerReg", "ComplEn", "bitOffset"): _ISSUE_214,
+    ("EvrV2TriggerReg", "ComplAnd", "bitOffset"): _ISSUE_214,
+    # EvrV2CoreTriggers repeats the same two variables for each trigger group.
+    ("EvrV2CoreTriggers", "EvrV2TriggerReg.ComplEn", "bitOffset"): _ISSUE_214,
+    ("EvrV2CoreTriggers", "EvrV2TriggerReg.ComplAnd", "bitOffset"): _ISSUE_214,
+
+    # EvrV2ChannelReg: Python declares the rate select as 11 bits plus a 2 bit
+    # type and the destination select as 16 bits plus a 2 bit type, where the
+    # RTL decode and the YAML map hold one 13 bit and one 19 bit field. The
+    # two type variables have no counterpart of their own.
+    ("EvrV2ChannelReg", "RateSel", "bitSize"): _ISSUE_215,
+    ("EvrV2ChannelReg", "DestSel", "bitSize"): _ISSUE_215,
+    ("EvrV2ChannelReg", "RateType", "missing-in-vhdl"): _ISSUE_215,
+    ("EvrV2ChannelReg", "RateType", "missing-in-yaml"): _ISSUE_215,
+    ("EvrV2ChannelReg", "DestType", "missing-in-vhdl"): _ISSUE_215,
+    ("EvrV2ChannelReg", "DestType", "missing-in-yaml"): _ISSUE_215,
+    # EvrV2CoreTriggers repeats the same variables for each channel group.
+    ("EvrV2CoreTriggers", "EvrV2ChannelReg.RateSel", "bitSize"): _ISSUE_215,
+    ("EvrV2CoreTriggers", "EvrV2ChannelReg.DestSel", "bitSize"): _ISSUE_215,
+    ("EvrV2CoreTriggers", "EvrV2ChannelReg.RateType", "missing-in-yaml"): _ISSUE_215,
+    ("EvrV2CoreTriggers", "EvrV2ChannelReg.DestType", "missing-in-yaml"): _ISSUE_215,
+
+    # EvrV2Core: channel field widths and channel count differ from the RTL
+    # decode and the YAML map. ChannelEnable and ChannelRateSel are declared
+    # for channel 0 only, so channels 1 to 11 are missing in Python.
+    ("EvrV2Core", "ChannelBsaSetup", "bitSize"): _ISSUE_215,
+    ("EvrV2Core", "ChannelDestSel", "bitSize"): _ISSUE_215,
+    ("EvrV2Core", "ChannelEnable", "missing-in-python"): _ISSUE_215,
+    ("EvrV2Core", "ChannelRateSel", "missing-in-python"): _ISSUE_215,
+    # EvrV2Core questions: the event counts are read-write in Python and
+    # read-only in the RTL; the YAML map has a LinkAddr register at 0x08 that
+    # Python comments out and the RTL does not decode; the YAML map puts the
+    # trigger delay at 0x204 and a trigger width at 0x208, while Python puts
+    # the trigger delay at 0x208 and has no width (no RTL in this repository
+    # decodes the trigger section).
+    ("EvrV2Core", "ChannelEventCnt", "mode"): _P,
+    ("EvrV2Core", "GlobalEventCnt", "mode"): _P,
+    ("EvrV2Core", "LinkAddr", "missing-in-python"): _P,
+    ("EvrV2Core", "LinkAddr", "missing-in-vhdl"): _P,
+    ("EvrV2Core", "TriggerDelay", "offset"): _P,
+    ("EvrV2Core", "TriggerWidth", "missing-in-python"): _P,
+
+    # GthRxAlignCheck: Python declares 64 phase counters of 32 bits at a
+    # stride of 4 bytes, read only, while the RTL and the YAML map hold 40
+    # samples of 8 bits packed four to a word.
+    ("GthRxAlignCheck", "PhaseCount", "offset"): _P,
+    ("GthRxAlignCheck", "PhaseCount", "bitSize"): _P,
+    ("GthRxAlignCheck", "PhaseCount", "mode"): _P,
+    ("GthRxAlignCheck", "PhaseCount", "missing-in-vhdl"): _P,
+    ("GthRxAlignCheck", "PhaseCount", "missing-in-yaml"): _P,
+    # GthRxAlignCheck question: Python and the YAML map show the last phase as
+    # a 7 bit read-only field, the RTL stores 16 bits behind a read-write
+    # decode.
+    ("GthRxAlignCheck", "LastPhase", "bitSize"): _P,
+    ("GthRxAlignCheck", "LastPhase", "mode"): _P,
+
+    # TimingFrameRx questions: the YAML map has no write-only mode, so three
+    # Python write-only strobes read read-write there; and four registers
+    # that the RTL decodes and the YAML map lists (the frame version and the
+    # message delay controls) have no Python variable, as does the gray coded
+    # time stamp event counter at 0x40 that only the RTL decodes.
+    ("TimingFrameRx", "C_RxReset", "mode"): _P,
+    ("TimingFrameRx", "ClearRxCounters", "mode"): _P,
+    ("TimingFrameRx", "RxPllReset", "mode"): _P,
+    ("TimingFrameRx", "FrameVersion", "missing-in-python"): _P,
+    ("TimingFrameRx", "MsgDelayRst", "missing-in-python"): _P,
+    ("TimingFrameRx", "MsgNoDelay", "missing-in-python"): _P,
+    ("TimingFrameRx", "VersionErr", "missing-in-python"): _P,
+    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-python"): _P,
+    ("TimingFrameRx", "timingTSEvCntGray_o", "missing-in-yaml"): _P,
+
+    # TPGMiniCore defects: BsaActive uses a one byte stride where the RTL has
+    # one bit per sequence in a single word, and BsaAvgToWr uses a stride of 8
+    # bytes where every other field of the BSA definition uses 16. The fixed
+    # rate divisors are 32 bits in Python and the YAML map and 20 bits in the
+    # RTL.
+    ("TPGMiniCore", "BsaActive", "bitOffset"): _P,
+    ("TPGMiniCore", "BsaAvgToWr", "offset"): _P,
+    ("TPGMiniCore", "FixedRateDiv", "bitSize"): _P,
+    # TPGMiniCore questions: six Python write-only variables read read-write
+    # in the YAML map (it has no write-only mode); three Python read-write
+    # strobes are write-only in the RTL; and the 64 BSA status words at 0x400
+    # that the RTL reads have no Python variable and no YAML entry.
+    ("TPGMiniCore", "BsaCompleteWr", "mode"): _P,
+    ("TPGMiniCore", "CountIntervalReset", "mode"): _P,
+    ("TPGMiniCore", "PulseIdWr", "mode"): _P,
+    ("TPGMiniCore", "RateReload", "mode"): _P,
+    ("TPGMiniCore", "TStampWr", "mode"): _P,
+    ("TPGMiniCore", "TxReset", "mode"): _P,
+    ("TPGMiniCore", "Lcls1BsaStart", "mode"): _P,
+    ("TPGMiniCore", "PulseIdSet", "mode"): _P,
+    ("TPGMiniCore", "TStampSet", "mode"): _P,
+    ("TPGMiniCore", "bsastatus", "missing-in-python"): _P,
+    ("TPGMiniCore", "bsastatus", "missing-in-yaml"): _P,
+
+    # TPGControl: the YAML map does not parse, so nothing in the block can be
+    # compared with it.
+    ("TPGControl", "<yaml>", "missing-in-yaml"): _P,
 }
 
 
@@ -144,21 +490,64 @@ def _mode(readable: bool, writable: bool) -> str:
     return "RO" if readable else "WO"
 
 
+def _merge_words(fields):
+    """Join the 32 bit words of one target that sit back to back.
+
+    A 64 bit register read as two words is one register, so it is one field
+    of twice the width. Only the same target and element, the same access, and
+    a full word before the join qualify.
+    """
+    merged = []
+    for field in sorted(fields, key=lambda f: (f.target, -1 if f.index is None else f.index,
+                                               f.byte_offset * BITS_PER_BYTE + f.bit_offset)):
+        previous = merged[-1] if merged else None
+        if (
+            previous is not None
+            and previous.target == field.target
+            and previous.index == field.index
+            and previous.readable == field.readable
+            and previous.writable == field.writable
+            and previous.width % WORD_BITS == 0
+            and field.width is not None
+            and previous.bit_offset == 0
+            and field.byte_offset * BITS_PER_BYTE + field.bit_offset
+            == previous.byte_offset * BITS_PER_BYTE + previous.bit_offset + previous.width
+        ):
+            merged[-1] = previous._replace(width=previous.width + field.width)
+        else:
+            merged.append(field)
+    return merged
+
+
 def from_vhdl(decode, block: str) -> List[RegField]:
     """Adapt a vhdl_registers.Decode into RegFields.
 
-    A loop index is kept as the element index only when the same target is
-    decoded more than once, so a one-trigger decode lines up with scalar
-    Python variables and a many-element decode lines up with Name[i].
+    Words of one target that sit back to back are one wider field. Fields
+    that still share a target and element are named ``target@0xADDR`` so each
+    keeps its own address. A loop index is kept as the element index only when
+    the same target is decoded more than once, so a one-trigger decode lines
+    up with scalar Python variables and a many-element decode lines up with
+    Name[i]. A write or read strobe becomes a field named ``target!write`` or
+    ``target!read`` with no width; a strobe nothing else names is a side
+    effect of an access, not a register, and is never reported on its own.
     """
+    fields = _merge_words(decode.fields)
+    seen: Dict[Tuple[str, Optional[int]], int] = {}
+    for field in fields:
+        seen[(field.target, field.index)] = seen.get((field.target, field.index), 0) + 1
+    names = {
+        id(field): field.target if seen[(field.target, field.index)] == 1
+        else f"{field.target}@{field.byte_offset:#x}"
+        for field in fields
+    }
     counts: Dict[str, int] = {}
-    for field in decode.fields:
-        counts[field.target] = counts.get(field.target, 0) + 1
-    return [
+    for field in fields:
+        counts[names[id(field)]] = counts.get(names[id(field)], 0) + 1
+    adapted = [
         RegField(
             block=block,
-            name=field.target,
-            index=field.index if counts[field.target] > 1 else None,
+            name=names[id(field)],
+            index=field.index if counts[names[id(field)]] > 1 else None,
             byte_offset=field.byte_offset,
             bit_offset=field.bit_offset,
             bit_size=field.width,
@@ -168,28 +557,59 @@ def from_vhdl(decode, block: str) -> List[RegField]:
             readable=field.readable,
             writable=field.writable,
         )
-        for field in decode.fields
+        for field in fields
     ]
+    strobes: Dict[str, int] = {}
+    for strobe in decode.strobes:
+        label = f"{strobe.target}!{strobe.kind}"
+        strobes[label] = strobes.get(label, 0) + 1
+    for strobe in decode.strobes:
+        label = f"{strobe.target}!{strobe.kind}"
+        writable = strobe.kind == "write"
+        adapted.append(
+            RegField(
+                block=block,
+                name=label,
+                index=strobe.index if strobes[label] > 1 else None,
+                byte_offset=strobe.byte_offset,
+                bit_offset=0,
+                bit_size=None,
+                mode=_mode(not writable, writable),
+                source="vhdl",
+                line=strobe.line,
+                readable=not writable,
+                writable=writable,
+            )
+        )
+    return adapted
 
 
 def from_yaml(fields, block: str) -> List[RegField]:
-    """Adapt yaml_maps.YamlField records into RegFields."""
-    return [
-        RegField(
-            block=block,
-            name=field.name,
-            index=field.index,
-            byte_offset=field.byte_offset,
-            bit_offset=field.bit_offset,
-            bit_size=field.bit_size,
-            mode=field.mode,
-            source="yaml",
-            line=0,
-            readable=True,
-            writable=field.mode == "RW",
+    """Adapt yaml_maps.YamlField records into RegFields.
+
+    A group index in the path (``EvrV2ChannelReg[3].RateSel``) becomes the
+    element index, the same way the Python side splits its paths.
+    """
+    adapted = []
+    for field in fields:
+        path = field.name if field.index is None else f"{field.name}[{field.index}]"
+        name, index = split_index(path)
+        adapted.append(
+            RegField(
+                block=block,
+                name=name,
+                index=index,
+                byte_offset=field.byte_offset,
+                bit_offset=field.bit_offset,
+                bit_size=field.bit_size,
+                mode=field.mode,
+                source="yaml",
+                line=0,
+                readable=True,
+                writable=field.mode == "RW",
+            )
         )
-        for field in fields
-    ]
+    return adapted
 
 
 def mode_agrees(declared: RegField, vhdl: RegField) -> bool:
@@ -230,7 +650,7 @@ def _position_kind(a: RegField, b: RegField) -> Optional[str]:
     return "offset" if a.word_byte != b.word_byte else "bitOffset"
 
 
-def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]]) -> List[Drift]:
+def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]]) -> List[Drift]:
     """Return the drifts between the sources that are present.
 
     None means the source is not compared; an empty list means it is compared
@@ -242,13 +662,26 @@ def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]])
     reverse: Dict[str, Dict[str, str]] = {"vhdl": {}, "yaml": {}}
     for python_name, names in name_map.items():
         for source, other in names.items():
-            reverse[source][other] = python_name
+            # Two Python variables can cover one RTL field (a rate select split
+            # into a select and a type); the first listed owns the RTL name.
+            reverse[source].setdefault(other, python_name)
 
     grouped: Dict[str, Dict[str, Dict[int, RegField]]] = {}
     for source in present:
         for field in sources[source]:
-            canonical = _canonical(source, field.name, python_names, reverse)
-            grouped.setdefault(canonical, {}).setdefault(source, {})[_element(field)] = field
+            label = _label(field)
+            if source != "python" and field.index is not None and label in reverse[source]:
+                # One element of an RTL array that is a single named variable
+                # in Python (name_map entry such as "axilStatusCounters12[1]").
+                canonical, element = reverse[source][label], 0
+            else:
+                canonical, element = _canonical(source, field.name, python_names, reverse), _element(field)
+            grouped.setdefault(canonical, {}).setdefault(source, {})[element] = field
+
+    # A strobe no other source names is a side effect, not a register.
+    for canonical in [c for c, by in grouped.items()
+                      if set(by) == {"vhdl"} and c.endswith(STROBE_SUFFIXES)]:
+        del grouped[canonical]
 
     # Fields that exist in one source only, used to hint at an unmapped rename.
     lonely: Dict[str, List[RegField]] = {s: [] for s in present}
@@ -315,6 +748,92 @@ def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]])
     return sorted(drifts, key=lambda d: (d.block, d.field, d.kind))
 
 
+UNRESOLVED_RE = re.compile(r"^(?:read|write) 0x([0-9A-Fa-f]+):")
+
+
+def unresolved_words(unresolved) -> frozenset:
+    """Return the byte addresses of the RTL arms the parser could not read.
+
+    ``unresolved`` is Decode.unresolved, entries such as
+    ``read 0x4C: concatenation``. The RTL of those words is not compared.
+    """
+    words = set()
+    for entry in unresolved:
+        match = UNRESOLVED_RE.match(entry)
+        if match is None:
+            raise ValueError(f"unresolved decode entry {entry!r} does not name an address")
+        words.add(int(match.group(1), 16) // 4 * 4)
+    return frozenset(words)
+
+
+def compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]],
+            vhdl_window: Optional[Tuple[int, int]] = None,
+            vhdl_skip: frozenset = frozenset()) -> List[Drift]:
+    """Return the drifts between the sources that are present.
+
+    With vhdl_window (first and last byte, inclusive) or vhdl_skip (word byte
+    addresses whose RTL arm could not be parsed) the RTL is compared only with
+    the Python and YAML fields it covers; the other fields are compared with
+    each other alone, because no readable RTL decodes those addresses.
+    """
+    if vhdl is None or (vhdl_window is None and not vhdl_skip):
+        return _compare(block, python, vhdl, yaml, name_map)
+
+    def covered(field: RegField) -> bool:
+        if vhdl_window is not None and not vhdl_window[0] <= field.abs_bit // BITS_PER_BYTE <= vhdl_window[1]:
+            return False
+        return field.word_byte not in vhdl_skip
+
+    def split(fields):
+        if fields is None:
+            return None, None
+        return [f for f in fields if covered(f)], [f for f in fields if not covered(f)]
+
+    inside_py, outside_py = split(python)
+    inside_ya, outside_ya = split(yaml)
+    drifts = _compare(block, inside_py, [f for f in vhdl if covered(f)], inside_ya, name_map)
+    drifts += _compare(block, outside_py, None, outside_ya, name_map)
+    return sorted(drifts, key=lambda d: (d.block, d.field, d.kind))
+
+
+class BlockResult(NamedTuple):
+    """The outcome of comparing one block variant."""
+
+    block: str
+    variant: str
+    drifts: List[Drift]
+    sources: Tuple[str, ...]
+    no_rtl: int
+    unparsed: int = 0
+
+
+def compare_block(block: Block, variant: Variant, python, vhdl, yaml, name_map,
+                  yaml_unreadable: bool = False, vhdl_skip: frozenset = frozenset()) -> BlockResult:
+    """Compare one variant of a block and describe what was compared.
+
+    yaml_unreadable marks a map that does not parse: it is reported as one
+    block-level finding and no field of the block is compared at all.
+    """
+    if yaml_unreadable:
+        sources = ("python",) + (("vhdl",) if vhdl is not None else ())
+        sentinel = Drift(block.name, "<yaml>", "missing-in-yaml",
+                         f"{block.yaml} does not parse, so no field of {block.name} can be compared with it")
+        return BlockResult(block.name, variant.id, [sentinel], sources,
+                           len(python) if vhdl is None else 0)
+    drifts = compare(block.name, python, vhdl, yaml, name_map, block.vhdl_window, vhdl_skip)
+    sources = tuple(s for s, f in (("python", python), ("vhdl", vhdl), ("yaml", yaml)) if f is not None)
+    no_rtl = unparsed = 0
+    for field in python:
+        if vhdl is None or (
+            block.vhdl_window is not None
+            and not block.vhdl_window[0] <= field.abs_bit // BITS_PER_BYTE <= block.vhdl_window[1]
+        ):
+            no_rtl += 1
+        elif field.word_byte in vhdl_skip:
+            unparsed += 1
+    return BlockResult(block.name, variant.id, drifts, sources, no_rtl, unparsed)
+
+
 def validate_allowlist(allowlist, require_filed: bool = REQUIRE_FILED_ISSUES) -> None:
     """Reject entries that could not prove a specific, linked drift."""
     for key, value in allowlist.items():
@@ -353,3 +872,55 @@ def verdict(drifts, allowlist, blocks=None) -> List[str]:
         if key not in seen:
             reasons.append(f"listed in ALLOWLIST but no longer drifts; remove the entry: {key}")
     return reasons
+
+
+def format_report(results, allowlist) -> str:
+    """Return a plain-text drift report for BlockResult records.
+
+    One line per drift (block, variant, field, kind, the allowlist link or
+    ``unlisted``, and the detail), then one line per block and variant that
+    names the sources compared, how many Python fields have no RTL in the
+    repository to compare with, and how many sit in an RTL arm the parser
+    could not read. Entries of the allowlist that no result
+    drifts for are listed last. The text depends only on its arguments, so
+    two calls on the same results are equal.
+    """
+    lines = ["# register drift report", ""]
+    seen = set()
+    for result in sorted(results, key=lambda r: (r.block, r.variant)):
+        for drift in result.drifts:
+            key = (drift.block, drift.field, drift.kind)
+            seen.add(key)
+            link = allowlist.get(key, "unlisted")
+            lines.append(f"drift {drift.block} {result.variant} {drift.field} {drift.kind} {link}: {drift.detail}")
+    lines.append("")
+    for result in sorted(results, key=lambda r: (r.block, r.variant)):
+        note = f"; {result.no_rtl} fields: no RTL in repo" if result.no_rtl else ""
+        if result.unparsed:
+            note += f"; {result.unparsed} fields: RTL arm not parsed"
+        lines.append(f"block {result.block} variant {result.variant}: compared {', '.join(result.sources)}{note}")
+    blocks = {r.block for r in results}
+    stale = sorted(k for k in allowlist if k[0] in blocks and k not in seen)
+    if stale:
+        lines.append("")
+        lines.extend(f"stale {key}: listed in ALLOWLIST but no longer drifts" for key in stale)
+    return "\n".join(lines) + "\n"
+
+
+def write_report(path, text: str) -> None:
+    """Write text to path so a reader never sees a partial file.
+
+    The text goes to a temporary file in the same directory and replaces the
+    target in one step, so a second run replaces the report instead of
+    appending to it and an interrupted run leaves the old report intact.
+    """
+    directory = os.path.dirname(os.path.abspath(path))
+    handle, temporary = tempfile.mkstemp(dir=directory, prefix=".drift-report-")
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as stream:
+            stream.write(text)
+        os.replace(temporary, path)
+    except BaseException:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+        raise

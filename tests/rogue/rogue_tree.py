@@ -50,7 +50,7 @@ else:
 import pyrogue as pr  # noqa: E402
 import rogue.interfaces.memory as rim  # noqa: E402
 
-from tests.common import register_drift, register_tables  # noqa: E402
+from tests.common import register_drift, register_tables, vhdl_registers, yaml_maps  # noqa: E402
 
 # Device nodes Rogue adds to every device; they are not register declarations.
 VARIABLE_TYPES = (pr.RemoteVariable, pr.LinkVariable)
@@ -107,7 +107,7 @@ def python_fields(device, block):
     for path, var in sorted(tree_variables(device).items()):
         if not isinstance(var, pr.RemoteVariable):
             continue
-        name, index = _split_index(path)
+        name, index = register_drift.split_index(path)
         mode = var.mode
         fields.append(
             register_drift.RegField(
@@ -125,6 +125,44 @@ def python_fields(device, block):
             )
         )
     return fields
+
+
+def block_result(block, variant, make):
+    """Compare one variant of a block across the sources it has.
+
+    make builds a device the way the rogue_build fixture does, so the caller
+    owns the lifetime of the Rogue root. The VHDL decode is read with the
+    variant's generics, and the YAML map is read only for a variant that
+    compares it; a map that is known not to parse becomes one block-level
+    finding instead.
+    """
+    _, device, _ = make(block.name, **variant.python_args)
+    python = python_fields(device, block.name)
+    vhdl = None
+    skip = frozenset()
+    if block.vhdl is not None:
+        decode = vhdl_registers.read_decode(block.vhdl, generics=variant.generics)
+        vhdl = register_drift.from_vhdl(decode, block.name)
+        skip = register_drift.unresolved_words(decode.unresolved)
+    yaml = None
+    unreadable = False
+    if block.yaml is not None and variant.compare_yaml:
+        if block.yaml in yaml_maps.KNOWN_YAML_DEFECTS:
+            unreadable = True
+        else:
+            yaml = register_drift.from_yaml(yaml_maps.yaml_fields(block.yaml), block.name)
+    return register_drift.compare_block(
+        block, variant, python, vhdl, yaml,
+        register_drift.NAME_MAPS.get(block.name, {}), yaml_unreadable=unreadable, vhdl_skip=skip,
+    )
+
+
+def variant_result(block, variant):
+    """Build one variant under its own root, compare it, and stop the root."""
+    with contextlib.ExitStack() as stack:
+        return block_result(
+            block, variant, lambda cls, **args: stack.enter_context(build_tree(cls, **args))
+        )
 
 
 def _kind(var):
