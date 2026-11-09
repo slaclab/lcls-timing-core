@@ -72,6 +72,24 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     "timinggthwrapper": 'no declaration for "ieee"',
 }
 
+# Units that analyze cleanly (so they must never be listed in
+# KNOWN_GHDL_UNANALYZABLE) but cannot be simulated. The coverage gate in
+# tests/common/test_core_inventory.py accepts them without a dedicated test,
+# and rejects an entry as soon as a test simulates the unit.
+NOT_SIMULATED: dict[str, str] = {
+    "evrv1eventreceiver": (
+        "it instantiates EvrV1EventReceiverChannel, EvrV1TimeofDayReceiver, "
+        "EvrV1TimeStampGenerator, and EvrV1DbusDecode, which are Verilog modules "
+        "declared as VHDL components; GHDL cannot bind Verilog and Icarus cannot "
+        "elaborate VHDL, so the mixed-language top is not simulated; the four "
+        "Verilog leaves and its VHDL children are tested on their own"
+    ),
+    "evrv1core": (
+        "it instantiates EvrV1EventReceiver, so it inherits the same "
+        "mixed-language limit; its EvrV1Reg child is tested on its own"
+    ),
+}
+
 # Production files that no ruckus.tcl loads, so they are absent from the
 # imported library. They are analyzed directly with ghdl -a.
 UNLOADED_FILES: dict[str, str] = {
