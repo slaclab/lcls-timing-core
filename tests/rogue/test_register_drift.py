@@ -95,6 +95,24 @@ def test_allowlist_entries_still_drift():
     assert stale == [], "\n".join(stale)
 
 
+# Classes with no conditional declarations, so the source reader and the built
+# tree describe the same variables.
+UNCONDITIONAL = ("EvrV1Isr", "EvrV2Core", "GthRxAlignCheck", "LclsTriggerPulse", "TPGControl")
+
+
+@pytest.mark.parametrize("name", UNCONDITIONAL)
+def test_source_reader_matches_built_tree(name, rogue_build):
+    """The reader used for the rejected classes agrees with Rogue where both work."""
+    _, device, _ = rogue_build(name)
+
+    def key(field):
+        return (field.name, field.index, field.abs_bit, field.bit_size, field.mode)
+
+    built = sorted(map(key, rogue_tree.python_fields(device, name)), key=repr)
+    read = sorted(map(key, rogue_tree.ast_python_fields(name, name)), key=repr)
+    assert read == built
+
+
 def test_allowlist_is_well_formed():
     register_drift.validate_allowlist(register_drift.ALLOWLIST)
 

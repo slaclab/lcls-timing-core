@@ -204,6 +204,15 @@ BLOCKS = {
         "EvrV2CoreTriggers.yaml",
         _single({}, {"numTrig": 16, "dmaEnable": True, "useTap": True}),
     ),
+    # Rogue rejects these five classes (or cannot build their composite), so
+    # their declarations are read from source instead of a built tree.
+    "EvrV1Reg": Block(
+        "EvrV1Reg", "LCLS-I/evr/EvrV1Reg.vhd", "EvrV1Reg.yaml", _single({}), python_source="ast",
+    ),
+    "TPGStatus": Block("TPGStatus", None, "TPGStatus.yaml", _single({}), python_source="ast"),
+    "TPGSeqJump": Block("TPGSeqJump", None, "TPGSeqJump.yaml", _single({}), python_source="ast"),
+    "TPGSeqState": Block("TPGSeqState", None, "TPGSeqState.yaml", _single({}), python_source="ast"),
+    "TPG": Block("TPG", None, "TPG.yaml", _single({}), python_source="ast"),
 }
 
 # Classes with no map or decode file of their own: every register they hold
@@ -363,6 +372,49 @@ NAME_MAPS: Dict[str, Dict[str, Dict[str, str]]] = {
         "CountInterval": {"vhdl": "interval"},
         "BaseRateCount": {"vhdl": "countBRT"},
     },
+    "EvrV1Reg": {
+        "Status": {"vhdl": "statusReg"},
+        "Control": {"vhdl": "controlReg"},
+        # The interrupt flag word at 0x08 is written as irqClr1 and read as
+        # intFlag; the YAML map has one read-write IrqFlag for both.
+        "IrqFlagWr": {"vhdl": "irqClr1", "yaml": "IrqFlag"},
+        "IrqFlagRd": {"vhdl": "intFlag"},
+        "IrqEnable": {"vhdl": "intControl"},
+        "PulseIrqMap": {"vhdl": "hardwareInt"},
+        # The word at 0x14 is written whole and read as three slices, with the
+        # interrupt active flag in bit 1.
+        "PcieIntEna": {"vhdl_pieces": ["pcieIntEna@0x14.0", "pcieIntEna", "irqActive", "pcieIntEna@0x14.2"]},
+        "FWVersion": {"vhdl": "fwVersion@0x2c"},
+        # The word at 0x30 is the firmware version with its four bytes swapped.
+        "FWVersionUnmasked": {
+            "vhdl_pieces": ["fwVersion@0x30.0", "fwVersion@0x30.8", "fwVersion@0x30.16", "fwVersion@0x30.24"]
+        },
+        "UsecDivider": {"vhdl": "uSecDivider"},
+        "SecSR": {"vhdl": "secondsShift"},
+        # The 64 bit time stamp is read as two words, seconds then counter.
+        "SecCounter": {"vhdl": "ts@0x60"},
+        "EventCounter": {"vhdl": "ts@0x64"},
+        "SecLatch": {"vhdl": "tsLatch@0x68"},
+        "EvCntLatch": {"vhdl": "tsLatch@0x6c"},
+        "IntEventEn": {"vhdl": "intEventEn"},
+        "IntEventCount": {"vhdl": "intEventCount"},
+        "IntEventCode": {"vhdl": "intEventCode"},
+        "ExtEventEn": {"vhdl": "extEventEn"},
+        "ExtEventCode": {"vhdl": "extEventCode"},
+        "OutputMap": {"vhdl": "outputMap"},
+        # Each pulse generator is four words: control, prescale, delay, width.
+        **{
+            f"Pulse{pulse:02d}": {
+                "vhdl_elements": [f"{word}[{pulse}]" for word in
+                                  ("pulseControl", "pulsePrescale", "pulseDelay", "pulseWidth")]
+            }
+            for pulse in range(12)
+        },
+        # Registers only the RTL decodes, joined into one field each: the
+        # data buffer control word at 0x20 and the time stamp FIFO at 0x70.
+        "DataBufferControl": {"vhdl_pieces": ["rxSize", "dben", "dbcs", "dbdis", "dbrdy", "dbena", "dbrx"]},
+        "TimestampFifo": {"vhdl_pieces": ["tsFifoTsLow", "tsFifoTsHigh", "tsFifoEventCode"]},
+    },
     "EvrV2CoreTriggers": {
         "EvrV2ChannelReg.EnableReg": {"yaml": "EvrV2ChannelReg.Enable"},
         "EvrV2ChannelReg.dmaEnabled": {"yaml": "EvrV2ChannelReg.DmaEnabled"},
@@ -478,9 +530,50 @@ ALLOWLIST: Dict[Tuple[str, str, str], str] = {
     ("TPGMiniCore", "bsastatus", "missing-in-python"): _P,
     ("TPGMiniCore", "bsastatus", "missing-in-yaml"): _P,
 
-    # TPGControl: the YAML map does not parse, so nothing in the block can be
-    # compared with it.
+    # EvrV1Reg: the interrupt flag word at 0x08 is declared as a write-only
+    # IrqFlagWr and a read-only IrqFlagRd on the same bits, where the YAML map
+    # has one read-write IrqFlag.
+    ("EvrV1Reg", "IrqFlagWr", "mode"): _ISSUE_217,
+    ("EvrV1Reg", "IrqFlagRd", "missing-in-yaml"): _ISSUE_217,
+    # EvrV1Reg question: the RTL reads bit 31 of that word as zero (31 bits).
+    ("EvrV1Reg", "IrqFlagRd", "bitSize"): _P,
+    # EvrV1Reg defects: the internal event enable is 32 bits in Python and the
+    # YAML map and 1 bit in the RTL, and the internal event count is 1 bit
+    # against 32 (the widths look swapped); the output map is one 16 bit entry
+    # per word in Python, while the RTL packs two entries per word, the lower
+    # numbered entry in the upper half.
+    ("EvrV1Reg", "IntEventEn", "bitSize"): _P,
+    ("EvrV1Reg", "IntEventCount", "bitSize"): _P,
+    ("EvrV1Reg", "OutputMap", "offset"): _P,
+    ("EvrV1Reg", "OutputMap", "bitOffset"): _P,
+    # EvrV1Reg question: sixteen arrays in the YAML map give a number of
+    # elements and no stride (twelve pulse generators, the output map, and the
+    # two map RAMs), so every element sits at the first address; the CPSW
+    # default stride is not known here.
+    **{("EvrV1Reg", f"Pulse{pulse:02d}", "offset"): _P for pulse in range(12)},
+    # EvrV1Reg questions: the YAML map lists two map RAMs that Python leaves
+    # out and the RTL decodes as memory windows (the second RAM is at 0x6000 in
+    # the map and at 0x5000 in the RTL); the RTL decodes a data buffer control
+    # word at 0x20 and a time stamp FIFO at 0x70 that neither Python nor the
+    # YAML map declare.
+    ("EvrV1Reg", "MapRam1", "missing-in-python"): _P,
+    ("EvrV1Reg", "MapRam1", "missing-in-vhdl"): _P,
+    ("EvrV1Reg", "MapRam2", "missing-in-python"): _P,
+    ("EvrV1Reg", "MapRam2", "missing-in-vhdl"): _P,
+    ("EvrV1Reg", "DataBufferControl", "missing-in-python"): _P,
+    ("EvrV1Reg", "DataBufferControl", "missing-in-yaml"): _P,
+    ("EvrV1Reg", "TimestampFifo", "missing-in-python"): _P,
+    ("EvrV1Reg", "TimestampFifo", "missing-in-yaml"): _P,
+
+    # TPGStatus question: the YAML map gives the trigger counts a misspelled
+    # stride key, so its elements all sit at the first address.
+    ("TPGStatus", "CountTrig", "offset"): _P,
+
+    # The YAML maps that do not parse: nothing in these blocks can be
+    # compared with them.
     ("TPGControl", "<yaml>", "missing-in-yaml"): _P,
+    ("TPGSeqState", "<yaml>", "missing-in-yaml"): _P,
+    ("TPG", "<yaml>", "missing-in-yaml"): _P,
 }
 
 
@@ -508,8 +601,10 @@ def _merge_words(fields):
             and previous.readable == field.readable
             and previous.writable == field.writable
             and previous.width % WORD_BITS == 0
-            and field.width is not None
+            and field.width == WORD_BITS
+            and field.bit_offset == 0
             and previous.bit_offset == 0
+            and (field.target_low == 0 == previous.target_low or field.target_low == previous.target_low + previous.width)
             and field.byte_offset * BITS_PER_BYTE + field.bit_offset
             == previous.byte_offset * BITS_PER_BYTE + previous.bit_offset + previous.width
         ):
@@ -523,8 +618,8 @@ def from_vhdl(decode, block: str) -> List[RegField]:
     """Adapt a vhdl_registers.Decode into RegFields.
 
     Words of one target that sit back to back are one wider field. Fields
-    that still share a target and element are named ``target@0xADDR`` so each
-    keeps its own address. A loop index is kept as the element index only when
+    that still share a target and element are named ``target@0xADDR``, with
+    ``.BIT`` added when two share an address, so each keeps its own place. A loop index is kept as the element index only when
     the same target is decoded more than once, so a one-trigger decode lines
     up with scalar Python variables and a many-element decode lines up with
     Name[i]. A write or read strobe becomes a field named ``target!write`` or
@@ -535,11 +630,18 @@ def from_vhdl(decode, block: str) -> List[RegField]:
     seen: Dict[Tuple[str, Optional[int]], int] = {}
     for field in fields:
         seen[(field.target, field.index)] = seen.get((field.target, field.index), 0) + 1
-    names = {
-        id(field): field.target if seen[(field.target, field.index)] == 1
-        else f"{field.target}@{field.byte_offset:#x}"
-        for field in fields
-    }
+    names = {}
+    for field in fields:
+        if seen[(field.target, field.index)] == 1:
+            names[id(field)] = field.target
+        else:
+            names[id(field)] = f"{field.target}@{field.byte_offset:#x}"
+    taken: Dict[str, int] = {}
+    for field in fields:
+        taken[names[id(field)]] = taken.get(names[id(field)], 0) + 1
+    for field in fields:
+        if taken[names[id(field)]] > 1 and seen[(field.target, field.index)] > 1:
+            names[id(field)] = f"{names[id(field)]}.{field.bit_offset}"
     counts: Dict[str, int] = {}
     for field in fields:
         counts[names[id(field)]] = counts.get(names[id(field)], 0) + 1
@@ -638,10 +740,48 @@ def _element(field: RegField) -> int:
     return field.index or 0
 
 
-def _canonical(source: str, name: str, python_names, reverse) -> str:
-    if source == "python" or name in python_names:
-        return name
-    return reverse.get(source, {}).get(name, name)
+def _join(first: RegField, second: RegField) -> RegField:
+    """Return the field that spans two pieces of one register."""
+    start = min(first.abs_bit, second.abs_bit)
+    sizes = (first.bit_size, second.bit_size)
+    end = max(first.abs_bit + (first.bit_size or 0), second.abs_bit + (second.bit_size or 0))
+    readable = first.readable or second.readable
+    writable = first.writable or second.writable
+    return RegField(
+        block=first.block, name=first.name, index=first.index,
+        byte_offset=start // BITS_PER_BYTE, bit_offset=start % BITS_PER_BYTE,
+        bit_size=None if None in sizes else end - start, mode=_mode(readable, writable),
+        source=first.source, line=first.line, readable=readable, writable=writable,
+    )
+
+
+def _routes(name_map):
+    """Build the lookup from a source's own names to (Python name, element).
+
+    A plain entry pairs one name (or one ``name[i]`` element label) with the
+    Python variable. ``vhdl_elements`` lists the labels of the RTL elements
+    that are the successive elements of a Python array, and ``vhdl_pieces``
+    lists the RTL names that together make up one Python variable. The first
+    Python variable that names an RTL name owns it.
+    """
+    route: Dict[str, Dict[str, Tuple[str, Optional[int]]]] = {"vhdl": {}, "yaml": {}}
+    pieces = set()
+    for python_name, names in name_map.items():
+        for key, value in names.items():
+            source = key.split("_")[0]
+            if key in ("vhdl", "yaml"):
+                element = 0 if value.endswith("]") else None
+                route[source].setdefault(value, (python_name, element))
+            elif key == "vhdl_elements":
+                for element, label in enumerate(value):
+                    route[source].setdefault(label, (python_name, element))
+            elif key == "vhdl_pieces":
+                pieces.add(python_name)
+                for piece in value:
+                    route[source].setdefault(piece, (python_name, None))
+            else:
+                raise ValueError(f"name map entry {python_name!r} has unknown key {key!r}")
+    return route, pieces
 
 
 def _position_kind(a: RegField, b: RegField) -> Optional[str]:
@@ -650,7 +790,7 @@ def _position_kind(a: RegField, b: RegField) -> Optional[str]:
     return "offset" if a.word_byte != b.word_byte else "bitOffset"
 
 
-def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]]) -> List[Drift]:
+def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, object]]) -> List[Drift]:
     """Return the drifts between the sources that are present.
 
     None means the source is not compared; an empty list means it is compared
@@ -659,24 +799,25 @@ def _compare(block: str, python, vhdl, yaml, name_map: Dict[str, Dict[str, str]]
     sources = {"python": python, "vhdl": vhdl, "yaml": yaml}
     present = [s for s in SOURCES if sources[s] is not None]
     python_names = {f.name for f in (python or [])}
-    reverse: Dict[str, Dict[str, str]] = {"vhdl": {}, "yaml": {}}
-    for python_name, names in name_map.items():
-        for source, other in names.items():
-            # Two Python variables can cover one RTL field (a rate select split
-            # into a select and a type); the first listed owns the RTL name.
-            reverse[source].setdefault(other, python_name)
+    route, pieces = _routes(name_map)
 
     grouped: Dict[str, Dict[str, Dict[int, RegField]]] = {}
     for source in present:
         for field in sources[source]:
-            label = _label(field)
-            if source != "python" and field.index is not None and label in reverse[source]:
-                # One element of an RTL array that is a single named variable
-                # in Python (name_map entry such as "axilStatusCounters12[1]").
-                canonical, element = reverse[source][label], 0
+            canonical, element = field.name, _element(field)
+            if source != "python":
+                label = _label(field)
+                if field.index is not None and label in route[source]:
+                    canonical, element = route[source][label]
+                elif field.name not in python_names and field.name in route[source]:
+                    canonical, element = route[source][field.name]
+                if element is None:
+                    element = _element(field)
+            slot = grouped.setdefault(canonical, {}).setdefault(source, {})
+            if canonical in pieces and source != "python" and element in slot:
+                slot[element] = _join(slot[element], field)
             else:
-                canonical, element = _canonical(source, field.name, python_names, reverse), _element(field)
-            grouped.setdefault(canonical, {}).setdefault(source, {})[element] = field
+                slot[element] = field
 
     # A strobe no other source names is a side effect, not a register.
     for canonical in [c for c, by in grouped.items()
@@ -844,6 +985,9 @@ def validate_allowlist(allowlist, require_filed: bool = REQUIRE_FILED_ISSUES) ->
             raise ValueError(f"allowlist key {key!r} needs a block and a field")
         if kind not in KINDS:
             raise ValueError(f"allowlist key {key!r} has kind {kind!r}, expected one of {KINDS}")
+        if field.startswith("<") and BLOCK_SENTINELS.get(field) != kind:
+            raise ValueError(f"allowlist key {key!r}: block-level field {field!r} must have kind "
+                             f"{BLOCK_SENTINELS.get(field)!r}")
         if value == PENDING_ISSUE:
             if require_filed:
                 raise ValueError(f"allowlist entry {key!r} is still {PENDING_ISSUE}; link a filed issue")

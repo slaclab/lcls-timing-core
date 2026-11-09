@@ -30,6 +30,7 @@ import contextlib
 import importlib
 import os
 import re
+from pathlib import Path
 
 import pytest
 
@@ -50,7 +51,10 @@ else:
 import pyrogue as pr  # noqa: E402
 import rogue.interfaces.memory as rim  # noqa: E402
 
-from tests.common import register_drift, register_tables, vhdl_registers, yaml_maps  # noqa: E402
+from tests.common import pyrogue_ast, register_drift, register_tables, vhdl_registers, yaml_maps  # noqa: E402
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+PYTHON_DIR = REPO_ROOT / "python"
 
 # Device nodes Rogue adds to every device; they are not register declarations.
 VARIABLE_TYPES = (pr.RemoteVariable, pr.LinkVariable)
@@ -127,6 +131,59 @@ def python_fields(device, block):
     return fields
 
 
+def _declared_fields(path, block, base, prefix, depth=0):
+    """RegFields for the declarations of the PyRogue file at path, read from source.
+
+    A composite file adds child devices; each child file is read the same way
+    at the child's offset and its names carry the child's name.
+    """
+    if depth > 3:
+        raise ValueError(f"{path}: child devices nest deeper than three levels")
+    fields = []
+    for var in pyrogue_ast.read_remote_variables(path):
+        for label, value in (("offset", var.offset), ("bit_offset", var.bit_offset), ("bit_size", var.bit_size)):
+            if not isinstance(value, int):
+                raise ValueError(f"{path}:{var.line}: {var.name} {label} is not a literal ({value!r})")
+        name, index = register_drift.split_index(prefix + var.name)
+        fields.append(
+            register_drift.RegField(
+                block=block,
+                name=name,
+                index=index,
+                byte_offset=base + var.offset,
+                bit_offset=var.bit_offset,
+                bit_size=var.bit_size,
+                mode=var.mode,
+                source="python",
+                line=var.line,
+                readable=var.mode in ("RW", "RO"),
+                writable=var.mode in ("RW", "WO"),
+            )
+        )
+    for child in pyrogue_ast.read_child_devices(path):
+        if not isinstance(child.offset, int):
+            raise ValueError(f"{path}:{child.line}: child {child.name} offset is not a literal")
+        fields.extend(
+            _declared_fields(
+                Path(path).with_name(f"{child.cls}.py"), block, base + child.offset,
+                f"{prefix}{child.name}.", depth + 1,
+            )
+        )
+    return fields
+
+
+def ast_python_fields(class_name, block, python_dir=None):
+    """RegFields for a class read from its source file, for a class Rogue rejects.
+
+    The declarations are read with ast and never run, so a class whose tree
+    cannot be built is still compared. Array declarations are expanded from
+    their literal number and stride; a composite class (TPG) reads each
+    child's file at the child's offset.
+    """
+    root = Path(python_dir) if python_dir is not None else PYTHON_DIR
+    return _declared_fields(root / "LclsTimingCore" / f"{class_name}.py", block, 0, "")
+
+
 def block_result(block, variant, make):
     """Compare one variant of a block across the sources it has.
 
@@ -136,8 +193,11 @@ def block_result(block, variant, make):
     compares it; a map that is known not to parse becomes one block-level
     finding instead.
     """
-    _, device, _ = make(block.name, **variant.python_args)
-    python = python_fields(device, block.name)
+    if block.python_source == "ast":
+        python = ast_python_fields(block.name, block.name)
+    else:
+        _, device, _ = make(block.name, **variant.python_args)
+        python = python_fields(device, block.name)
     vhdl = None
     skip = frozenset()
     if block.vhdl is not None:
