@@ -425,7 +425,7 @@ def compare_with_pyrogue(
     PyRogue offset to give the RTL address, and ``window`` is a
     ``(low, high)`` address range that limits which RTL bits are considered.
     ``severity(kind, python_name)`` returns the tag of an entry, "defect" by
-    default.
+    default. An RTL field no variable maps to is reported as ``(rtl <field>)``.
 
     Entries of an array variable are merged into one entry per kind. The
     kinds are python_bits_without_rtl (a PyRogue bit no RTL field occupies),
@@ -518,7 +518,7 @@ def compare_with_pyrogue(
     for (address, _, field), bits in uncovered.items():
         note(
             "rtl_bits_without_python",
-            owner_name.get(field, "-"),
+            owner_name.get(field, f"(rtl {field})"),
             f"RTL field {field} at word 0x{address:03X} bits {_ranges(bits)} has no PyRogue variable",
         )
 
