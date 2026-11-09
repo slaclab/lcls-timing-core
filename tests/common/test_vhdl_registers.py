@@ -28,6 +28,10 @@ Test methodology:
     Propagation sampling: not applicable, there is no propagation delay.
 """
 
+import re
+import time
+from pathlib import Path
+
 import pytest
 
 from tests.common import ast_constants, vhdl_registers
@@ -192,13 +196,29 @@ EVRV2AXI = "LCLS-II/evr/rtl/EvrV2Axi.vhd"
 TIMINGRX_TEST = "tests/lcls2_core/test_TimingRx.py"
 GTHALIGN_TEST = "tests/lcls2_core/test_GthRxAlignCheck.py"
 
-# Targets whose width the parser cannot resolve, per decode file, at default
-# generics. An empty set means every width resolves; a parser change that
-# resolves or loses one changes the set and fails the pin test.
+EVRV1REG = "LCLS-I/evr/EvrV1Reg.vhd"
+EVRV1REG_TEST = "tests/lcls1_evr/test_EvrV1Reg.py"
+TPGMINIREG = "LCLS-II/core/rtl/TPGMiniReg.vhd"
+
+# Entries of Decode.unresolved per decode file, at default generics: targets
+# whose width the parser cannot resolve, and read or write arms it cannot
+# interpret. An empty set means everything resolves and is interpreted; a
+# parser change that resolves or loses one changes the set and fails the pin
+# test. The three TPGMiniReg entries are the concatenation that builds the
+# resources word, and the two functions of the BSA event definition word.
 UNRESOLVED_TARGETS = {
-    TIMINGRX: frozenset(),
+    ISR_CTRL: frozenset(),
+    EVRV1REG: frozenset(),
     GTHALIGN: frozenset(),
+    TIMINGRX: frozenset(),
+    TPGMINIREG: frozenset({
+        "read 0x4C: concatenation",
+        "read 0x78: function call",
+        "write 0x78: expression of the write data",
+    }),
     EVRV2AXI: frozenset(),
+    CHANREG: frozenset(),
+    TRIGREG: frozenset(),
 }
 
 
@@ -318,6 +338,7 @@ architecture rtl of T is
       s : Slv8Array(7 downto 0);
       f : slv(11 downto 0);
       g : sl;
+{extra_fields}
    end record;
    signal r : RegType;
 {architecture}
@@ -334,8 +355,11 @@ end rtl;
 """
 
 
-def _parse(body="", declarations="", concurrent="", architecture="", generics=None):
-    source = UNIT.format(body=body, declarations=declarations, concurrent=concurrent, architecture=architecture)
+def _parse(body="", declarations="", concurrent="", architecture="", generics=None, extra_fields=""):
+    source = UNIT.format(
+        body=body, declarations=declarations, concurrent=concurrent, architecture=architecture,
+        extra_fields=extra_fields,
+    )
     return vhdl_registers.parse_decode(source, "synthetic.vhd", generics)
 
 
@@ -454,3 +478,277 @@ def test_wrapper_call_with_an_unknown_argument_count_is_unsupported():
 def test_unsupported_register_form_names_file_and_line():
     with pytest.raises(vhdl_registers.UnsupportedStatement, match=r"synthetic\.vhd:\d+"):
         _parse(body='axiSlaveRegister(ep, X"00", v.regs);')
+
+
+# ---------------------------------------------------------------------------
+# Case decodes: EvrV1Reg and TPGMiniReg
+# ---------------------------------------------------------------------------
+
+def test_evrv1reg_matches_constants():
+    c = ast_constants.read_constants(
+        EVRV1REG_TEST, ["WRITE_WORDS", "READ_WORDS", "READ_RANGES", "STATUS_WORD_FIELDS"]
+    )
+    decode = vhdl_registers.read_decode(EVRV1REG)
+    assert frozenset(decode.unresolved) == UNRESOLVED_TARGETS[EVRV1REG]
+    assert decode.strobes == []
+    assert {f.byte_offset // 4 for f in decode.fields if f.writable} == set(c["WRITE_WORDS"])
+    assert {f.byte_offset // 4 for f in decode.fields if f.readable} == set(c["READ_WORDS"])
+    assert sorted((w.first_byte // 4, w.last_byte // 4) for w in decode.windows) == sorted(c["READ_RANGES"])
+    assert all(w.readable and not w.writable for w in decode.windows)
+    words = {entry[0] for entry in c["STATUS_WORD_FIELDS"]}
+    observed = {
+        (f.byte_offset // 4, "status" + f.target[0].upper() + f.target[1:], f.target_low, f.width)
+        for f in decode.fields if f.readable and f.byte_offset // 4 in words
+    }
+    assert observed == set(c["STATUS_WORD_FIELDS"])
+    # Every status slice starts at bit 0 of its word.
+    assert {f.bit_offset for f in decode.fields if f.byte_offset // 4 in words} == {0}
+
+
+BSADEF_WORDS = {
+    0: [(0, 2), (2, 4), (6, 3), (9, 6), (15, 5), (20, 4), (24, 2)],
+    1: [(0, 16), (16, 16)],
+    2: [(0, 13), (14, 2), (16, 16)],
+}
+
+
+@pytest.mark.parametrize("count", [1, 2, 4, 32], ids=["1", "2", "4", "32"])
+def test_tpgminireg_matches_slices(count):
+    decode = vhdl_registers.read_decode(TPGMINIREG, generics={"NARRAYS_BSA": count})
+    assert frozenset(decode.unresolved) == UNRESOLVED_TARGETS[TPGMINIREG]
+    sequence = {
+        (f.index, f.byte_offset, f.bit_offset, f.width)
+        for f in decode.fields if f.target.lower().startswith("bsadef")
+    }
+    assert sequence == {
+        (i, 0x200 + 16 * i + 4 * word, bit, width)
+        for i in range(count) for word, slices in BSADEF_WORDS.items() for bit, width in slices
+    }
+    assert all(f.readable and f.writable for f in decode.fields if f.target.lower().startswith("bsadef"))
+    by_target = {(f.target, f.byte_offset): f for f in decode.fields}
+    pulse = by_target[("pulseId", 0x58)]
+    assert (pulse.bit_offset, pulse.width, pulse.target_low, pulse.readable, pulse.writable) == (0, 64, 0, True, True)
+    assert ("pulseId", 0x5C) not in by_target
+    # BSACMPLL: the write decodes bsaClear and the read decodes bsaComplete, one 64 bit field each.
+    clear, complete = by_target[("bsaClear", 0x50)], by_target[("bsaComplete", 0x50)]
+    assert (clear.width, clear.readable, clear.writable) == (64, False, True)
+    assert (complete.width, complete.readable, complete.writable) == (64, True, False)
+    init = sorted((f.index, f.bit_offset) for f in decode.fields if f.target == "init")
+    assert init == [(i, i) for i in range(count)]
+    assert [f.byte_offset for f in decode.fields if f.target == "bsastatus"] == [0x400 + 4 * i for i in range(64)]
+    assert sorted((s.target, s.byte_offset, s.kind) for s in decode.strobes) == [
+        ("FixedRateDivisors", 0x40, "write"), ("wrEn", 0x7C, "write")
+    ]
+    assert decode.windows == ()
+
+
+def test_every_decode_file_parses():
+    decodes = vhdl_registers.read_all()
+    assert sorted(decodes) == sorted(vhdl_registers.DECODE_FILES)
+    assert all(decode.fields for decode in decodes.values())
+    assert {path: frozenset(decode.unresolved) for path, decode in decodes.items()} == UNRESOLVED_TARGETS
+
+
+def test_decode_files_name_the_eight_blocks():
+    assert len(vhdl_registers.DECODE_FILES) == 8
+    assert sorted(vhdl_registers.DECODE_FILES.values()) == sorted([
+        "EvrV1Isr", "EvrV1Reg", "GthRxAlignCheck", "TimingFrameRx", "TPGMiniCore", "EvrV2Core",
+        "EvrV2ChannelReg", "EvrV2TriggerReg",
+    ])
+    assert all((vhdl_registers.REPO_ROOT / path).is_file() for path in vhdl_registers.DECODE_FILES)
+
+
+# ---------------------------------------------------------------------------
+# Synthetic case decodes
+# ---------------------------------------------------------------------------
+
+POINTERS = (
+    "wrPntr := conv_integer(axiWriteMaster.awaddr(14 downto 2));\n"
+    "rdPntr := conv_integer(axiReadMaster.araddr(14 downto 2));\n"
+)
+POINTER_DECLARATIONS = "variable wrPntr : natural;\nvariable rdPntr : natural;\nvariable i : natural;\n"
+WIDE_FIELDS = "      a : slv(7 downto 0);\n      b : slv(31 downto 0);\n      x : Slv16Array(N_G-1 downto 0);\n      y : slv(63 downto 0);\n"
+
+
+def _case(body, constants="constant K : integer := 4;\nconstant B : integer := 128;\n"
+          "constant B_END : integer := B + 4*N_G;\n", **kwargs):
+    return _parse(
+        body=POINTERS + body, declarations=POINTER_DECLARATIONS, architecture=constants,
+        extra_fields=WIDE_FIELDS, **kwargs
+    )
+
+
+def _cases(decode):
+    return sorted((f.target, f.index, f.byte_offset, f.bit_offset, f.width, f.target_low, _mode(f)) for f in decode.fields)
+
+
+def test_case_arms_integer_constant_sum_range_and_others():
+    decode = _case(
+        "case wrPntr is\n"
+        "   when 3 => v.a := regWrData(7 downto 0);\n"
+        "   when K+1 => v.b := regWrData;\n"
+        "   when 8 to 11 => null;\n"
+        "   when others => null;\n"
+        "end case;"
+    )
+    assert _cases(decode) == [("a", None, 12, 0, 8, 0, "WO"), ("b", None, 20, 0, 32, 0, "WO")]
+    assert [(w.first_byte, w.last_byte, w.target, w.writable) for w in decode.windows] == [(32, 47, None, True)]
+
+
+def test_case_read_arm_slices_the_read_data():
+    decode = _case("case rdPntr is\n   when 2 => v.axiReadSlave.rdata(15 downto 8) := s;\nend case;")
+    assert _cases(decode) == [("s", None, 8, 8, 8, 0, "RO")]
+
+
+def test_case_arm_with_several_statements_and_choices():
+    decode = _case(
+        "case wrPntr is\n"
+        "   when 1 | 2 =>\n"
+        "      v.a := regWrData(3 downto 0);\n"
+        "      v.b := regWrData(31 downto 16);\n"
+        "end case;"
+    )
+    assert _cases(decode) == [
+        ("a", None, 4, 0, 4, 0, "WO"), ("a", None, 8, 0, 4, 0, "WO"),
+        ("b", None, 4, 16, 16, 0, "WO"), ("b", None, 8, 16, 16, 0, "WO"),
+    ]
+
+
+def test_nested_case_on_address_bits_indexes_the_sequences():
+    body = (
+        "regAddr := axiWriteMaster.awaddr(regAddr'range);\n"
+        "case wrPntr is\n"
+        "   when B to B_END =>\n"
+        "      i := conv_integer(regAddr(8 downto 4));\n"
+        "      case regAddr(3 downto 2) is\n"
+        "         when \"01\" => v.x(i) := regWrData(31 downto 16);\n"
+        "         when others => null;\n"
+        "      end case;\n"
+        "end case;"
+    )
+    decode = _parse(
+        body=POINTERS + body, declarations=POINTER_DECLARATIONS + "variable regAddr : slv(31 downto 2);\n",
+        architecture="constant B : integer := 128;\nconstant B_END : integer := B + 4*N_G;\n",
+        extra_fields=WIDE_FIELDS,
+    )
+    assert _cases(decode) == [("x", i, 0x200 + 16 * i + 4, 16, 16, 0, "WO") for i in range(3)]
+    assert decode.windows == ()
+
+
+def test_write_slices_merge_little_endian_only():
+    forward = _case(
+        "case wrPntr is\n"
+        "   when 5 => v.y(31 downto 0) := regWrData;\n"
+        "   when 6 => v.y(63 downto 32) := regWrData;\n"
+        "end case;"
+    )
+    assert _cases(forward) == [("y", None, 20, 0, 64, 0, "WO")]
+    reverse = _case(
+        "case wrPntr is\n"
+        "   when 5 => v.y(63 downto 32) := regWrData;\n"
+        "   when 6 => v.y(31 downto 0) := regWrData;\n"
+        "end case;"
+    )
+    assert _cases(reverse) == [("y", None, 20, 0, 32, 32, "WO"), ("y", None, 24, 0, 32, 0, "WO")]
+
+
+def test_read_and_write_arms_of_one_target_become_one_field():
+    decode = _case(
+        "case wrPntr is\n   when 1 => v.b := regWrData;\n   when 2 => v.a := regWrData(7 downto 0);\nend case;\n"
+        "case rdPntr is\n   when 1 => v.axiReadSlave.rdata := r.b;\n   when 2 => v.axiReadSlave.rdata(7 downto 0) := r.y(7 downto 0);\n"
+        "end case;"
+    )
+    assert _cases(decode) == [
+        ("a", None, 8, 0, 8, 0, "WO"),
+        ("b", None, 4, 0, 32, 0, "RW"),
+        ("y", None, 8, 0, 8, 0, "RO"),
+    ]
+
+
+def test_arm_without_data_is_a_strobe_and_a_concatenation_is_unresolved():
+    decode = _case(
+        "case wrPntr is\n   when 7 => v.g := '1';\nend case;\n"
+        "case rdPntr is\n   when 9 => v.axiReadSlave.rdata := r.a & r.b;\n"
+        "   when 10 => v.axiReadSlave.rdata := toSlv(r.a);\n"
+        "   when 11 => v.axiReadSlave.rdata := x\"DEADBEEF\";\nend case;"
+    )
+    assert [(s.target, s.byte_offset, s.kind) for s in decode.strobes] == [("g", 28, "write")]
+    assert decode.fields == []
+    assert sorted(decode.unresolved) == ["read 0x24: concatenation", "read 0x28: function call"]
+
+
+def test_if_inside_an_arm_takes_the_branch_a_generic_selects():
+    body = (
+        "case wrPntr is\n"
+        "   when 3 =>\n"
+        "      if (MODE_G = \"A\") then\n"
+        "         v.a := regWrData(7 downto 0);\n"
+        "      else\n"
+        "         v.b := regWrData;\n"
+        "      end if;\n"
+        "   when 4 =>\n"
+        "      if (regWrData /= x\"FFFFFFFF\") then\n"
+        "         v.b := regWrData;\n"
+        "      end if;\n"
+        "end case;"
+    )
+    assert [f.target for f in _case(body).fields] == ["a", "b"]
+    assert [f.target for f in _case(body, generics={"MODE_G": "B"}).fields] == ["b", "b"]
+
+
+def test_for_loop_inside_an_arm_evaluates_every_value():
+    decode = _case(
+        "case wrPntr is\n"
+        "   when 127 =>\n"
+        "      for j in 0 to N_G-1 loop\n"
+        "         v.x(j) := regWrData(j);\n"
+        "      end loop;\n"
+        "end case;"
+    )
+    assert _cases(decode) == [("x", j, 0x1FC, j, 1, 0, "WO") for j in range(3)]
+
+
+# ---------------------------------------------------------------------------
+# Evaluator and widths
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("number, expected", [(0, 1), (1, 1), (2, 2), (16, 5), (17, 5)])
+def test_bit_size_follows_the_surf_definition(number, expected):
+    assert vhdl_registers.bit_size(number) == expected
+    tokens = vhdl_registers.tokenize(f"bitSize({number})")
+    assert vhdl_registers.evaluate(tokens, {}) == expected
+
+
+def test_unresolved_width_is_listed_for_an_undeclared_target():
+    decode = _parse(body='axiSlaveRegister(ep, X"00", 0, v.mystery);\naxiSlaveRegister(ep, X"04", 0, v.g);')
+    assert [(f.target, f.width) for f in decode.fields] == [("mystery", None), ("g", 1)]
+    assert decode.unresolved == ["mystery"]
+
+
+def test_two_disagreeing_declarations_leave_the_width_unresolved():
+    decode = _parse(
+        body='axiSlaveRegister(ep, X"00", 0, v.twice);',
+        architecture="type A is record twice : slv(3 downto 0); end record;\n"
+                     "type B is record twice : slv(7 downto 0); end record;\n",
+    )
+    assert [(f.target, f.width) for f in decode.fields] == [("twice", None)]
+    assert decode.unresolved == ["twice"]
+
+
+def test_evaluator_never_runs_text():
+    with pytest.raises(vhdl_registers.EvalError):
+        vhdl_registers.evaluate(vhdl_registers.tokenize('__import__("os").system("true")'), {})
+    with pytest.raises(vhdl_registers.EvalError):
+        vhdl_registers.evaluate(vhdl_registers.tokenize("open(1)"), {})
+    source = Path(vhdl_registers.__file__).read_text(encoding="utf-8")
+    assert not re.search(r"\b(eval|exec)\(", source)
+
+
+def test_tokenizing_is_linear_on_hostile_text():
+    started = time.monotonic()
+    for text in ('"' * 4001, "'" * 4000, "a" * 100000, "-- " + "x" * 100000, 'x"' + "1" * 50000):
+        try:
+            vhdl_registers.tokenize(text)
+        except ValueError:
+            pass
+    assert time.monotonic() - started < 5

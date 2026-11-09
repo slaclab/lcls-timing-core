@@ -23,6 +23,27 @@ at every loop value (never by extrapolating from two values), drops the calls
 under a false ``if`` condition, and reports one ``VhdlField`` per register
 field and one ``VhdlStrobe`` per detect call.
 
+Local wrapper procedures whose body is one register call are mapped through
+that call (arguments substituted, declarations skipped), the classic overloads
+that take the AXI-Lite masters and slaves are read, ``muxSlVectorArray(array,
+k)`` targets take the width of the array element, and ``a.b'length`` resolves
+through the declaration of ``b``.
+
+The hand-written decodes (``case wrPntr is``, ``case rdPntr is`` with an
+optional nested ``case regAddr(3 downto 2)`` and an index variable such as
+``iseq := conv_integer(regAddr(8 downto 4))``) give one ``VhdlField`` per
+assignment from the write data or into the read data. ``bit_offset`` is the
+position in the word, ``target_low`` the position in the named signal, and
+whole-word assignments are 32 bits wide. A range choice with an index variable
+expands to its elements (capped by the declared array length); any other range
+choice is a ``VhdlWindow``. Little-endian word slices of one target merge into
+one wide field, and a read arm and a write arm of the same target, byte, bit,
+and width become one field with both flags. An arm that assigns something but
+decodes no data is a strobe. A read or write the parser cannot interpret (a
+concatenation, a function of the data) is listed in ``Decode.unresolved`` as
+``read 0x4C: concatenation``, so it is pinned rather than skipped. A single
+non-range selection after the target name is read as an element index.
+
 Generics, constants of the same file, and constants of the packages named in
 ``PACKAGE_FILES`` feed the evaluator. A field width comes from a declaration
 index keyed by the last identifier of the target; two disagreeing
@@ -34,16 +55,30 @@ line, so nothing is skipped silently.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 PACKAGE_FILES = {
     "EvrV2Pkg": "LCLS-II/evr/rtl/EvrV2Pkg.vhd",
     "TimingPkg": "LCLS-II/core/rtl/TimingPkg.vhd",
+    "TPGPkg": "LCLS-II/core/rtl/TPGPkg.vhd",
 }
 
 LENGTH_SUFFIX = "'length"
+WORD_BITS = 32
+# The register decode files, each with the PyRogue block it describes.
+DECODE_FILES = {
+    "LCLS-I/evr/EvrV1CoreIsrCtrl.vhd": "EvrV1Isr",
+    "LCLS-I/evr/EvrV1Reg.vhd": "EvrV1Reg",
+    "LCLS-II/core/rtl/GthRxAlignCheck.vhd": "GthRxAlignCheck",
+    "LCLS-II/core/rtl/TimingRx.vhd": "TimingFrameRx",
+    "LCLS-II/core/rtl/TPGMiniReg.vhd": "TPGMiniCore",
+    "LCLS-II/evr/rtl/EvrV2Axi.vhd": "EvrV2Core",
+    "LCLS-II/evr/rtl/EvrV2ChannelReg.vhd": "EvrV2ChannelReg",
+    "LCLS-II/evr/rtl/EvrV2TrigReg.vhd": "EvrV2TriggerReg",
+}
+
 FIELD_CALLS = ("axislaveregister", "axislaveregisterr")
 STROBE_CALLS = {"axiwrdetect": "write", "axirddetect": "read"}
 
@@ -73,6 +108,7 @@ class VhdlField(NamedTuple):
     writable: bool
     condition: Optional[str]
     line: int
+    target_low: int = 0
 
 
 class VhdlStrobe(NamedTuple):
@@ -84,11 +120,24 @@ class VhdlStrobe(NamedTuple):
     line: int
 
 
+class VhdlWindow(NamedTuple):
+    """A range of byte addresses decoded as one block (a memory or a buffer)."""
+
+    entity: str
+    target: Optional[str]
+    first_byte: int
+    last_byte: int
+    readable: bool
+    writable: bool
+    line: int
+
+
 class Decode(NamedTuple):
     entity: str
     fields: List[VhdlField]
     strobes: List[VhdlStrobe]
     unresolved: List[str]
+    windows: Sequence[VhdlWindow] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -700,6 +749,12 @@ class _If:
         self.branches: list = [[cond, [], line]]
 
 
+class _Case:
+    def __init__(self, selector, line):
+        self.selector, self.line = selector, line
+        self.arms: list = []
+
+
 def _chunks(tokens):
     chunk, depth = [], 0
     for token in tokens:
@@ -798,6 +853,8 @@ def _build(tokens, filename):
                 return node.body
             if kind == "if":
                 return node.branches[-1][1]
+            if kind == "case":
+                return node.arms[-1][1] if node.arms else []
         return root
 
     def pop(*kinds):
@@ -847,10 +904,15 @@ def _build(tokens, filename):
                 frames.append(("process", None))
             elif head == "case":
                 index = _find_top(toks, ("is",))
+                node = _Case(toks[1:index] if index >= 0 else [], toks[0].line)
+                body().append(node)
+                frames.append(("case", node))
                 toks = toks[index + 1:] if index >= 0 else []
-                frames.append(("case", None))
             elif head == "when" and _find_top(toks, ("=>",)) >= 0:
-                toks = toks[_find_top(toks, ("=>",)) + 1:]
+                index = _find_top(toks, ("=>",))
+                if frames and frames[-1][0] == "case":
+                    frames[-1][1].arms.append([toks[1:index], [], toks[0].line])
+                toks = toks[index + 1:]
             elif head == "for" and _find_top(toks, ("loop", "generate")) >= 0:
                 index = _find_top(toks, ("loop", "generate"))
                 header = toks[1:index]
@@ -907,7 +969,21 @@ def _has_register_call(nodes, procs) -> bool:
         elif isinstance(node, _For):
             if _has_register_call(node.body, procs):
                 return True
+        elif isinstance(node, _Case):
+            if any(_has_register_call(arm[1], procs) for arm in node.arms):
+                return True
         elif any(_has_register_call(branch[1], procs) for branch in node.branches):
+            return True
+    return False
+
+
+def _has_case(nodes) -> bool:
+    for node in nodes:
+        if isinstance(node, _Case):
+            return True
+        if isinstance(node, _For) and _has_case(node.body):
+            return True
+        if isinstance(node, _If) and any(_has_case(branch[1]) for branch in node.branches):
             return True
     return False
 
@@ -942,6 +1018,123 @@ def _substitute(tokens, mapping):
 
 
 # ---------------------------------------------------------------------------
+# Name expressions of the hand-written decodes
+# ---------------------------------------------------------------------------
+
+class _Chain(NamedTuple):
+    """A selected name ``a.b(i).c(h downto l)``: the last name and its parenthesis groups."""
+
+    name: str
+    groups: list
+    inner: list
+    dotted: bool
+
+
+def _chain(tokens) -> Optional[_Chain]:
+    """Parse tokens as ``name { . name } { ( ... ) }`` or return None for anything else."""
+    name, groups, inner, dotted = None, [], [], False
+    position, expect_name = 0, True
+    while position < len(tokens):
+        token = tokens[position]
+        if expect_name:
+            if token.kind != "id":
+                return None
+            if groups:
+                inner.extend(groups)
+            name, groups, expect_name = token.value, [], False
+            position += 1
+        elif _is_op(token, "."):
+            expect_name, dotted = True, True
+            position += 1
+        elif _is_op(token, "("):
+            close = _matching_paren(tokens, position)
+            if close < 0:
+                return None
+            groups.append(tokens[position + 1:close])
+            position = close + 1
+        else:
+            return None
+    if expect_name:
+        return None
+    return _Chain(name, groups, inner, dotted)
+
+
+def _is_range(tokens) -> bool:
+    return _find_top(tokens, ("downto", "to")) >= 0
+
+
+def _index_pattern(tokens):
+    """Match ``name := conv_integer(addr(h downto l))``: the name, the address chain, and the range."""
+    colon = _find_top(tokens, (":=",))
+    if colon != 1 or tokens[0].kind != "id":
+        return None
+    value = tokens[colon + 1:]
+    if len(value) < 4 or _word(value[0]) not in ("conv_integer", "to_integer") or not _is_op(value[1], "("):
+        return None
+    if _matching_paren(value, 1) != len(value) - 1:
+        return None
+    selected = _chain(value[2:-1])
+    if selected is None or len(selected.groups) != 1 or not _is_range(selected.groups[0]):
+        return None
+    return tokens[0].value.lower(), selected.name.lower(), selected.groups[0]
+
+
+_WRITE_DATA = ("wdata", "regwrdata")
+_READ_DATA = ("rdata", "tmprddata")
+_ADDRESS_WORDS = ("awaddr", "araddr")
+
+
+def _statements(nodes):
+    """Every plain statement of a node tree, in order."""
+    for node in nodes:
+        if isinstance(node, _Stmt):
+            yield node
+        elif isinstance(node, _For):
+            yield from _statements(node.body)
+        elif isinstance(node, _Case):
+            for arm in node.arms:
+                yield from _statements(arm[1])
+        else:
+            for branch in node.branches:
+                yield from _statements(branch[1])
+
+
+def _address_variables(root):
+    """Pointers (``wrPntr := conv_integer(...awaddr(14 downto 2))``) and address copies of the file.
+
+    A pointer maps to its direction and the address bit its value starts at;
+    the set holds the names whose bits are address bits.
+    """
+    pointers: Dict[str, Any] = {}
+    addresses = set(_ADDRESS_WORDS)
+    for node in _statements(root):
+        chunk = node.tokens
+        if len(chunk) < 3 or chunk[0].kind != "id" or not _is_op(chunk[1], ":="):
+            continue
+        words = {_word(token) for token in chunk[2:]}
+        direction = "write" if "awaddr" in words else "read" if "araddr" in words else None
+        if direction is None:
+            continue
+        match = _index_pattern(chunk)
+        if match is None:
+            addresses.add(chunk[0].value.lower())
+        else:
+            pointers[match[0]] = (direction, match[2])
+    return pointers, addresses
+
+
+class _Arm:
+    """Where a case arm sits: the byte of its word, the access direction, and what it decodes."""
+
+    def __init__(self, byte, direction, window=None):
+        self.byte, self.direction, self.window = byte, direction, window
+        self.assigned: list = []
+
+    def at(self, byte):
+        return _Arm(byte, self.direction, self.window)
+
+
+# ---------------------------------------------------------------------------
 # Executing the structure
 # ---------------------------------------------------------------------------
 
@@ -949,12 +1142,18 @@ _MAX_PROCEDURE_DEPTH = 8
 
 
 class _Run:
-    def __init__(self, entity, filename, env, widths, procs):
+    def __init__(self, entity, filename, env, widths, procs, pointers=None, addresses=()):
         self.entity, self.filename, self.env, self.widths = entity, filename, env, widths
         self.procs = procs
+        self.pointers = pointers or {}
+        self.addresses = set(addresses)
         self.fields: List[VhdlField] = []
         self.strobes: List[VhdlStrobe] = []
         self.unresolved: set = set()
+        self.arm_fields: List[VhdlField] = []
+        self.arm_strobes: List[VhdlStrobe] = []
+        self.windows: List[VhdlWindow] = []
+        self.events = 0
 
     def fail(self, line, message):
         raise UnsupportedStatement(f"{self.filename}:{line}: {message}")
@@ -974,6 +1173,8 @@ class _Run:
                 self.statement(node, env, conds, index)
             elif isinstance(node, _For):
                 self.loop(node, env, conds)
+            elif isinstance(node, _Case):
+                self.case(node, env, conds, index, None)
             else:
                 self.branch(node, env, conds, index)
 
@@ -984,25 +1185,33 @@ class _Run:
         for current in values:
             self.run(node.body, {**env, node.var: current}, conds, current)
 
-    def branch(self, node, env, conds, index):
-        taken, earlier = None, []
-        for cond, nodes, line in node.branches:
+    def selected(self, node, env, every_unknown):
+        """The ``(nodes, condition text)`` pairs of an ``if`` that apply.
+
+        A condition that cannot be evaluated is a run time condition: every
+        branch from there on applies when the statement holds a decode case or
+        ``every_unknown`` is set, and none does otherwise.
+        """
+        earlier = []
+        for position, (cond, nodes, line) in enumerate(node.branches):
             if cond is None:
-                taken = (nodes, "not (" + " or ".join(earlier) + ")" if earlier else None)
-                break
+                return [(nodes, "not (" + " or ".join(earlier) + ")" if earlier else None)]
             try:
                 result = evaluate(cond, env)
             except EvalError as error:
                 if any(_has_register_call(branch[1], self.procs) for branch in node.branches):
                     self.fail(line, f"cannot evaluate condition {_text(cond)!r}: {error}")
-                return
+                if every_unknown or any(_has_case(branch[1]) for branch in node.branches):
+                    return [(branch[1], None) for branch in node.branches[position:]]
+                return []
             if result:
-                taken = (nodes, _text(cond))
-                break
+                return [(nodes, _text(cond))]
             earlier.append(_text(cond))
-        if taken is not None:
-            extra = [taken[1]] if taken[1] else []
-            self.run(taken[0], env, conds + extra, index)
+        return []
+
+    def branch(self, node, env, conds, index):
+        for nodes, text in self.selected(node, env, False):
+            self.run(nodes, env, conds + ([text] if text else []), index)
 
     def target(self, tokens):
         depth, name, slice_tokens = 0, None, None
@@ -1022,6 +1231,187 @@ class _Run:
             elif depth == 0 and token.kind == "id":
                 name, slice_tokens = token.value, None
         return name, slice_tokens
+
+    # -- hand-written decodes -------------------------------------------------
+
+    def bounds(self, group, env, line):
+        """Low bit and width of a ``(h downto l)`` or ``(l to h)`` group."""
+        descending = _find_top(group, ("downto",)) >= 0
+        parts = _split_words(group, "downto" if descending else "to")
+        first = self.value(parts[0], env, line, "range bound")
+        second = self.value(parts[1], env, line, "range bound")
+        high, low = (first, second) if descending else (second, first)
+        return low, high - low + 1
+
+    def choices(self, tokens, env, line):
+        """Alternatives of a case choice as ``(first, last)`` pairs; ``others`` is dropped."""
+        result = []
+        for alt in _split_top(tokens, "|"):
+            if len(alt) == 1 and _word(alt[0]) == "others":
+                continue
+            if len(alt) == 1 and alt[0].kind == "str":
+                bits = alt[0].value
+                if not bits or set(bits) - {"0", "1"}:
+                    self.fail(line, f"unsupported case choice {_text(alt)!r}")
+                result.append((int(bits, 2), int(bits, 2)))
+                continue
+            bounds = _split_words(alt, "to")
+            if bounds is not None:
+                result.append((self.value(bounds[0], env, line, "case choice"),
+                               self.value(bounds[1], env, line, "case choice")))
+            else:
+                value = self.value(alt, env, line, "case choice")
+                result.append((value, value))
+        return result
+
+    def case(self, node, env, conds, index, arm):
+        """Run a case: a decode of the address when its selector is one, else every arm as it stands."""
+        chain = _chain(node.selector)
+        name = chain.name.lower() if chain is not None else ""
+        if arm is None and chain is not None and not chain.groups and not chain.dotted and name in self.pointers:
+            direction, group = self.pointers[name]
+            shift, _ = self.bounds(group, env, node.line)
+            self.decode(node, env, conds, direction, shift)
+        elif (arm is not None and chain is not None and name in self.addresses and len(chain.groups) == 1
+              and _is_range(chain.groups[0])):
+            low, _ = self.bounds(chain.groups[0], env, node.line)
+            for choice, body, line in node.arms:
+                for first, last in self.choices(choice, env, line):
+                    for value in range(first, last + 1):
+                        self.leaf(body, env, conds, arm.at(arm.byte + (value << low)))
+        else:
+            for _, body, _ in node.arms:
+                if arm is None:
+                    self.run(body, env, conds, index)
+                else:
+                    self.arm_nodes(body, env, conds, arm)
+
+    def index_variable(self, body, env, line):
+        """The ``(name, low bit)`` of ``name := conv_integer(addr(h downto l))`` at the top of an arm body."""
+        for node in body:
+            if isinstance(node, _Stmt):
+                match = _index_pattern(node.tokens)
+                if match is not None and match[1] in self.addresses:
+                    return match[0], self.bounds(match[2], env, node.line)[0]
+        return None
+
+    def decode(self, node, env, conds, direction, shift):
+        for choice, body, line in node.arms:
+            for first, last in self.choices(choice, env, line):
+                if first == last:
+                    self.leaf(body, env, conds, _Arm(first << shift, direction))
+                    continue
+                span = (last - first + 1) << shift
+                variable = self.index_variable(body, env, line)
+                if variable is not None:
+                    name, low = variable
+                    for element in range(-(-span // (1 << low))):
+                        self.leaf(body, {**env, name: element}, conds,
+                                  _Arm((first << shift) + (element << low), direction))
+                    continue
+                arm = _Arm(first << shift, direction, window=[])
+                self.arm_nodes(body, env, conds, arm)
+                self.windows.append(VhdlWindow(
+                    self.entity, arm.window[0] if arm.window else None, first << shift,
+                    (last << shift) + (1 << shift) - 1, direction == "read", direction == "write", line,
+                ))
+
+    def leaf(self, body, env, conds, arm):
+        """Run one arm body; an arm that decodes no data but assigns something is a strobe."""
+        before = self.events
+        self.arm_nodes(body, env, conds, arm)
+        if self.events == before and arm.assigned:
+            name, line = arm.assigned[0]
+            self.arm_strobes.append(VhdlStrobe(self.entity, name, None, arm.byte, arm.direction, line))
+
+    def arm_nodes(self, nodes, env, conds, arm):
+        for node in nodes:
+            if isinstance(node, _Stmt):
+                self.assign(node, env, conds, arm)
+            elif isinstance(node, _For):
+                low = self.value(node.low, env, node.line, "loop bound")
+                high = self.value(node.high, env, node.line, "loop bound")
+                values = range(low, high - 1, -1) if node.descending else range(low, high + 1)
+                for current in values:
+                    self.arm_nodes(node.body, {**env, node.var: current}, conds, arm)
+            elif isinstance(node, _Case):
+                self.case(node, env, conds, None, arm)
+            else:
+                for nodes_taken, text in self.selected(node, env, True):
+                    self.arm_nodes(nodes_taken, env, conds + ([text] if text else []), arm)
+
+    def data_selection(self, chain, env, line):
+        """Low bit and width of the selected bits of the data word, width None for the whole word."""
+        if not chain.groups:
+            return 0, None
+        if len(chain.groups) > 1:
+            self.fail(line, "unsupported selection of the data word")
+        if _is_range(chain.groups[0]):
+            return self.bounds(chain.groups[0], env, line)
+        return self.value(chain.groups[0], env, line, "data bit"), 1
+
+    def unresolved_arm(self, kind, arm, reason):
+        self.unresolved.add(f"{kind} 0x{arm.byte:X}: {reason}")
+        self.events += 1
+
+    def assign(self, node, env, conds, arm):
+        tokens, line = node.tokens, node.line
+        colon = _find_top(tokens, (":=",))
+        if colon <= 0 or _index_pattern(tokens) is not None:
+            return
+        left, value = _chain(tokens[:colon]), tokens[colon + 1:]
+        if left is None:
+            return
+        words = {_word(token) for token in value}
+        if left.name.lower() in _READ_DATA:
+            if not [t for t in value if t.kind == "id" and t.value.lower() != "others"]:
+                return
+            if arm.window is not None:
+                source = _chain(value)
+                if source is not None and not arm.window:
+                    arm.window.append(source.name)
+                return
+            if _find_top(value, ("&",)) >= 0:
+                return self.unresolved_arm("read", arm, "concatenation")
+            source = _chain(value)
+            if source is None:
+                return self.unresolved_arm("read", arm, "expression")
+            if not source.dotted and source.groups and (
+                    source.name.lower() in FUNCTIONS or source.name.lower() == "fromslv"
+                    or source.name.lower() not in self.widths):
+                return self.unresolved_arm("read", arm, "function call")
+            low, width = self.data_selection(left, env, line)
+            return self.emit(source, low, width, env, conds, arm, line, True)
+        if set(_WRITE_DATA) & words:
+            source = _chain(value)
+            if source is None or source.name.lower() not in _WRITE_DATA or (
+                    source.groups and not source.dotted and len(source.groups) > 1):
+                return self.unresolved_arm("write", arm, "expression of the write data")
+            if arm.window is not None:
+                return
+            low, width = self.data_selection(source, env, line)
+            return self.emit(left, low, width, env, conds, arm, line, False)
+        arm.assigned.append((left.name, line))
+
+    def emit(self, target, data_low, data_width, env, conds, arm, line, read):
+        """Record one decoded field: ``target`` is the name side of the assignment."""
+        target_low, target_width, element = 0, None, None
+        if target.groups:
+            if _is_range(target.groups[0]):
+                target_low, target_width = self.bounds(target.groups[0], env, line)
+            else:
+                element = self.value(target.groups[0], env, line, "element index")
+        if target.inner and not _is_range(target.inner[0]):
+            element = self.value(target.inner[0], env, line, "element index")
+        length = self.widths.get(target.name.lower() + LENGTH_SUFFIX)
+        if element is not None and length is not None and not 0 <= element < length:
+            return
+        width = data_width or target_width or WORD_BITS
+        condition = " and ".join(conds) if conds else None
+        self.arm_fields.append(VhdlField(
+            self.entity, target.name, element, arm.byte, data_low, width, read, not read, condition, line, target_low
+        ))
+        self.events += 1
 
     def mux_target(self, tokens, env, line):
         """Target name, element index, and width of ``muxSlVectorArray(array, k)``, else None."""
@@ -1088,6 +1478,50 @@ class _Run:
 
 
 # ---------------------------------------------------------------------------
+# Joining the words of the hand-written decodes
+# ---------------------------------------------------------------------------
+
+def _merge_words(fields: List[VhdlField]) -> List[VhdlField]:
+    """Join little-endian word slices of one target into one wide field.
+
+    A word that holds bits 31 to 0 of a target followed, at the next word, by
+    bits 63 to 32 (and so on) is one 64 bit field. The reverse order is two
+    fields, told apart by ``target_low``.
+    """
+    ordered = sorted(
+        fields,
+        key=lambda f: (f.target.lower(), -1 if f.index is None else f.index, f.readable, f.condition or "", f.byte_offset),
+    )
+    result: List[VhdlField] = []
+    for field in ordered:
+        if result:
+            last = result[-1]
+            same = (last.target.lower(), last.index, last.readable, last.condition) == (
+                field.target.lower(), field.index, field.readable, field.condition)
+            adjacent = (last.bit_offset == 0 and field.bit_offset == 0 and last.width % WORD_BITS == 0
+                        and field.byte_offset == last.byte_offset + last.width // 8
+                        and field.target_low == last.target_low + last.width)
+            if same and adjacent:
+                result[-1] = last._replace(width=last.width + field.width)
+                continue
+        result.append(field)
+    return result
+
+
+def _merge_directions(fields: List[VhdlField]) -> List[VhdlField]:
+    """One field per target, byte, bit, width, and target bit; a read and a write arm set both flags."""
+    merged: Dict[tuple, VhdlField] = {}
+    for field in fields:
+        key = (field.target.lower(), field.index, field.byte_offset, field.bit_offset, field.width, field.target_low)
+        if key in merged:
+            old = merged[key]
+            merged[key] = old._replace(readable=old.readable or field.readable, writable=old.writable or field.writable)
+        else:
+            merged[key] = field
+    return sorted(merged.values(), key=lambda f: (f.byte_offset, f.bit_offset, f.target.lower(), -1 if f.index is None else f.index))
+
+
+# ---------------------------------------------------------------------------
 # Entry points
 # ---------------------------------------------------------------------------
 
@@ -1111,9 +1545,13 @@ def parse_decode(source: str, filename: str = "<source>", generics: Optional[Dic
     widths = {name: next(iter(found)) for name, found in index.items() if len(found) == 1}
     env.update({name: value for name, value in widths.items() if name.endswith(LENGTH_SUFFIX)})
     root, procs = _build(tokens, filename)
-    run = _Run(entity, filename, env, widths, procs)
+    pointers, addresses = _address_variables(root)
+    run = _Run(entity, filename, env, widths, procs, pointers, addresses)
     run.run(root, env, [], None)
-    return Decode(entity, run.fields, run.strobes, sorted(run.unresolved))
+    arm_fields = _merge_directions(_merge_words(run.arm_fields))
+    return Decode(
+        entity, run.fields + arm_fields, run.strobes + run.arm_strobes, sorted(run.unresolved), tuple(run.windows)
+    )
 
 
 def read_text(path) -> str:
@@ -1128,3 +1566,12 @@ def read_text(path) -> str:
 def read_decode(path, generics: Optional[Dict[str, Any]] = None) -> Decode:
     """Return the register decode of the VHDL file at path."""
     return parse_decode(read_text(path), str(path), generics)
+
+
+def read_all(generics_by_file: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, Decode]:
+    """Return the decode of every file in DECODE_FILES, keyed by path.
+
+    ``generics_by_file`` maps a path to the generics to override for that file.
+    """
+    generics_by_file = generics_by_file or {}
+    return {path: read_decode(path, generics_by_file.get(path)) for path in DECODE_FILES}
