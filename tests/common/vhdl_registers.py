@@ -40,8 +40,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 PACKAGE_FILES = {
     "EvrV2Pkg": "LCLS-II/evr/rtl/EvrV2Pkg.vhd",
+    "TimingPkg": "LCLS-II/core/rtl/TimingPkg.vhd",
 }
 
+LENGTH_SUFFIX = "'length"
 FIELD_CALLS = ("axislaveregister", "axislaveregisterr")
 STROBE_CALLS = {"axiwrdetect": "write", "axirddetect": "read"}
 
@@ -459,10 +461,32 @@ class _Evaluator:
                 return True
             if name == "false":
                 return False
+            attribute = self._length_attribute(name)
+            if attribute is not None:
+                return attribute
             if name in self.env:
                 return self.env[name]
             raise EvalError(f"unknown name {token.value}")
         raise EvalError(f"unexpected token {token.value!r}")
+
+    def _length_attribute(self, name):
+        """Value of ``a.b'length`` (the last name of the selection) when it follows, else None."""
+        position = self.pos
+        for _ in range(len(self.tokens)):
+            after = self.tokens[position:position + 2]
+            if len(after) == 2 and _is_op(after[0], ".") and after[1].kind == "id":
+                name = after[1].value.lower()
+                position += 2
+            else:
+                break
+        after = self.tokens[position:position + 2]
+        if len(after) == 2 and _is_op(after[0], "'") and _word(after[1]) == "length":
+            key = name + LENGTH_SUFFIX
+            if key not in self.env:
+                raise EvalError(f"length of {name} is not declared")
+            self.pos = position + 2
+            return self.env[key]
+        return None
 
 
 def _is_int(value) -> bool:
@@ -527,8 +551,29 @@ def _type_width(tokens, env) -> Optional[int]:
     return None
 
 
+def _type_length(tokens, env) -> Optional[int]:
+    """Element count of an array declaration, None for a scalar or an unresolved range."""
+    if not tokens:
+        return None
+    head = _word(tokens[0])
+    paren = tokens[1:]
+    if not (paren and _is_op(paren[0], "(") and _matching_paren(paren, 0) == len(paren) - 1):
+        return None
+    inner = paren[1:-1]
+    if _ARRAY_RE.match(head) or head in ("slv", "std_logic_vector", "unsigned", "signed"):
+        return _range_width(inner, env)
+    if head == "slvectorarray":
+        ranges = _split_top(inner, ",")
+        return _range_width(ranges[0], env) if len(ranges) == 2 else None
+    return None
+
+
 def _collect_widths(tokens, env, index: Dict[str, set]) -> None:
-    """Add every ``names : type`` declaration of tokens to the width index."""
+    """Add every ``names : type`` declaration of tokens to the width index.
+
+    The same index holds ``name'length`` entries for the declared arrays, so a
+    loop bound such as ``r.sample'length`` resolves through the declaration.
+    """
     for position, token in enumerate(tokens):
         if not _is_op(token, ":") or position == 0:
             continue
@@ -558,8 +603,11 @@ def _collect_widths(tokens, env, index: Dict[str, set]) -> None:
                 break
             k += 1
         width = _type_width(tokens[start:k], env)
+        length = _type_length(tokens[start:k], env)
         for name in names:
             index.setdefault(name, set()).add(width)
+            if length is not None:
+                index.setdefault(name + LENGTH_SUFFIX, set()).add(length)
 
 
 def _collect_constants(tokens, env: Dict[str, Any]) -> None:
@@ -673,10 +721,76 @@ _BLOCK_END_WORDS = ("if", "loop", "case", "process", "generate", "record", "bloc
 _OPENERS = ("process", "for", "if", "case", "block", "loop", "while")
 
 
+class _Proc:
+    """A user procedure whose body is one register call: formal names and the call tokens."""
+
+    def __init__(self, params, call):
+        self.params, self.call = params, call
+
+
+def _param_names(header) -> List[str]:
+    """Formal parameter names of a procedure header ``name ( a, b : in slv; c : in sl )``."""
+    if len(header) < 2 or not _is_op(header[1], "("):
+        return []
+    close = _matching_paren(header, 1)
+    names: List[str] = []
+    for entry in _split_top(header[2:close], ";"):
+        colon = _find_top(entry, (":",))
+        names.extend(t.value.lower() for t in entry[:colon] if t.kind == "id")
+    return names
+
+
+def _read_ack_call(statements, params):
+    """The read-only register call a read-with-acknowledge procedure body stands for, or None.
+
+    The body matches the address with ``std_match(..., addr)`` and copies
+    ``reg`` into ``rdata(reg'range)``; it decodes one read-only register at
+    offset 0, the same as the two argument wrapper.
+    """
+    address = register = None
+    for chunk in statements:
+        for position, token in enumerate(chunk):
+            if _word(token) == "std_match" and position + 1 < len(chunk) and _is_op(chunk[position + 1], "("):
+                close = _matching_paren(chunk, position + 1)
+                last = _split_top(chunk[position + 2:close], ",")[-1]
+                if len(last) == 1 and last[0].kind == "id" and last[0].value.lower() in params:
+                    address = last[0].value
+            if _word(token) == "rdata" and _find_top(chunk, (":=",)) > position:
+                value = chunk[_find_top(chunk, (":=",)) + 1:]
+                if len(value) == 1 and value[0].kind == "id" and value[0].value.lower() in params:
+                    register = value[0].value
+    if address is None or register is None:
+        return None
+    return tokenize(f"axiSlaveRegister(axiReadMaster, axiReadSlave, axiStatus, {address}, 0, {register})")
+
+
+def _procedure(header, chunks) -> Optional[_Proc]:
+    """Build a _Proc from a declaration ``header`` (tokens before ``is``) and its body chunks."""
+    params = _param_names(header)
+    statements = []
+    begun = False
+    for chunk in chunks:
+        if not chunk:
+            continue
+        if not begun:
+            if _word(chunk[0]) != "begin":
+                continue
+            begun = True
+            chunk = chunk[1:]
+        if chunk:
+            statements.append(chunk)
+    if len(statements) == 1 and _call_name(statements[0], {}):
+        return _Proc(params, statements[0])
+    call = _read_ack_call(statements, params) if begun else None
+    return _Proc(params, call) if call else None
+
+
 def _build(tokens, filename):
     root: list = []
     frames: list = []
+    procs: Dict[str, Dict[int, Optional[_Proc]]] = {}
     skipping = False
+    declaration: Optional[list] = None
 
     def body():
         for kind, node in reversed(frames):
@@ -696,6 +810,13 @@ def _build(tokens, filename):
         if skipping:
             if _word(chunk[0]) == "end" and (len(chunk) == 1 or _word(chunk[1]) not in _BLOCK_END_WORDS):
                 skipping = False
+                if declaration is not None:
+                    header = declaration[0]
+                    procs.setdefault(header[0].value.lower(), {})[len(_param_names(header))] = _procedure(
+                        header, declaration[1:]
+                    )
+            elif declaration is not None:
+                declaration.append(chunk)
             continue
         toks = list(chunk)
         while toks:
@@ -705,8 +826,12 @@ def _build(tokens, filename):
                 toks = toks[2:]
                 continue
             if head in ("procedure", "function", "pure", "impure"):
-                if _find_top(toks, ("is",)) >= 0:
+                index = _find_top(toks, ("is",))
+                if index >= 0:
                     skipping = True
+                    declaration = None
+                    if head == "procedure" and len(toks) > 1 and toks[1].kind == "id":
+                        declaration = [toks[1:index], toks[index + 1:]]
                 toks = []
             elif head == "architecture":
                 index = _find_top(toks, ("is",))
@@ -771,39 +896,62 @@ def _build(tokens, filename):
             else:
                 body().append(_Stmt(toks, toks[0].line))
                 toks = []
-    return root
+    return root, procs
 
 
-def _has_register_call(nodes) -> bool:
+def _has_register_call(nodes, procs) -> bool:
     for node in nodes:
         if isinstance(node, _Stmt):
-            if _call_name(node.tokens):
+            if _call_name(node.tokens, procs):
                 return True
         elif isinstance(node, _For):
-            if _has_register_call(node.body):
+            if _has_register_call(node.body, procs):
                 return True
-        elif any(_has_register_call(branch[1]) for branch in node.branches):
+        elif any(_has_register_call(branch[1], procs) for branch in node.branches):
             return True
     return False
 
 
-def _call_name(tokens) -> str:
-    """Lowercase register procedure name when a statement starts with one."""
+def _call_name(tokens, procs) -> str:
+    """Lowercase register procedure name when a statement starts with one.
+
+    A name counts when it is a surf register procedure, starts like a local
+    wrapper of one, or is a procedure declared in the file whose body is a
+    register call.
+    """
     name = _word(tokens[0])
     if name in FIELD_CALLS or name in STROBE_CALLS:
         return name
     if name.startswith(("axislaveregister", "axilslaveregister")):
         return name
+    if any(proc is not None for proc in procs.get(name, {}).values()):
+        return name
     return ""
+
+
+def _substitute(tokens, mapping):
+    """Replace formal parameter names in tokens by the actual argument tokens."""
+    result = []
+    for position, token in enumerate(tokens):
+        after_dot = position > 0 and _is_op(tokens[position - 1], ".")
+        if token.kind == "id" and token.value.lower() in mapping and not after_dot:
+            result.extend(mapping[token.value.lower()])
+        else:
+            result.append(token)
+    return result
 
 
 # ---------------------------------------------------------------------------
 # Executing the structure
 # ---------------------------------------------------------------------------
 
+_MAX_PROCEDURE_DEPTH = 8
+
+
 class _Run:
-    def __init__(self, entity, filename, env, widths):
+    def __init__(self, entity, filename, env, widths, procs):
         self.entity, self.filename, self.env, self.widths = entity, filename, env, widths
+        self.procs = procs
         self.fields: List[VhdlField] = []
         self.strobes: List[VhdlStrobe] = []
         self.unresolved: set = set()
@@ -845,7 +993,7 @@ class _Run:
             try:
                 result = evaluate(cond, env)
             except EvalError as error:
-                if any(_has_register_call(branch[1]) for branch in node.branches):
+                if any(_has_register_call(branch[1], self.procs) for branch in node.branches):
                     self.fail(line, f"cannot evaluate condition {_text(cond)!r}: {error}")
                 return
             if result:
@@ -875,14 +1023,46 @@ class _Run:
                 name, slice_tokens = token.value, None
         return name, slice_tokens
 
-    def statement(self, node, env, conds, index):
+    def mux_target(self, tokens, env, line):
+        """Target name, element index, and width of ``muxSlVectorArray(array, k)``, else None."""
+        if not (len(tokens) > 3 and _word(tokens[0]) == "muxslvectorarray" and _is_op(tokens[1], "(")
+                and _matching_paren(tokens, 1) == len(tokens) - 1):
+            return None
+        parts = _split_top(tokens[2:-1], ",")
+        if len(parts) != 2:
+            self.fail(line, f"unsupported form of {tokens[0].value} with {len(parts)} arguments")
+        name, _ = self.target(parts[0])
+        if name is None:
+            self.fail(line, f"no array identifier in {_text(parts[0])!r}")
+        return name, self.value(parts[1], env, line, "mux index"), self.widths.get(name.lower())
+
+    def register_arguments(self, name, count, line, first):
+        """Argument positions (address, bit offset, register) and write access of a register call."""
+        if name == "axislaveregister" and count in (4, 5):
+            return 1, 2, 3, True
+        if name == "axislaveregister" and count == 6:
+            return 3, 4, 5, False
+        if name == "axislaveregister" and count in (8, 9, 10):
+            return 5, 6, 7, True
+        if name == "axislaveregisterr" and count == 4:
+            return 1, 2, 3, False
+        self.fail(line, f"unsupported form of {first.value} with {count} arguments")
+
+    def statement(self, node, env, conds, index, depth=0):
         tokens, line = node.tokens, node.line
-        name = _call_name(tokens)
+        name = _call_name(tokens, self.procs)
         if not name:
             return
         if len(tokens) < 3 or not _is_op(tokens[1], "(") or _matching_paren(tokens, 1) != len(tokens) - 1:
             self.fail(line, f"unsupported form of {tokens[0].value}")
         args = _split_top(tokens[2:-1], ",")
+        if name in self.procs:
+            proc = self.procs[name].get(len(args))
+            if proc is None or depth >= _MAX_PROCEDURE_DEPTH:
+                self.fail(line, f"unsupported form of {tokens[0].value} with {len(args)} arguments")
+            mapping = {param: arg for param, arg in zip(proc.params, args)}
+            self.statement(_Stmt(_substitute(proc.call, mapping), line), env, conds, index, depth + 1)
+            return
         condition = " and ".join(conds) if conds else None
         if name in STROBE_CALLS:
             if len(args) != 3:
@@ -891,19 +1071,20 @@ class _Run:
             target, _ = self.target(args[2])
             self.strobes.append(VhdlStrobe(self.entity, target, index, address, STROBE_CALLS[name], line))
             return
-        if name not in FIELD_CALLS or len(args) not in (4, 5) or (name == "axislaveregisterr" and len(args) != 4):
-            self.fail(line, f"unsupported form of {tokens[0].value} with {len(args)} arguments")
-        address = self.value(args[1], env, line, "address")
-        offset = self.value(args[2], env, line, "bit offset")
-        target, slice_tokens = self.target(args[3])
-        if target is None:
-            self.fail(line, f"no target identifier in {_text(args[3])!r}")
-        width = _range_width(slice_tokens, env) if slice_tokens else self.widths.get(target.lower())
+        address_at, offset_at, register_at, writable = self.register_arguments(name, len(args), line, tokens[0])
+        address = self.value(args[address_at], env, line, "address")
+        offset = self.value(args[offset_at], env, line, "bit offset")
+        mux = self.mux_target(args[register_at], env, line)
+        if mux is not None:
+            target, index, width = mux
+        else:
+            target, slice_tokens = self.target(args[register_at])
+            if target is None:
+                self.fail(line, f"no target identifier in {_text(args[register_at])!r}")
+            width = _range_width(slice_tokens, env) if slice_tokens else self.widths.get(target.lower())
         if width is None:
             self.unresolved.add(target)
-        self.fields.append(
-            VhdlField(self.entity, target, index, address, offset, width, True, name == "axislaveregister", condition, line)
-        )
+        self.fields.append(VhdlField(self.entity, target, index, address, offset, width, True, writable, condition, line))
 
 
 # ---------------------------------------------------------------------------
@@ -928,8 +1109,10 @@ def parse_decode(source: str, filename: str = "<source>", generics: Optional[Dic
     _collect_constants(tokens, env)
     _collect_widths(tokens, env, index)
     widths = {name: next(iter(found)) for name, found in index.items() if len(found) == 1}
-    run = _Run(entity, filename, env, widths)
-    run.run(_build(tokens, filename), env, [], None)
+    env.update({name: value for name, value in widths.items() if name.endswith(LENGTH_SUFFIX)})
+    root, procs = _build(tokens, filename)
+    run = _Run(entity, filename, env, widths, procs)
+    run.run(root, env, [], None)
     return Decode(entity, run.fields, run.strobes, sorted(run.unresolved))
 
 
