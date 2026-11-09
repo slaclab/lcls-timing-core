@@ -65,7 +65,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.common import gen_docs, pyrogue_ast, register_drift, yaml_maps
+from tests.common import gen_docs, pyrogue_ast, register_drift, register_tables, yaml_maps
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
@@ -1197,3 +1197,139 @@ def test_api_page_shows_constructor_variables_and_register_link():
     assert "``useTap``" in page and "``False``" in page
     assert ":ref:`EvrV2TriggerReg registers <register-map-evrv2triggerreg>`" in page
     assert page.count("DelayTapReadback") == 1
+
+
+def classes_declared_in_the_package():
+    found = set()
+    for path in sorted((REPO_ROOT / "python/LclsTimingCore").glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        for node in ast.parse(path.read_text(encoding="utf-8")).body:
+            if isinstance(node, ast.ClassDef):
+                found.add(node.name)
+    return found
+
+
+def test_every_device_class_has_an_api_page():
+    pages = render_all(REPO_ROOT)
+    classes = classes_declared_in_the_package()
+    on_disk = {path.stem for path in (REPO_ROOT / "docs/reference/pyrogue").glob("*.rst")} - {"index"}
+    rendered = {path.rsplit("/", 1)[1][:-4] for path in pages if path.startswith("reference/pyrogue/")} - {"index"}
+    assert len(classes) == 16
+    assert classes == rendered == on_disk
+    index = pages["reference/pyrogue/index.rst"]
+    for name in classes:
+        assert f":ref:`{name} <api-{name.lower()}>`" in index
+        assert f".. _api-{name.lower()}:" in pages[f"reference/pyrogue/{name}.rst"]
+    rejected = {name for name, block in register_drift.BLOCKS.items() if block.python_source == "ast"}
+    assert rejected == {"EvrV1Reg", "TPG", "TPGSeqJump", "TPGSeqState", "TPGStatus"}
+    for name in classes:
+        page = pages[f"reference/pyrogue/{name}.rst"]
+        assert ("rejects this class at ``root.start()``" in page) == (name in rejected), name
+    assert "Register table: :ref:`EvrV2ChannelReg registers" in pages["reference/pyrogue/EvrV2CoreChannels.rst"]
+
+
+def gated_issue_urls(class_name):
+    tree = ast.parse((REPO_ROOT / f"tests/rogue/test_{class_name}.py").read_text(encoding="utf-8"))
+    urls = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and "RUN_KNOWN_ISSUE_TESTS=1" in node.value:
+            urls |= set(re.findall(r"https://github\.com/slaclab/lcls-timing-core/issues/(\d+)", node.value))
+    return urls
+
+
+def test_rejected_classes_link_their_gated_issues():
+    pages = render_all(REPO_ROOT)
+    expected = {
+        "EvrV1Reg": {"217"}, "TPG": {"228"}, "TPGSeqJump": {"220"}, "TPGSeqState": {"221"}, "TPGStatus": {"228"},
+    }
+    for name, numbers in expected.items():
+        assert gated_issue_urls(name) == numbers, name
+        page = pages[f"reference/pyrogue/{name}.rst"]
+        for number in numbers:
+            assert f":issue:`{number}`" in page, name
+        tests = [issue.test for issue in gen_docs.class_known_issues(name)]
+        assert tests == [f"test_{name}_known_issue_overlap"]
+        for test in tests:
+            assert f"``{test}``" in page
+    buildable = pages["reference/pyrogue/TPGMiniCore.rst"]
+    assert ":issue:`222`" in buildable and ":issue:`223`" in buildable
+    assert "Rogue 6.16.0 rejects" not in buildable
+
+
+def test_known_issue_reader_reads_filed_and_pending_reasons(tmp_path):
+    (tmp_path / "test_Demo.py").write_text(
+        "import pytest\n"
+        "@pytest.mark.skipif(\n"
+        "    SKIP,\n"
+        "    reason=(\n"
+        "        'known issue: A overlaps B; see https://github.com/slaclab/lcls-timing-core/issues/9; '\n"
+        "        'set RUN_KNOWN_ISSUE_TESTS=1 to reproduce'\n"
+        "    ),\n"
+        ")\n"
+        "def test_Demo_known_issue_one():\n"
+        "    pass\n"
+        "@pytest.mark.skipif(SKIP, reason='pending issue: C is odd; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce')\n"
+        "def test_Demo_known_issue_two():\n"
+        "    pass\n"
+        "@pytest.mark.skipif(SKIP, reason='unrelated reason')\n"
+        "def test_Demo_other():\n"
+        "    pass\n",
+        encoding="utf-8",
+    )
+    assert gen_docs.class_known_issues("Demo", rogue_dir=tmp_path) == [
+        gen_docs.KnownIssue("test_Demo_known_issue_one", "A overlaps B", "https://github.com/slaclab/lcls-timing-core/issues/9"),
+        gen_docs.KnownIssue("test_Demo_known_issue_two", "C is odd", "pending"),
+    ]
+    assert gen_docs.class_known_issues("Absent", rogue_dir=tmp_path) == []
+
+
+def test_classes_that_share_a_variable_name_get_separate_tables():
+    pages = render_all(REPO_ROOT)
+    owners = {}
+    for name in sorted(classes_declared_in_the_package()):
+        for row in register_tables.load_table(name).ROWS:
+            owners.setdefault(row.name, set()).add(name)
+    shared = {variable: classes for variable, classes in owners.items() if len(classes) > 1}
+    assert shared, "no two classes declare a variable of the same name"
+    for variable, classes in shared.items():
+        for name in classes:
+            page = pages[f"reference/pyrogue/{name}.rst"]
+            assert f"``{variable}``" in page or f"``{variable}[0" in page, (variable, name)
+        assert len({pages[f"reference/pyrogue/{name}.rst"] for name in classes}) == len(classes)
+
+
+def test_empty_constructor_children_and_variables_say_none():
+    assert gen_docs.constructor_section([]) == "none\n"
+    defaults_only = gen_docs.constructor_section([("name", "'X'"), ("description", "''"), ("**kwargs", None)])
+    assert "Arguments beyond the ``pr.Device`` defaults: none." in defaults_only
+    assert "Arguments beyond" not in gen_docs.constructor_section([("name", "'X'"), ("numTrig", "1")])
+    assert gen_docs.checks_section([]) == "none\n"
+    assert gen_docs.children_section([]) == "none\n"
+    assert gen_docs.variables_table([]) == "none\n"
+    page = render_all(REPO_ROOT)["reference/pyrogue/TPGSeqJump.rst"]
+    assert "Constructor checks\n------------------\n\nnone\n" in page
+    assert "Sub-devices\n-----------\n\nnone\n" in page
+    assert "Arguments beyond the ``pr.Device`` defaults: none." in page
+
+
+def test_api_pages_and_variables_are_sorted():
+    pages = render_all(REPO_ROOT)
+    index = pages["reference/pyrogue/index.rst"]
+    listed = [cells[0].split("<")[0].split("`")[-1].strip() for cells in page_cells(index)][1:]
+    assert listed == sorted(listed) and len(listed) == 16
+    checked = 0
+    for path, page in pages.items():
+        if not path.startswith("reference/pyrogue/") or path.endswith("index.rst"):
+            continue
+        for chunk in page.split("Name\n     - Kind")[1:]:
+            last = None
+            for cells in page_cells(chunk):
+                if len(cells) != 8 or not cells[2].startswith("``0x"):
+                    continue
+                bits = cells[3].strip("[]").split(":")
+                key = (int(cells[2].split("``")[1], 16), int(bits[-1]))
+                assert last is None or last <= key, f"{path}: {cells[0]} is out of order"
+                last = key
+                checked += 1
+    assert checked > 200

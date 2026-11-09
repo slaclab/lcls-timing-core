@@ -2001,9 +2001,6 @@ KNOWN_ISSUE_PREFIX = "known issue: "
 REPRODUCE_MARKER = "RUN_KNOWN_ISSUE_TESTS=1"
 PR_DEVICE_ARGUMENTS = ("name", "description", "**kwargs")
 
-# Limits the pages rendered to these classes when set; None renders every class.
-API_CLASSES_FILTER = ("EvrV2TriggerReg",)
-
 
 class ApiVar(NamedTuple):
     """One declaration of a class page: a variable, a command, or a run of array elements."""
@@ -2051,8 +2048,7 @@ def all_device_classes():
 
 def device_classes():
     """Return the class names that get an API page, sorted."""
-    names = all_device_classes()
-    return [name for name in names if API_CLASSES_FILTER is None or name in API_CLASSES_FILTER]
+    return all_device_classes()
 
 
 def rejected_classes():
@@ -2345,7 +2341,7 @@ def render_api_index(names):
             "Each page lists the constructor arguments with their defaults, the checks the constructor makes, "
             "the child devices, and the variables with offset, bits, mode, and description. The variables of a "
             f"class that Rogue {ROGUE_VERSION} builds come from the reviewed table checked against a built tree; "
-            "the five classes Rogue rejects are read from the source. No page imports Rogue.",
+            f"the {len(rejected_classes())} classes Rogue rejects are read from the source. No page imports Rogue.",
             "",
             list_table(["Class", f"Builds under Rogue {ROGUE_VERSION}", "Register page"], rows, widths=[30, 30, 40]),
             ".. toctree::",
