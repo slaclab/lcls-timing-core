@@ -454,38 +454,6 @@ Tracker: :issue:`229`.
      - the root ruckus.tcl requires surf 2.53.0 while LCLS-II/gtx7/ruckus.tcl requires surf 2.74.0
      - :doc:`/reference/families`
 
-Issue 230
----------
-
-Tracker: :issue:`230`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
-
-   * - Source
-     - Detail
-     - Shown on
-   * - gated test: ``tests/common/test_release_tooling.py::test_release_notes_known_issue_pull_request_without_description``
-     - releaseNotes.py raises AttributeError on a pull request with no description
-     - :doc:`/how-to/release_flow`
-
-Issue 231
----------
-
-Tracker: :issue:`231`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
-
-   * - Source
-     - Detail
-     - Shown on
-   * - gated test: ``tests/common/test_release_tooling.py::test_release_notes_known_issue_https_remote``
-     - releaseNotes.py turns an https origin URL into ps://github.com/slaclab/lcls-timing-core
-     - :doc:`/how-to/release_flow`
-
 Issue 232
 ---------
 

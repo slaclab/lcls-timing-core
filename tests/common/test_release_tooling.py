@@ -8,24 +8,19 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-"""Reproducers for the release tooling, packaging, and submodule lock findings.
+"""Reproducers for the packaging and submodule lock findings.
 
 Test methodology:
     Sweep: every tracked ruckus.tcl outside tests/ for the surf submodule
-        lock, plus releaseNotes.py and setup.py at the repository root.
-    Stimulus: a regex read of the ruckus.tcl files; releaseNotes.py run
-        through runpy under stubbed git, github, and pyperclip modules and a
-        patched input(); setup.py run only as a copy under tmp_path, either
-        in a subprocess with its site packages disabled or through runpy with
-        stubbed distutils and git modules. The real tree and the network are
-        never touched.
+        lock, plus setup.py at the repository root.
+    Stimulus: a regex read of the ruckus.tcl files; setup.py run only as a
+        copy under tmp_path, either in a subprocess with its site packages
+        disabled or through runpy with stubbed distutils and git modules.
+        The real tree and the network are never touched.
     Checks: one gated reproducer per finding, each failing on the unmodified
         tree. The surf versions required by the ruckus.tcl files must agree;
-        a pull request with no description must not crash the release notes;
-        an https origin URL must reach the GitHub API as owner/repository;
         setup.py must import under the running interpreter; running setup.py
-        must leave the package __init__.py unchanged. One ungated test proves
-        the release notes harness itself works with an ssh remote.
+        must leave the package __init__.py unchanged.
     Timing: each subprocess has a 60 s timeout; no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -43,10 +38,6 @@ from tests.common import source_inventory
 from tests.common.regression_utils import REPO_ROOT
 
 KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
-
-SSH_REMOTE = "git@github.com:slaclab/lcls-timing-core.git"
-HTTPS_REMOTE = "https://github.com/slaclab/lcls-timing-core.git"
-LOG_RECORD = "Author: Example Author\nDate: Mon Jan 1 00:00:00 2024\n    Merge pull request #5 from slaclab/example\n"
 
 LOCK_RE = re.compile(r"SubmoduleCheck\s+\{(\w+)\}\s+\{([\d.]+)\}")
 
@@ -87,100 +78,6 @@ def tracked_package_init_stays_clean():
         check=False,
     )
     assert result.returncode == 0, "a test modified the tracked python/LclsTimingCore/__init__.py"
-
-
-@pytest.fixture
-def release_notes(monkeypatch, capsys):
-    """Return run(remote_url, pr_body) -> (repository name passed to get_repo, stdout).
-
-    releaseNotes.py parses arguments, asks for a token, and talks to git and
-    GitHub at import time, so it is run through runpy with stub modules and a
-    patched input(). Nothing leaves the process.
-    """
-
-    def run(remote_url, pr_body):
-        seen = {}
-
-        class Pull:
-            title = "Example"
-            body = pr_body
-            additions = 1
-            deletions = 2
-            changed_files = 1
-
-        class Repo:
-            def get_pull(self, number):
-                return Pull()
-
-        class Github:
-            def __init__(self, token):
-                seen["token"] = token
-
-            def get_repo(self, name):
-                seen["repo"] = name
-                return Repo()
-
-        class Git:
-            def __init__(self, path):
-                pass
-
-            def fetch(self):
-                pass
-
-            def remote(self, *args):
-                return remote_url
-
-            def log(self, *args):
-                return LOG_RECORD
-
-        git_stub = types.ModuleType("git")
-        git_stub.Git = Git
-        github_stub = types.ModuleType("github")
-        github_stub.Github = Github
-        clipboard_stub = types.ModuleType("pyperclip")
-        clipboard_stub.copy = lambda text: None
-        monkeypatch.setitem(sys.modules, "git", git_stub)
-        monkeypatch.setitem(sys.modules, "github", github_stub)
-        monkeypatch.setitem(sys.modules, "pyperclip", clipboard_stub)
-        monkeypatch.setattr("builtins.input", lambda prompt="": "not-a-real-token")
-        monkeypatch.setattr(sys, "argv", ["releaseNotes.py", "v1.0.0"])
-        runpy.run_path(str(REPO_ROOT / "releaseNotes.py"), run_name="__main__")
-        return seen["repo"], capsys.readouterr().out
-
-    return run
-
-
-def test_release_notes_harness_runs_with_an_ssh_remote(release_notes):
-    repo, out = release_notes(SSH_REMOTE, "notes")
-    assert repo == "slaclab/lcls-timing-core"
-    assert "Example" in out
-    assert "> notes" in out
-
-
-@pytest.mark.skipif(
-    KNOWN_ISSUE_SKIP,
-    reason=(
-        "known issue: releaseNotes.py raises AttributeError on a pull request with no description; "
-        "see https://github.com/slaclab/lcls-timing-core/issues/230; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
-    ),
-)
-def test_release_notes_known_issue_pull_request_without_description(release_notes):
-    _, out = release_notes(SSH_REMOTE, None)
-    assert "Example" in out
-
-
-@pytest.mark.skipif(
-    KNOWN_ISSUE_SKIP,
-    reason=(
-        "known issue: releaseNotes.py turns an https origin URL into ps://github.com/slaclab/lcls-timing-core; "
-        "see https://github.com/slaclab/lcls-timing-core/issues/231; "
-        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
-    ),
-)
-def test_release_notes_known_issue_https_remote(release_notes):
-    repo, _ = release_notes(HTTPS_REMOTE, "notes")
-    assert repo == "slaclab/lcls-timing-core"
 
 
 @pytest.mark.skipif(

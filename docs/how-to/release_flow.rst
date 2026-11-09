@@ -4,8 +4,8 @@ Release flow
 A release is a tag. Pushing the tag runs the whole regression, and only when
 every gate is green does the release job publish a GitHub release. This page
 describes the tags the repository uses, what gates the release, what the
-release job produces, how to generate release notes by hand, the conda package,
-and how the documentation site is published.
+release job produces, the conda package, and how the documentation site is
+published.
 
 Tags
 ----
@@ -22,8 +22,7 @@ it:
    git push --tags
 
 Pull requests target ``pre-release``; merge ``pre-release`` into ``main``
-before tagging. (The comment at the top of ``releaseNotes.py`` still names
-``master``; the default branch is ``main``.)
+before tagging.
 
 What gates the release
 ----------------------
@@ -57,26 +56,6 @@ link, and creates a GitHub release named ``Major Release``, ``Minor Release``,
 or ``Patch Release`` followed by the tag. When a release for the tag already
 exists it prints so and creates nothing. The ``version`` input that
 ``timing_ci.yml`` passes is required by the reusable workflow but never read.
-
-Release notes by hand
----------------------
-
-``releaseNotes.py`` at the repository root generates the same kind of notes
-locally. Run it inside an up to date clone with the proper branch checked out.
-It needs the ``PyGithub``, ``GitPython``, and ``pyperclip`` packages and prompts
-for a GitHub token on standard input; type the token at the prompt and do not
-put it in a command line or a file.
-
-.. code-block:: bash
-
-   python releaseNotes.py v3.12.0
-   python releaseNotes.py v3.11.1..v3.12.0 --copy true
-
-The first form covers the tag up to ``HEAD``; the second covers a range.
-``--nosort true`` keeps the pull requests in log order instead of sorting by
-size of change. The script has two reproduced defects: it crashes on a pull
-request that has no description, and it derives the repository name from an
-https remote incorrectly. Both are listed on the :doc:`known-issues reference page </reference/known_issues>`.
 
 The conda package
 -----------------
