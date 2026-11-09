@@ -26,7 +26,7 @@ LCLS-I EVR
    * - :ref:`EvrV1DbusDecode <entity-lcls-i-evr-evrv1dbusdecode-v>`
      - :repo:`LCLS-I/evr/EvrV1DbusDecode.v`
      - simulated
-     - issue pending
+     - :issue:`216`, issue pending
    * - :ref:`EvrV1EventRAM256x32 <entity-lcls-i-evr-evrv1eventram256x32-vhd>`
      - :repo:`LCLS-I/evr/EvrV1EventRAM256x32.vhd`
      - simulated
@@ -444,7 +444,7 @@ none
      - out
      - ``[73:0]``
 
-Issues: issue pending
+Issues: :issue:`216`, issue pending
 
 .. _entity-lcls-i-evr-evrv1eventram256x32-vhd:
 

@@ -14,7 +14,7 @@ LCLS-II EVR
    * - :ref:`EvrV2Axi <entity-lcls-ii-evr-rtl-evrv2axi-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Axi.vhd`
      - simulated
-     - issue pending
+     - :issue:`215`, issue pending
    * - :ref:`EvrV2Cache <entity-lcls-ii-evr-rtl-evrv2cache-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Cache.vhd`
      - simulated
@@ -22,7 +22,7 @@ LCLS-II EVR
    * - :ref:`EvrV2ChannelReg <entity-lcls-ii-evr-rtl-evrv2channelreg-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2ChannelReg.vhd`
      - simulated
-     - issue pending
+     - :issue:`215`, issue pending
    * - :ref:`EvrV2CoreChannels <entity-lcls-ii-evr-rtl-evrv2corechannels-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CoreChannels.vhd`
      - simulated
@@ -30,7 +30,7 @@ LCLS-II EVR
    * - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CorePulseGen.vhd`
      - simulated
-     - none
+     - :issue:`217`
    * - :ref:`EvrV2CoreTriggers <entity-lcls-ii-evr-rtl-evrv2coretriggers-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd`
      - simulated
@@ -38,7 +38,7 @@ LCLS-II EVR
    * - :ref:`EvrV2EventSelect <entity-lcls-ii-evr-rtl-evrv2eventselect-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2EventSelect.vhd`
      - simulated
-     - none
+     - :issue:`213`
    * - :ref:`EvrV2FromV1 <entity-lcls-ii-evr-rtl-evrv2fromv1-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2FromV1.vhd`
      - simulated
@@ -50,11 +50,11 @@ LCLS-II EVR
    * - :ref:`EvrV2TrigReg <entity-lcls-ii-evr-rtl-evrv2trigreg-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2TrigReg.vhd`
      - simulated
-     - issue pending
+     - :issue:`214`, issue pending
    * - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Trigger.vhd`
      - simulated
-     - none
+     - :issue:`212`, :issue:`217`
    * - :ref:`EvrV2TriggerCompl <entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd`
      - simulated
@@ -148,7 +148,7 @@ Status: simulated
      - in
      - ``slv(7 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`215`, issue pending
 
 .. _entity-lcls-ii-evr-rtl-evrv2cache-vhd:
 
@@ -280,7 +280,7 @@ Status: simulated
      - in
      - ``Slv32Array(NCHANNELS_G - 1 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`215`, issue pending
 
 .. _entity-lcls-ii-evr-rtl-evrv2corechannels-vhd:
 
@@ -454,7 +454,7 @@ Status: simulated
      - in
      - ``Slv6Array(11 downto 0)``
 
-Issues: none
+Issues: :issue:`217`
 
 .. _entity-lcls-ii-evr-rtl-evrv2coretriggers-vhd:
 
@@ -601,7 +601,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: :issue:`213`
 
 .. _entity-lcls-ii-evr-rtl-evrv2fromv1-vhd:
 
@@ -802,7 +802,7 @@ Status: simulated
      - in
      - ``Slv6Array(TRIGGERS_C - 1 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`214`, issue pending
 
 .. _entity-lcls-ii-evr-rtl-evrv2trigger-vhd:
 
@@ -868,7 +868,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: :issue:`212`, :issue:`217`
 
 .. _entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd:
 

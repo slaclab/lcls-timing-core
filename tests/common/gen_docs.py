@@ -66,6 +66,7 @@ from tests.common.vhdl_registers import read_decode
 from tests.common.yaml_maps import (
     INCLUDE_RE,
     KNOWN_MISSING_INCLUDE_ISSUES,
+    KNOWN_MISSING_INCLUDES,
     KNOWN_YAML_DEFECT_ISSUES,
     KNOWN_YAML_DEFECTS,
     YAML_CLASSIFICATION,
@@ -706,12 +707,13 @@ def statuses(repo_root=REPO_ROOT, tree="core"):
     return _entity_statuses(repo_root, _tree_units(repo_root, _tree_by_key(tree)))
 
 
-def entity_issues(path, unit, status, header_issues=None):
+def entity_issues(path, unit, status, header_issues=None, gated=()):
     """Return the issue links of one entity row.
 
     The GHDL issue of a baseline-excluded entity, the unloaded-files issue of
-    every file in UNLOADED_SOURCES whatever its status, and the header issue
-    of the file when ``header_issues`` (the header sidecar) has an entry.
+    every file in UNLOADED_SOURCES whatever its status, the header issue of
+    the file when ``header_issues`` (the header sidecar) has an entry, and the
+    links in ``gated`` (the issues of the gated tests that run the entity).
     """
     ghdl_analysis, source_inventory = _baselines()
     links = []
@@ -721,6 +723,7 @@ def entity_issues(path, unit, status, header_issues=None):
         links.append(source_inventory.UNLOADED_SOURCES_ISSUE)
     if header_issues and path in header_issues:
         links.append(header_issues[path]["issue"])
+    links.extend(link for link in gated if link not in links or link == PENDING_ISSUE)
     return links
 
 
@@ -1060,7 +1063,7 @@ def render_entity_index():
     return "\n".join(lines)
 
 
-def render_tree_page(repo_root, tree, purposes, header_issues, record_labels=None):
+def render_tree_page(repo_root, tree, purposes, header_issues, record_labels=None, gated_links=None):
     """Return the page of one tree: the summary table and one section per rendered entity."""
     units = _tree_units(repo_root, tree)
     rendered = rendered_files(repo_root, tree)
@@ -1076,7 +1079,7 @@ def render_tree_page(repo_root, tree, purposes, header_issues, record_labels=Non
     for path in entities:
         unit = units[path]
         status = all_statuses[path]
-        issues = issue_cell(entity_issues(path, unit, status, header_issues))
+        issues = issue_cell(entity_issues(path, unit, status, header_issues, (gated_links or {}).get(path, ())))
         rows.append([f":ref:`{unit.name} <entity-{slug(path)}>`", repo_link(path), status, issues])
         sections.append(
             entity_section(
@@ -1111,10 +1114,11 @@ def render_entities(repo_root=REPO_ROOT):
     purposes = load_sidecar(SIDECAR_PURPOSES, repo_root)
     header_issues = load_sidecar(SIDECAR_HEADER_ISSUES, repo_root)
     labels = record_labels(read_packages(repo_root))
+    gated_links = gated_links_by_path(repo_root)
     pages = {"reference/entities/index.rst": render_entity_index()}
     for tree in DOC_TREES:
         pages[f"reference/entities/{tree.key}.rst"] = render_tree_page(
-            repo_root, tree, purposes, header_issues, labels
+            repo_root, tree, purposes, header_issues, labels, gated_links
         )
     return pages
 
@@ -1137,7 +1141,7 @@ def render_reference_index(pages):
             "Lookup material for the library, generated from the sources by "
             "``python -m tests.common.gen_docs``: entities with their generics and ports, the verification "
             "status of each, the VHDL packages and records, the register maps with their reset values and agreement across the RTL, PyRogue, and "
-            "YAML sources, and the FPGA family matrix. Do not edit these pages by hand.",
+            "YAML sources, the FPGA family matrix, and the known issues with the test that reproduces each. Do not edit these pages by hand.",
             "",
             ".. toctree::",
             "   :maxdepth: 1",
@@ -1458,7 +1462,11 @@ def render_families(repo_root=REPO_ROOT):
         ]
         for family in read_family_matrix(repo_root)
     ]
-    locks = [[repo_link(path), check, name, version] for path, check, name, version in read_locks(repo_root)]
+    surf_issue = issue_cell([surf_lock_issue(repo_root)])
+    locks = [
+        [repo_link(path), check, name, version, surf_issue if name == "surf" else "none"]
+        for path, check, name, version in read_locks(repo_root)
+    ]
     return "\n".join(
         [
             title("FPGA families, Vivado, and coregen", "="),
@@ -1480,7 +1488,7 @@ def render_families(repo_root=REPO_ROOT):
             title("Version checks and locks", "-"),
             "Every ``VersionCheck`` and ``SubmoduleCheck`` in the repository's ``ruckus.tcl`` files, as found.",
             "",
-            list_table(["File", "Check", "Name", "Version"], locks, widths=[40, 20, 20, 20]),
+            list_table(["File", "Check", "Name", "Version", "Issues"], locks, widths=[35, 20, 15, 15, 15]),
         ]
     )
 
@@ -3064,6 +3072,434 @@ def render_frames():
 
 
 # ---------------------------------------------------------------------------
+# Known issues
+# ---------------------------------------------------------------------------
+
+KNOWN_ISSUES_PAGE = "reference/known_issues.rst"
+RTL_LEGS = ("lcls1_evr", "lcls2_core", "lcls2_evr")
+GATED_PREFIXES = ("known issue", "open question", "pending issue")
+SURF_LOCK_TEST = "test_ruckus_known_issue_surf_locks_agree"
+LEG_PAGES = {
+    "test_yaml_maps.py": "reference/yaml_maps",
+    "test_unloaded_sources.py": "reference/entities/core",
+    "test_release_tooling.py": "how-to/release_flow",
+}
+FUNCTION_PAGES = {SURF_LOCK_TEST: "reference/families"}
+
+KIND_GATED = "gated test"
+KIND_ALLOWLIST = "register drift allowlist"
+KIND_GHDL = "GHDL baseline"
+KIND_UNLOADED = "unloaded sources"
+KIND_HEADER = "header issues"
+KIND_YAML_DEFECT = "YAML defect"
+KIND_YAML_INCLUDE = "YAML missing include"
+LINK_KINDS = (
+    KIND_GATED,
+    KIND_ALLOWLIST,
+    KIND_GHDL,
+    KIND_UNLOADED,
+    KIND_HEADER,
+    KIND_YAML_DEFECT,
+    KIND_YAML_INCLUDE,
+)
+HEADER_KIND_TEXT = {
+    "empty": "the banner Description field is empty",
+    "missing": "the file has no banner Description field",
+    "contradicts": "the banner Description contradicts what the file does",
+}
+
+ISSUE_SECTION_RE = re.compile(r"^Issue (\d+)$", re.MULTILINE)
+PENDING_SECTION = "Issue pending"
+
+
+class GatedTest(NamedTuple):
+    """One test gated by a skipif reason that names RUN_KNOWN_ISSUE_TESTS=1."""
+
+    node_id: str
+    leg: str
+    prefix: str
+    what: str
+    url_or_pending: str
+    toplevels: tuple
+
+
+class LinkSource(NamedTuple):
+    """One place in the tree that holds an issue link, and the docs page that shows it."""
+
+    issue: str
+    kind: str
+    entry: str
+    detail: str
+    page: str
+    label: str = ""
+    text: str = ""
+
+
+class EntityRow(NamedTuple):
+    path: str
+    tree: str
+    name: str
+    page: str
+    label: str
+
+
+def issue_number(url):
+    """Return the issue number of a slaclab/lcls-timing-core issue URL."""
+    if not ISSUE_URL_RE.match(url):
+        raise ValueError(f"{url!r} is not a slaclab/lcls-timing-core issue URL")
+    return int(url.rsplit("/", 1)[1])
+
+
+def _gated_reason(function):
+    """Return the string-literal skipif reason of a function that names the marker, else None."""
+    for decorator in function.decorator_list:
+        if not (isinstance(decorator, ast.Call) and pyrogue_ast._call_name(decorator) == "skipif"):
+            continue
+        for keyword in decorator.keywords:
+            reason = pyrogue_ast._literal(keyword.value) if keyword.arg == "reason" else None
+            if isinstance(reason, str) and REPRODUCE_MARKER in reason:
+                return reason
+    return None
+
+
+def _toplevels_in(node, runners):
+    """Return the lowercase string-constant toplevel keywords of runner calls anywhere inside ``node``."""
+    found = set()
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        func = child.func
+        name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+        if name not in runners:
+            continue
+        for keyword in child.keywords:
+            value = keyword.value
+            if keyword.arg == "toplevel" and isinstance(value, ast.Constant) and isinstance(value.value, str):
+                found.add(value.value.rsplit(".", 1)[-1].lower())
+    return found
+
+
+def gated_tests(repo_root=REPO_ROOT):
+    """Return [GatedTest] for every function under tests/ whose skipif reason names RUN_KNOWN_ISSUE_TESTS=1.
+
+    The prefix is ``known issue``, ``open question``, or ``pending issue``;
+    ``what`` is the text between the prefix and ``; see`` or ``; set``.
+    ``toplevels`` are the simulator toplevels of the function itself, else the
+    toplevels of the other tests of its module (source_inventory ignores
+    skipif-decorated functions on purpose, so this walk is its own).
+    """
+    _, source_inventory = _baselines()
+    runners = (source_inventory.VHDL_RUNNER, source_inventory.VERILOG_RUNNER)
+    tests_dir = Path(repo_root) / "tests"
+    found = []
+    for path in sorted(tests_dir.rglob("test_*.py")):
+        if source_inventory.SKIPPED_DIRS.intersection(path.parts):
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        module_toplevels = None
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            reason = _gated_reason(node)
+            if reason is None:
+                continue
+            prefix = next((p for p in GATED_PREFIXES if reason.startswith(p + ": ")), None)
+            if prefix is None:
+                raise ValueError(f"{path.name}::{node.name}: skip reason starts with none of {GATED_PREFIXES}")
+            what = reason.removeprefix(prefix + ": ").split("; see ", 1)[0].split("; set ", 1)[0]
+            match = ISSUE_IN_TEXT_RE.search(reason)
+            toplevels = _toplevels_in(node, runners)
+            if not toplevels:
+                if module_toplevels is None:
+                    others = {runner: set() for runner in runners}
+                    source_inventory._collect_toplevels(tree, others)
+                    module_toplevels = set().union(*others.values())
+                toplevels = module_toplevels
+            found.append(
+                GatedTest(
+                    f"{path.relative_to(repo_root).as_posix()}::{node.name}",
+                    path.relative_to(tests_dir).parts[0],
+                    prefix,
+                    what,
+                    match.group(0) if match else PENDING_ISSUE,
+                    tuple(sorted(toplevels)),
+                )
+            )
+    return sorted(found, key=lambda gated: gated.node_id)
+
+
+def entity_rows(repo_root=REPO_ROOT):
+    """Return [EntityRow] for every entity and module row of the entity tree pages."""
+    rows = []
+    for tree in DOC_TREES:
+        units = _tree_units(repo_root, tree)
+        for path in rendered_files(repo_root, tree):
+            unit = units[path]
+            if unit.kind in ("entity", "module"):
+                rows.append(EntityRow(path, tree.key, unit.name, f"reference/entities/{tree.key}", f"entity-{slug(path)}"))
+    return rows
+
+
+def _is_loaded(repo_root, inventory, row):
+    """Return True when the file of ``row`` is the one a ruckus.tcl loads for its entity name."""
+    loaded_by = inventory.entities.get(row.name.lower())
+    return loaded_by is not None and _relative(repo_root, loaded_by) == row.path
+
+
+def gated_entity_rows(repo_root=REPO_ROOT, gated=None, rows=None):
+    """Return [(GatedTest, [EntityRow])] for every gated test of the RTL legs.
+
+    A toplevel names its entity, or the entity whose name is the toplevel
+    without a ``wrapper`` suffix. When several files declare that entity the
+    one a ruckus.tcl loads wins.
+    """
+    _, source_inventory = _baselines()
+    gated = gated_tests(repo_root) if gated is None else gated
+    rows = entity_rows(repo_root) if rows is None else rows
+    inventory = source_inventory.Inventory(repo_root)
+    result = []
+    for test in gated:
+        if test.leg not in RTL_LEGS:
+            continue
+        matched = []
+        for toplevel in test.toplevels:
+            names = {toplevel, toplevel.removesuffix("wrapper")}
+            candidates = [row for row in rows if row.name.lower() in names]
+            loaded = [row for row in candidates if _is_loaded(repo_root, inventory, row)]
+            matched += loaded or candidates
+        result.append((test, list(dict.fromkeys(matched))))
+    return result
+
+
+def gated_links_by_path(repo_root=REPO_ROOT):
+    """Return {entity path: [issue link]} from the gated tests of the RTL legs."""
+    links = {}
+    for test, rows in gated_entity_rows(repo_root):
+        for row in rows:
+            links.setdefault(row.path, []).append(test.url_or_pending)
+    return links
+
+
+def surf_lock_issue(repo_root=REPO_ROOT):
+    """Return the issue link of the surf lock reproducer test."""
+    for test in gated_tests(repo_root):
+        if test.node_id.endswith("::" + SURF_LOCK_TEST):
+            return test.url_or_pending
+    raise ValueError(f"no gated test named {SURF_LOCK_TEST}")
+
+
+def _file_pages(repo_root):
+    """Return {repo-relative path: (page, label, text)} for every documented VHDL and Verilog file."""
+    pages = {row.path: (row.page, row.label, row.name) for row in entity_rows(repo_root)}
+    for path, info in read_packages(repo_root).items():
+        pages[path] = (PACKAGES_PAGE.removesuffix(".rst"), package_label(info.name), info.name)
+    return pages
+
+
+def _page_of(pages, path):
+    if path not in pages:
+        raise ValueError(f"{path}: no entity row or package section documents the file")
+    return pages[path]
+
+
+def _gated_sources(repo_root, gated, rows):
+    """Return the LinkSource list of the gated tests."""
+    mapped = dict((test.node_id, matched) for test, matched in gated_entity_rows(repo_root, gated, rows))
+    device = set(device_classes())
+    sources = []
+    for test in gated:
+        function = test.node_id.rsplit("::", 1)[1]
+        module = Path(test.node_id.split("::", 1)[0]).name
+        detail = test.what if test.prefix != "open question" else f"Open question: {test.what}"
+        if test.leg == "rogue":
+            class_name = module.removeprefix("test_").removesuffix(".py")
+            if class_name not in device:
+                raise ValueError(f"{test.node_id}: {class_name} is not a documented device class")
+            targets = [(f"{API_DIR}/{class_name}", api_label(class_name), class_name)]
+        elif test.leg in RTL_LEGS:
+            if not mapped[test.node_id]:
+                raise ValueError(f"{test.node_id}: toplevels {test.toplevels} name no documented entity")
+            targets = [(row.page, row.label, row.name) for row in mapped[test.node_id]]
+        else:
+            page = FUNCTION_PAGES.get(function) or LEG_PAGES.get(module)
+            if page is None:
+                raise ValueError(f"{test.node_id}: no docs page is assigned to {module}")
+            targets = [(page, "", "")]
+        for page, label, text in targets:
+            sources.append(LinkSource(test.url_or_pending, KIND_GATED, test.node_id, detail, page, label, text))
+    return sources
+
+
+def _allowlist_sources():
+    grouped = {}
+    for (block, field, kind), url in ALLOWLIST.items():
+        if block not in REGISTER_BLOCKS:
+            raise ValueError(f"ALLOWLIST names {block}, which has no register page")
+        grouped.setdefault((url, block), {}).setdefault(field, []).append(kind)
+    sources = []
+    for (url, block), fields in sorted(grouped.items()):
+        detail = "; ".join(f"{literal(field)} ({', '.join(sorted(kinds))})" for field, kinds in sorted(fields.items()))
+        sources.append(
+            LinkSource(
+                url, KIND_ALLOWLIST, block, detail, f"reference/registers/{block}", page_label(block), block
+            )
+        )
+    return sources
+
+
+def _baseline_sources(repo_root, pages):
+    ghdl_analysis, source_inventory = _baselines()
+    sources = []
+    by_name = {}
+    for tree in DOC_TREES:
+        for path, unit in _tree_units(repo_root, tree).items():
+            if unit.kind in ("entity", "module"):
+                by_name.setdefault(unit.name.lower(), []).append(path)
+    for unit, url in sorted(ghdl_analysis.KNOWN_GHDL_ISSUES.items()):
+        fragment = ghdl_analysis.KNOWN_GHDL_UNANALYZABLE[unit]
+        paths = by_name.get(unit)
+        if not paths:
+            raise ValueError(f"KNOWN_GHDL_ISSUES names {unit}, which no documented file declares")
+        page, label, text = _page_of(pages, paths[0])
+        sources.append(
+            LinkSource(url, KIND_GHDL, unit, f"GHDL reports {literal(fragment)}", page, label, text)
+        )
+    for path in sorted(source_inventory.UNLOADED_SOURCES):
+        page, label, text = _page_of(pages, path)
+        sources.append(
+            LinkSource(
+                source_inventory.UNLOADED_SOURCES_ISSUE,
+                KIND_UNLOADED,
+                path,
+                "no ruckus.tcl loads the file",
+                page,
+                label,
+                text,
+            )
+        )
+    return sources
+
+
+def _header_sources(repo_root, pages):
+    sources = []
+    for path, entry in sorted(load_sidecar(SIDECAR_HEADER_ISSUES, repo_root).items()):
+        page, label, text = _page_of(pages, path)
+        sources.append(
+            LinkSource(
+                entry["issue"],
+                KIND_HEADER,
+                path,
+                HEADER_KIND_TEXT[entry["kind"]].capitalize(),
+                page,
+                label,
+                text,
+            )
+        )
+    return sources
+
+
+def _yaml_sources():
+    sources = []
+    for name, url in sorted(KNOWN_YAML_DEFECT_ISSUES.items()):
+        problem, line, message = KNOWN_YAML_DEFECTS[name]
+        detail = f"{name} does not parse: {problem} at line {line}, {message}"
+        sources.append(
+            LinkSource(url, KIND_YAML_DEFECT, name, detail, YAML_MAPS_PAGE.removesuffix(".rst"), yaml_label(name), name)
+        )
+    for name, url in sorted(KNOWN_MISSING_INCLUDE_ISSUES.items()):
+        detail = f"{name} includes {', '.join(KNOWN_MISSING_INCLUDES[name])}, which does not exist in yaml/"
+        sources.append(
+            LinkSource(url, KIND_YAML_INCLUDE, name, detail, YAML_MAPS_PAGE.removesuffix(".rst"), yaml_label(name), name)
+        )
+    return sources
+
+
+def link_sources(repo_root=REPO_ROOT):
+    """Return [LinkSource] for every place that holds an issue link, ordered by issue, then kind, then entry."""
+    rows = entity_rows(repo_root)
+    pages = _file_pages(repo_root)
+    sources = _gated_sources(repo_root, gated_tests(repo_root), rows)
+    sources += _allowlist_sources()
+    sources += _baseline_sources(repo_root, pages)
+    sources += _header_sources(repo_root, pages)
+    sources += _yaml_sources()
+    for source in sources:
+        if source.issue != PENDING_ISSUE:
+            issue_number(source.issue)
+    return sorted(sources, key=lambda s: (_issue_order(s.issue), LINK_KINDS.index(s.kind), s.entry, s.page))
+
+
+def _issue_order(url):
+    return (1, 0) if url == PENDING_ISSUE else (0, issue_number(url))
+
+
+def _shown_on(source):
+    if source.label:
+        return f":ref:`{source.text} <{source.label}>`"
+    return f":doc:`/{source.page}`"
+
+
+def _sources_table(sources):
+    rows = [
+        [f"{source.kind}: {literal(source.entry)}", source.detail, _shown_on(source)]
+        for source in sources
+    ]
+    return list_table(["Source", "Detail", "Shown on"], rows, widths=[40, 40, 20])
+
+
+def render_known_issues(repo_root=REPO_ROOT, sources=None):
+    """Return reference/known_issues.rst: one section per issue number, ascending, then the unfiled findings."""
+    sources = link_sources(repo_root) if sources is None else sources
+    by_issue = {}
+    for source in sources:
+        by_issue.setdefault(source.issue, []).append(source)
+    filed = sorted((url for url in by_issue if url != PENDING_ISSUE), key=issue_number)
+    lines = [
+        title("Known issues", "="),
+        "Every known defect and open question of the library on one page, with the test or baseline entry that "
+        "reproduces it and the reference page that shows it. The page is generated from the sources by "
+        "``python -m tests.common.gen_docs``: a test fails when an issue appears in the repository and not here, "
+        "or here and not in the repository.",
+        "",
+        "A **gated test** is skipped unless the environment variable ``RUN_KNOWN_ISSUE_TESTS=1`` is set. The run "
+        "``RUN_KNOWN_ISSUE_TESTS=1 python -m pytest --expect-known-issues -rxX tests/<leg>`` selects only the gated "
+        "tests and expects each one to fail, so an issue that still reproduces is reported as XFAIL and one that no "
+        "longer reproduces is reported as XPASS, which fails the run until its skip is removed. A **GHDL "
+        "baseline** records the exact message GHDL prints for a file it cannot analyze; the regression fails when "
+        "the message changes or disappears. The **register drift allowlist** lists each difference between the RTL "
+        "decode, the PyRogue variables, and the YAML map that is known and linked, and a test fails when an entry "
+        "no longer differs. The header issues, the unloaded sources, and the YAML baselines work the same way: each "
+        "entry names its issue and the regression fails when the entry goes stale.",
+        "",
+        "A finding that is not filed on the tracker yet shows as ``issue pending`` here and on the pages that "
+        "show it; the last section lists them.",
+        "",
+    ]
+    for url in filed:
+        number = issue_number(url)
+        lines += [title(f"Issue {number}", "-"), f"Tracker: :issue:`{number}`.", "", _sources_table(by_issue[url])]
+    pending = by_issue.get(PENDING_ISSUE, [])
+    if pending:
+        lines += [
+            title(PENDING_SECTION, "-"),
+            "These sources hold an ``issue pending`` marker until the finding is filed.",
+            "",
+            _sources_table(pending),
+        ]
+    return "\n".join(lines)
+
+
+def page_issue_numbers(text):
+    """Return the issue numbers of the ``Issue <n>`` sections of a rendered known-issues page."""
+    return [int(number) for number in ISSUE_SECTION_RE.findall(text)]
+
+
+def pending_section(text):
+    """Return the text of the pending section of a rendered known-issues page, or an empty string."""
+    return text.split(f"\n{PENDING_SECTION}\n", 1)[1] if f"\n{PENDING_SECTION}\n" in text else ""
+
+
+# ---------------------------------------------------------------------------
 # Generation and freshness
 # ---------------------------------------------------------------------------
 
@@ -3076,6 +3512,7 @@ def render_all(repo_root=REPO_ROOT):
     pages.update(render_layouts())
     pages.update(render_frames())
     pages[YAML_MAPS_PAGE] = render_yaml_maps()
+    pages[KNOWN_ISSUES_PAGE] = render_known_issues(repo_root)
     pages["reference/families.rst"] = render_families(repo_root)
     pages["reference/index.rst"] = render_reference_index(pages)
     for path, text in pages.items():

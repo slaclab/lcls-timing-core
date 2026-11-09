@@ -59,8 +59,15 @@ Test methodology:
         sizes, and an empty or zero-width table is rejected, the package
         reader returns the records, types, constants, and subprograms of a
         declaration (not its body), the six package files equal the sections
-        of the packages page, and a port typed by a documented record links
-        its definition.
+        of the packages page, a port typed by a documented record links
+        its definition, every link source (gated test, allowlist entry, GHDL
+        baseline, unloaded file, header entry, YAML baseline) is on the
+        known-issues page and the page names no issue that no source holds
+        (checked in both directions, with a removed and an invented source),
+        the page orders issues by number with the pending section last, the
+        gated tests of the RTL legs reach the issue cell of their entity
+        rows, an entity with several issues shows them in one cell, and the
+        surf lock rows of the families page carry the lock test issue.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -1678,3 +1685,145 @@ def test_record_ports_link_their_type():
     assert linked <= labels_on_page
     core = pages["reference/entities/core.rst"]
     assert ":ref:`TimingMessageType <type-timingmessagetype>`" in core
+
+
+def _section_rows(text, number):
+    """Return the number of table rows of the ``Issue <number>`` section of a rendered page."""
+    body = text.split(f"\nIssue {number}\n", 1)[1]
+    body = re.split(r"\n(?:Issue \d+|Issue pending)\n", body, maxsplit=1)[0]
+    return body.count("\n   * - ") - 1
+
+
+def _page_problems(sources, text):
+    """Return (numbers a source holds that the page lacks, numbers the page names that no source holds)."""
+    held = {gen_docs.issue_number(s.issue) for s in sources if s.issue != register_drift.PENDING_ISSUE}
+    shown = set(gen_docs.page_issue_numbers(text))
+    return sorted(held - shown), sorted(shown - held)
+
+
+def test_every_link_source_is_on_the_known_issues_page():
+    sources = gen_docs.link_sources(REPO_ROOT)
+    text = (REPO_ROOT / "docs" / gen_docs.KNOWN_ISSUES_PAGE).read_text(encoding="utf-8")
+    kinds = {s.kind for s in sources}
+    assert kinds == set(gen_docs.LINK_KINDS), "a link source kind has no entry in the tree"
+    absent, _ = _page_problems(sources, text)
+    assert not absent, f"issues in a link source and not on the known-issues page: {absent}"
+    pending = [s for s in sources if s.issue == register_drift.PENDING_ISSUE]
+    assert pending, "no pending link source; the pending section would be empty"
+    section = gen_docs.pending_section(text)
+    for source in pending:
+        assert gen_docs.literal(source.entry) in section, f"{source.kind} {source.entry} is not in the pending section"
+    for source in sources:
+        assert gen_docs.literal(source.entry) in text, f"{source.kind} {source.entry} is not on the page"
+    # Removing every source of one issue makes the comparison report it.
+    number = gen_docs.issue_number(next(s.issue for s in sources if s.issue != register_drift.PENDING_ISSUE))
+    kept = [s for s in sources if s.issue.endswith(f"/{number}") is False]
+    assert _page_problems(kept, text) == ([], [number])
+    assert _page_problems(sources, gen_docs.render_known_issues(REPO_ROOT, kept))[0] == [number]
+
+
+def test_known_issues_page_names_no_unknown_issue():
+    sources = gen_docs.link_sources(REPO_ROOT)
+    text = (REPO_ROOT / "docs" / gen_docs.KNOWN_ISSUES_PAGE).read_text(encoding="utf-8")
+    _, unknown = _page_problems(sources, text)
+    assert not unknown, f"the known-issues page names issues that no link source holds: {unknown}"
+    for number in gen_docs.page_issue_numbers(text):
+        assert _section_rows(text, number) >= 1, f"Issue {number} has no source row"
+    invented = gen_docs.LinkSource(
+        "https://github.com/slaclab/lcls-timing-core/issues/9999", gen_docs.KIND_GATED, "tests/x.py::t", "x", "reference/known_issues"
+    )
+    rendered = gen_docs.render_known_issues(REPO_ROOT, [*sources, invented])
+    assert _page_problems(sources, rendered) == ([], [9999])
+
+
+def test_known_issues_page_orders_issues_by_number_with_pending_last():
+    text = (REPO_ROOT / "docs" / gen_docs.KNOWN_ISSUES_PAGE).read_text(encoding="utf-8")
+    numbers = gen_docs.page_issue_numbers(text)
+    assert numbers == sorted(set(numbers))
+    assert text.index(f"\n{gen_docs.PENDING_SECTION}\n") > text.index(f"\nIssue {numbers[-1]}\n")
+    pending = gen_docs.pending_section(text)
+    assert "\nIssue " not in pending
+    sources = gen_docs.link_sources(REPO_ROOT)
+    order = [gen_docs._issue_order(s.issue) for s in sources]
+    assert order == sorted(order)
+
+
+def test_every_link_source_names_a_page_that_exists():
+    pages = render_all(REPO_ROOT)
+    for source in gen_docs.link_sources(REPO_ROOT):
+        known = f"{source.page}.rst" in pages or (REPO_ROOT / "docs" / f"{source.page}.rst").is_file()
+        assert known, f"{source.kind} {source.entry}: no page {source.page}"
+        if source.label:
+            target = pages.get(f"{source.page}.rst") or (REPO_ROOT / "docs" / f"{source.page}.rst").read_text(encoding="utf-8")
+            assert f".. _{source.label}:" in target, f"{source.kind} {source.entry}: no label {source.label} on {source.page}"
+
+
+def _issues_line(pages, row):
+    page = pages[f"{row.page}.rst"]
+    body = page.split(f".. _{row.label}:\n", 1)[1]
+    return next(line for line in body.splitlines() if line.startswith("Issues: "))
+
+
+def test_gated_rtl_issues_reach_their_entity_rows():
+    pages = render_all(REPO_ROOT)
+    pairs = gen_docs.gated_entity_rows(REPO_ROOT)
+    assert len(pairs) == 14
+    for test, rows in pairs:
+        assert rows, f"{test.node_id}: toplevels {test.toplevels} name no documented entity"
+        for row in rows:
+            line = _issues_line(pages, row)
+            if test.url_or_pending == register_drift.PENDING_ISSUE:
+                assert "issue pending" in line, f"{test.node_id}: {line}"
+            else:
+                number = gen_docs.issue_number(test.url_or_pending)
+                assert f":issue:`{number}`" in line, f"{test.node_id}: {line}"
+
+
+def test_an_entity_with_several_issues_shows_every_link_in_one_cell():
+    pages = render_all(REPO_ROOT)
+    row = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "TPGMiniReg")
+    assert _issues_line(pages, row) == "Issues: issue pending, issue pending"
+    trigger = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "EvrV2Trigger")
+    assert _issues_line(pages, trigger) == "Issues: :issue:`212`, :issue:`217`"
+    assert gen_docs.entity_issues(
+        DIVIDER, read_vhdl_unit(REPO_ROOT / DIVIDER), "simulated", None, ["https://github.com/slaclab/lcls-timing-core/issues/9"]
+    ) == ["https://github.com/slaclab/lcls-timing-core/issues/9"]
+
+
+def test_gated_tests_split_the_prefix_and_the_text(tmp_path):
+    tests_dir = tmp_path / "tests" / "lcls2_core"
+    tests_dir.mkdir(parents=True)
+    (tests_dir / "test_Demo.py").write_text(
+        "import pytest\n"
+        "@pytest.mark.skipif(True, reason=(\n"
+        "    'open question: demo lags; see https://github.com/slaclab/lcls-timing-core/issues/5; '\n"
+        "    'set RUN_KNOWN_ISSUE_TESTS=1 to reproduce'))\n"
+        "def test_demo_known_issue():\n"
+        "    run_lcls_vhdl_test(toplevel='lcls_timing_core.demowrapper')\n"
+        "@pytest.mark.skipif(True, reason='pending issue: other; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce')\n"
+        "def test_other_known_issue():\n"
+        "    pass\n"
+        "def test_plain():\n"
+        "    run_lcls_vhdl_test(toplevel='lcls_timing_core.plainwrapper')\n",
+        encoding="utf-8",
+    )
+    found = {g.node_id.split("::")[1]: g for g in gen_docs.gated_tests(tmp_path)}
+    assert sorted(found) == ["test_demo_known_issue", "test_other_known_issue"]
+    demo = found["test_demo_known_issue"]
+    assert (demo.leg, demo.prefix, demo.what, demo.toplevels) == ("lcls2_core", "open question", "demo lags", ("demowrapper",))
+    assert demo.url_or_pending.endswith("/issues/5")
+    other = found["test_other_known_issue"]
+    assert (other.prefix, other.what, other.url_or_pending) == ("pending issue", "other", register_drift.PENDING_ISSUE)
+    assert other.toplevels == ("plainwrapper",)
+
+
+def test_surf_lock_rows_carry_the_lock_test_issue():
+    text = render_all(REPO_ROOT)["reference/families.rst"]
+    issue = gen_docs.issue_cell([gen_docs.surf_lock_issue(REPO_ROOT)])
+    locks = text.split("Version checks and locks", 1)[1]
+    chunks = locks.split("\n   * - :repo:")[1:]
+    assert chunks
+    for chunk in chunks:
+        cells = [line.removeprefix("     - ") for line in chunk.splitlines()[1:5]]
+        expected = issue if cells[1] == "surf" else "none"
+        assert cells[3] == expected, cells

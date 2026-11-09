@@ -168,25 +168,30 @@ Every ``VersionCheck`` and ``SubmoduleCheck`` in the repository's ``ruckus.tcl``
 
 .. list-table::
    :header-rows: 1
-   :widths: 40 20 20 20
+   :widths: 35 20 15 15 15
 
    * - File
      - Check
      - Name
      - Version
+     - Issues
    * - :repo:`ruckus.tcl`
      - VersionCheck
      - Vivado
      - 2019.1
+     - none
    * - :repo:`ruckus.tcl`
      - SubmoduleCheck
      - ruckus
      - 2.1.2
+     - none
    * - :repo:`ruckus.tcl`
      - SubmoduleCheck
      - surf
      - 2.53.0
+     - issue pending
    * - :repo:`LCLS-II/gtx7/ruckus.tcl`
      - SubmoduleCheck
      - surf
      - 2.74.0
+     - issue pending

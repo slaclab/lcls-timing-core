@@ -18,7 +18,7 @@ LCLS-II core
    * - :ref:`BsaControl <entity-lcls-ii-core-rtl-bsacontrolv2-vhd>`
      - :repo:`LCLS-II/core/rtl/BsaControlv2.vhd`
      - simulated
-     - none
+     - :issue:`209`
    * - :ref:`ClockTime <entity-lcls-ii-core-rtl-clocktime-vhd>`
      - :repo:`LCLS-II/core/rtl/ClockTime.vhd`
      - simulated
@@ -46,7 +46,7 @@ LCLS-II core
    * - :ref:`GthRxAlignCheck <entity-lcls-ii-core-rtl-gthrxaligncheck-vhd>`
      - :repo:`LCLS-II/core/rtl/GthRxAlignCheck.vhd`
      - simulated
-     - none
+     - :issue:`210`
    * - :ref:`TPFifo <entity-lcls-ii-core-rtl-tpfifo-vhd>`
      - :repo:`LCLS-II/core/rtl/TPFifo.vhd`
      - not simulated: not loaded by any ruckus.tcl
@@ -94,7 +94,7 @@ LCLS-II core
    * - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingFrameRx.vhd`
      - simulated
-     - issue pending
+     - :issue:`211`, issue pending
    * - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingGthWrapper.vhd`
      - baseline-excluded
@@ -110,7 +110,7 @@ LCLS-II core
    * - :ref:`TimingMsgToAxiStream <entity-lcls-ii-core-rtl-timingmsgtoaxistream-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingMsgToAxiStream.vhd`
      - simulated
-     - none
+     - :issue:`208`
    * - :ref:`TimingRx <entity-lcls-ii-core-rtl-timingrx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingRx.vhd`
      - simulated
@@ -118,7 +118,7 @@ LCLS-II core
    * - :ref:`TimingSerialDelay <entity-lcls-ii-core-rtl-timingserialdelay-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingSerialDelay.vhd`
      - simulated
-     - none
+     - :issue:`207`
    * - :ref:`TimingSerializer <entity-lcls-ii-core-rtl-timingserializer-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingSerializer.vhd`
      - simulated
@@ -326,7 +326,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: :issue:`209`
 
 .. _entity-lcls-ii-core-rtl-clocktime-vhd:
 
@@ -833,7 +833,7 @@ Status: simulated
      - out
      - ``AxiLiteWriteSlaveType``
 
-Issues: none
+Issues: :issue:`210`
 
 .. _entity-lcls-ii-core-rtl-tpfifo-vhd:
 
@@ -1721,7 +1721,7 @@ Status: simulated
      - out
      - ``slv(4 downto 0)``
 
-Issues: issue pending
+Issues: :issue:`211`, issue pending
 
 .. _entity-lcls-ii-core-rtl-timinggthwrapper-vhd:
 
@@ -2015,7 +2015,7 @@ Status: simulated
      - in
      - ``AxiStreamSlaveType``
 
-Issues: none
+Issues: :issue:`208`
 
 .. _entity-lcls-ii-core-rtl-timingrx-vhd:
 
@@ -2195,7 +2195,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: none
+Issues: :issue:`207`
 
 .. _entity-lcls-ii-core-rtl-timingserializer-vhd:
 
