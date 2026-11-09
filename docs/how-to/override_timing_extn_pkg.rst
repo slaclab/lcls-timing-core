@@ -86,3 +86,9 @@ default: ``LCLS-II/core/ruckus.tcl`` names its sources one by one and lists
 nothing from ``rtl/default``, and no RTL file here uses the package. Supplying
 your own therefore needs no change to the library and does not replace a loaded
 copy; do not add the default file beside yours.
+
+See also
+--------
+
+- :doc:`/reference/packages`
+- :doc:`/explanation/extension_package`

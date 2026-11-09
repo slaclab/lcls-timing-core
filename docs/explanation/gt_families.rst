@@ -97,3 +97,9 @@ the tests drive ``rxData`` and the status ports directly. A further file,
 :repo:`LCLS-II/core/rtl/TimingGthWrapper.vhd`, declares the entity
 ``TimingGthWrapper``, which no ``ruckus.tcl`` loads and no file instantiates; it is one
 of the seven units GHDL cannot analyze (see the overview).
+
+See also
+--------
+
+- :doc:`/reference/families`
+- :doc:`/reference/entities/gt`

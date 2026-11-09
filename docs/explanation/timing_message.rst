@@ -88,3 +88,9 @@ BSA described on :doc:`lcls2_frame`, which has 672 bits. On that path the
 conversion leaves ``version``, ``syncStatus``, ``mpsValid``, ``bcsFault``, and
 the four BSA fields unassigned. That is observed and the intent is not
 confirmed; it is open as :issue:`211`.
+
+See also
+--------
+
+- :doc:`/reference/packages`
+- :doc:`/reference/entities/core`

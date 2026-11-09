@@ -352,3 +352,12 @@ configuration is always synchronized to ``evrClk``, and the synchronized trigger
 configuration that it builds is not the signal the ``EvrV2Trigger`` instances read
 (they take ``triggerConfig`` directly). Both are readings of the RTL; no test pins
 them, because GHDL cannot analyze the unit.
+
+See also
+--------
+
+- :doc:`/reference/registers/EvrV2TriggerReg`
+- :doc:`/reference/registers/EvrV2ChannelReg`
+- :doc:`/reference/registers/EvrV2Core`
+- :doc:`/reference/pyrogue/EvrV2CoreTriggers`
+- :doc:`/reference/entities/evr`

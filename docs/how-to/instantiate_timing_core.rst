@@ -192,3 +192,10 @@ path itself:
 ``rxData`` is a ``TimingRxType`` record: assign its ``data``, ``dataK``,
 ``decErr``, and ``dspErr`` fields from the transceiver outputs, as ``TimingCore``
 does. The AXI-Lite slave is the register block that ``TimingFrameRx`` maps.
+
+See also
+--------
+
+- :doc:`/reference/entities/core`
+- :doc:`/reference/registers/TimingFrameRx`
+- :doc:`/reference/pyrogue/TimingFrameRx`

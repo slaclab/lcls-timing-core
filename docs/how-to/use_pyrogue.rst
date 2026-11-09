@@ -110,3 +110,9 @@ succeed once the overlap is fixed:
 
 Until those are fixed, build the rest of the tree without these classes.
 Reproduce any of them with the known-issue command of :doc:`run_regression`.
+
+See also
+--------
+
+- :doc:`/reference/pyrogue/index`
+- :doc:`/reference/yaml_maps`

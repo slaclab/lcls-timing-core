@@ -47,4 +47,10 @@ Supplying your own package
 
 A downstream project that wants a different extension layout provides its own
 package named ``TimingExtnPkg`` with the same names and signatures as the
-default, in place of it. The how-to guides describe the procedure.
+default, in place of it. :doc:`/how-to/override_timing_extn_pkg` describes the procedure.
+
+See also
+--------
+
+- :doc:`/reference/packages`
+- :doc:`/how-to/override_timing_extn_pkg`

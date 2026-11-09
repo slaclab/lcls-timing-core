@@ -207,3 +207,12 @@ with one ``pr.Device`` class per block under
 :repo:`python/LclsTimingCore/`. The register offsets in the VHDL decode, the
 Python classes, and the YAML maps in :repo:`yaml/` are kept in agreement by hand,
 and the regression's drift check reports any difference.
+
+See also
+--------
+
+- :doc:`/reference/entities/core`
+- :doc:`/reference/entities/evr`
+- :doc:`/reference/entities/lcls1`
+- :doc:`/reference/entities/gt`
+- :doc:`/reference/packages`

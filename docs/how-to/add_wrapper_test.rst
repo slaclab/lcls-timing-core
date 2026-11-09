@@ -234,3 +234,9 @@ leg fails on a stale page.
 .. code-block:: bash
 
    .venv/bin/python -m tests.common.gen_docs
+
+See also
+--------
+
+- :doc:`/reference/known_issues`
+- :doc:`/reference/entities/index`

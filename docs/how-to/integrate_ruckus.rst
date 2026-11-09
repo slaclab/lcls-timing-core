@@ -79,3 +79,9 @@ selects the wrapper. A family that has no wrapper loads none, and the design
 must provide its own transceiver. See :doc:`../explanation/architecture` for how
 the wrapper connects to the timing core and :doc:`instantiate_timing_core` for
 the connections.
+
+See also
+--------
+
+- :doc:`/reference/families`
+- :doc:`/reference/entities/index`

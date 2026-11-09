@@ -76,7 +76,7 @@ The first form covers the tag up to ``HEAD``; the second covers a range.
 ``--nosort true`` keeps the pull requests in log order instead of sorting by
 size of change. The script has two reproduced defects: it crashes on a pull
 request that has no description, and it derives the repository name from an
-https remote incorrectly. Both are listed on the known-issues reference page.
+https remote incorrectly. Both are listed on the :doc:`known-issues reference page </reference/known_issues>`.
 
 The conda package
 -----------------
@@ -86,7 +86,7 @@ The version comes from the git tag (``GIT_DESCRIBE_TAG``) and the build number
 from the commits since it. The recipe builds with ``conda-recipe/build.sh``,
 which calls ``setup.py``; that file imports ``distutils``, which Python 3.12
 removed, so the build needs an older Python or a setuptools shim. This is also
-listed on the known-issues reference page. The documented build and upload
+listed on the :doc:`known-issues reference page </reference/known_issues>`. The documented build and upload
 commands are in :repo:`conda-recipe/README.md`:
 
 .. code-block:: bash
@@ -116,3 +116,8 @@ repository admin:
 
 After that, merging a documentation change into ``main`` publishes it at
 https://slaclab.github.io/lcls-timing-core/.
+
+See also
+--------
+
+- :doc:`/reference/known_issues`

@@ -243,3 +243,10 @@ expected one in ``KNOWN_GHDL_UNANALYZABLE`` in
 map is covered through the PyRogue class ``EvrV1Isr``
 (:repo:`python/LclsTimingCore/EvrV1Isr.py`) in
 :repo:`tests/rogue/test_EvrV1Isr.py`.
+
+See also
+--------
+
+- :doc:`/reference/registers/EvrV1Reg`
+- :doc:`/reference/pyrogue/EvrV1Reg`
+- :doc:`/reference/entities/lcls1`

@@ -125,3 +125,9 @@ open questions issue for the core, :issue:`211`.
   FIFOs with a fixed address width, so the generic has no effect. Observed,
   intent unconfirmed; pinned in
   :repo:`tests/lcls2_core/test_TimingMsgDelay.py`.
+
+See also
+--------
+
+- :doc:`/reference/entities/core`
+- :doc:`/reference/registers/TimingFrameRx`

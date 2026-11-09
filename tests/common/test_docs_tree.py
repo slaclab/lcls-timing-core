@@ -25,7 +25,11 @@ Test methodology:
         file at the repository root, and a :repo: role whose target is not a
         tracked file or a directory holding one each fail one named test.
         Sphinx does not validate extlinks targets, so the last test is the
-        only check of them.
+        only check of them. Each of the 12 explanation pages, the 8 how-to
+        pages, and the 7 reference roots (entities, registers, and pyrogue
+        indexes, yaml_maps, packages, families, known_issues) must exist and be
+        reachable from the root toctree, and a seeded missing or unreachable
+        page is reported.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -136,9 +140,8 @@ def repo_link_targets(path):
             yield number, target.split("#", 1)[0].rstrip("/")
 
 
-def test_every_page_is_reachable_from_the_root_toctree():
-    pages = set(rst_pages())
-    assert "index" in pages
+def reachable_pages(pages):
+    """Return the set of pages reachable from the root toctree through toctree entries."""
     seen = set()
     todo = ["index"]
     while todo:
@@ -147,8 +150,51 @@ def test_every_page_is_reachable_from_the_root_toctree():
             continue
         seen.add(page)
         todo.extend(t for t in toctree_entries(page) if t in pages)
-    orphans = sorted(pages - seen)
+    return seen
+
+
+def test_every_page_is_reachable_from_the_root_toctree():
+    pages = set(rst_pages())
+    assert "index" in pages
+    orphans = sorted(pages - reachable_pages(pages))
     assert not orphans, "pages reachable from no toctree: %s" % orphans
+
+
+REQUIRED_PAGES = (
+    *("explanation/" + name for name in (
+        "overview", "architecture", "timing_message", "lcls2_frame",
+        "lcls1_stream", "clocking_cdc", "gt_families", "extension_package",
+        "tpg", "bsa", "evr_v2", "evr_v1")),
+    *("how-to/" + name for name in (
+        "run_regression", "release_flow", "add_wrapper_test", "use_pyrogue",
+        "instantiate_timing_core", "instantiate_evr", "integrate_ruckus",
+        "override_timing_extn_pkg")),
+    *("reference/" + name for name in (
+        "entities/index", "registers/index", "pyrogue/index", "yaml_maps",
+        "packages", "families", "known_issues")),
+)
+
+
+def missing_or_unreachable(required, pages, reachable):
+    """Return (required pages that do not exist, required pages no toctree reaches)."""
+    missing = sorted(p for p in required if p not in pages)
+    unreachable = sorted(p for p in required if p in pages and p not in reachable)
+    return missing, unreachable
+
+
+def test_required_pages_exist_and_are_reachable():
+    assert len(REQUIRED_PAGES) == 12 + 8 + 7
+    assert len(set(REQUIRED_PAGES)) == len(REQUIRED_PAGES)
+    pages = set(rst_pages())
+    reachable = reachable_pages(pages)
+    missing, unreachable = missing_or_unreachable(REQUIRED_PAGES, pages, reachable)
+    assert not missing, "required pages that do not exist: %s" % missing
+    assert not unreachable, "required pages no toctree reaches: %s" % unreachable
+    # A seeded absent page and a seeded orphan are both reported.
+    gone = pages - {"reference/known_issues"}
+    assert missing_or_unreachable(REQUIRED_PAGES, gone, reachable) == (["reference/known_issues"], [])
+    orphaned = reachable - {"reference/known_issues"}
+    assert missing_or_unreachable(REQUIRED_PAGES, pages, orphaned) == ([], ["reference/known_issues"])
 
 
 def test_no_tutorial_section():

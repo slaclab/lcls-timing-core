@@ -82,3 +82,9 @@ open as :issue:`211`.
 - An error cycle (``rxDecErr`` or ``rxDspErr``) after the marker clears the
   receiver for that frame, so the frame gives no strobe; the next clean frame
   decodes again.
+
+See also
+--------
+
+- :doc:`/reference/packages`
+- :doc:`/reference/entities/core`

@@ -122,3 +122,9 @@ The regression decodes model-encoded frames with the unmodified
 ``TimingFrameRx`` and ``TimingDeserializer``; the 944, 704, 416, and 320-bit
 walks that fix the message layouts agree with ``TimingPkg`` bit for bit
 (:repo:`tests/lcls2_core/test_TimingPkgConversions.py`).
+
+See also
+--------
+
+- :doc:`/reference/packages`
+- :doc:`/reference/entities/core`

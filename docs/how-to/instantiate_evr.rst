@@ -121,3 +121,10 @@ assumes the packed stride. ``EvrV2CoreChannels`` builds the channel groups only.
 The device's ``offset`` in the tree is the base address of the entity
 (``AXIL_BASEADDR_G`` for the triggers composite). See :doc:`use_pyrogue` for the
 construction.
+
+See also
+--------
+
+- :doc:`/reference/entities/evr`
+- :doc:`/reference/registers/EvrV2TriggerReg`
+- :doc:`/reference/pyrogue/EvrV2CoreTriggers`

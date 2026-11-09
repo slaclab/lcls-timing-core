@@ -108,3 +108,10 @@ Measured in :repo:`tests/lcls2_core/test_TPGMiniEdef.py` and again through
 directory; no ``ruckus.tcl`` lists it, and
 :repo:`tests/lcls2_core/test_TPGMiniEdefTb.py` runs it as a no-crash smoke test
 with no assertions of its own.
+
+See also
+--------
+
+- :doc:`/reference/registers/TPGMiniCore`
+- :doc:`/reference/pyrogue/TPGMiniCore`
+- :doc:`/reference/entities/core`

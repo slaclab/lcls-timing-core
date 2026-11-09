@@ -167,3 +167,10 @@ The qualifying cycle on the latch edge itself is lost, because the count restart
 from zero there (observed, intent unconfirmed, :issue:`211`). These behaviors are
 pinned in :repo:`tests/lcls2_core/test_CtrControl.py`. No RTL file in this
 repository instantiates ``CtrControl``; downstream projects do.
+
+See also
+--------
+
+- :doc:`/reference/registers/TPGMiniCore`
+- :doc:`/reference/pyrogue/TPGMiniCore`
+- :doc:`/reference/entities/core`
