@@ -138,10 +138,10 @@ Status: Vivado-only
      - ``slv(2 downto 0)``
    * - ``rxControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``rxUsrClkActive``
      - in
      - ``sl``
@@ -168,10 +168,10 @@ Status: Vivado-only
      - ``sl``
    * - ``txControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``txStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``txUsrClk``
      - in
      - ``sl``
@@ -297,10 +297,10 @@ Status: Vivado-only
      - ``slv(2 downto 0)``
    * - ``rxControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``rxUsrClkActive``
      - in
      - ``sl``
@@ -327,10 +327,10 @@ Status: Vivado-only
      - ``sl``
    * - ``txControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``txStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``txUsrClk``
      - in
      - ``sl``
@@ -444,10 +444,10 @@ Status: Vivado-only
      - ``sl``
    * - ``rxControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``rxOutClk``
      - out
      - ``sl``
@@ -468,10 +468,10 @@ Status: Vivado-only
      - ``slv(1 downto 0)``
    * - ``txControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``txStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``txOutClk``
      - out
      - ``sl``
@@ -588,10 +588,10 @@ Status: Vivado-only
      - ``sl``
    * - ``rxControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``rxOutClk``
      - out
      - ``sl``
@@ -612,10 +612,10 @@ Status: Vivado-only
      - ``slv(1 downto 0)``
    * - ``txControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``txStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``txOutClk``
      - out
      - ``sl``
@@ -738,10 +738,10 @@ Status: Vivado-only
      - ``slv(2 downto 0)``
    * - ``rxControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``rxUsrClkActive``
      - in
      - ``sl``
@@ -771,10 +771,10 @@ Status: Vivado-only
      - ``sl``
    * - ``txControl``
      - in
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``txStatus``
      - out
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``txUsrClk``
      - in
      - ``sl``

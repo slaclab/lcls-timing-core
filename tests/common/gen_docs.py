@@ -725,10 +725,276 @@ def entity_issues(path, unit, status, header_issues=None):
 
 
 # ---------------------------------------------------------------------------
+# VHDL package reader and page
+# ---------------------------------------------------------------------------
+
+PACKAGES_PAGE = "reference/packages.rst"
+
+
+class PackageInfo(NamedTuple):
+    """What a package declaration holds, each list in declaration order.
+
+    ``records`` are (name, [(field, type text)]); ``types`` are (name, text) for
+    arrays, subtypes, and other type declarations; ``constants`` are (name, type
+    text, value text); ``subprograms`` are (kind, name, signature text).
+    """
+
+    name: str
+    records: list
+    types: list
+    constants: list
+    subprograms: list
+
+
+def _statement_end(body, start):
+    """Return the index of the semicolon that ends the statement starting at ``start``."""
+    depth = 0
+    for index in range(start, len(body)):
+        if _is_op(body[index], "("):
+            depth += 1
+        elif _is_op(body[index], ")"):
+            depth -= 1
+        elif depth == 0 and _is_op(body[index], ";"):
+            return index
+    raise ValueError(f"line {body[start].line}: statement without a closing semicolon")
+
+
+def _closing_end(body, start, word):
+    """Return the semicolon index after the ``end <word>`` that closes the construct opened at ``start``."""
+    for index in range(start, len(body) - 1):
+        if _word(body[index]) == "end" and _word(body[index + 1]) == word:
+            return _statement_end(body, index)
+    raise ValueError(f"line {body[start].line}: no end {word}")
+
+
+def _declared_names(tokens):
+    return [t.value for t in tokens if t.kind == "id" and _word(t) not in _OBJECT_CLASSES]
+
+
+def read_package(path):
+    """Return the PackageInfo of the first package declaration in VHDL file ``path``.
+
+    Only the declaration is read, not the package body. Records give their field
+    names and types, arrays, subtypes, and other types give their text, constants
+    give their type and value text, and functions and procedures give their
+    signature. Use clauses, components, and anything else are skipped. Raises
+    ValueError naming the file when it declares no package.
+    """
+    path = Path(path)
+    tokens = lex(path.read_text(encoding="utf-8", errors="replace"))
+    for index in range(len(tokens) - 2):
+        if _word(tokens[index]) == "package" and tokens[index + 1].kind == "id" and _word(tokens[index + 2]) == "is":
+            if _word(tokens[index + 1]) != "body":
+                break
+    else:
+        raise ValueError(f"{path}: no package declaration found")
+    name = tokens[index + 1].value
+    rest = tokens[index + 3:]
+    stop = next(
+        (
+            n
+            for n in range(len(rest) - 1)
+            if _word(rest[n]) == "end" and (_word(rest[n + 1]) in ("package", name.lower()) or _is_op(rest[n + 1], ";"))
+        ),
+        len(rest),
+    )
+    body = rest[:stop]
+    info = PackageInfo(name, [], [], [], [])
+    position = 0
+    while position < len(body):
+        word = _word(body[position])
+        if word == "type" and len(body) > position + 3 and _word(body[position + 3]) == "record":
+            end = _closing_end(body, position, "record")
+            close = next(n for n in range(position, end) if _word(body[n]) == "end" and _word(body[n + 1]) == "record")
+            fields = []
+            for entry in _split_top(body[position + 4:close], ";"):
+                if not entry:
+                    continue
+                colon = _find_top(entry, (":",))
+                if colon <= 0:
+                    raise ValueError(f"{path}: record {body[position + 1].value} field without a colon")
+                typed = entry[colon + 1:]
+                assign = _find_top(typed, (":=",))
+                typed = typed[:assign] if assign >= 0 else typed
+                fields.extend((field, compact(typed)) for field in _declared_names(entry[:colon]))
+            info.records.append((body[position + 1].value, fields))
+        elif word == "component":
+            end = _closing_end(body, position, "component")
+        else:
+            end = _statement_end(body, position)
+            statement = body[position:end]
+            if word == "type" and len(statement) > 3 and _word(statement[2]) == "is":
+                text = "array " + compact(statement[4:]) if _word(statement[3]) == "array" else compact(statement[3:])
+                info.types.append((statement[1].value, text))
+            elif word == "subtype" and len(statement) > 3 and _word(statement[2]) == "is":
+                info.types.append((statement[1].value, "subtype of " + compact(statement[3:])))
+            elif word == "constant":
+                colon = _find_top(statement, (":",))
+                if colon <= 0:
+                    raise ValueError(f"{path}: constant without a colon at line {statement[0].line}")
+                assign = _find_top(statement[colon:], (":=",))
+                typed = statement[colon + 1:colon + assign] if assign >= 0 else statement[colon + 1:]
+                value = compact(statement[colon + assign + 1:]) if assign >= 0 else ""
+                info.constants.extend((n, compact(typed), value) for n in _declared_names(statement[:colon]))
+            elif word in ("function", "procedure", "pure", "impure"):
+                keyword = next(n for n, t in enumerate(statement) if _word(t) in ("function", "procedure"))
+                info.subprograms.append(
+                    (_word(statement[keyword]), statement[keyword + 1].value.strip('"'), compact(statement[keyword:]).replace(" ;", ";"))
+                )
+        position = end + 1
+    return info
+
+
+def package_files(repo_root=REPO_ROOT):
+    """Return the sorted documented files that declare a package, across every documentation tree."""
+    return sorted(
+        path
+        for tree in DOC_TREES
+        for path in documented_files(repo_root, tree)
+        if read_unit(Path(repo_root) / path).kind == "package"
+    )
+
+
+def read_packages(repo_root=REPO_ROOT):
+    """Return {path: PackageInfo} for every documented package file."""
+    return {path: read_package(Path(repo_root) / path) for path in package_files(repo_root)}
+
+
+def record_label(name):
+    return f"type-{name.lower()}"
+
+
+def record_labels(packages):
+    """Return {lower-case record name: label} over ``packages``; a name declared twice raises ValueError."""
+    labels = {}
+    for path, info in packages.items():
+        for name, _ in info.records:
+            if name.lower() in labels:
+                raise ValueError(f"{path}: record {name} is already documented under label {labels[name.lower()]}")
+            labels[name.lower()] = record_label(name)
+    return labels
+
+
+def package_label(name):
+    return f"package-{name.lower()}"
+
+
+def _table_or_none(header, rows, widths):
+    return list_table(header, rows, widths) if rows else "none\n"
+
+
+def package_section(path, info, purpose, loaded, reason, labels):
+    """Return the section of one package: file, loading, purpose, then records, types, constants, subprograms."""
+    if not purpose:
+        raise ValueError(f"{path}: no purpose in docs/_data/{SIDECAR_PURPOSES}")
+    lines = [
+        f".. _{package_label(info.name)}:",
+        "",
+        title(info.name, "-"),
+        f"File: {repo_link(path)}",
+        "",
+        "Loaded by a ruckus.tcl: yes." if loaded else f"Loaded by a ruckus.tcl: no ({reason}).",
+        "",
+        purpose.strip(),
+        "",
+        ".. rubric:: Records",
+        "",
+    ]
+    if not info.records:
+        lines += ["none", ""]
+    for name, fields in info.records:
+        lines += [
+            f".. _{record_label(name)}:",
+            "",
+            f"**{name}**",
+            "",
+            _table_or_none(
+                ["Field", "Type"],
+                [[literal(field), type_cell(type_text, labels)] for field, type_text in fields],
+                [30, 70],
+            ),
+        ]
+    lines += [
+        ".. rubric:: Types and subtypes",
+        "",
+        _table_or_none(["Name", "Declaration"], [[literal(n), literal(t)] for n, t in info.types], [30, 70]),
+        ".. rubric:: Constants",
+        "",
+        _table_or_none(
+            ["Name", "Type", "Value"],
+            [[literal(n), literal(t), literal(v)] for n, t, v in info.constants],
+            [30, 25, 45],
+        ),
+        ".. rubric:: Subprograms",
+        "",
+        _table_or_none(
+            ["Kind", "Name", "Signature"],
+            [[kind, literal(n), literal(sig)] for kind, n, sig in info.subprograms],
+            [10, 20, 70],
+        ),
+    ]
+    return "\n".join(lines)
+
+
+def render_packages(repo_root=REPO_ROOT):
+    """Return the text of reference/packages.rst: a summary table and one section per package."""
+    _, source_inventory = _baselines()
+    purposes = load_sidecar(SIDECAR_PURPOSES, repo_root)
+    packages = read_packages(repo_root)
+    labels = record_labels(packages)
+    loaded = source_inventory.repo_loaded_sources(repo_root)
+    rows = [
+        [
+            f":ref:`{info.name} <{package_label(info.name)}>`",
+            repo_link(path),
+            "yes" if path in loaded else "no",
+            (purposes.get(path) or "").strip(),
+        ]
+        for path, info in packages.items()
+    ]
+    sections = [
+        package_section(
+            path,
+            info,
+            purposes.get(path),
+            path in loaded,
+            source_inventory.UNLOADED_SOURCES.get(path, "no ruckus.tcl lists the file"),
+            labels,
+        )
+        for path, info in packages.items()
+    ]
+    lines = [
+        title("VHDL packages and records", "="),
+        "Every VHDL package of the library with its records, types, constants, and subprograms, read from the "
+        "package declarations by ``python -m tests.common.gen_docs``. A port of an entity whose type is one of "
+        "these records links to its definition on the entity pages.",
+        "",
+        list_table(["Package", "File", "Loaded by a ruckus.tcl", "Purpose"], rows, widths=[15, 30, 10, 45]),
+        *sections,
+    ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Entity pages
 # ---------------------------------------------------------------------------
 
-def entity_section(path, unit, purpose, status, detail, issues, qualified):
+def type_cell(type_text, record_labels=None):
+    """Return the table cell of a VHDL type: a ``:ref:`` link when it names a documented record, else a literal.
+
+    ``record_labels`` maps a lower-case record name to its label. Only the
+    leading identifier is matched, so ``TimingMessageType`` links and
+    ``slv(7 downto 0)`` does not; any text after the name stays a literal.
+    """
+    match = re.match(r"[A-Za-z_]\w*", type_text)
+    label = record_labels.get(match.group().lower()) if record_labels and match else None
+    if label is None:
+        return literal(type_text)
+    rest = type_text[match.end():].strip()
+    return f":ref:`{match.group()} <{label}>`" + (f" {literal(rest)}" if rest else "")
+
+
+def entity_section(path, unit, purpose, status, detail, issues, qualified, record_labels=None):
     """Return the section of one entity: label, title, file, purpose, status, generics, ports, issues."""
     if not purpose:
         raise ValueError(f"{path}: no purpose in docs/_data/{SIDECAR_PURPOSES}")
@@ -746,7 +1012,7 @@ def entity_section(path, unit, purpose, status, detail, issues, qualified):
     if unit.ports:
         ports = list_table(
             ["Name", "Direction", "Type"],
-            [[literal(p.name), p.mode, literal(p.type_text)] for p in unit.ports],
+            [[literal(p.name), p.mode, type_cell(p.type_text, record_labels)] for p in unit.ports],
             widths=[25, 15, 60],
         )
     else:
@@ -794,7 +1060,7 @@ def render_entity_index():
     return "\n".join(lines)
 
 
-def render_tree_page(repo_root, tree, purposes, header_issues):
+def render_tree_page(repo_root, tree, purposes, header_issues, record_labels=None):
     """Return the page of one tree: the summary table and one section per rendered entity."""
     units = _tree_units(repo_root, tree)
     rendered = rendered_files(repo_root, tree)
@@ -821,6 +1087,7 @@ def render_tree_page(repo_root, tree, purposes, header_issues):
                 status_detail(status, unit.name, path),
                 issues,
                 names.count(unit.name.lower()) > 1,
+                record_labels,
             )
         )
     loaders = [repo_link(path) for path in tree.ruckus_files]
@@ -843,9 +1110,12 @@ def render_entities(repo_root=REPO_ROOT):
     """Return {docs-relative path: text} for the entity index and the tree pages."""
     purposes = load_sidecar(SIDECAR_PURPOSES, repo_root)
     header_issues = load_sidecar(SIDECAR_HEADER_ISSUES, repo_root)
+    labels = record_labels(read_packages(repo_root))
     pages = {"reference/entities/index.rst": render_entity_index()}
     for tree in DOC_TREES:
-        pages[f"reference/entities/{tree.key}.rst"] = render_tree_page(repo_root, tree, purposes, header_issues)
+        pages[f"reference/entities/{tree.key}.rst"] = render_tree_page(
+            repo_root, tree, purposes, header_issues, labels
+        )
     return pages
 
 
@@ -866,7 +1136,7 @@ def render_reference_index(pages):
             title("Reference", "="),
             "Lookup material for the library, generated from the sources by "
             "``python -m tests.common.gen_docs``: entities with their generics and ports, the verification "
-            "status of each, the register maps with their reset values and agreement across the RTL, PyRogue, and "
+            "status of each, the VHDL packages and records, the register maps with their reset values and agreement across the RTL, PyRogue, and "
             "YAML sources, and the FPGA family matrix. Do not edit these pages by hand.",
             "",
             ".. toctree::",
@@ -2802,6 +3072,7 @@ def render_all(repo_root=REPO_ROOT):
     pages = render_entities(repo_root)
     pages.update(render_registers(repo_root))
     pages.update(render_pyrogue(repo_root))
+    pages[PACKAGES_PAGE] = render_packages(repo_root)
     pages.update(render_layouts())
     pages.update(render_frames())
     pages[YAML_MAPS_PAGE] = render_yaml_maps()

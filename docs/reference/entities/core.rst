@@ -186,7 +186,7 @@ Status: not simulated: not loaded by any ruckus.tcl; declares entity BsaControl,
      - ``sl``
    * - ``bsadef``
      - in
-     - ``BsaDefType``
+     - :ref:`BsaDefType <type-bsadeftype>`
    * - ``nToAvgOut``
      - out
      - ``slv(15 downto 0)``
@@ -276,7 +276,7 @@ Status: simulated
      - ``sl``
    * - ``bsadef``
      - in
-     - ``BsaDefType``
+     - :ref:`BsaDefType <type-bsadeftype>`
    * - ``tmo``
      - in
      - ``sl``
@@ -504,7 +504,7 @@ Status: simulated
      - ``sl``
    * - ``ctrdef``
      - in
-     - ``CtrDefType``
+     - :ref:`CtrDefType <type-ctrdeftype>`
    * - ``ctrrst``
      - in
      - ``sl``
@@ -648,7 +648,7 @@ Status: simulated
      - ``sl``
    * - ``timingStream``
      - in
-     - ``TimingStreamType``
+     - :ref:`TimingStreamType <type-timingstreamtype>`
    * - ``ethClk``
      - in
      - ``sl``
@@ -954,10 +954,10 @@ Status: simulated
      - Type
    * - ``statusO``
      - out
-     - ``TPGStatusType``
+     - :ref:`TPGStatusType <type-tpgstatustype>`
    * - ``configI``
      - in
-     - ``TPGConfigType``
+     - :ref:`TPGConfigType <type-tpgconfigtype>`
    * - ``txClk``
      - in
      - ``sl``
@@ -1122,7 +1122,7 @@ Status: simulated
      - ``sl``
    * - ``cnfg``
      - in
-     - ``TPGMiniEdefConfigType``
+     - :ref:`TPGMiniEdefConfigType <type-tpgminiedefconfigtype>`
    * - ``actv``
      - out
      - ``sl``
@@ -1233,13 +1233,13 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - ``AxiLiteWriteSlaveType``
    * - ``status``
      - in
-     - ``TPGStatusType``
+     - :ref:`TPGStatusType <type-tpgstatustype>`
    * - ``config``
      - out
-     - ``TPGConfigType``
+     - :ref:`TPGConfigType <type-tpgconfigtype>`
    * - ``edefConfig``
      - out
-     - ``TPGMiniEdefConfigType``
+     - :ref:`TPGMiniEdefConfigType <type-tpgminiedefconfigtype>`
    * - ``txReset``
      - out
      - ``sl``
@@ -1299,10 +1299,10 @@ Status: simulated
      - Type
    * - ``config``
      - in
-     - ``TPGConfigType``
+     - :ref:`TPGConfigType <type-tpgconfigtype>`
    * - ``edefConfig``
      - in
-     - ``TPGMiniEdefConfigType``
+     - :ref:`TPGMiniEdefConfigType <type-tpgminiedefconfigtype>`
    * - ``txClk``
      - in
      - ``sl``
@@ -1320,7 +1320,7 @@ Status: simulated
      - ``slv(1 downto 0)``
    * - ``simData``
      - out
-     - ``TimingDataBuffType``
+     - :ref:`TimingDataBuffType <type-timingdatabufftype>`
    * - ``simEvents``
      - out
      - ``slv(69 downto 0)``
@@ -1428,13 +1428,13 @@ Status: simulated
      - ``sl``
    * - ``msg``
      - in
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``advance``
      - in
      - ``sl``
    * - ``stream``
      - out
-     - ``TimingSerialType``
+     - :ref:`TimingSerialType <type-timingserialtype>`
    * - ``streamId``
      - out
      - ``slv(3 downto 0)``
@@ -1524,10 +1524,10 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - ``slv(1 downto 0)``
    * - ``gtRxControl``
      - out
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``gtRxStatus``
      - in
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``gtTxReset``
      - out
      - ``sl``
@@ -1536,7 +1536,7 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - ``slv(2 downto 0)``
    * - ``tpgMiniTimingPhy``
      - out
-     - ``TimingPhyType``
+     - :ref:`TimingPhyType <type-timingphytype>`
    * - ``timingClkSel``
      - out
      - ``sl``
@@ -1548,7 +1548,7 @@ Status: baseline-excluded; GHDL analysis reports "not locally static", which the
      - ``sl``
    * - ``appTimingBus``
      - out
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``appTimingMode``
      - out
      - ``sl``
@@ -1641,7 +1641,7 @@ Status: simulated
      - ``slv(STREAMS_C - 1 downto 0)``
    * - ``data``
      - in
-     - ``TimingRxType``
+     - :ref:`TimingRxType <type-timingrxtype>`
    * - ``sof``
      - out
      - ``sl``
@@ -1695,7 +1695,7 @@ Status: simulated
      - ``sl``
    * - ``rxData``
      - in
-     - ``TimingRxType``
+     - :ref:`TimingRxType <type-timingrxtype>`
    * - ``messageDelay``
      - in
      - ``slv(19 downto 0)``
@@ -1704,7 +1704,7 @@ Status: simulated
      - ``sl``
    * - ``timingMessage``
      - out
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``timingMessageStrobe``
      - out
      - ``sl``
@@ -1929,7 +1929,7 @@ Status: simulated
      - ``sl``
    * - ``timingMessageIn``
      - in
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``timingMessageStrobeIn``
      - in
      - ``sl``
@@ -1938,7 +1938,7 @@ Status: simulated
      - ``slv(15 downto 0)``
    * - ``timingMessageOut``
      - out
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``timingMessageStrobeOut``
      - out
      - ``sl``
@@ -2061,13 +2061,13 @@ Status: simulated
      - ``sl``
    * - ``rxData``
      - in
-     - ``TimingRxType``
+     - :ref:`TimingRxType <type-timingrxtype>`
    * - ``rxControl``
      - out
-     - ``TimingPhyControlType``
+     - :ref:`TimingPhyControlType <type-timingphycontroltype>`
    * - ``rxStatus``
      - in
-     - ``TimingPhyStatusType``
+     - :ref:`TimingPhyStatusType <type-timingphystatustype>`
    * - ``timingClkSel``
      - out
      - ``sl``
@@ -2076,10 +2076,10 @@ Status: simulated
      - ``sl``
    * - ``timingStreamUser``
      - out
-     - ``TimingStreamType``
+     - :ref:`TimingStreamType <type-timingstreamtype>`
    * - ``timingStreamPrompt``
      - out
-     - ``TimingStreamType``
+     - :ref:`TimingStreamType <type-timingstreamtype>`
    * - ``timingStreamStrobe``
      - out
      - ``sl``
@@ -2088,7 +2088,7 @@ Status: simulated
      - ``sl``
    * - ``timingMessage``
      - out
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``timingMessageStrobe``
      - out
      - ``sl``
@@ -2181,7 +2181,7 @@ Status: simulated
      - ``sl``
    * - ``stream_i``
      - in
-     - ``TimingSerialType``
+     - :ref:`TimingSerialType <type-timingserialtype>`
    * - ``frame_o``
      - out
      - ``slv(16 * NWORDS_G - 1 downto 0)``
@@ -2301,16 +2301,16 @@ Status: simulated
      - ``sl``
    * - ``rxData``
      - in
-     - ``TimingRxType``
+     - :ref:`TimingRxType <type-timingrxtype>`
    * - ``timingMessageNoDely``
      - in
      - ``sl``
    * - ``timingMessageUser``
      - out
-     - ``TimingStreamType``
+     - :ref:`TimingStreamType <type-timingstreamtype>`
    * - ``timingMessagePrompt``
      - out
-     - ``TimingStreamType``
+     - :ref:`TimingStreamType <type-timingstreamtype>`
    * - ``timingMessageStrobe``
      - out
      - ``sl``
@@ -2373,7 +2373,7 @@ Status: simulated
      - ``sl``
    * - ``dataBuff``
      - in
-     - ``TimingDataBuffType``
+     - :ref:`TimingDataBuffType <type-timingdatabufftype>`
    * - ``pulseId``
      - in
      - ``slv(31 downto 0)``
@@ -2442,7 +2442,7 @@ Status: simulated
      - ``sl``
    * - ``stream``
      - out
-     - ``TimingSerialType``
+     - :ref:`TimingSerialType <type-timingserialtype>`
 
 Issues: none
 

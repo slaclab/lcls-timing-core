@@ -56,7 +56,11 @@ Test methodology:
         failures, the missing include, and the spliced fields of an including
         map, and every message layout include is generated from its model table:
         the printed ranges equal field_layout, the totals equal the declared
-        sizes, and an empty or zero-width table is rejected.
+        sizes, and an empty or zero-width table is rejected, the package
+        reader returns the records, types, constants, and subprograms of a
+        declaration (not its body), the six package files equal the sections
+        of the packages page, and a port typed by a documented record links
+        its definition.
     Timing: not applicable, no clock and no simulated time.
     Propagation sampling: not applicable, there is no propagation delay.
 """
@@ -1530,3 +1534,147 @@ def test_symbol_runs_collapse_equal_symbols_and_fold_alternating_pairs():
         gen_docs.symbol_runs([], [])
     with pytest.raises(ValueError, match="1 symbols but 2 labels"):
         gen_docs.symbol_runs([comma], labels[:2])
+
+
+SYNTHETIC_PACKAGE = """
+library ieee;
+use ieee.std_logic_1164.all;
+
+package DemoPkg is
+   constant WIDTH_C, DEPTH_C : integer := 8;
+   constant NAME_C : string(1 to 3);
+   subtype WordType is std_logic_vector(WIDTH_C-1 downto 0);
+   type WordArray is array (natural range <>) of WordType;
+   type ModeType is (IDLE_S, RUN_S);
+   type DemoType is record
+      a, b  : std_logic;   -- two fields on one line
+      words : WordArray(0 to 3);
+      count : integer range 0 to 7 := 0;
+   end record DemoType;
+   component Inner is
+      port (x : in std_logic);
+   end component Inner;
+   function toSlv (d : DemoType) return std_logic_vector;
+   pure function twice (x : integer) return integer;
+   procedure update (signal s : out std_logic; v : in integer);
+end package DemoPkg;
+
+package body DemoPkg is
+   constant HIDDEN_C : integer := 1;
+   function toSlv (d : DemoType) return std_logic_vector is
+   begin
+      return "0";
+   end function;
+end package body DemoPkg;
+"""
+
+
+def test_package_reader_reads_a_declaration_and_not_its_body(tmp_path):
+    path = tmp_path / "DemoPkg.vhd"
+    path.write_text(SYNTHETIC_PACKAGE, encoding="utf-8")
+    info = gen_docs.read_package(path)
+    assert info.name == "DemoPkg"
+    assert info.records == [
+        ("DemoType", [("a", "std_logic"), ("b", "std_logic"), ("words", "WordArray(0 to 3)"), ("count", "integer range 0 to 7")])
+    ]
+    assert info.types == [
+        ("WordType", "subtype of std_logic_vector(WIDTH_C - 1 downto 0)"),
+        ("WordArray", "array (natural range <>) of WordType"),
+        ("ModeType", "(IDLE_S, RUN_S)"),
+    ]
+    assert info.constants == [
+        ("WIDTH_C", "integer", "8"),
+        ("DEPTH_C", "integer", "8"),
+        ("NAME_C", "string(1 to 3)", ""),
+    ]
+    assert info.subprograms == [
+        ("function", "toSlv", "function toSlv(d : DemoType) return std_logic_vector"),
+        ("function", "twice", "function twice(x : integer) return integer"),
+        ("procedure", "update", "procedure update(signal s : out std_logic; v : in integer)"),
+    ]
+    empty = tmp_path / "Empty.vhd"
+    empty.write_text("package Nothing is\nend package Nothing;\n", encoding="utf-8")
+    assert gen_docs.read_package(empty) == gen_docs.PackageInfo("Nothing", [], [], [], [])
+    page = gen_docs.package_section("x/DemoPkg.vhd", info, "A demo.", True, "", {"demotype": "type-demotype"})
+    assert ".. _type-demotype:" in page and page.count("\nnone\n") == 0
+    bare = gen_docs.package_section("x/Nothing.vhd", gen_docs.read_package(empty), "Nothing.", False, "not listed", {})
+    assert bare.count("\nnone\n") == 4 and "Loaded by a ruckus.tcl: no (not listed)." in bare
+    with pytest.raises(ValueError, match="no package declaration"):
+        body_only = tmp_path / "Body.vhd"
+        body_only.write_text("package body Only is\nend package body Only;\n", encoding="utf-8")
+        gen_docs.read_package(body_only)
+
+
+def test_package_reader_reads_timing_message_type():
+    """The TimingMessageType fields of TimingPkg.vhd equal the model table in order, without ``unused``.
+
+    The model keeps ``unused`` (13 bits that toSlv writes as zero) as a table
+    entry because it occupies bits 316 downto 304; the record has no such
+    field, so it is the one difference.
+    """
+    info = gen_docs.read_package(REPO_ROOT / "LCLS-II/core/rtl/TimingPkg.vhd")
+    record = dict(info.records)["TimingMessageType"]
+    assert [name for name, _ in record] == [name for name, _, _ in timing_model.MESSAGE_FIELDS if name != "unused"]
+    assert dict(record)["beamEnergy"] == "Slv16Array(0 to 3)"
+    assert dict(record)["pulseId"] == "slv(63 downto 0)"
+    constants = {name: (type_text, value) for name, type_text, value in info.constants}
+    assert constants["TIMING_MESSAGE_BITS_C"] == ("integer", "944")
+    assert [sig for kind, name, sig in info.subprograms if name == "toTimingMessageType"] == [
+        "function toTimingMessageType(vector : slv) return TimingMessageType"
+    ]
+
+
+def test_every_package_is_documented():
+    tracked = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "ls-files", "--", "LCLS-I", "LCLS-II"], check=True, capture_output=True, text=True
+    ).stdout.splitlines()
+    expected = sorted(
+        path
+        for path in tracked
+        if path.endswith(".vhd") and "wrappers" not in Path(path).parts and re.search(r"^\s*package\s+(?!body\b)\w+\s+is\b", (REPO_ROOT / path).read_text(errors="replace"), re.I | re.M)
+    )
+    assert expected == [
+        "LCLS-I/evr/EvrV1Pkg.vhd",
+        "LCLS-II/core/rtl/TPGMiniEdefPkg.vhd",
+        "LCLS-II/core/rtl/TPGPkg.vhd",
+        "LCLS-II/core/rtl/TimingPkg.vhd",
+        "LCLS-II/core/rtl/default/TimingExtnPkg.vhd",
+        "LCLS-II/evr/rtl/EvrV2Pkg.vhd",
+    ]
+    assert gen_docs.package_files(REPO_ROOT) == expected
+    page = render_all(REPO_ROOT)[gen_docs.PACKAGES_PAGE]
+    assert re.findall(r"^File: :repo:`([^`]+)`$", page, re.M) == expected
+    assert re.findall(r"^\.\. _package-(\w+):$", page, re.M) == [
+        "evrv1pkg", "tpgminiedefpkg", "tpgpkg", "timingpkg", "timingextnpkg", "evrv2pkg"
+    ]
+    assert "Loaded by a ruckus.tcl: no (" in page.split(".. _package-timingextnpkg:")[1].split(".. _package-")[0]
+
+
+def test_record_ports_link_their_type():
+    unit = DesignUnit(
+        "entity",
+        "Demo",
+        (),
+        (Port("bus", "in", "TimingMessageType"), Port("lower", "out", "timingmessagetype"), Port("v", "in", "slv(7 downto 0)")),
+        1,
+    )
+    labels = {"timingmessagetype": "type-timingmessagetype"}
+    text = entity_section("a/Demo.vhd", unit, "A demo.", "simulated", "simulated", "none", False, labels)
+    assert ":ref:`TimingMessageType <type-timingmessagetype>`" in text
+    assert ":ref:`timingmessagetype <type-timingmessagetype>`" in text
+    assert "``slv(7 downto 0)``" in text
+    plain = entity_section("a/Demo.vhd", unit, "A demo.", "simulated", "simulated", "none", False)
+    assert ":ref:" not in plain.split(".. rubric:: Ports")[1] and "``TimingMessageType``" in plain
+    assert gen_docs.type_cell("TimingBusType(3 downto 0)", {"timingbustype": "type-timingbustype"}) == (
+        ":ref:`TimingBusType <type-timingbustype>` ``(3 downto 0)``"
+    )
+    pages = render_all(REPO_ROOT)
+    labels_on_page = set(re.findall(r"^\.\. _(type-\w+):$", pages[gen_docs.PACKAGES_PAGE], re.M))
+    linked = set()
+    for path, text in pages.items():
+        if path.startswith("reference/entities/"):
+            linked |= set(re.findall(r":ref:`[^<`]+ <(type-\w+)>`", text))
+    assert "type-timingmessagetype" in linked
+    assert linked <= labels_on_page
+    core = pages["reference/entities/core.rst"]
+    assert ":ref:`TimingMessageType <type-timingmessagetype>`" in core

@@ -350,10 +350,10 @@ Status: simulated
      - ``sl``
    * - ``evrBus``
      - in
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``trigOut``
      - out
-     - ``TimingTrigType``
+     - :ref:`TimingTrigType <type-timingtrigtype>`
    * - ``evrModeSel``
      - in
      - ``sl``
@@ -431,7 +431,7 @@ Status: simulated
      - ``sl``
    * - ``evrBus``
      - in
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``gtxDebug``
      - in
      - ``slv(7 downto 0)``
@@ -536,10 +536,10 @@ Status: simulated
      - ``sl``
    * - ``evrBus``
      - in
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``trigOut``
      - out
-     - ``TimingTrigType``
+     - :ref:`TimingTrigType <type-timingtrigtype>`
    * - ``evrModeSel``
      - in
      - ``sl``
@@ -587,13 +587,13 @@ Status: simulated
      - ``sl``
    * - ``config``
      - in
-     - ``EvrV2ChannelConfig``
+     - :ref:`EvrV2ChannelConfig <type-evrv2channelconfig>`
    * - ``strobeIn``
      - in
      - ``sl``
    * - ``dataIn``
      - in
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
    * - ``selectOut``
      - out
      - ``sl``
@@ -644,10 +644,10 @@ Status: simulated
      - ``sl``
    * - ``timingIn``
      - in
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``timingOut``
      - out
-     - ``TimingMessageType``
+     - :ref:`TimingMessageType <type-timingmessagetype>`
 
 Issues: none
 
@@ -725,7 +725,7 @@ Status: baseline-excluded; GHDL analysis reports "must be locally static", which
      - ``sl``
    * - ``evrBus``
      - in
-     - ``TimingBusType``
+     - :ref:`TimingBusType <type-timingbustype>`
    * - ``trigOut``
      - out
      - ``slv(NTRIGGERS_G - 1 downto 0)``
@@ -857,7 +857,7 @@ Status: simulated
      - ``sl``
    * - ``config``
      - in
-     - ``EvrV2TriggerConfigType``
+     - :ref:`EvrV2TriggerConfigType <type-evrv2triggerconfigtype>`
    * - ``arm``
      - in
      - ``slv(CHANNELS_C - 1 downto 0)``

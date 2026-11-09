@@ -562,10 +562,10 @@ Status: not simulated; it instantiates EvrV1EventReceiverChannel, EvrV1TimeofDay
      - ``sl``
    * - ``status``
      - out
-     - ``EvrV1StatusType``
+     - :ref:`EvrV1StatusType <type-evrv1statustype>`
    * - ``config``
      - in
-     - ``EvrV1ConfigType``
+     - :ref:`EvrV1ConfigType <type-evrv1configtype>`
    * - ``sync``
      - in
      - ``sl``
@@ -787,10 +787,10 @@ Status: simulated
      - ``AxiLiteWriteSlaveType``
    * - ``status``
      - in
-     - ``EvrV1StatusType``
+     - :ref:`EvrV1StatusType <type-evrv1statustype>`
    * - ``config``
      - out
-     - ``EvrV1ConfigType``
+     - :ref:`EvrV1ConfigType <type-evrv1configtype>`
    * - ``axiClk``
      - in
      - ``sl``
