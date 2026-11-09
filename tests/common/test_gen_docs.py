@@ -12,13 +12,17 @@
 
 Test methodology:
     Sweep: every generated page under docs/reference, every documented file
-        of every documentation tree, and every entry of the sidecars under
-        docs/_data. Small synthetic VHDL strings cover the entity reader and
+        of every documentation tree (statuses for all 32 core entities), and
+        every entry of the sidecars under docs/_data. Small synthetic VHDL strings cover the entity reader and
         the page renderers.
     Stimulus: render_all on the real tree (text parsing only, no simulator),
         a temporary docs directory for the freshness check, and synthetic
         design units for the renderers.
-    Checks: the committed pages equal a fresh generation, generation is
+    Checks: the verification status of every core entity follows the CI
+        baselines (baseline-excluded, not simulated, and not loaded sets are
+        exact), the issues cell orders links by number with pending last,
+        an entity without generics or ports renders none, a missing purpose
+        or status raises naming the file, the committed pages equal a fresh generation, generation is
         deterministic and carries no host path, list tables reject a row with
         the wrong cell count, the reader returns the generics and ports of
         Divider.vhd in declaration order and rejects a file with no unit,
@@ -30,14 +34,22 @@ Test methodology:
 """
 
 import re
+from pathlib import Path
+
 import pytest
 
 from tests.common import gen_docs
 from tests.common.gen_docs import (
     DOC_TREES,
     STATUSES,
+    DesignUnit,
+    Generic,
+    Port,
     check_files,
+    entity_issues,
+    entity_section,
     header_description,
+    issue_cell,
     list_table,
     load_sidecar,
     read_vhdl_unit,
@@ -45,7 +57,9 @@ from tests.common.gen_docs import (
     rendered_files,
     statuses,
 )
+from tests.common.ghdl_analysis import KNOWN_GHDL_UNANALYZABLE, NOT_SIMULATED
 from tests.common.regression_utils import REPO_ROOT
+from tests.common.source_inventory import UNLOADED_SOURCES
 
 DIVIDER = "LCLS-II/core/rtl/Divider.vhd"
 
@@ -219,3 +233,96 @@ def test_every_rendered_entity_has_one_status():
 def test_unknown_documentation_tree_is_rejected():
     with pytest.raises(ValueError, match="nothing"):
         statuses(REPO_ROOT, "nothing")
+
+
+def _core_entity_names():
+    return {
+        path: read_vhdl_unit(REPO_ROOT / path).name.lower()
+        for path in gen_docs.documented_files(REPO_ROOT, DOC_TREES[0])
+        if read_vhdl_unit(REPO_ROOT / path).kind == "entity"
+    }
+
+
+def test_statuses_match_the_baselines():
+    found = statuses(REPO_ROOT, "core")
+    names = _core_entity_names()
+    assert set(found) == set(names)
+    assert len(found) == 32
+    assert all(status in STATUSES for status in found.values())
+
+    def by_status(status):
+        return {path for path, value in found.items() if value == status}
+
+    excluded = by_status("baseline-excluded")
+    assert {names[path] for path in excluded} == set(KNOWN_GHDL_UNANALYZABLE) & set(names.values())
+    assert {Path(path).name for path in excluded} == {
+        "TPGMiniReg.vhd", "TPGMiniCore.vhd", "TimingCore.vhd", "TimingGthWrapper.vhd",
+    }
+    assert {names[path] for path in by_status("not simulated")} == set(NOT_SIMULATED) & set(names.values())
+    not_loaded = by_status("not simulated: not loaded by any ruckus.tcl")
+    expected_unloaded = {
+        path
+        for path in UNLOADED_SOURCES
+        if path in found and found[path] not in ("simulated", "baseline-excluded")
+    }
+    assert not_loaded == expected_unloaded
+    assert {Path(path).name for path in not_loaded} == {
+        "BsaControl.vhd", "ClockTime_186MHz.vhd", "TPFifo.vhd", "TPGNotify.vhd",
+    }
+    for path in ("LCLS-II/core/rtl/TPGMiniEdefTb.vhd", "LCLS-II/core/tb/TimingSerialDelay_tb.vhd"):
+        assert found[path] == "simulated", path
+    assert found["LCLS-II/core/rtl/BsaControlv2.vhd"] == "simulated"
+    assert not any(value == "Vivado-only" for value in found.values())
+
+
+def test_entity_issues_link_the_baseline_and_the_unloaded_files():
+    units = {path: read_vhdl_unit(REPO_ROOT / path) for path in UNLOADED_SOURCES if path.endswith(".vhd")}
+    found = statuses(REPO_ROOT, "core")
+    wrapper = "LCLS-II/core/rtl/TimingGthWrapper.vhd"
+    assert entity_issues(wrapper, units[wrapper], found[wrapper]) == ["pending", "pending"]
+    notify = "LCLS-II/core/rtl/TPGNotify.vhd"
+    assert entity_issues(notify, units[notify], found[notify]) == ["pending"]
+    divider_unit = read_vhdl_unit(REPO_ROOT / DIVIDER)
+    assert entity_issues(DIVIDER, divider_unit, "simulated") == []
+
+
+def test_issue_cell_orders_and_renders_pending():
+    low = "https://github.com/slaclab/lcls-timing-core/issues/12"
+    high = "https://github.com/slaclab/lcls-timing-core/issues/207"
+    cell = issue_cell([high, "pending", low])
+    assert cell == ":issue:`12`, :issue:`207`, issue pending"
+    assert "pending`" not in cell
+    assert issue_cell([]) == "none"
+    assert issue_cell(["pending"]) == "issue pending"
+    with pytest.raises(ValueError, match="not-a-link"):
+        issue_cell(["not-a-link"])
+
+
+def _unit(generics=(), ports=()):
+    return DesignUnit("entity", "Probe", tuple(generics), tuple(ports), 1)
+
+
+def test_entity_without_generics_or_ports_renders_none():
+    section = entity_section("LCLS-II/core/rtl/Probe.vhd", _unit(), "Does nothing.", "simulated", "simulated", "none", False)
+    assert ".. rubric:: Generics\n\nnone\n" in section
+    assert ".. rubric:: Ports\n\nnone\n" in section
+    assert "list-table" not in section
+    full = entity_section(
+        "LCLS-II/core/rtl/Probe.vhd",
+        _unit([Generic("TPD_G", "time", "1 ns"), Generic("OPEN_G", "natural", "")], [Port("clk", "in", "sl")]),
+        "Does nothing.",
+        "simulated",
+        "simulated",
+        "none",
+        True,
+    )
+    assert "Probe (LCLS-II/core/rtl/Probe.vhd)\n" in full
+    assert "   * - ``OPEN_G``\n     - ``natural``\n     - none\n" in full
+
+
+def test_missing_purpose_or_status_raises():
+    path = "LCLS-II/core/rtl/Probe.vhd"
+    with pytest.raises(ValueError, match=path):
+        entity_section(path, _unit(), None, "simulated", "simulated", "none", False)
+    with pytest.raises(ValueError, match=path):
+        entity_section(path, _unit(), "Does nothing.", None, "", "none", False)

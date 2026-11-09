@@ -21,7 +21,9 @@ Test methodology:
     Checks: verdict() returns None, so a unit outside the baseline must
         analyze, and a unit inside the baseline must still fail with its
         recorded message. A missing build tree or an empty library is one
-        failing case, never zero cases and never a pass.
+        failing case, never zero cases and never a pass. KNOWN_GHDL_ISSUES
+        has exactly the keys of the baseline, each a filed issue URL or
+        pending, and validate_baseline rejects a mismatch.
     Timing: not applicable, no clock and no simulated time.
 """
 
@@ -32,6 +34,7 @@ import pytest
 
 from tests.common import ghdl_analysis
 from tests.common.ghdl_analysis import (
+    KNOWN_GHDL_ISSUES,
     KNOWN_GHDL_UNANALYZABLE,
     UNLOADED_FILES,
     analyze,
@@ -86,6 +89,23 @@ def test_baseline_is_specific():
     for unit, fragment in KNOWN_GHDL_UNANALYZABLE.items():
         assert not re.search(r":\d+:\d+", fragment), f"{unit}: line number in fragment"
         assert ".vhd" not in fragment, f"{unit}: file path in fragment"
+
+
+def test_every_baseline_unit_has_an_issue_entry(monkeypatch):
+    assert set(KNOWN_GHDL_ISSUES) == set(KNOWN_GHDL_UNANALYZABLE)
+    validate_baseline()
+    without_one = dict(KNOWN_GHDL_ISSUES)
+    removed = sorted(without_one)[0]
+    del without_one[removed]
+    monkeypatch.setattr(ghdl_analysis, "KNOWN_GHDL_ISSUES", without_one)
+    with pytest.raises(ValueError, match=removed):
+        validate_baseline()
+    monkeypatch.setattr(ghdl_analysis, "KNOWN_GHDL_ISSUES", {**KNOWN_GHDL_ISSUES, removed: "see the tracker"})
+    with pytest.raises(ValueError, match=removed):
+        validate_baseline()
+    filed = "https://github.com/slaclab/lcls-timing-core/issues/1"
+    monkeypatch.setattr(ghdl_analysis, "KNOWN_GHDL_ISSUES", {**KNOWN_GHDL_ISSUES, removed: filed})
+    validate_baseline()
 
 
 def test_baseline_rejects_weak_fragments(monkeypatch):

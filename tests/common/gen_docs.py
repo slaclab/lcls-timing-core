@@ -416,7 +416,7 @@ def verification_status(path, unit, inventory, repo_root=REPO_ROOT):
     The first rule that applies wins: baseline-excluded, Vivado-only,
     simulated, not simulated, not loaded.
     """
-    ghdl_analysis, _ = _baselines()
+    ghdl_analysis, source_inventory = _baselines()
     name = unit.name.lower()
     if name in ghdl_analysis.KNOWN_GHDL_UNANALYZABLE:
         return STATUS_BASELINE
@@ -428,18 +428,22 @@ def verification_status(path, unit, inventory, repo_root=REPO_ROOT):
         return STATUS_SIMULATED
     if name in ghdl_analysis.NOT_SIMULATED:
         return STATUS_NOT_SIMULATED
+    if path in source_inventory.UNLOADED_SOURCES:
+        return STATUS_NOT_LOADED
     raise ValueError(f"{path}: no verification status")
 
 
-def status_detail(status, name):
+def status_detail(status, name, path):
     """Return the text of the ``Status:`` line of an entity section."""
-    ghdl_analysis, _ = _baselines()
+    ghdl_analysis, source_inventory = _baselines()
     key = name.lower()
     if status == STATUS_BASELINE:
         fragment = ghdl_analysis.KNOWN_GHDL_UNANALYZABLE[key]
         return f'{status}; GHDL analysis reports "{fragment}", which the regression records as a known failure'
     if status == STATUS_NOT_SIMULATED:
         return f"{status}; {ghdl_analysis.NOT_SIMULATED[key]}"
+    if status == STATUS_NOT_LOADED:
+        return f"{status}; {source_inventory.UNLOADED_SOURCES[path]}"
     return status
 
 
@@ -494,8 +498,18 @@ def statuses(repo_root=REPO_ROOT, tree="core"):
 
 
 def entity_issues(path, unit, status):
-    """Return the issue links of one entity row."""
-    return []
+    """Return the issue links of one entity row.
+
+    The GHDL issue of a baseline-excluded entity, and the unloaded-files issue
+    of every file in UNLOADED_SOURCES whatever its status.
+    """
+    ghdl_analysis, source_inventory = _baselines()
+    links = []
+    if status == STATUS_BASELINE:
+        links.append(ghdl_analysis.KNOWN_GHDL_ISSUES[unit.name.lower()])
+    if path in source_inventory.UNLOADED_SOURCES:
+        links.append(source_inventory.UNLOADED_SOURCES_ISSUE)
+    return links
 
 
 # ---------------------------------------------------------------------------
@@ -592,7 +606,7 @@ def render_tree_page(repo_root, tree, purposes):
                 unit,
                 purposes.get(path),
                 status,
-                status_detail(status, unit.name),
+                status_detail(status, unit.name, path),
                 issues,
                 names.count(unit.name.lower()) > 1,
             )

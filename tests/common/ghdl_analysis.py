@@ -37,6 +37,7 @@ import shlex
 import shutil
 import subprocess
 
+from tests.common.register_drift import ISSUE_URL_RE, PENDING_ISSUE
 from tests.common.regression_utils import (
     BASE_GHDL_COMPILE_ARGS,
     BUILD_SRC_ROOT,
@@ -70,6 +71,21 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     "evrv2_tb": 'no declaration for "exptbustype"',
     # The file uses "ieee" without a library clause.
     "timinggthwrapper": 'no declaration for "ieee"',
+}
+
+# Unit name (lowercase) to the filed slaclab/lcls-timing-core issue, or
+# "pending" (register_drift.PENDING_ISSUE) until it is filed. Five root causes
+# are filed as five issues: tpgminireg, tpgminicore, and timingcore share the
+# TPGMiniReg case-choice issue, and each of the other four units has its own.
+# The values become issue URLs when the issues are filed.
+KNOWN_GHDL_ISSUES: dict[str, str] = {
+    "tpgminireg": PENDING_ISSUE,
+    "tpgminicore": PENDING_ISSUE,
+    "timingcore": PENDING_ISSUE,
+    "evrv2module": PENDING_ISSUE,
+    "evrv1coreisrctrl": PENDING_ISSUE,
+    "evrv2_tb": PENDING_ISSUE,
+    "timinggthwrapper": PENDING_ISSUE,
 }
 
 # Units that analyze cleanly (so they must never be listed in
@@ -138,6 +154,18 @@ def validate_baseline() -> None:
             raise ValueError(
                 f"baseline unit {unit} needs a message fragment of at least "
                 f"{MIN_FRAGMENT_LENGTH} characters, got {fragment!r}"
+            )
+    if set(KNOWN_GHDL_ISSUES) != set(KNOWN_GHDL_UNANALYZABLE):
+        raise ValueError(
+            "KNOWN_GHDL_ISSUES and KNOWN_GHDL_UNANALYZABLE must have the same keys; "
+            f"only in issues: {sorted(set(KNOWN_GHDL_ISSUES) - set(KNOWN_GHDL_UNANALYZABLE))}, "
+            f"only in the baseline: {sorted(set(KNOWN_GHDL_UNANALYZABLE) - set(KNOWN_GHDL_ISSUES))}"
+        )
+    for unit, issue in KNOWN_GHDL_ISSUES.items():
+        if issue != PENDING_ISSUE and not ISSUE_URL_RE.match(issue):
+            raise ValueError(
+                f"baseline unit {unit} needs a slaclab/lcls-timing-core issue URL or "
+                f"'{PENDING_ISSUE}', got {issue!r}"
             )
 
 

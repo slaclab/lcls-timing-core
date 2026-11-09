@@ -20,6 +20,7 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
+import subprocess
 
 from tests.common.ghdl_analysis import (
     ENTITY_RE,
@@ -74,7 +75,9 @@ VERILOG_LEAVES = frozenset(
     {"evrv1timestampgenerator", "evrv1timeofdayreceiver", "evrv1eventreceiverchannel", "evrv1dbusdecode"}
 )
 
-LOAD_RE = re.compile(r'^\s*loadSource\s+-lib\s+lcls_timing_core\s+-path\s+"\$::DIR_PATH/([^"]+\.vhd)"', re.MULTILINE)
+LOAD_RE = re.compile(
+    r'^\s*loadSource\s+-lib\s+lcls_timing_core\s+-path\s+"\$::DIR_PATH/([^"]+\.(?:vhd|v))"', re.MULTILINE
+)
 DIR_LOAD_RE = re.compile(
     r'^\s*loadSource\s+-lib\s+lcls_timing_core(?:\s+-sim_only)?\s+-dir\s+"\$::DIR_PATH/([^"]+?)/?"',
     re.MULTILINE,
@@ -246,3 +249,80 @@ def stale_recorded(repo_root, trees=TREES):
 def recorded_children(repo_root, trees=TREES):
     """Return the declared units beneath the recorded units of ``trees``."""
     return Inventory(repo_root, trees).children()
+
+
+# RTL files that no ruckus.tcl loads, each with the reason measured from the
+# sources. A new or a vanished entry fails tests/common/test_unloaded_sources.py.
+UNLOADED_SOURCES: dict[str, str] = {
+    "LCLS-II/core/rtl/BsaControl.vhd": (
+        "declares entity BsaControl, which the loaded BsaControlv2.vhd also declares; "
+        "TPGMini.vhd instantiates the loaded one"
+    ),
+    "LCLS-II/core/rtl/ClockTime_186MHz.vhd": "no file in the repository instantiates ClockTime_186MHz",
+    "LCLS-II/core/rtl/TPFifo.vhd": "no file in the repository instantiates TPFifo",
+    "LCLS-II/core/rtl/TPGMiniEdefTb.vhd": (
+        "testbench entity in an rtl directory; LCLS-II/core/ruckus.tcl does not list it"
+    ),
+    "LCLS-II/core/rtl/TPGNotify.vhd": "no file in the repository instantiates TPGNotify",
+    "LCLS-II/core/rtl/TimingGthWrapper.vhd": "no file in the repository instantiates TimingGthWrapper",
+    "LCLS-II/core/rtl/default/TimingExtnPkg.vhd": (
+        "default TimingExtnPkg; LCLS-II/core/ruckus.tcl lists no file from rtl/default, and only the "
+        "test wrapper TimingExtnPkgWrapper.vhd uses the package"
+    ),
+    "LCLS-II/core/tb/TimingSerialDelay_tb.vhd": "testbench; LCLS-II/core/ruckus.tcl loads no tb directory",
+}
+
+# One issue covers all of the files above; the value becomes its URL once filed.
+UNLOADED_SOURCES_ISSUE = "pending"
+
+
+def repo_ruckus_files(repo_root):
+    """Return the tracked ruckus.tcl files outside tests/, as sorted repo-relative paths."""
+    return sorted(
+        line
+        for line in _tracked(repo_root, "*ruckus.tcl")
+        if not line.startswith("tests/")
+    )
+
+
+def repo_loaded_sources(repo_root):
+    """Return the repo-relative paths of the .vhd and .v files that some ruckus.tcl loads.
+
+    Both ``loadSource -path`` files and the files of ``loadSource -dir``
+    directories count; the directories are not searched recursively.
+    """
+    root = Path(repo_root)
+    loaded = set()
+    for ruckus in repo_ruckus_files(root):
+        parent = (root / ruckus).parent
+        text = (root / ruckus).read_text(encoding="utf-8")
+        found = [parent / relative for relative in LOAD_RE.findall(text)]
+        for directory in DIR_LOAD_RE.findall(text):
+            found.extend(sorted((parent / directory).glob("*.vhd")))
+            found.extend(sorted((parent / directory).glob("*.v")))
+        loaded.update(path.relative_to(root).as_posix() for path in found)
+    return loaded
+
+
+def rtl_sources(repo_root):
+    """Return the tracked .vhd and .v files under LCLS-I/ and LCLS-II/ outside wrappers directories."""
+    return sorted(
+        line
+        for line in _tracked(repo_root, "LCLS-I", "LCLS-II")
+        if line.endswith((".vhd", ".v")) and "wrappers" not in Path(line).parts
+    )
+
+
+def unloaded_sources(repo_root):
+    """Return the RTL files that no ruckus.tcl loads, as a set of repo-relative paths."""
+    return set(rtl_sources(repo_root)) - repo_loaded_sources(repo_root)
+
+
+def _tracked(repo_root, *pathspecs):
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-files", "--", *pathspecs],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.splitlines()
