@@ -46,7 +46,7 @@ JOB_NAMES = {
     "production_guard": "Production Guard",
     "test_and_document": "Test And Generate Documentation",
 }
-MATRIX_LEGS = ["common", "lcls1_evr", "lcls2_core"]
+MATRIX_LEGS = ["common", "lcls1_evr", "lcls2_core", "lcls2_evr"]
 RELEASE_NEEDS = {"lint", "test", "rogue_test", "production_guard",
                  "test_and_document"}
 TOOL_ITEMS = {
