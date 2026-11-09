@@ -23,6 +23,7 @@ imported inside the fixtures, never at module level here.
 Fixtures:
     rogue_build         function scoped factory that builds a device tree
     rogue_build_module  module scoped factory, for trees that tests only read
+    recording_slave     a fresh RecordingSlave that logs every transaction
 
 Every root built through the factories is stopped at teardown, even when the
 build itself raised, so no test can leave a Rogue root running.
@@ -61,3 +62,10 @@ def rogue_build():
 def rogue_build_module():
     with contextlib.ExitStack() as stack:
         yield _factory(stack)
+
+
+@pytest.fixture
+def recording_slave():
+    from tests.rogue import rogue_tree
+
+    return rogue_tree.RecordingSlave()

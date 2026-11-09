@@ -50,7 +50,7 @@ else:
 import pyrogue as pr  # noqa: E402
 import rogue.interfaces.memory as rim  # noqa: E402
 
-from tests.common import register_drift  # noqa: E402
+from tests.common import register_drift, register_tables  # noqa: E402
 
 # Device nodes Rogue adds to every device; they are not register declarations.
 VARIABLE_TYPES = (pr.RemoteVariable, pr.LinkVariable)
@@ -125,3 +125,170 @@ def python_fields(device, block):
             )
         )
     return fields
+
+
+def _kind(var):
+    # RemoteCommand is a RemoteVariable subclass, so it is checked first.
+    if isinstance(var, pr.RemoteCommand):
+        return "RemoteCommand"
+    if isinstance(var, pr.RemoteVariable):
+        return "RemoteVariable"
+    return "LinkVariable"
+
+
+def tree_entries(device):
+    """Return {path: Expected} for the declared variables of a tree at base 0.
+
+    The attributes read are address, bitOffset, bitSize, mode, enum, and
+    overlapEn on RemoteVariables, the Rogue model class name from the private
+    _base attribute (UInt, Bool, and so on), and dependencies on
+    LinkVariables.
+    """
+    entries = {}
+    for path, var in tree_variables(device).items():
+        if isinstance(var, pr.RemoteVariable):
+            position = register_tables.abs_bit(var.address, var.bitOffset[0])
+            size = var.bitSize[0]
+            base = type(var._base).__name__
+            depends = ()
+        else:
+            position, size, base = None, None, None
+            depends = tuple(sorted(dep.name for dep in var.dependencies))
+        entries[path] = register_tables.Expected(
+            path=path,
+            abs_bit=position,
+            bit_size=size,
+            mode=var.mode,
+            base=base,
+            enum=dict(var.enum) if var.enum else None,
+            kind=_kind(var),
+            overlap_en=bool(getattr(var, "overlapEn", False)),
+            depends=depends,
+        )
+    return entries
+
+
+def check_table(device, class_name, arg_set):
+    """Return the differences between the reviewed table and the built tree."""
+    expected = register_tables.expand(register_tables.load_table(class_name), arg_set)
+    return register_tables.diff_variables(expected, tree_entries(device))
+
+
+def round_trip_values(var):
+    """Boundary values to write: all ones, one, and the top bit; or the enum ends."""
+    if isinstance(var._base, pr.Bool):
+        return [True, False]
+    if var.enum:
+        keys = list(var.enum)
+        return [keys[0]] if len(keys) == 1 else [keys[0], keys[-1]]
+    size = var.bitSize[0]
+    values = [(1 << size) - 1, 1, 1 << (size - 1)]
+    if size <= 8:
+        values.extend(1 << bit for bit in range(size))
+    return list(dict.fromkeys(values))
+
+
+def _word_span(var):
+    start = register_tables.abs_bit(var.address, var.bitOffset[0])
+    end = start + var.bitSize[0]
+    return start // 32 * 32, (end - 1) // 32 * 32 + 32
+
+
+def round_trip(device, exempt=frozenset()):
+    """Write boundary values to every RW variable and read them back.
+
+    Each variable is written before it is read. The other readable variables
+    that share a 32-bit word with it must read the value they held before the
+    write, unless the pair is listed in exempt (pairs as find_overlaps returns
+    them, matched in either order). Returns sorted failure messages.
+    """
+    skip = {frozenset(pair) for pair in exempt}
+    variables = {
+        path: var
+        for path, var in tree_variables(device).items()
+        if isinstance(var, pr.RemoteVariable) and not isinstance(var, pr.RemoteCommand)
+    }
+    failures = []
+    for path in sorted(variables):
+        var = variables[path]
+        if var.mode != "RW":
+            continue
+        low, high = _word_span(var)
+        neighbors = [
+            other
+            for other_path, other in sorted(variables.items())
+            if other_path != path
+            and other.mode in ("RW", "RO")
+            and frozenset((path, other_path)) not in skip
+            and register_tables.abs_bit(other.address, other.bitOffset[0]) < high
+            and register_tables.abs_bit(other.address, other.bitOffset[0]) + other.bitSize[0] > low
+        ]
+        for value in round_trip_values(var):
+            before = {other.path: other.get(read=True) for other in neighbors}
+            var.set(value)
+            got = var.get(read=True)
+            if got != value:
+                failures.append(f"{path}: wrote {value!r}, read {got!r}")
+            for other in neighbors:
+                after = other.get(read=True)
+                if after != before[other.path]:
+                    failures.append(
+                        f"{path}: writing {value!r} changed {other.path} from {before[other.path]!r} to {after!r}"
+                    )
+    return sorted(failures)
+
+
+class RecordingSlave(rim.Slave):
+    """In-process memory that logs every transaction it serves.
+
+    log entries are (direction, type, address, size, bytes) with direction "W"
+    for rim.Write and rim.Post and "R" for rim.Read and rim.Verify. mem is a
+    byte addressed backing store, so a Verify read returns what was written.
+    """
+
+    def __init__(self):
+        super().__init__(4, 4096)
+        self.log = []
+        self.mem = {}
+
+    def _doTransaction(self, transaction):
+        address, size, kind = transaction.address(), transaction.size(), transaction.type()
+        try:
+            if kind in (rim.Write, rim.Post):
+                data = bytearray(size)
+                transaction.getData(data, 0)
+                for offset in range(size):
+                    self.mem[address + offset] = data[offset]
+                self.log.append(("W", kind, address, size, bytes(data)))
+            else:
+                data = bytearray(self.mem.get(address + offset, 0) for offset in range(size))
+                transaction.setData(data, 0)
+                self.log.append(("R", kind, address, size, bytes(data)))
+        finally:
+            transaction.done()
+
+    def writes(self):
+        return [entry for entry in self.log if entry[0] == "W"]
+
+    def reads(self):
+        return [entry for entry in self.log if entry[0] == "R"]
+
+    def clear(self):
+        self.log.clear()
+
+    def preload(self, address, data):
+        for offset, value in enumerate(data):
+            self.mem[address + offset] = value
+
+
+def written_bits(log):
+    """Return the absolute bits set by the write transactions in log."""
+    bits = set()
+    for direction, _, address, _, data in log:
+        if direction != "W":
+            continue
+        for offset, value in enumerate(data):
+            for bit in range(8):
+                if value >> bit & 1:
+                    bits.add((address + offset) * 8 + bit)
+    return bits
