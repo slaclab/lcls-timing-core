@@ -15,14 +15,17 @@ Test methodology:
         word (the words named by the write decode of EvrV1Reg.vhd) with
         USE_WSTRB_G false and true, walked bit by bit; the output map
         words with explicit byte strobes; the interrupt clear word and the
-        data-buffer control pulses.
+        data-buffer control pulses; every read-only word; the latch latency
+        gating of reads; the interrupt request and enable outputs; the event
+        RAM window; unmapped, read-only and unaligned accesses.
     Stimulus: a cocotbext-axi AxiLiteMaster on the S_AXI port, 10 ns axilClk,
         reset held for three clocks. The build information is fixed by the
         wrapper to the firmware version 0xA1B2C3D4. Reads of EvrV1Reg wait
         for a latch-latency counter, so every blocking master read is
-        bounded by the cocotb timeout. Byte strobes the master cannot form
-        (0xC on an aligned address) are driven directly on the S_AXI
-        channels. The walk reads each writable word, writes 0, then writes
+        bounded by the cocotb timeout. Accesses the master cannot form (byte
+        strobe 0xC on an aligned address, unaligned addresses, the clocks a
+        read takes) use RawAxiLite, which drives the S_AXI channels itself
+        and is never mixed with the master. The walk reads each writable word, writes 0, then writes
         1 << b for every bit b and reads the word back.
     Checks: the offset tables WRITE_WORDS and READ_WORDS equal the integer
         arms of the write and read decode parsed from EvrV1Reg.vhd, so a new
@@ -32,8 +35,13 @@ Test methodology:
         the table built from the decode as measured under GHDL; every write
         presents its data and decoded address on the event RAM and data
         buffer buses; the version words read the values the read decode
-        builds from the firmware version. Every checked output is resolvable
-        after reset release.
+        builds from the firmware version; read-only words return random
+        status patterns and their complements bit for bit; reading word 29
+        pulses the FIFO read strobe once; a read after a reset or a latch
+        write completes only once the 15 clock counter is done; the
+        interrupt request is the gated OR of flag bits 0, 1, 2, 3 and 5;
+        rejected accesses answer DECERR and move no output. Every checked
+        output is resolvable after reset release.
     Timing: 10 ns axilClk; a register write reaches its configuration output
         after the clock edges that follow the write response.
     Propagation sampling: the registers update after TPD_G (1 ns), so every
@@ -43,13 +51,15 @@ Test methodology:
 import os
 from pathlib import Path
 import re
+from typing import NamedTuple
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 import pytest
 
+from tests.common import timing_model
 from tests.common.regression_utils import (
     REPO_ROOT,
     parameter_case,
@@ -64,13 +74,16 @@ READ_CASE = "case rdPntr is"
 
 USE_WSTRB = os.getenv("USE_WSTRB_G", "false") == "true"
 
+DATA_BUFFER_FIRST_WORD = 512
+DATA_BUFFER_LAST_WORD = 1023
+EVENT_RAM_WINDOW_SIZE = 1024
 PULSE_FIRST_WORD = 128
 PULSE_WORDS_PER_CHANNEL = 4
 PULSE_PORTS = ("configPulseControl", "configPulsePrescale", "configPulseDelay", "configPulseWidth")
 OUTPUT_MAP_FIRST_WORD = 272
 OUTPUT_MAP_WORDS = 6
 FULL_WORD = 0xFFFFFFFF
-BUS_WRITE_TIMEOUT_CLOCKS = 64
+BUS_TIMEOUT_CLOCKS = 128
 
 # Offsets of the decoded words, as the integer arms of the decode in
 # EvrV1Reg.vhd; test_offset_tables_match_rtl_case_arms parses them back out.
@@ -109,6 +122,15 @@ IRQ_CLEAR_CYCLES = 2
 DBENA_CYCLES = 4
 DBDIS_CYCLES = 3
 
+# Measured under GHDL with the default LATCH_TS_LATENCY_G of 15: clocks from
+# a read request to the edge that accepts the data.
+IDLE_READ_CLOCKS = 5
+AFTER_RESET_READ_CLOCKS = 23
+AFTER_LATCH_READ_CLOCKS = 18
+LATCH_TS_LATENCY = 15
+UNMAPPED_READ_DATA = 0xDEADBEEF
+
+VERSION_READ_WORD = 11
 CONTROL_WORD = 1
 CONTROL_LATCH_BIT = 10
 CONTROL_MAP_PAGE_BIT = 8
@@ -144,6 +166,64 @@ CONFIG_PORTS = (
 )
 
 
+# Status inputs of the wrapper and the width of each.
+STATUS_PORTS = (
+    ("statusTs", 64),
+    ("statusSecondsShift", 32),
+    ("statusTsLatch", 64),
+    ("statusTsFifoTsLow", 32),
+    ("statusTsFifoTsHigh", 32),
+    ("statusTsFifoEventCode", 8),
+    ("statusTsFifoValid", 1),
+    ("statusTsFifoNext", 1),
+    ("statusTsFifoWrCnt", 9),
+    ("statusEventRamReset", 64),
+    ("statusEventRamSet", 64),
+    ("statusEventRamPulse", 64),
+    ("statusEventRamInt", 64),
+    ("statusIntFlag", 32),
+    ("statusDbrx", 1),
+    ("statusDbrdy", 1),
+    ("statusDbcs", 1),
+    ("statusRxSize", 12),
+    ("statusDbData", 32),
+    ("statusDbInt", 1),
+    ("statusDbIntEna", 1),
+)
+# Observed: no read word and no output depends on these inputs.
+UNUSED_STATUS_PORTS = (
+    "statusTsFifoValid",
+    "statusTsFifoNext",
+    "statusTsFifoWrCnt",
+    "statusDbInt",
+    "statusDbIntEna",
+)
+# Read words that return a slice of a status input: word, port, low bit, width.
+STATUS_WORD_FIELDS = (
+    (23, "statusSecondsShift", 0, 32),
+    (24, "statusTs", 32, 32),
+    (25, "statusTs", 0, 32),
+    (26, "statusTsLatch", 32, 32),
+    (27, "statusTsLatch", 0, 32),
+    (28, "statusTsFifoTsLow", 0, 32),
+    (29, "statusTsFifoTsHigh", 0, 32),
+    (30, "statusTsFifoEventCode", 0, 8),
+)
+FIFO_READ_WORD = 29
+DATA_BUFFER_WORDS = (512, 513, 700, 1023)
+EVENT_RAM_WINDOW_WORDS = (4096, 4097, 4098, 4099, 4100, 5119, 5120, 5121, 5122, 5123, 5124, 6143)
+EVENT_RAM_FIRST_WORD = 4096
+EVENT_RAM_SECOND_WORD = 5120
+# The low two address bits inside an event RAM window pick the status input.
+EVENT_RAM_PORTS = ("statusEventRamInt", "statusEventRamPulse", "statusEventRamSet", "statusEventRamReset")
+UNMAPPED_READ_WORDS = (6, 7, 9, 10, 13, 18, 20, 22, 31, 39, 45, 127, 176, 271, 278, 511, 1024, 2048, 4095, 6144, 8191)
+READ_ONLY_WRITE_WORDS = (0, 6, 11, 12, 23, 29, 30, 45, 127, 176, 278, 512, 6144, 8191)
+INTERRUPT_ENABLE_BITS = (0, 1, 2, 3, 5)
+INTERRUPT_CONTROL_WORD = 3
+PCIE_ENABLE_WORD = 5
+INTERRUPT_MASTER_BIT = 31
+
+
 def snapshot(dut):
     """Return every flat configuration output as an integer after checking it is resolvable."""
     result = {}
@@ -177,21 +257,25 @@ def changed_ports(before, after, *, ignore=BUS_PORTS):
     return sorted(name for name in before if name not in ignore and before[name] != after[name])
 
 
-async def start_axi_master(dut):
+async def start_axi_master(dut, *, raw=False):
     """Reset the block, start the clock, release reset, and return ``(master, clock_task)``.
 
-    The order matters on cocotb 2.x: reset is driven and the master built
-    (which drives the valids low) before the clock starts.
+    ``raw`` selects RawAxiLite instead of the cocotbext-axi master. The order
+    matters on cocotb 2.x: reset is driven and the master built (which drives
+    the valids low) before the clock starts.
     """
     dut.axilRst.value = 1
     for name in ("S_AXI_AWADDR", "S_AXI_ARADDR", "S_AXI_WDATA", "S_AXI_WSTRB", "S_AXI_AWPROT", "S_AXI_ARPROT"):
         getattr(dut, name).value = 0
-    master = AxiLiteMaster(
-        AxiLiteBus.from_prefix(dut, "S_AXI"),
-        dut.axilClk,
-        dut.axilRst,
-        reset_active_level=True,
-    )
+    if raw:
+        master = RawAxiLite(dut)
+    else:
+        master = AxiLiteMaster(
+            AxiLiteBus.from_prefix(dut, "S_AXI"),
+            dut.axilClk,
+            dut.axilRst,
+            reset_active_level=True,
+        )
     await Timer(1, unit="ns")
     clock_task = cocotb.start_soon(Clock(dut.axilClk, CLOCK_NS, unit="ns").start(start_high=False))
     for _ in range(RESET_CLOCKS):
@@ -336,36 +420,92 @@ def check_buses(snap, word, value):
     assert snap["configEventRamWe"] == 0, f"word {word}: event RAM write enable {snap['configEventRamWe']}"
 
 
-async def raw_write(dut, word, value, strb):
-    """Write one word with an explicit byte strobe by driving the S_AXI channels directly.
+class RawResult(NamedTuple):
+    """Outcome of one RawAxiLite access: response, read data, and clocks from request to completion."""
 
-    The cocotbext-axi master derives the strobe from the address offset and
-    the data length, so it cannot present 0xC on an aligned address. Returns
-    the write response.
+    resp: AxiResp
+    data: bytes
+    clocks: int
+
+
+class RawAxiLite:
+    """Minimal AXI-Lite master that drives the S_AXI channels one transaction at a time.
+
+    The cocotbext-axi master derives the write strobe from the address offset
+    and the data length, so it cannot present 0xC on an aligned address or any
+    access at an unaligned address as a single beat, and it hides the clocks a
+    read takes. This master has the same ``read`` and ``write`` calls and adds
+    a strobe argument and the completion clocks. It owns every channel signal,
+    so it is used instead of the cocotbext-axi master, never beside it. Every
+    input changes 2 ns after an edge, so the slave sees the value the edge
+    before it captures, and the ready and valid outputs read after an edge are
+    the ones that edge captured.
     """
-    clock = dut.axilClk
-    dut.S_AXI_AWADDR.value = word * WORD_BYTES
-    dut.S_AXI_AWPROT.value = 0
-    dut.S_AXI_AWVALID.value = 1
-    dut.S_AXI_WDATA.value = value
-    dut.S_AXI_WSTRB.value = strb
-    dut.S_AXI_WVALID.value = 1
-    dut.S_AXI_BREADY.value = 1
-    address_pending = True
-    data_pending = True
-    for _ in range(BUS_WRITE_TIMEOUT_CLOCKS):
-        await RisingEdge(clock)
-        if address_pending and int(dut.S_AXI_AWREADY.value) == 1:
-            address_pending = False
-            dut.S_AXI_AWVALID.value = 0
-        if data_pending and int(dut.S_AXI_WREADY.value) == 1:
-            data_pending = False
-            dut.S_AXI_WVALID.value = 0
-        if not (address_pending or data_pending) and int(dut.S_AXI_BVALID.value) == 1:
+
+    def __init__(self, dut):
+        self.dut = dut
+        for name in ("AWVALID", "WVALID", "BREADY", "ARVALID", "RREADY"):
+            getattr(dut, f"S_AXI_{name}").value = 0
+
+    async def write(self, address, data, strb=0xF):
+        """Write one word at a byte address with an explicit byte strobe."""
+        dut = self.dut
+        clock = dut.axilClk
+        dut.S_AXI_AWADDR.value = address
+        dut.S_AXI_AWPROT.value = 0
+        dut.S_AXI_AWVALID.value = 1
+        dut.S_AXI_WDATA.value = int.from_bytes(data, "little")
+        dut.S_AXI_WSTRB.value = strb
+        dut.S_AXI_WVALID.value = 1
+        dut.S_AXI_BREADY.value = 1
+        address_pending = True
+        data_pending = True
+        address_ready = int(dut.S_AXI_AWREADY.value)
+        data_ready = int(dut.S_AXI_WREADY.value)
+        response_valid = int(dut.S_AXI_BVALID.value)
+        response = AxiResp(int(dut.S_AXI_BRESP.value))
+        for clocks in range(1, BUS_TIMEOUT_CLOCKS + 1):
+            await sample_after_tpd(clock, propagation_time=PROPAGATION_NS)
+            if response_valid and not (address_pending or data_pending):
+                dut.S_AXI_BREADY.value = 0
+                return RawResult(response, b"", clocks)
+            if address_pending and address_ready:
+                address_pending = False
+                dut.S_AXI_AWVALID.value = 0
+            if data_pending and data_ready:
+                data_pending = False
+                dut.S_AXI_WVALID.value = 0
+            address_ready = int(dut.S_AXI_AWREADY.value)
+            data_ready = int(dut.S_AXI_WREADY.value)
+            response_valid = int(dut.S_AXI_BVALID.value)
             response = AxiResp(int(dut.S_AXI_BRESP.value))
-            dut.S_AXI_BREADY.value = 0
-            return response
-    raise AssertionError(f"write of word {word} with strobe 0x{strb:X} did not complete in {BUS_WRITE_TIMEOUT_CLOCKS} clocks")
+        raise AssertionError(f"write at 0x{address:04X} with strobe 0x{strb:X} did not complete in {BUS_TIMEOUT_CLOCKS} clocks")
+
+    async def read(self, address, length=WORD_BYTES):
+        """Read one word at a byte address."""
+        assert length == WORD_BYTES, "RawAxiLite reads one word"
+        dut = self.dut
+        clock = dut.axilClk
+        dut.S_AXI_ARADDR.value = address
+        dut.S_AXI_ARPROT.value = 0
+        dut.S_AXI_ARVALID.value = 1
+        dut.S_AXI_RREADY.value = 1
+        address_pending = True
+        address_ready = int(dut.S_AXI_ARREADY.value)
+        data_valid = int(dut.S_AXI_RVALID.value)
+        for clocks in range(1, BUS_TIMEOUT_CLOCKS + 1):
+            data = int(dut.S_AXI_RDATA.value)
+            response = AxiResp(int(dut.S_AXI_RRESP.value))
+            await sample_after_tpd(clock, propagation_time=PROPAGATION_NS)
+            if data_valid and not address_pending:
+                dut.S_AXI_RREADY.value = 0
+                return RawResult(response, data.to_bytes(WORD_BYTES, "little"), clocks)
+            if address_pending and address_ready:
+                address_pending = False
+                dut.S_AXI_ARVALID.value = 0
+            address_ready = int(dut.S_AXI_ARREADY.value)
+            data_valid = int(dut.S_AXI_RVALID.value)
+        raise AssertionError(f"read at 0x{address:04X} did not complete in {BUS_TIMEOUT_CLOCKS} clocks")
 
 
 async def walk_word(dut, master, word):
@@ -404,11 +544,11 @@ async def walk_word(dut, master, word):
     return reset_value, zero_readback, readback_mask, bits
 
 
-async def write_and_watch(dut, master, word, value):
+async def write_and_watch(dut, master, word, value, *, expect=AxiResp.OKAY):
     """Write one word while recording the outputs every cycle; return the history."""
     history = []
     watcher = cocotb.start_soon(watch_config(dut, history))
-    await write_word(master, word, value)
+    await write_word(master, word, value, expect=expect)
     await settle(dut)
     watcher.cancel()
     return history
@@ -423,6 +563,71 @@ def output_map_halves(dut):
     """Return the twelve 16-bit output map entries from the flat output."""
     value = snapshot(dut)["configOutputMap"]
     return [(value >> (16 * index)) & 0xFFFF for index in range(OUTPUT_MAP_WORDS * 2)]
+
+
+def drive_status(dut, values):
+    """Drive the named status inputs."""
+    for name, value in values.items():
+        getattr(dut, name).value = value
+
+
+def status_values(rng, *, invert):
+    """Return a random value for every status input, or its bitwise complement."""
+    values = {}
+    for name, width in STATUS_PORTS:
+        value = rng.getrandbits(width)
+        values[name] = value ^ ((1 << width) - 1) if invert else value
+    return values
+
+
+def expected_status_read(word, values, dben):
+    """Return what a read-only word returns for the driven status inputs, as measured.
+
+    Words 8 and 2 mix status bits with the data buffer enable level and a
+    forced zero in bit 31.
+    """
+    if word == 0:
+        return 0
+    if word == IRQ_FLAG_WORD:
+        return values["statusIntFlag"] & 0x7FFFFFFF
+    if word == DBUS_WORD:
+        return (
+            (values["statusDbrx"] << 15)
+            | (values["statusDbrdy"] << 14)
+            | (values["statusDbcs"] << 13)
+            | (dben << 12)
+            | values["statusRxSize"]
+        )
+    if DATA_BUFFER_FIRST_WORD <= word <= DATA_BUFFER_LAST_WORD:
+        return values["statusDbData"]
+    if word >= EVENT_RAM_FIRST_WORD:
+        element = (word - EVENT_RAM_FIRST_WORD) // EVENT_RAM_WINDOW_SIZE
+        return (values[EVENT_RAM_PORTS[word & 3]] >> (WORD_BITS * element)) & FULL_WORD
+    for field_word, port, low, width in STATUS_WORD_FIELDS:
+        if field_word == word:
+            return (values[port] >> low) & ((1 << width) - 1)
+    raise AssertionError(f"word {word} is not a status word")
+
+
+async def reset_block(dut):
+    """Pulse the reset for a few clocks and release it 2 ns after an edge."""
+    dut.axilRst.value = 1
+    for _ in range(RESET_CLOCKS):
+        await sample_after_tpd(dut.axilClk, propagation_time=PROPAGATION_NS)
+    dut.axilRst.value = 0
+
+
+async def idle_clocks(dut, clocks):
+    for _ in range(clocks):
+        await sample_after_tpd(dut.axilClk, propagation_time=PROPAGATION_NS)
+
+
+def cs_mask(word):
+    """Return the 8-bit event RAM select the read of an event RAM window word presents."""
+    if word < EVENT_RAM_FIRST_WORD:
+        return 0
+    element = (word - EVENT_RAM_FIRST_WORD) // EVENT_RAM_WINDOW_SIZE
+    return (1 << (word & 3)) << (4 * element)
 
 
 @cocotb.test(timeout_time=1, timeout_unit="ms")
@@ -490,7 +695,7 @@ async def evrv1reg_walk_writable_words(dut):
 async def evrv1reg_irq_clear_word(dut):
     """Word 2 pulses the written bits on the clear output, except for 0xFFFFFFFF.
 
-    Observed, intent unconfirmed: a write of 0xFFFFFFFF clears nothing while
+    The behavior is observed, intent unconfirmed: a write of 0xFFFFFFFF clears nothing while
     any other value clears its set bits, and word 2 is both the read of the
     interrupt flags and the write of the clear mask.
 
@@ -543,17 +748,18 @@ async def evrv1reg_dbus_control_pulses(dut):
 async def evrv1reg_output_map_strobes(dut):
     """Output map words 272 to 277 follow the byte strobe only when USE_WSTRB_G is true.
 
-    Observed, intent unconfirmed: with USE_WSTRB_G true a full-word write
+    The behavior is observed, intent unconfirmed: with USE_WSTRB_G true a full-word write
     (strobe 0xF) changes neither half; with it false every write sets both.
 
     Propagation sampling: the output map is sampled 2 ns after each edge.
     """
-    master, clock_task = await start_axi_master(dut)
+    master, clock_task = await start_axi_master(dut, raw=True)
     halves = [0] * (OUTPUT_MAP_WORDS * 2)
 
     async def strobed(pair, value, strobe):
         word = OUTPUT_MAP_FIRST_WORD + pair
-        assert await raw_write(dut, word, value, strobe) == AxiResp.OKAY, f"write of word {word} strobe 0x{strobe:X}"
+        result = await master.write(word * WORD_BYTES, value.to_bytes(WORD_BYTES, "little"), strb=strobe)
+        assert result.resp == AxiResp.OKAY, f"write of word {word} strobe 0x{strobe:X}"
         await settle(dut)
 
     for pair in range(OUTPUT_MAP_WORDS):
@@ -583,6 +789,226 @@ async def evrv1reg_output_map_strobes(dut):
                 assert output_map_halves(dut) == halves, f"word {word}: strobe 0x{strobe:X}"
         expected_read = (halves[upper] << 16) | halves[lower]
         assert await read_word(master, word) == expected_read, f"word {word} reads back 0x{expected_read:08X}"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=5, timeout_unit="ms")
+async def evrv1reg_read_only_words(dut):
+    """Every read word that is not a stored register returns the status input it names.
+
+    Random patterns and their complements are driven on every status input, so
+    each bit is seen at both levels; the data buffer and event RAM windows
+    return the data input their address selects and present the matching
+    address and select on the buses. Five status inputs are read by no word
+    (observed): driving them changes no read word.
+
+    Propagation sampling: buses are sampled 2 ns after the edges that follow
+    each read.
+    """
+    master, clock_task = await start_axi_master(dut)
+    rng, seed = timing_model.make_rng()
+    dut._log.info("read-only word seed %d", seed)
+    status_words = [word for word, _, _, _ in STATUS_WORD_FIELDS]
+    status_words += [0, IRQ_FLAG_WORD, DBUS_WORD, *DATA_BUFFER_WORDS, *EVENT_RAM_WINDOW_WORDS]
+    for invert in (False, True):
+        values = status_values(rng, invert=invert)
+        drive_status(dut, values)
+        for word in status_words:
+            expected = expected_status_read(word, values, 0)
+            observed = await read_word(master, word)
+            assert observed == expected, f"word {word} read 0x{observed:08X}, expected 0x{expected:08X}"
+            await settle(dut)
+            snap = snapshot(dut)
+            address = word * WORD_BYTES
+            assert snap["configEventRamAddr"] == (address >> 4) & 0xFF, f"word {word}: event RAM address {snap['configEventRamAddr']}"
+            assert snap["configDbRdAddr"] == (address >> 2) & 0x1FF, f"word {word}: data buffer address {snap['configDbRdAddr']}"
+            assert snap["configEventRamCs"] == cs_mask(word), f"word {word}: event RAM select {snap['configEventRamCs']:#x}"
+
+    drive_status(dut, {name: 0 for name, _ in STATUS_PORTS})
+    drive_status(dut, {"irqActive": 1})
+    assert await read_word(master, PCIE_ENABLE_WORD) == 0b10, "bit 1 of word 5 does not follow irqActive"
+    drive_status(dut, {"irqActive": 0})
+    assert await read_word(master, PCIE_ENABLE_WORD) == 0, "bit 1 of word 5 is stuck high"
+
+    baseline = {word: await read_word(master, word) for word in READ_WORDS}
+    drive_status(dut, {name: (1 << width) - 1 for name, width in STATUS_PORTS if name in UNUSED_STATUS_PORTS})
+    for word in READ_WORDS:
+        assert await read_word(master, word) == baseline[word], f"word {word} follows an input that no read names"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=1, timeout_unit="ms")
+async def evrv1reg_fifo_read_strobe(dut):
+    """Reading word 29 pulses the timestamp FIFO read strobe once; other words do not.
+
+    Propagation sampling: the strobe is sampled 2 ns after every edge.
+    """
+    master, clock_task = await start_axi_master(dut)
+    drive_status(dut, {"statusTsFifoTsHigh": 0x12345678})
+    for word in (28, 30, 25, 11):
+        history = []
+        watcher = cocotb.start_soon(watch_config(dut, history))
+        await read_word(master, word)
+        await settle(dut)
+        watcher.cancel()
+        assert high_cycles(history, "configTsFifoRdEna") == [], f"a read of word {word} pulsed the FIFO read strobe"
+    for repeat in range(2):
+        history = []
+        watcher = cocotb.start_soon(watch_config(dut, history))
+        assert await read_word(master, FIFO_READ_WORD) == 0x12345678
+        await settle(dut)
+        watcher.cancel()
+        pulses = high_cycles(history, "configTsFifoRdEna")
+        assert len(pulses) == 1, f"read {repeat} of word 29 pulsed the FIFO read strobe {len(pulses)} times"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=1, timeout_unit="ms")
+async def evrv1reg_latch_latency(dut):
+    """A read waits for the latch latency counter after a reset and after a latch write.
+
+    The counter restarts at a reset and at a write of control bit 10, and a
+    read completes only once it has reached LATCH_TS_LATENCY_G (15). The
+    completion edge counted from the event is the same whenever the read is
+    issued before the counter finishes.
+
+    Propagation sampling: ready, valid and data are read 2 ns after each edge.
+    """
+    master, clock_task = await start_axi_master(dut, raw=True)
+    result = await master.read(VERSION_READ_WORD * WORD_BYTES)
+    clocks = result.clocks
+    assert result.resp == AxiResp.OKAY and int.from_bytes(result.data, "little") == VERSION_WORD
+    assert clocks == AFTER_RESET_READ_CLOCKS, f"read right after reset took {clocks} clocks"
+    assert clocks > LATCH_TS_LATENCY, "the read did not wait for the latency counter"
+
+    await idle_clocks(dut, 2 * LATCH_TS_LATENCY)
+    clocks = (await master.read(VERSION_READ_WORD * WORD_BYTES)).clocks
+    assert clocks == IDLE_READ_CLOCKS, f"idle read took {clocks} clocks"
+
+    for wait in (0, 4, 8):
+        await reset_block(dut)
+        await idle_clocks(dut, wait)
+        clocks = (await master.read(VERSION_READ_WORD * WORD_BYTES)).clocks
+        assert wait + clocks == AFTER_RESET_READ_CLOCKS, f"read {wait} clocks after reset took {clocks} clocks"
+
+    for wait in (0, 4, 8):
+        await idle_clocks(dut, 2 * LATCH_TS_LATENCY)
+        await write_word(master, CONTROL_WORD, 1 << CONTROL_MAP_PAGE_BIT)
+        clocks = (await master.read(VERSION_READ_WORD * WORD_BYTES)).clocks
+        assert clocks == IDLE_READ_CLOCKS, f"read after a write that does not latch took {clocks} clocks"
+        await write_word(master, CONTROL_WORD, 1 << CONTROL_LATCH_BIT)
+        await idle_clocks(dut, wait)
+        clocks = (await master.read(VERSION_READ_WORD * WORD_BYTES)).clocks
+        assert wait + clocks == AFTER_LATCH_READ_CLOCKS, f"read {wait} clocks after a latch write took {clocks} clocks"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=2, timeout_unit="ms")
+async def evrv1reg_interrupts(dut):
+    """The interrupt request is the OR of flag bits 0, 1, 2, 3 and 5 gated by their enables and bit 31.
+
+    irqEnable follows bit 0 of word 5 and nothing else sets it.
+
+    Propagation sampling: irqReq and irqEnable are sampled 2 ns after the
+    edges that follow each write.
+    """
+    master, clock_task = await start_axi_master(dut)
+    for flag in range(WORD_BITS):
+        for master_enable in (1, 0):
+            control = (master_enable << INTERRUPT_MASTER_BIT) | (1 << flag if flag < INTERRUPT_MASTER_BIT else 0)
+            await write_word(master, INTERRUPT_CONTROL_WORD, control)
+            for driven in range(WORD_BITS - 1):
+                drive_status(dut, {"statusIntFlag": 1 << driven})
+                await idle_clocks(dut, 1)
+                request = int(dut.irqReq.value)
+                expected = int(master_enable == 1 and driven == flag and flag in INTERRUPT_ENABLE_BITS)
+                assert request == expected, (
+                    f"irqReq {request} with control 0x{control:08X} and flag bit {driven}, expected {expected}"
+                )
+    drive_status(dut, {"statusIntFlag": FULL_WORD})
+    await write_word(master, INTERRUPT_CONTROL_WORD, 0x7FFFFFFF)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqReq.value) == 0, "irqReq is high without the master enable bit"
+    await write_word(master, INTERRUPT_CONTROL_WORD, 0x80000000 | 0x10)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqReq.value) == 0, "irqReq follows an enable that has no request"
+    await write_word(master, INTERRUPT_CONTROL_WORD, 0x80000000 | 0x1)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqReq.value) == 1, "irqReq did not rise for flag bit 0"
+
+    await write_word(master, PCIE_ENABLE_WORD, 0xFFFFFFFE)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqEnable.value) == 0, "irqEnable follows a bit other than bit 0"
+    await write_word(master, PCIE_ENABLE_WORD, 0x1)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqEnable.value) == 1, "irqEnable did not follow bit 0"
+    await write_word(master, PCIE_ENABLE_WORD, 0x0)
+    await idle_clocks(dut, 1)
+    assert int(dut.irqEnable.value) == 0, "irqEnable did not clear"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=1, timeout_unit="ms")
+async def evrv1reg_event_ram_window(dut):
+    """A write into an event RAM window selects the RAM and then answers DECERR.
+
+    The behavior is observed, intent unconfirmed: a write at byte address 0x4000 or 0x5000
+    plus 4 * k sets the select and write-enable mask bit k of that RAM and
+    presents its data and address, yet the write decode has no arm for the
+    window, so the response is DECERR. The next write elsewhere clears both
+    masks.
+
+    Propagation sampling: the buses are sampled 2 ns after the edges that
+    follow each write.
+    """
+    master, clock_task = await start_axi_master(dut)
+    for window, first_word in enumerate((EVENT_RAM_FIRST_WORD, EVENT_RAM_SECOND_WORD)):
+        for lane in range(4):
+            word = first_word + lane
+            data = 0xC0DE0000 + (window << 8) + lane
+            await write_word(master, word, data, expect=AxiResp.DECERR)
+            await settle(dut)
+            snap = snapshot(dut)
+            mask = (1 << lane) << (4 * window)
+            assert snap["configEventRamCs"] == mask, f"word {word}: select 0x{snap['configEventRamCs']:02X}"
+            assert snap["configEventRamWe"] == mask, f"word {word}: write enable 0x{snap['configEventRamWe']:02X}"
+            assert snap["configEventRamData"] == data, f"word {word}: data 0x{snap['configEventRamData']:08X}"
+            assert snap["configEventRamAddr"] == 0, f"word {word}: address {snap['configEventRamAddr']}"
+            assert snap["configDbRdAddr"] == word & 0x1FF, f"word {word}: data buffer address {snap['configDbRdAddr']}"
+            await write_word(master, CONTROL_WORD, 0)
+            await settle(dut)
+            snap = snapshot(dut)
+            assert snap["configEventRamCs"] == 0 and snap["configEventRamWe"] == 0, "a later write left the RAM masks set"
+    clock_task.cancel()
+
+
+@cocotb.test(timeout_time=3, timeout_unit="ms")
+async def evrv1reg_decode_errors(dut):
+    """Unmapped words, read-only words and unaligned addresses answer DECERR and change nothing.
+
+    Propagation sampling: outputs are sampled 2 ns after the edges that follow
+    each access.
+    """
+    master, clock_task = await start_axi_master(dut, raw=True)
+    for word in UNMAPPED_READ_WORDS:
+        data = await read_word(master, word, expect=AxiResp.DECERR)
+        assert data == UNMAPPED_READ_DATA, f"word {word} read 0x{data:08X} with DECERR"
+
+    await settle(dut)
+    baseline = snapshot(dut)
+    for word in READ_ONLY_WRITE_WORDS:
+        history = await write_and_watch(dut, master, word, FULL_WORD, expect=AxiResp.DECERR)
+        assert moved_ports(baseline, history) == [], f"a rejected write to word {word} moved {moved_ports(baseline, history)}"
+
+    for offset in (1, 2, 3):
+        address = CONTROL_WORD * WORD_BYTES + offset
+        written = await master.write(address, FULL_WORD.to_bytes(WORD_BYTES, "little"))
+        assert written.resp == AxiResp.DECERR, f"unaligned write at 0x{address:04X} answered {written.resp!r}"
+        read = await master.read(address)
+        assert read.resp == AxiResp.DECERR, f"unaligned read at 0x{address:04X} answered {read.resp!r}"
+    await settle(dut)
+    assert moved_ports(baseline, [snapshot(dut)]) == [], "an unaligned write reached an output"
+    assert await read_word(master, CONTROL_WORD) == 0, "an unaligned write changed the control register"
     clock_task.cancel()
 
 
