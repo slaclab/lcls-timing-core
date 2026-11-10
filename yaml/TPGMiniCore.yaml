@@ -75,9 +75,11 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0070
       class: IntField
-      sizeBits: 1
+      # sizeBits: 1
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
       lsBit: 0
-      mode: RW
+      mode: WO
       description: Activates PulseId register value
     #########################################################
     TStampWr:
@@ -100,9 +102,11 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0074
       class: IntField
-      sizeBits: 1
+      # sizeBits: 1
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
       lsBit: 0
-      mode: RW
+      mode: WO
       description: Activates Timestamp register value
     #########################################################
     FixedRateDiv:
@@ -119,8 +123,10 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0040
       class: IntField
-      sizeBits: 1
-      mode: RW
+      # sizeBits: 1
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
+      mode: WO
       description: Loads cached fixed rate marker divisors
     #########################################################
     NBeamSeq:
@@ -172,18 +178,22 @@ TPGMiniCore: &TPGMiniCore
       at:
         offset: 0x0068
       class: IntField
-      sizeBits: 1
+      # sizeBits: 1
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
       lsBit: 0
-      mode: RW
+      mode: WO
       description: Reset transmit link
     #########################################################
     CountIntervalReset:
       at:
         offset: 0x006C
       class: IntField
-      sizeBits: 1
+      # sizeBits: 1
+      # CPSW requires all WO variables to be 32-bit size and 32-bit aligned
+      sizeBits: 32
       lsBit: 0
-      mode: RW
+      mode: WO
       description: Count Interval Reset
     #########################################################
     Lcls1BsaNumSamples:
@@ -264,7 +274,7 @@ TPGMiniCore: &TPGMiniCore
       class: IntField
       sizeBits:  32
       lsBit:     0
-      mode: RW
+      mode: WO
       description: "Lcls-1 BSA Started by Writing any Value Here"
     #########################################################
     BsaCompleteWr:
@@ -272,7 +282,7 @@ TPGMiniCore: &TPGMiniCore
         offset: 0x0050
       class: IntField
       sizeBits: 64
-      mode: RW
+      mode: WO
       description: BSA complete clear
     #########################################################
     BsaCompleteRd:
