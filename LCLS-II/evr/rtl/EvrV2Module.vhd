@@ -4,11 +4,12 @@
 -- Description:
 -- Top level of the small LCLS-II EVR. An AXI-Lite crossbar splits axiClk
 -- traffic between EvrV2Axi at AXIL_BASEADDR and EvrV2TrigReg at +0x200, and
--- the channel configuration crosses to evrClk through a synchronizer into
--- NCHANNELS_G EvrV2EventSelect units behind an EvrV2FromV1 stage, while the
--- NTRIGGERS_G EvrV2Trigger units read the axiClk side trigger configuration
--- and its synchronized copy is unused. Event counts cross back to axiClk, and
--- trigOut carries the NTRIGGERS_G outputs.
+-- the channel configuration crosses to evrClk through a synchronizer (or
+-- directly when COMMON_CLK_G is true) into NCHANNELS_G EvrV2EventSelect units
+-- behind an EvrV2FromV1 stage, while the NTRIGGERS_G EvrV2Trigger units read
+-- the axiClk side trigger configuration and its synchronized copy is unused.
+-- Event counts cross back to axiClk, and trigOut carries the NTRIGGERS_G
+-- outputs.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -123,11 +124,24 @@ begin  -- rtl
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves);
 
-  U_SyncChannelConfig : entity surf.SynchronizerVector
-    generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
-    port map ( clk     => evrClk,
-               dataIn  => channelConfigAV,
-               dataOut => channelConfigSV );
+  NOGEN_SYNC : if COMMON_CLK_G generate
+    channelConfigSV <= channelConfigAV;
+    triggerConfigSV <= triggerConfigAV;
+  end generate;
+
+  GEN_SYNC : if not COMMON_CLK_G generate
+    U_SyncChannelConfig : entity surf.SynchronizerVector
+      generic map ( WIDTH_G => NCHANNELS_G*EVRV2_CHANNEL_CONFIG_BITS_C )
+      port map ( clk     => evrClk,
+                 dataIn  => channelConfigAV,
+                 dataOut => channelConfigSV );
+
+    U_SyncTriggerConfig : entity surf.SynchronizerVector
+      generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
+      port map ( clk     => evrClk,
+                 dataIn  => triggerConfigAV,
+                 dataOut => triggerConfigSV );
+  end generate;
 
   Loop_EvtSel: for i in 0 to NCHANNELS_G-1 generate
     channelConfigAV((i+1)*EVRV2_CHANNEL_CONFIG_BITS_C-1 downto i*EVRV2_CHANNEL_CONFIG_BITS_C)
@@ -169,12 +183,6 @@ begin  -- rtl
                   wrRst        => '0',
                   rdClk        => axiClk,
                   rdRst        => axiRst );
-
-  U_SyncTriggerConfig : entity surf.SynchronizerVector
-    generic map ( WIDTH_G => NTRIGGERS_G*EVRV2_TRIGGER_CONFIG_BITS_C )
-    port map ( clk     => evrClk,
-               dataIn  => triggerConfigAV,
-               dataOut => triggerConfigSV );
 
   Out_Trigger: for i in 0 to NTRIGGERS_G-1 generate
      triggerConfigAV((i+1)*EVRV2_TRIGGER_CONFIG_BITS_C-1 downto i*EVRV2_TRIGGER_CONFIG_BITS_C)
