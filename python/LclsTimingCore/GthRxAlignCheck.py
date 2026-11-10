@@ -84,7 +84,7 @@ class GthRxAlignCheck(pr.Device):
             name         = "LastPhase",
             description  = "Last timing frame phase seen",
             offset       =  0x104,
-            bitSize      =  7,
+            bitSize      =  16,
             bitOffset    =  0x00,
             mode         = "RO",
             pollInterval = 1,
