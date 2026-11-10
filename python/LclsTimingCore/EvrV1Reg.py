@@ -182,7 +182,7 @@ class EvrV1Reg(pr.Device):
             name         = "IntEventEn",
             description  = "Internal Event Enable",
             offset       =  0xA0,
-            bitSize      =  32,
+            bitSize      =  1,
             bitOffset    =  0x00,
             mode         = "RW",
         ))
@@ -191,7 +191,7 @@ class EvrV1Reg(pr.Device):
             name         = "IntEventCount",
             description  = "Internal Event Count",
             offset       =  0xA4,
-            bitSize      =  1,
+            bitSize      =  32,
             bitOffset    =  0x00,
             mode         = "RW",
         ))
