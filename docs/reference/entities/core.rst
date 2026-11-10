@@ -94,7 +94,7 @@ LCLS-II core
    * - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingFrameRx.vhd`
      - simulated
-     - :issue:`239`, :issue:`241`
+     - :issue:`207`, :issue:`239`, :issue:`241`
    * - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingGthWrapper.vhd`
      - baseline-excluded
@@ -1721,7 +1721,7 @@ Status: simulated
      - out
      - ``slv(4 downto 0)``
 
-Issues: :issue:`239`, :issue:`241`
+Issues: :issue:`207`, :issue:`239`, :issue:`241`
 
 .. _entity-lcls-ii-core-rtl-timinggthwrapper-vhd:
 

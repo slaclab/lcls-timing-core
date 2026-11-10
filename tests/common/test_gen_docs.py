@@ -1773,7 +1773,7 @@ def _issues_line(pages, row):
 def test_gated_rtl_issues_reach_their_entity_rows():
     pages = render_all(REPO_ROOT)
     pairs = gen_docs.gated_entity_rows(REPO_ROOT)
-    assert len(pairs) == 14
+    assert len(pairs) == 16
     for test, rows in pairs:
         assert rows, f"{test.node_id}: toplevels {test.toplevels} name no documented entity"
         for row in rows:

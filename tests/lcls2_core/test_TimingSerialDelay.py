@@ -25,7 +25,10 @@ Test methodology:
         raised and lowered between frames; a reset in the middle of a
         frame; 25 frames 20 cycles apart under a 600 cycle delay to overrun
         the 128 entry delay FIFO; a fiducial in the same cycle as the first
-        advance; and an empty frame (fiducial with no advance).
+        advance; and an empty frame (fiducial with no advance). The
+        known-issue entrypoint drives streamReady as TimingDeserializer does:
+        at each fiducial it reports whether the previous frame carried a
+        segment for the stream, and it is low after reset.
     Checks: frame N is delivered on strobe_o, with valid_o high and frame_o
         equal to its words, on the cycle 4 + delay after the fiducial of
         frame N + 1 (a one frame lag); strobe_o is a single cycle pulse; no
@@ -384,17 +387,33 @@ async def serialdelay_fiducial_with_advance(dut):
     clock_task.cancel()
 
 
-def empty_frame_scenario(ready):
-    """Frames A, empty, B, C, D at 66 cycle spacing, delay 0, with ``ready`` around the empty frame."""
+def empty_frame_scenario(ready, delay=0):
+    """Frames A, empty, B, C, D at 66 cycle spacing, with ``ready`` around the empty frame."""
     frames = {"A": tagged_words(1), "B": tagged_words(2), "C": tagged_words(3), "D": tagged_words(4)}
     fiducials = fiducial_cycles(5)
-    scenario = Scenario(fiducials[-1] + 100, 0)
+    scenario = Scenario(fiducials[-1] + delay + 100, delay)
     scenario.add_frame(fiducials[0], frames["A"])
     scenario.add_empty_frame(fiducials[1], ready=ready)
     scenario.add_frame(fiducials[2], frames["B"])
     scenario.add_frame(fiducials[3], frames["C"])
     scenario.add_frame(fiducials[4], frames["D"])
     return scenario, frames, fiducials
+
+
+def drive_deserializer_ready(scenario, fiducials, carried):
+    """Overwrite streamReady the way TimingDeserializer drives it.
+
+    The deserializer latches ``served`` into ready at the start of each frame:
+    from the fiducial of frame k until the next fiducial, ready is 1 only if
+    frame k - 1 carried a segment for the stream (``carried[k - 1]``). After
+    reset nothing was served, so ready is low until the second fiducial.
+    """
+    scenario.ready = [0] * scenario.length
+    for index, fiducial in enumerate(fiducials):
+        end = fiducials[index + 1] if index + 1 < len(fiducials) else scenario.length
+        level = carried[index - 1] if index else 0
+        for cycle in range(fiducial, end):
+            scenario.ready[cycle] = level
 
 
 @cocotb.test(timeout_time=500, timeout_unit="us")
@@ -433,33 +452,35 @@ async def serialdelay_empty_frame_observed(dut):
 
 @cocotb.test(timeout_time=500, timeout_unit="us")
 async def serialdelay_empty_frame_header_behavior(dut):
-    """The RTL header says stream_i ready is tested on the fiducial: an empty frame must not start a frame.
+    """Every fiducial gets one delivery and streamReady qualifies the frame it delivers, at delay 0 and 37.
 
-    With streamReady low around the empty frame no frame should be started,
-    so frame B has its own start token and frame A is delivered at the delayed
-    fiducial of B, not at the delayed fiducial of the empty frame. The
-    current RTL never reads streamReady and fails this test.
+    TimingPkg describes the rx ready as "last segment valid": at the fiducial
+    of frame N + 1, TimingDeserializer reports whether frame N carried a
+    segment for the stream and had a good CRC, and the delay line delivers
+    frame N at that fiducial's delayed start token. Frames A, empty, B, C, D
+    are sent with ready driven that way, so ready is high for the deliveries of
+    A, B and C and low for the delivery of the empty frame. Expected: one
+    strobe per fiducial after the first, 4 + delay cycles after it, with
+    valid_o high except on the empty frame's delivery, and A, B and C
+    carrying their own words. The current RTL never reads streamReady, lets
+    the empty frame absorb the start of frame B, and fails this test.
 
     Propagation sampling: samples are taken 2 ns after the edge.
     """
     clock_task = await start_clock(dut)
-    scenario, frames, fiducials = empty_frame_scenario(0)
-    samples = await run_scenario(dut, scenario)
-    strobes = strobes_of(samples)
-    want_a = expected_strobe_cycle(fiducials[2], 0)
-    got = [(strobe.cycle, strobe.frame) for strobe in strobes]
-    early = [cycle for cycle, _ in got if cycle == expected_strobe_cycle(fiducials[1], 0)]
-    assert not early, (
-        "empty frame merged into the next frame: "
-        f"frame A was delivered at cycle {early[0]}, the delayed fiducial of the empty frame, "
-        f"expected cycle {want_a}, the delayed fiducial of frame B"
-    )
-    want = [
-        (want_a, pack(frames["A"])),
-        (expected_strobe_cycle(fiducials[3], 0), pack(frames["B"])),
-        (expected_strobe_cycle(fiducials[4], 0), pack(frames["C"])),
-    ]
-    assert got == want, f"empty frame merged into the next frame: strobes {[(c, hex(f)) for c, f in got]}"
+    carried = (1, 0, 1, 1)
+    for delay in (0, 37):
+        scenario, frames, fiducials = empty_frame_scenario(0, delay)
+        drive_deserializer_ready(scenario, fiducials, carried)
+        samples = await run_scenario(dut, scenario)
+        strobes = strobes_of(samples)
+        got = [(strobe.cycle, strobe.valid) for strobe in strobes]
+        want = [(expected_strobe_cycle(fiducial, delay), valid) for fiducial, valid in zip(fiducials[1:], carried)]
+        assert got == want, f"one delivery per fiducial expected at delay {delay}: strobes (cycle, valid) {got}, expected {want}"
+        by_cycle = {strobe.cycle: strobe.frame for strobe in strobes}
+        for name, fiducial in (("A", fiducials[1]), ("B", fiducials[3]), ("C", fiducials[4])):
+            cycle = expected_strobe_cycle(fiducial, delay)
+            assert by_cycle[cycle] == pack(frames[name]), f"delay {delay}: frame {name} words differ at cycle {cycle}"
     clock_task.cancel()
 
 

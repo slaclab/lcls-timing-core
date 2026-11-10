@@ -17,6 +17,12 @@ Tracker: :issue:`207`.
    * - Source
      - Detail
      - Shown on
+   * - gated test: ``tests/lcls2_core/test_TimingFrameRx.py::test_TimingFrameRx_known_issue_crc_error_valid``
+     - TimingFrameRx delivers a frame with a CRC error with timingMessageValid high
+     - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
+   * - gated test: ``tests/lcls2_core/test_TimingFrameRx.py::test_TimingFrameRx_known_issue_link_error_valid``
+     - TimingFrameRx delivers the partial frame left by a link error with its verdict taken from the version word
+     - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
    * - gated test: ``tests/lcls2_core/test_TimingSerialDelay.py::test_TimingSerialDelay_known_issue_empty_frame``
      - TimingSerialDelay never reads stream_i.ready, so an empty frame merges into the next frame
      - :ref:`TimingSerialDelay <entity-lcls-ii-core-rtl-timingserialdelay-vhd>`

@@ -12,7 +12,7 @@
 
 Test methodology:
     Sweep: none, one compiled simulation of TimingFrameRxWrapper. The
-        known-issue entrypoint runs in its own simulation and only when
+        known-issue entrypoints each run in their own simulation and only when
         RUN_KNOWN_ISSUE_TESTS=1.
     Stimulus: rxRst is held for 3 rxClk cycles with idle commas on the flat
         rx ports, then released. A driver presents one model-encoded symbol
@@ -35,8 +35,10 @@ Test methodology:
         yields no strobe of its own; the strobe offset from the start of a
         frame changes by exactly the messageDelay difference; a reset in the
         middle of a frame suppresses it, while rxDecErr delivers the partial
-        frame mixed with the previous one; 30 seeded random messages are all
-        delivered with timingMessageValid=1. Every checked output is
+        frame mixed with the previous one; the known-issue entrypoints expect
+        a CRC error or a link error to deliver that frame with
+        timingMessageValid low; 30 seeded random messages are all delivered
+        with timingMessageValid=1. Every checked output is
         resolvable on every sampled cycle after reset release; a missing
         strobe fails after a bounded wait.
     Timing: 10 ns rxClk.
@@ -230,6 +232,8 @@ async def framerx_extension_segments(dut):
 
 KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
 KNOWN_ISSUE_ENTRYPOINT = "framerx_valid_qualifies_strobe"
+CRC_ENTRYPOINT = "framerx_crc_error_flagged"
+LINK_ENTRYPOINT = "framerx_link_error_flagged"
 
 RESET_CYCLES = 3
 LEAD_CYCLES = 20
@@ -366,7 +370,8 @@ async def framerx_crc_error_still_delivered(dut):
     A flipped CRC low word sets staData bit 3 once and the frame is delivered
     with timingMessageValid=1 and the sent fields. A flipped data word sets
     the same bit and the corrupted payload is delivered with
-    timingMessageValid=1.
+    timingMessageValid=1. The gated entrypoint framerx_crc_error_flagged holds
+    the expectation that such a frame is delivered with timingMessageValid low.
 
     Propagation sampling: samples are taken 2 ns after the edge.
     """
@@ -395,6 +400,38 @@ async def framerx_crc_error_still_delivered(dut):
     crc_pulses = sta_cycles(samples, STA_CRC)
     assert len(crc_pulses) == 1 and in_frame(crc_pulses[0], 1), f"staData(3) pulses at {crc_pulses}"
     assert corrupted["pulseId"] == msg_a["pulseId"] ^ 0x0010, "corrupted payload is not the flipped pulse id bit"
+
+
+@cocotb.test(
+    timeout_time=400,
+    timeout_unit="us",
+    skip=KNOWN_ISSUE_SKIP,
+)
+async def framerx_crc_error_flagged(dut):
+    """A frame with a CRC error is delivered with timingMessageValid low; the frames around it stay valid.
+
+    Known issue: TimingSerialDelay never reads the ready level that
+    TimingDeserializer drops on a CRC mismatch, so the bad frame is delivered
+    with timingMessageValid high. For a flipped CRC low word and for a flipped
+    data word (original CRC words) the sequence good, bad, good, good must
+    give, per strobe, (valid on the strobe cycle, valid on the next cycle) of
+    [(1, 1), (0, 0), (1, 1)]. Run with RUN_KNOWN_ISSUE_TESTS=1.
+
+    Propagation sampling: samples are taken 2 ns after the edge.
+    """
+    await start_receiver(dut)
+    msg_a, msg_b, msg_c, _ = sent_messages()
+    bad_crc = message_of(msg_a)
+    bad_crc[-2] = (bad_crc[-2][0] ^ 0x0001, 0b00)
+    words = timing_model.message_words(msg_a)
+    corrupted_words = list(words)
+    corrupted_words[1] ^= 0x0010
+    bad_data = frame_of_words(corrupted_words)
+    bad_data[-2:] = message_of(msg_a)[-2:]
+    for label, bad in (("flipped CRC low word", bad_crc), ("flipped data word", bad_data)):
+        samples = await run_beats(dut, sequence([message_of(msg_a), bad, message_of(msg_b), message_of(msg_c)]))
+        got = [(strobe.valid, strobe.valid_after) for strobe in strobes_of(samples)]
+        assert got == [(1, 1), (0, 0), (1, 1)], f"{label}: (valid on strobe, valid next cycle) per strobe: {got}"
 
 
 @cocotb.test(timeout_time=400, timeout_unit="us")
@@ -577,7 +614,9 @@ async def framerx_reset_and_link_error(dut):
     deserializer, but the delay line still receives the words sent before the
     error plus a stop token, so the strobe that would deliver B carries the
     previous frame's last words below the 27 words of B that arrived. The
-    frames after it decode.
+    frames after it decode. The gated entrypoint framerx_link_error_flagged
+    holds the expectation that the partial frame is delivered with
+    timingMessageValid low.
 
     Propagation sampling: samples are taken 2 ns after the edge.
     """
@@ -612,6 +651,40 @@ async def framerx_reset_and_link_error(dut):
     assert strobes[2].valid_after == 1 and strobes[3].valid_after == 1, "frames after the error are not valid"
 
 
+@cocotb.test(
+    timeout_time=400,
+    timeout_unit="us",
+    skip=KNOWN_ISSUE_SKIP,
+)
+async def framerx_link_error_flagged(dut):
+    """The partial frame left by rxDecErr is delivered with timingMessageValid low; the frames after it stay valid.
+
+    Known issue: TimingSerialDelay never reads the ready level that
+    TimingDeserializer drops on a link error, so the partial frame is
+    delivered with its verdict taken from the version word it happens to
+    carry. Word 27 of the first frame is set to the message version so the
+    partial frame carries version 1 and the version check cannot flag it.
+    With one rxDecErr cycle in the middle of the second frame the strobes must
+    give, per strobe, (valid on the strobe cycle, valid on the next cycle) of
+    [(1, 1), (0, 0), (1, 1), (1, 1)]. Run with RUN_KNOWN_ISSUE_TESTS=1.
+
+    Propagation sampling: samples are taken 2 ns after the edge.
+    """
+    await start_receiver(dut)
+    msg_a, msg_b, msg_c, msg_d = sent_messages()
+    words_a = list(timing_model.message_words(msg_a))
+    words_a[27] = timing_model.TIMING_MESSAGE_VERSION  # the partial frame then carries version 1
+    frames = [frame_of_words(words_a)] + [message_of(msg) for msg in (msg_b, msg_c, msg_d, msg_a)]
+    beats = sequence(frames)
+    interrupt = frame_cycle(1) + 30  # the symbol of word 27 of the second frame
+    beats[interrupt] = beats[interrupt]._replace(dec_err=0b01)
+    strobes = strobes_of(await run_beats(dut, beats))
+    assert len(strobes) == 4, f"{len(strobes)} strobes, expected 4"
+    assert strobes[1].message["version"] == timing_model.TIMING_MESSAGE_VERSION, "the partial frame does not carry version 1"
+    got = [(strobe.valid, strobe.valid_after) for strobe in strobes]
+    assert got == [(1, 1), (0, 0), (1, 1), (1, 1)], f"(valid on strobe, valid next cycle) per strobe: {got}"
+
+
 @cocotb.test(timeout_time=400, timeout_unit="us")
 async def framerx_random_messages(dut):
     """30 seeded random messages are all delivered with the sent fields and timingMessageValid=1.
@@ -637,7 +710,9 @@ def test_TimingFrameRx():
         test_file=Path(__file__),
         toplevel="lcls_timing_core.timingframerxwrapper",
         extra_vhdl_sources={"lcls_timing_core": [str(WRAPPER)]},
-        extra_env=cocotb_filtered_env({}, cocotb_test_filter_excluding(KNOWN_ISSUE_ENTRYPOINT)),
+        extra_env=cocotb_filtered_env(
+            {}, cocotb_test_filter_excluding(KNOWN_ISSUE_ENTRYPOINT, CRC_ENTRYPOINT, LINK_ENTRYPOINT)
+        ),
     )
 
 
@@ -655,4 +730,38 @@ def test_TimingFrameRx_known_issue_valid_on_strobe():
         toplevel="lcls_timing_core.timingframerxwrapper",
         extra_vhdl_sources={"lcls_timing_core": [str(WRAPPER)]},
         extra_env=cocotb_filtered_env({}, cocotb_test_filter(KNOWN_ISSUE_ENTRYPOINT)),
+    )
+
+
+@pytest.mark.skipif(
+    KNOWN_ISSUE_SKIP,
+    reason=(
+        "known issue: TimingFrameRx delivers a frame with a CRC error with timingMessageValid high; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/207; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+    ),
+)
+def test_TimingFrameRx_known_issue_crc_error_valid():
+    run_lcls_vhdl_test(
+        test_file=Path(__file__),
+        toplevel="lcls_timing_core.timingframerxwrapper",
+        extra_vhdl_sources={"lcls_timing_core": [str(WRAPPER)]},
+        extra_env=cocotb_filtered_env({}, cocotb_test_filter(CRC_ENTRYPOINT)),
+    )
+
+
+@pytest.mark.skipif(
+    KNOWN_ISSUE_SKIP,
+    reason=(
+        "known issue: TimingFrameRx delivers the partial frame left by a link error with its verdict taken from the version word; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/207; "
+        "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+    ),
+)
+def test_TimingFrameRx_known_issue_link_error_valid():
+    run_lcls_vhdl_test(
+        test_file=Path(__file__),
+        toplevel="lcls_timing_core.timingframerxwrapper",
+        extra_vhdl_sources={"lcls_timing_core": [str(WRAPPER)]},
+        extra_env=cocotb_filtered_env({}, cocotb_test_filter(LINK_ENTRYPOINT)),
     )

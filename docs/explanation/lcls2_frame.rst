@@ -108,7 +108,7 @@ The measured behaviors below are observed in simulation; the intent of the
 maintainers is not confirmed, and each open question is linked on its bullet:
 
 - A frame with a wrong CRC sets ``staData`` bit 3 once and is still delivered,
-  with ``timingMessageValid`` high (:issue:`243`).
+  with ``timingMessageValid`` high (:issue:`207`).
 - The receiver has no length check. A 58-word stream 0 segment leaves the previous
   frame's last word at index 0, so every field is shifted up by one word, and a
   60-word segment loses its first word. Both pass the CRC (:issue:`244`).
