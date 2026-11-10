@@ -209,8 +209,10 @@ begin
                v.req.request := '0';
                -- Get the index pointer
                i             := conv_integer(ack.rdData(6 downto 0));
-               -- Increment the counter
-               v.sample(i)   := r.sample(i)+1;
+               -- Increment the counter (DRP value is 7 bits, histogram has 40 entries)
+               if i < r.sample'length then
+                  v.sample(i) := r.sample(i)+1;
+               end if;
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment
