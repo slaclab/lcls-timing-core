@@ -221,7 +221,7 @@ module EvrV1DbusDecode(Clock, EventClock, Reset, dbus, isK, dbRdAddr, dbena, dbd
 	       iBusy <= 1'b0;
 	       iDone <= 1'b1;
 	       wrMem <= ~wrMem;
-	       rxSize <= {0, iRxSize};
+	       rxSize <= {1'b0, iRxSize};
 	    end
 	 
 	    else if (iBusy)
