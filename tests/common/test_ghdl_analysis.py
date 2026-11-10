@@ -82,7 +82,7 @@ def test_baseline_keys_exist():
 
 def test_baseline_is_specific():
     validate_baseline()
-    assert len(KNOWN_GHDL_UNANALYZABLE) == 7
+    assert len(KNOWN_GHDL_UNANALYZABLE) == 6
     for unit, fragment in KNOWN_GHDL_UNANALYZABLE.items():
         assert not re.search(r":\d+:\d+", fragment), f"{unit}: line number in fragment"
         assert ".vhd" not in fragment, f"{unit}: file path in fragment"

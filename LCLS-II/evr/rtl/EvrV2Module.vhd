@@ -93,6 +93,7 @@ architecture mapping of EvrV2Module is
   signal rStrobe        : slv(5 downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv(NCHANNELS_G-1 downto 0) := (others=>'0');
+  signal eventStatusIn  : slv(NCHANNELS_G downto 0);
   signal eventCount     : SlVectorArray(NCHANNELS_G downto 0,31 downto 0);
   signal rstCount       : sl;
 
@@ -157,11 +158,12 @@ begin  -- rtl
     end if;
   end process;
 
+  eventStatusIn <= evrBus.strobe & eventSel;
+
   Sync_EvtCount : entity surf.SyncStatusVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => NCHANNELS_G+1 )
-    port map    ( statusIn(NCHANNELS_G)            => evrBus.strobe,
-                  statusIn(NCHANNELS_G-1 downto 0) => eventSel,
+    port map    ( statusIn     => eventStatusIn,
                   cntRstIn     => rstCount,
                   rollOverEnIn => (others=>'1'),
                   cntOut       => eventCount,

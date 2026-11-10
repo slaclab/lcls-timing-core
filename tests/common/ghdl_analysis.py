@@ -62,8 +62,6 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     # The next two fail while re-analyzing TPGMiniReg and report its errors.
     "tpgminicore": "not locally static",
     "timingcore": "not locally static",
-    # An index and a range expression that are not locally static.
-    "evrv2module": "must be locally static",
     # A string literal whose length differs from the surf tKeep width.
     "evrv1coreisrctrl": "string length does not match",
     # The testbench names a type that its package does not declare.
