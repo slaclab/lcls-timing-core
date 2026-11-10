@@ -55,7 +55,7 @@ begin
          dmaOut    <= rateSel and destSel and strobeIn and config.enabled and config.dmaEnabled;
 
          controlI := conv_integer(config.rateSel(8 downto 4));
-         if controlI < MAXEXPSEQDEPTH then
+         if controlI < dataIn.control'length then
             controlWord <= dataIn.control(controlI);
          else
             controlWord <= (others => '0');
