@@ -68,7 +68,7 @@ Python arguments: none.
      - ``CountTrig[1..11]``
      - [31:0]
      - RO
-     - differs: offset :issue:`228`
+     - differs: offset :issue:`293`
        at 0x114 [31:0] RO
      - External trigger count in interval
    * - ``0x144`` + ``16 bits`` * i
@@ -99,4 +99,4 @@ The comparison of the sources reports these differences, each recorded against a
 
    The sources disagree on the following registers; treat the RTL as the measured behavior.
 
-   * ``CountTrig`` (offset): ``CountTrig[1] python bit 2240 (word 0x118 bit 0) vs yaml bit 2208 (word 0x114 bit 0) (first differing element 1 of 12, 11 differ)`` :issue:`228`
+   * ``CountTrig`` (offset): ``CountTrig[1] python bit 2240 (word 0x118 bit 0) vs yaml bit 2208 (word 0x114 bit 0) (first differing element 1 of 12, 11 differ)`` :issue:`293`

@@ -79,7 +79,7 @@ into the timing message and streams 1 to 15 into extension messages of up to
 extension segment is shifted into the end of its 32-word register, so its word 0
 sits at word index ``32 - n`` for a segment of ``n`` words and the words below it
 are stale (measured in :repo:`tests/lcls2_core/test_TimingFrameRx.py`; the
-extension outputs are not latched on the strobe, a question in :issue:`211`).
+extension outputs are not latched on the strobe, a question in :issue:`242`).
 The default extension layout is described on :doc:`extension_package`.
 
 The strobe for a frame arrives when the start of the next frame is seen, so the
@@ -105,18 +105,19 @@ Checks the receiver makes, and those it does not
 It latches the version into ``rxVersion``.
 
 The measured behaviors below are observed in simulation; the intent of the
-maintainers is not confirmed, and the questions are open as :issue:`211`:
+maintainers is not confirmed, and each open question is linked on its bullet:
 
 - A frame with a wrong CRC sets ``staData`` bit 3 once and is still delivered,
-  with ``timingMessageValid`` high.
+  with ``timingMessageValid`` high (:issue:`243`).
 - The receiver has no length check. A 58-word stream 0 segment leaves the previous
   frame's last word at index 0, so every field is shifted up by one word, and a
-  60-word segment loses its first word. Both pass the CRC.
+  60-word segment loses its first word. Both pass the CRC (:issue:`244`).
 - ``TimingDeserializer`` tests ``dataK`` only for EOS and EOF. A K character
   written over a data word inside a segment is delivered as data and counted in
-  the CRC.
+  the CRC (:issue:`246`).
 - The 672-bit decode in ``toTimingMessageType`` leaves ``version``,
-  ``syncStatus``, ``mpsValid``, ``bcsFault``, and the BSA fields unassigned.
+  ``syncStatus``, ``mpsValid``, ``bcsFault``, and the BSA fields unassigned
+  (:issue:`265`).
 
 The regression decodes model-encoded frames with the unmodified
 ``TimingFrameRx`` and ``TimingDeserializer``; the 944, 704, 416, and 320-bit

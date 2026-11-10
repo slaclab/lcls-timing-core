@@ -1258,7 +1258,7 @@ def gated_issue_urls(class_name):
 def test_rejected_classes_link_their_gated_issues():
     pages = render_all(REPO_ROOT)
     expected = {
-        "EvrV1Reg": {"217"}, "TPG": {"228"}, "TPGSeqJump": {"220"}, "TPGSeqState": {"221"}, "TPGStatus": {"228"},
+        "EvrV1Reg": {"285"}, "TPG": {"292"}, "TPGSeqJump": {"220"}, "TPGSeqState": {"221"}, "TPGStatus": {"290"},
     }
     for name, numbers in expected.items():
         assert gated_issue_urls(name) == numbers, name
@@ -1790,7 +1790,7 @@ def test_an_entity_with_several_issues_shows_every_link_in_one_cell():
     row = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "TPGMiniReg")
     assert _issues_line(pages, row) == "Issues: :issue:`234`, :issue:`239`"
     trigger = next(r for r in gen_docs.entity_rows(REPO_ROOT) if r.name == "EvrV2Trigger")
-    assert _issues_line(pages, trigger) == "Issues: :issue:`212`, :issue:`217`, :issue:`239`"
+    assert _issues_line(pages, trigger) == "Issues: :issue:`212`, :issue:`239`, :issue:`266`"
     assert gen_docs.entity_issues(
         DIVIDER, read_vhdl_unit(REPO_ROOT / DIVIDER), "simulated", None, ["https://github.com/slaclab/lcls-timing-core/issues/9"]
     ) == ["https://github.com/slaclab/lcls-timing-core/issues/9"]

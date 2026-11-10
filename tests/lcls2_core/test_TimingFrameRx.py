@@ -645,7 +645,7 @@ def test_TimingFrameRx():
     KNOWN_ISSUE_SKIP,
     reason=(
         "open question: TimingFrameRx timingMessageValid and staData(4) lag the strobe by one cycle; "
-        "see https://github.com/slaclab/lcls-timing-core/issues/211; "
+        "see https://github.com/slaclab/lcls-timing-core/issues/241; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )

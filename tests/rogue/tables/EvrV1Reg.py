@@ -19,7 +19,7 @@ Pulse00 to Pulse11 are twelve arrays of four 32 bit words (stride 4), and
 OutputMap is twelve 16 bit entries (stride 4). IrqFlagWr (write only) and
 IrqFlagRd (read only) are declared on the same word at 0x08, a pairing that
 needs overlapEn on both variables; tracked in
-https://github.com/slaclab/lcls-timing-core/issues/217. MapRam1 and MapRam2
+https://github.com/slaclab/lcls-timing-core/issues/285. MapRam1 and MapRam2
 are commented out in the source and are not declared.
 """
 
@@ -31,7 +31,7 @@ ROWS = (
     Row("Status", offset=0x00, bit_offset=0, bit_size=32, mode="RO"),
     Row("Control", offset=0x04, bit_offset=0, bit_size=32, mode="RW"),
     # IrqFlagWr (WO) and IrqFlagRd (RO) are declared on the same 32 bits of 0x08 without
-    # overlapEn, which Rogue rejects: https://github.com/slaclab/lcls-timing-core/issues/217
+    # overlapEn, which Rogue rejects: https://github.com/slaclab/lcls-timing-core/issues/285
     Row("IrqFlagWr", offset=0x08, bit_offset=0, bit_size=32, mode="WO"),
     Row("IrqFlagRd", offset=0x08, bit_offset=0, bit_size=32, mode="RO"),
     Row("IrqEnable", offset=0x0C, bit_offset=0, bit_size=32, mode="RW"),

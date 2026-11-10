@@ -45,8 +45,8 @@ RTL generics: ``DMA_ENABLE_G`` = ``True``, ``CHANNELS_C`` = ``12``. Python argum
      - [15:0]
      - RO
      - not asserted
-     - absent :issue:`228`
-     - differs: missing-in-vhdl :issue:`228`
+     - absent :issue:`300`
+     - differs: missing-in-vhdl :issue:`300`
        at 0x008 [15:0] RO
      - no description in source
    * - ``0x00C``
@@ -138,9 +138,9 @@ RTL generics: ``DMA_ENABLE_G`` = ``True``, ``CHANNELS_C`` = ``12``. Python argum
      - [31:0]
      - RO
      - not asserted
-     - differs: mode :issue:`217`
+     - differs: mode :issue:`275`
        at 0x028 [31:0] RW, step 0x20
-     - differs: mode :issue:`217`
+     - differs: mode :issue:`275`
        at 0x028 [31:0] RW, step 0x20
      - Channel event counts
    * - ``0x02C`` + ``0x20`` * i
@@ -196,9 +196,9 @@ RTL generics: ``DMA_ENABLE_G`` = ``True``, ``CHANNELS_C`` = ``12``. Python argum
      - [31:0]
      - RO
      - not asserted
-     - differs: mode :issue:`217`
+     - differs: mode :issue:`275`
        at 0x1A8 [31:0] RW
-     - differs: mode :issue:`217`
+     - differs: mode :issue:`275`
        at 0x1A8 [31:0] RW
      - Global Event count
 
@@ -238,14 +238,14 @@ Registers without RTL in the repository (the Python view, with the YAML agreemen
      - ``TriggerDelay[0..11]``
      - [27:0]
      - RW
-     - differs: offset :issue:`217`
+     - differs: offset :issue:`276`
        at 0x204 [27:0] RW, step 0x10
      - Trigger width (186MHz clocks)
    * - ``0x208`` + ``0x10`` * i
      - ``TriggerWidth[0..11]``
      - [27:0]
      - RW
-     - differs: missing-in-python :issue:`217`
+     - differs: missing-in-python :issue:`276`
        at 0x208 [27:0] RW, step 0x10
      - no description in source
    * - ``0x20C`` + ``0x10`` * i
@@ -267,10 +267,10 @@ The comparison of the sources reports these differences, each recorded against a
    * ``ChannelBsaSetup`` (bitSize): ``ChannelBsaSetup[0] python width 12 vs vhdl width 6 (first differing element 0 of 12, 12 differ)`` :issue:`215`
    * ``ChannelDestSel`` (bitSize): ``ChannelDestSel[0] python width 18 vs vhdl width 19 (first differing element 0 of 12, 12 differ)`` :issue:`215`
    * ``ChannelEnable`` (missing-in-python): ``enabled[1] is in vhdl at bit 512 (width 1) but not in python (first differing element 1 of 12, 11 differ)`` :issue:`215`
-   * ``ChannelEventCnt`` (mode): ``ChannelEventCnt[0] python mode RW vs vhdl mode RO (first differing element 0 of 12, 12 differ)`` :issue:`217`
+   * ``ChannelEventCnt`` (mode): ``ChannelEventCnt[0] python mode RW vs vhdl mode RO (first differing element 0 of 12, 12 differ)`` :issue:`275`
    * ``ChannelRateSel`` (missing-in-python): ``rateSel[1] is in vhdl at bit 544 (width 13) but not in python (first differing element 1 of 12, 11 differ)`` :issue:`215`
-   * ``GlobalEventCnt`` (mode): ``GlobalEventCnt python mode RW vs vhdl mode RO`` :issue:`217`
-   * ``LinkAddr`` (missing-in-python): ``LinkAddr is in yaml at bit 64 (width 16) but not in python`` :issue:`228`
-   * ``LinkAddr`` (missing-in-vhdl): ``LinkAddr is in yaml at bit 64 (width 16) but not in vhdl`` :issue:`228`
-   * ``TriggerDelay`` (offset): ``TriggerDelay[0] python bit 4160 (word 0x208 bit 0) vs yaml bit 4128 (word 0x204 bit 0) (first differing element 0 of 12, 12 differ)`` :issue:`217`
-   * ``TriggerWidth`` (missing-in-python): ``TriggerWidth[0] is in yaml at bit 4160 (width 28) but not in python (first differing element 0 of 12, 12 differ)`` :issue:`217`
+   * ``GlobalEventCnt`` (mode): ``GlobalEventCnt python mode RW vs vhdl mode RO`` :issue:`275`
+   * ``LinkAddr`` (missing-in-python): ``LinkAddr is in yaml at bit 64 (width 16) but not in python`` :issue:`300`
+   * ``LinkAddr`` (missing-in-vhdl): ``LinkAddr is in yaml at bit 64 (width 16) but not in vhdl`` :issue:`300`
+   * ``TriggerDelay`` (offset): ``TriggerDelay[0] python bit 4160 (word 0x208 bit 0) vs yaml bit 4128 (word 0x204 bit 0) (first differing element 0 of 12, 12 differ)`` :issue:`276`
+   * ``TriggerWidth`` (missing-in-python): ``TriggerWidth[0] is in yaml at bit 4160 (width 28) but not in python (first differing element 0 of 12, 12 differ)`` :issue:`276`

@@ -30,7 +30,7 @@ LCLS-II EVR
    * - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CorePulseGen.vhd`
      - simulated
-     - :issue:`217`
+     - :issue:`289`
    * - :ref:`EvrV2CoreTriggers <entity-lcls-ii-evr-rtl-evrv2coretriggers-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2CoreTriggers.vhd`
      - simulated
@@ -54,7 +54,7 @@ LCLS-II EVR
    * - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2Trigger.vhd`
      - simulated
-     - :issue:`212`, :issue:`217`, :issue:`239`
+     - :issue:`212`, :issue:`239`, :issue:`266`
    * - :ref:`EvrV2TriggerCompl <entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd>`
      - :repo:`LCLS-II/evr/rtl/EvrV2TriggerCompl.vhd`
      - simulated
@@ -454,7 +454,7 @@ Status: simulated
      - in
      - ``Slv6Array(11 downto 0)``
 
-Issues: :issue:`217`
+Issues: :issue:`289`
 
 .. _entity-lcls-ii-evr-rtl-evrv2coretriggers-vhd:
 
@@ -868,7 +868,7 @@ Status: simulated
      - out
      - ``sl``
 
-Issues: :issue:`212`, :issue:`217`, :issue:`239`
+Issues: :issue:`212`, :issue:`239`, :issue:`266`
 
 .. _entity-lcls-ii-evr-rtl-evrv2triggercompl-vhd:
 

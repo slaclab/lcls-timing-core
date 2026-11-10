@@ -111,9 +111,9 @@ The documentation has three sections.
 
 Where a page states a measured behavior it links the test that pins it. Where
 the RTL does something without written intent, the page words it as observed,
-intent unconfirmed, and links the open questions issue instead of calling it a
-defect: :issue:`211` for the core, :issue:`217` for the EVR, and :issue:`228` for the
-PyRogue package.
+intent unconfirmed, and links the open question where it is stated instead of
+calling it a defect. Every open question has its own issue, and
+:doc:`/reference/known_issues` collects the ones a test is gated on.
 
 See also
 --------

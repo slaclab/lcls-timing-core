@@ -139,20 +139,21 @@ this, as measured in :repo:`tests/lcls2_core/test_BsaControl.py`:
   bursts; the measured lag behind the counter is 5 to 10 transmit clocks.
 
 The thresholds below have no written definition in the RTL, so they are stated
-as observed, intent unconfirmed, with the questions issue :issue:`211`:
+as observed, intent unconfirmed, and each open question is linked on its
+bullet:
 
 - With the rate selected on every cycle, a fresh acquisition makes its first
   ``bsaActive`` cycle two cycles after the init input.
 - An average ends on the ``nToAvg + 1`` th active cycle for ``nToAvg`` of 2 or
   more, on every active cycle for ``nToAvg`` of 1, and never for ``nToAvg`` of 0,
-  where the 13-bit counter has to wrap.
+  where the 13-bit counter has to wrap (:issue:`253`).
 - The acquisition ends with ``bsaDone`` on the ``avgToWr`` th average. For
   ``nToAvg`` of 1 and ``avgToWr`` of 2 or more it ends one average later,
-  because the last-average flag lags the counter by one cycle. It never ends for
-  ``avgToWr`` of 0.
+  because the last-average flag lags the counter by one cycle (:issue:`253`). It
+  never ends for ``avgToWr`` of 0.
 - A timeout pulses ``bsaDone`` but does not stop the acquisition; it keeps running
-  when the rate returns. ``noTmo`` disables the timeout, and ``tmocnt`` sets its
-  length in counts of the ``tmo`` input.
+  when the rate returns (:issue:`254`). ``noTmo`` disables the timeout, and
+  ``tmocnt`` sets its length in counts of the ``tmo`` input.
 
 CtrControl: counting qualifying pulses
 --------------------------------------
@@ -164,7 +165,7 @@ latch edges and is unchanged between them. The latch edge is 3 cycles after the
 ``ctrrst`` rising edge (the latency of the edge detector, measured), a ``ctrrst``
 held high does not latch again, and a transmit reset clears the latched value.
 The qualifying cycle on the latch edge itself is lost, because the count restarts
-from zero there (observed, intent unconfirmed, :issue:`211`). These behaviors are
+from zero there (observed, intent unconfirmed, :issue:`256`). These behaviors are
 pinned in :repo:`tests/lcls2_core/test_CtrControl.py`. No RTL file in this
 repository instantiates ``CtrControl``; downstream projects do.
 

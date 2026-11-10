@@ -329,4 +329,4 @@ Each test is skipped unless ``RUN_KNOWN_ISSUE_TESTS=1`` is set, and fails while 
      - Issue
    * - ``test_EvrV1Reg_known_issue_overlap``
      - EvrV1Reg.py declares IrqFlagWr and IrqFlagRd on the same bits of 0x08 without overlapEn, so Rogue rejects the tree
-     - :issue:`217`
+     - :issue:`285`

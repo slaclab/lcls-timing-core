@@ -102,7 +102,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - RW
      - not asserted
      - agrees
-     - differs from Python: mode :issue:`228`
+     - differs from Python: mode :issue:`294`
        at 0x020 [0] RW
      - Reset receive counters
    * - ``0x020``
@@ -131,7 +131,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - RW
      - not asserted
      - agrees
-     - differs from Python: mode :issue:`228`
+     - differs from Python: mode :issue:`294`
        at 0x020 [3] RW
      - Reset receive link
    * - ``0x020``
@@ -169,7 +169,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - RW
      - not asserted
      - agrees
-     - differs from Python: mode :issue:`228`
+     - differs from Python: mode :issue:`294`
        at 0x020 [7] RW
      - Reset RX PLL
    * - ``0x020``
@@ -178,7 +178,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - [8]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - agrees
      - no description in source
    * - ``0x020``
@@ -205,7 +205,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - [24]
      - RW
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - agrees
      - no description in source
    * - ``0x024``
@@ -223,7 +223,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - [31]
      - RW
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - agrees
      - no description in source
    * - ``0x028``
@@ -259,7 +259,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - agrees
      - no description in source
    * - ``0x040``
@@ -267,8 +267,8 @@ RTL generics: ``CLKSEL_MODE_G`` = ``SELECT``. Python arguments: ``clkselMode='SE
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
-     - absent :issue:`228`
+     - absent :issue:`298`
+     - absent :issue:`298`
      - no description in source
 
 Variant LCLSII
@@ -438,7 +438,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``LCLSII``. Python arguments: ``clkselMode='LC
      - [8]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - not compared
      - no description in source
    * - ``0x020``
@@ -465,7 +465,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``LCLSII``. Python arguments: ``clkselMode='LC
      - [24]
      - RW
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - not compared
      - no description in source
    * - ``0x024``
@@ -483,7 +483,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``LCLSII``. Python arguments: ``clkselMode='LC
      - [31]
      - RW
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - not compared
      - no description in source
    * - ``0x028``
@@ -519,7 +519,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``LCLSII``. Python arguments: ``clkselMode='LC
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - not compared
      - no description in source
    * - ``0x040``
@@ -527,7 +527,7 @@ RTL generics: ``CLKSEL_MODE_G`` = ``LCLSII``. Python arguments: ``clkselMode='LC
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`298`
      - not compared
      - no description in source
 
@@ -540,12 +540,12 @@ The comparison of the sources reports these differences, each recorded against a
 
    The sources disagree on the following registers; treat the RTL as the measured behavior.
 
-   * ``C_RxReset`` (mode): ``C_RxReset python mode WO vs yaml mode RW`` :issue:`228`
-   * ``ClearRxCounters`` (mode): ``ClearRxCounters python mode WO vs yaml mode RW`` :issue:`228`
-   * ``FrameVersion`` (missing-in-python): ``axilVersion is in vhdl at bit 384 (width 32) but not in python`` :issue:`228`
-   * ``MsgDelayRst`` (missing-in-python): ``messageDelayRst is in vhdl at bit 319 (width 1) but not in python`` :issue:`228`
-   * ``MsgNoDelay`` (missing-in-python): ``streamNoDelay is in vhdl at bit 280 (width 1) but not in python`` :issue:`228`
-   * ``RxPllReset`` (mode): ``RxPllReset python mode WO vs yaml mode RW`` :issue:`228`
-   * ``VersionErr`` (missing-in-python): ``axilVsnErr is in vhdl at bit 264 (width 1) but not in python`` :issue:`228`
-   * ``timingTSEvCntGray_o`` (missing-in-python): ``timingTSEvCntGray_o is in vhdl at bit 512 (width 32) but not in python`` :issue:`228`
-   * ``timingTSEvCntGray_o`` (missing-in-yaml): ``timingTSEvCntGray_o is in vhdl at bit 512 (width 32) but not in yaml`` :issue:`228`
+   * ``C_RxReset`` (mode): ``C_RxReset python mode WO vs yaml mode RW`` :issue:`294`
+   * ``ClearRxCounters`` (mode): ``ClearRxCounters python mode WO vs yaml mode RW`` :issue:`294`
+   * ``FrameVersion`` (missing-in-python): ``axilVersion is in vhdl at bit 384 (width 32) but not in python`` :issue:`298`
+   * ``MsgDelayRst`` (missing-in-python): ``messageDelayRst is in vhdl at bit 319 (width 1) but not in python`` :issue:`298`
+   * ``MsgNoDelay`` (missing-in-python): ``streamNoDelay is in vhdl at bit 280 (width 1) but not in python`` :issue:`298`
+   * ``RxPllReset`` (mode): ``RxPllReset python mode WO vs yaml mode RW`` :issue:`294`
+   * ``VersionErr`` (missing-in-python): ``axilVsnErr is in vhdl at bit 264 (width 1) but not in python`` :issue:`298`
+   * ``timingTSEvCntGray_o`` (missing-in-python): ``timingTSEvCntGray_o is in vhdl at bit 512 (width 32) but not in python`` :issue:`298`
+   * ``timingTSEvCntGray_o`` (missing-in-yaml): ``timingTSEvCntGray_o is in vhdl at bit 512 (width 32) but not in yaml`` :issue:`298`

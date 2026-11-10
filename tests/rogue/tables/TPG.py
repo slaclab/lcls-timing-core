@@ -17,7 +17,7 @@ placement read from source.
 
 TPGStatus and TPGSeqJump are both placed at 0x400. yaml/TPG.yaml carries the
 same placement with "is this correct?" comments; the intent is asked in
-https://github.com/slaclab/lcls-timing-core/issues/228.
+https://github.com/slaclab/lcls-timing-core/issues/292.
 The leaf tables of the four children are separate modules and are not
 expanded for TPG here.
 """

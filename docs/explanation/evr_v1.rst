@@ -153,8 +153,8 @@ gated behind ``RUN_KNOWN_ISSUE_TESTS`` compiles the production file itself and
 passes once the constant has a width.
 
 The decoder's behavior, as measured on the patched copy, includes the following
-points whose intent is unconfirmed (observed, intent unconfirmed, with the
-questions issue :issue:`217`): a ``dbena`` pulse is remembered while ``dben`` is
+points whose intent is unconfirmed (observed, intent unconfirmed, :issue:`282`):
+a ``dbena`` pulse is remembered while ``dben`` is
 low, so the next buffer after ``dben`` rises is received with no new pulse; and
 ``dbrdy`` and ``rxSize`` report a buffer that was not stored when no ``dbena``
 pulse preceded it or when ``dbdis`` cut it short.
@@ -185,33 +185,36 @@ and ``IrqFlagRd`` are declared at the one offset 0x08, which is the write view
 and the read view of the same word in the RTL, without ``overlapEn``, and Rogue
 6.16.0 rejects the tree when it starts, naming ``IrqFlagWr``. The rejection is
 pinned as observed in :repo:`tests/rogue/test_EvrV1Reg.py`, and whether the
-shared offset is intended is asked in :issue:`217`.
+shared offset is intended is asked in :issue:`285`.
 
 Other register-block behavior, each pinned in
 :repo:`tests/lcls1_evr/test_EvrV1Reg.py` and worded as observed, intent
-unconfirmed (:issue:`217`):
+unconfirmed:
 
 - A write to the event RAM window is answered with a decode error, although it
-  drives the select and write-enable masks and the data and address buses.
+  drives the select and write-enable masks and the data and address buses
+  (:issue:`283`).
 - A write of 0xFFFFFFFF to the interrupt clear word clears nothing, while other
-  values clear the flags named by their set bits.
+  values clear the flags named by their set bits (:issue:`284`).
 - With ``USE_WSTRB_G`` true, the output map words update an entry only for the
-  matching half-word strobe; a full-word write changes neither entry.
+  matching half-word strobe; a full-word write changes neither entry
+  (:issue:`286`).
 - The status inputs ``tsFifoValid``, ``tsFifoNext``, ``tsFifoWrCnt``,
   ``dbInt``, and ``dbIntEna`` are read by no register word.
 
 Leaf behavior worth knowing
 ---------------------------
 
-Measured in the leaf tests, and the intent unconfirmed where noted (questions
-issue :issue:`217`):
+Measured in the leaf tests, and the intent unconfirmed where noted (each open
+question is linked on its bullet):
 
 - ``EvrV1EventReceiverChannel``: with the event captured at index E, the
   trigger first becomes active at E + 1 + delay times the prescale ticks and
   stays active for width times the prescale ticks; a width of 0 gives no pulse
   (:repo:`tests/lcls1_evr/test_EvrV1EventReceiverChannel.py`). A second event
   edge during the delay is ignored by the state machine but restarts the
-  prescaler, which shifts the pulse (observed, intent unconfirmed).
+  prescaler, which shifts the pulse (observed, intent unconfirmed,
+  :issue:`281`).
 - ``EvrV1TimeofDayReceiver``: after 0x7D the upper word of the time stamp is
   the received seconds and the lower word starts at 0 and rises by one per clock
   (:repo:`tests/lcls1_evr/test_EvrV1TimeofDayReceiver.py`).
@@ -223,7 +226,8 @@ issue :issue:`217`):
   overflow output, so it pulses on a write into a full FIFO and is low while the
   FIFO is merely full; ``empty`` goes high while one or two words are still
   readable (:repo:`tests/lcls1_evr/test_EvrV1TimeStampFIFO.py`; the last two
-  are observed, intent unconfirmed).
+  are observed, intent unconfirmed, :issue:`279` for ``full`` and :issue:`280`
+  for ``empty``).
 - ``EvrV1HeartBeat``: an event code 0x7A reloads the counter, and the timeout
   pulses once, a divider count later; the first cycle after reset release also
   pulses (:repo:`tests/lcls1_evr/test_EvrV1HeartBeat.py`; the pulse after reset

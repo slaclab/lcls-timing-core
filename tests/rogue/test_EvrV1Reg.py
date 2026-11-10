@@ -30,7 +30,7 @@ Test methodology:
 
 IrqFlagWr and IrqFlagRd are the write and read views of one interrupt flag
 register at 0x08, declared without overlapEn, so Rogue rejects the tree; see
-https://github.com/slaclab/lcls-timing-core/issues/217. The rejection is
+https://github.com/slaclab/lcls-timing-core/issues/285. The rejection is
 observed, and the fix is a decision for the maintainers.
 """
 
@@ -96,7 +96,7 @@ def test_EvrV1Reg_overlap_pairs():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV1Reg.py declares IrqFlagWr and IrqFlagRd on the same bits of 0x08 without overlapEn, "
-        "so Rogue rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/217; "
+        "so Rogue rejects the tree; see https://github.com/slaclab/lcls-timing-core/issues/285; "
         "set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )

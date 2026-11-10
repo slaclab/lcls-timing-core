@@ -94,7 +94,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - WO
      - not asserted
      - agrees
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`294`
        at 0x040 [0] RW
      - Loads cached fixed rate marker divisors
    * - ``0x050``
@@ -113,7 +113,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - WO
      - not asserted
      - agrees
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`294`
        at 0x050 [63:0] RW
      - BSA complete write
    * - ``0x058``
@@ -123,7 +123,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - RW
      - not asserted
      - agrees
-     - differs from Python: mode :issue:`228`
+     - differs from Python: mode :issue:`294`
        at 0x058 [63:0] RW
      - Pulse ID write
    * - ``0x060``
@@ -133,7 +133,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - RW
      - not asserted
      - agrees
-     - differs from Python: mode :issue:`228`
+     - differs from Python: mode :issue:`294`
        at 0x060 [63:0] RW
      - Time stamp Write
    * - ``0x068``
@@ -143,7 +143,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - WO
      - not asserted
      - agrees
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`294`
        at 0x068 [0] RW
      - Reset transmit link
    * - ``0x06C``
@@ -153,7 +153,7 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - WO
      - not asserted
      - agrees
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`294`
        at 0x06C [0] RW
      - Count Interval Reset
    * - ``0x070``
@@ -162,9 +162,9 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x070 [0] RW
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x070 [0] RW
      - Activates PulseId register value
    * - ``0x074``
@@ -173,9 +173,9 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x074 [0] RW
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x074 [0] RW
      - Activates Timestamp register value
    * - ``0x07C``
@@ -184,9 +184,9 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - strobe
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x07C [31:0] RW
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x07C [31:0] RW
      - Lcls-1 BSA Started by Writing any Value Here
    * - ``0x1FC``
@@ -333,8 +333,8 @@ RTL generics: ``NARRAYS_BSA`` = ``2``. Python arguments: none.
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
-     - absent :issue:`228`
+     - absent :issue:`296`
+     - absent :issue:`296`
      - no description in source
    * - ``0x500``
      - ``PllCnt``
@@ -617,7 +617,7 @@ RTL generics: ``NARRAYS_BSA`` = ``1``. Python arguments: ``NARRAYSBSA=1``.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x070 [0] RW
      - not compared
      - Activates PulseId register value
@@ -627,7 +627,7 @@ RTL generics: ``NARRAYS_BSA`` = ``1``. Python arguments: ``NARRAYSBSA=1``.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x074 [0] RW
      - not compared
      - Activates Timestamp register value
@@ -637,7 +637,7 @@ RTL generics: ``NARRAYS_BSA`` = ``1``. Python arguments: ``NARRAYSBSA=1``.
      - strobe
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x07C [31:0] RW
      - not compared
      - Lcls-1 BSA Started by Writing any Value Here
@@ -763,7 +763,7 @@ RTL generics: ``NARRAYS_BSA`` = ``1``. Python arguments: ``NARRAYSBSA=1``.
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`296`
      - not compared
      - no description in source
    * - ``0x500``
@@ -1047,7 +1047,7 @@ RTL generics: ``NARRAYS_BSA`` = ``4``. Python arguments: ``NARRAYSBSA=4``.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x070 [0] RW
      - not compared
      - Activates PulseId register value
@@ -1057,7 +1057,7 @@ RTL generics: ``NARRAYS_BSA`` = ``4``. Python arguments: ``NARRAYSBSA=4``.
      - [0]
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x074 [0] RW
      - not compared
      - Activates Timestamp register value
@@ -1067,7 +1067,7 @@ RTL generics: ``NARRAYS_BSA`` = ``4``. Python arguments: ``NARRAYSBSA=4``.
      - strobe
      - WO
      - not asserted
-     - differs: mode :issue:`228`
+     - differs: mode :issue:`295`
        at 0x07C [31:0] RW
      - not compared
      - Lcls-1 BSA Started by Writing any Value Here
@@ -1213,7 +1213,7 @@ RTL generics: ``NARRAYS_BSA`` = ``4``. Python arguments: ``NARRAYSBSA=4``.
      - [31:0]
      - RO
      - not asserted
-     - absent :issue:`228`
+     - absent :issue:`296`
      - not compared
      - no description in source
    * - ``0x500``
@@ -1358,15 +1358,15 @@ The comparison of the sources reports these differences, each recorded against a
 
    * ``BsaActive`` (bitOffset): ``BsaActive[1] python bit 4072 (word 0x1fc bit 8) vs vhdl bit 4065 (word 0x1fc bit 1) (first differing element 1 of 2, 1 differ)`` :issue:`223`
    * ``BsaAvgToWr`` (offset): ``BsaAvgToWr[1] python bit 4240 (word 0x210 bit 16) vs vhdl bit 4304 (word 0x218 bit 16) (first differing element 1 of 2, 1 differ)`` :issue:`222`
-   * ``BsaCompleteWr`` (mode): ``BsaCompleteWr python mode WO vs yaml mode RW`` :issue:`228`
-   * ``CountIntervalReset`` (mode): ``CountIntervalReset python mode WO vs yaml mode RW`` :issue:`228`
+   * ``BsaCompleteWr`` (mode): ``BsaCompleteWr python mode WO vs yaml mode RW`` :issue:`294`
+   * ``CountIntervalReset`` (mode): ``CountIntervalReset python mode WO vs yaml mode RW`` :issue:`294`
    * ``FixedRateDiv`` (bitSize): ``FixedRateDiv[0] python width 32 vs vhdl width 20 (first differing element 0 of 10, 10 differ)`` :issue:`225`
-   * ``Lcls1BsaStart`` (mode): ``Lcls1BsaStart python mode RW vs vhdl mode WO`` :issue:`228`
-   * ``PulseIdSet`` (mode): ``PulseIdSet python mode RW vs vhdl mode WO`` :issue:`228`
-   * ``PulseIdWr`` (mode): ``PulseIdWr python mode WO vs yaml mode RW`` :issue:`228`
-   * ``RateReload`` (mode): ``FixedRateDivisors!write vhdl mode WO vs yaml mode RW`` :issue:`228`
-   * ``TStampSet`` (mode): ``TStampSet python mode RW vs vhdl mode WO`` :issue:`228`
-   * ``TStampWr`` (mode): ``TStampWr python mode WO vs yaml mode RW`` :issue:`228`
-   * ``TxReset`` (mode): ``TxReset python mode WO vs yaml mode RW`` :issue:`228`
-   * ``bsastatus`` (missing-in-python): ``bsastatus[0] is in vhdl at bit 8192 (width 32) but not in python (first differing element 0 of 64, 64 differ)`` :issue:`228`
-   * ``bsastatus`` (missing-in-yaml): ``bsastatus[0] is in vhdl at bit 8192 (width 32) but not in yaml (first differing element 0 of 64, 64 differ)`` :issue:`228`
+   * ``Lcls1BsaStart`` (mode): ``Lcls1BsaStart python mode RW vs vhdl mode WO`` :issue:`295`
+   * ``PulseIdSet`` (mode): ``PulseIdSet python mode RW vs vhdl mode WO`` :issue:`295`
+   * ``PulseIdWr`` (mode): ``PulseIdWr python mode WO vs yaml mode RW`` :issue:`294`
+   * ``RateReload`` (mode): ``FixedRateDivisors!write vhdl mode WO vs yaml mode RW`` :issue:`294`
+   * ``TStampSet`` (mode): ``TStampSet python mode RW vs vhdl mode WO`` :issue:`295`
+   * ``TStampWr`` (mode): ``TStampWr python mode WO vs yaml mode RW`` :issue:`294`
+   * ``TxReset`` (mode): ``TxReset python mode WO vs yaml mode RW`` :issue:`294`
+   * ``bsastatus`` (missing-in-python): ``bsastatus[0] is in vhdl at bit 8192 (width 32) but not in python (first differing element 0 of 64, 64 differ)`` :issue:`296`
+   * ``bsastatus`` (missing-in-yaml): ``bsastatus[0] is in vhdl at bit 8192 (width 32) but not in yaml (first differing element 0 of 64, 64 differ)`` :issue:`296`

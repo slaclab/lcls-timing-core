@@ -93,7 +93,7 @@ succeed once the overlap is fixed:
      - Why Rogue rejects it
    * - ``EvrV1Reg``
      - ``IrqFlagWr`` and ``IrqFlagRd`` sit on the same bits of ``0x08`` without
-       ``overlapEn`` (:issue:`217`).
+       ``overlapEn`` (:issue:`285`).
    * - ``TPGSeqJump``
      - ``Class`` is declared at byte 1 bit 0 and overlaps bits 8 to 11 of
        ``StartAddr`` (:issue:`220`).
@@ -102,11 +102,11 @@ succeed once the overlap is fixed:
        byte 4 (:issue:`221`).
    * - ``TPGStatus``
      - ``CountSeq`` has a stride of 2 bytes for 32-bit counters, so neighbouring
-       elements overlap (:issue:`228`).
+       elements overlap (:issue:`290`).
    * - ``TPG``
      - It inherits the overlaps of ``TPGStatus``, ``TPGSeqJump``, and
        ``TPGSeqState``, and also adds ``TPGStatus`` and ``TPGSeqJump`` both at
-       ``0x400`` (:issue:`228`).
+       ``0x400`` (:issue:`292`).
 
 Until those are fixed, build the rest of the tree without these classes.
 Reproduce any of them with the known-issue command of :doc:`run_regression`.

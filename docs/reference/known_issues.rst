@@ -69,22 +69,6 @@ Tracker: :issue:`210`.
      - GthRxAlignCheck indexes a 40-entry histogram with a 7-bit DRP value
      - :ref:`GthRxAlignCheck <entity-lcls-ii-core-rtl-gthrxaligncheck-vhd>`
 
-Issue 211
----------
-
-Tracker: :issue:`211`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
-
-   * - Source
-     - Detail
-     - Shown on
-   * - gated test: ``tests/lcls2_core/test_TimingFrameRx.py::test_TimingFrameRx_known_issue_valid_on_strobe``
-     - Open question: TimingFrameRx timingMessageValid and staData(4) lag the strobe by one cycle
-     - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
-
 Issue 212
 ---------
 
@@ -182,37 +166,6 @@ Tracker: :issue:`216`.
    * - gated test: ``tests/lcls1_evr/test_EvrV1DbusDecode.py::test_EvrV1DbusDecode_known_issue_unpatched``
      - EvrV1DbusDecode.v has an unsized constant in a concatenation that Icarus rejects
      - :ref:`EvrV1DbusDecode <entity-lcls-i-evr-evrv1dbusdecode-v>`
-
-Issue 217
----------
-
-Tracker: :issue:`217`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
-
-   * - Source
-     - Detail
-     - Shown on
-   * - gated test: ``tests/lcls2_evr/test_EvrV2CorePulseGen.py::test_EvrV2CorePulseGen_known_issue_irq_request``
-     - EvrV2CorePulseGen leaves irqReq undriven so it reads unresolved after reset
-     - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
-   * - gated test: ``tests/lcls2_evr/test_EvrV2CorePulseGen.py::test_EvrV2CorePulseGen_known_issue_lcls1_strobe``
-     - EvrV2CorePulseGen with evrModeSel low aborts the simulator at the first timing strobe because the event message assignment is 32 bits narrower than its target
-     - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
-   * - gated test: ``tests/lcls2_evr/test_EvrV2Trigger.py::test_EvrV2Trigger_known_issue_polarity_idle``
-     - EvrV2Trigger with polarity 0 idles low until the first pulse completes
-     - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
-   * - gated test: ``tests/rogue/test_EvrV1Reg.py::test_EvrV1Reg_known_issue_overlap``
-     - EvrV1Reg.py declares IrqFlagWr and IrqFlagRd on the same bits of 0x08 without overlapEn, so Rogue rejects the tree
-     - :ref:`EvrV1Reg <api-evrv1reg>`
-   * - register drift allowlist: ``EvrV1Reg``
-     - ``IrqFlagRd`` (bitSize, missing-in-yaml); ``IrqFlagWr`` (mode)
-     - :ref:`EvrV1Reg <register-map-evrv1reg>`
-   * - register drift allowlist: ``EvrV2Core``
-     - ``ChannelEventCnt`` (mode); ``GlobalEventCnt`` (mode); ``TriggerDelay`` (offset); ``TriggerWidth`` (missing-in-python)
-     - :ref:`EvrV2Core <register-map-evrv2core>`
 
 Issue 218
 ---------
@@ -400,43 +353,6 @@ Tracker: :issue:`227`.
    * - register drift allowlist: ``EvrV1Reg``
      - ``OutputMap`` (bitOffset, offset)
      - :ref:`EvrV1Reg <register-map-evrv1reg>`
-
-Issue 228
----------
-
-Tracker: :issue:`228`.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
-
-   * - Source
-     - Detail
-     - Shown on
-   * - gated test: ``tests/rogue/test_TPG.py::test_TPG_known_issue_overlap``
-     - TPG.py inherits the TPGStatus CountSeq overlap (and the TPGSeqJump and TPGSeqState overlaps of issues 220 and 221), and also adds TPGStatus and TPGSeqJump both at 0x400, so Rogue rejects the tree
-     - :ref:`TPG <api-tpg>`
-   * - gated test: ``tests/rogue/test_TPGStatus.py::test_TPGStatus_known_issue_overlap``
-     - TPGStatus.py declares CountSeq with a stride of 2 bytes for 32 bit counters, so neighbouring elements overlap and Rogue rejects the tree
-     - :ref:`TPGStatus <api-tpgstatus>`
-   * - register drift allowlist: ``EvrV1Reg``
-     - ``DataBufferControl`` (missing-in-python, missing-in-yaml); ``MapRam1`` (missing-in-python, missing-in-vhdl); ``MapRam2`` (missing-in-python, missing-in-vhdl); ``Pulse00`` (offset); ``Pulse01`` (offset); ``Pulse02`` (offset); ``Pulse03`` (offset); ``Pulse04`` (offset); ``Pulse05`` (offset); ``Pulse06`` (offset); ``Pulse07`` (offset); ``Pulse08`` (offset); ``Pulse09`` (offset); ``Pulse10`` (offset); ``Pulse11`` (offset); ``TimestampFifo`` (missing-in-python, missing-in-yaml)
-     - :ref:`EvrV1Reg <register-map-evrv1reg>`
-   * - register drift allowlist: ``EvrV2Core``
-     - ``LinkAddr`` (missing-in-python, missing-in-vhdl)
-     - :ref:`EvrV2Core <register-map-evrv2core>`
-   * - register drift allowlist: ``GthRxAlignCheck``
-     - ``LastPhase`` (bitSize, mode); ``PhaseCount`` (mode)
-     - :ref:`GthRxAlignCheck <register-map-gthrxaligncheck>`
-   * - register drift allowlist: ``TPGMiniCore``
-     - ``BsaCompleteWr`` (mode); ``CountIntervalReset`` (mode); ``Lcls1BsaStart`` (mode); ``PulseIdSet`` (mode); ``PulseIdWr`` (mode); ``RateReload`` (mode); ``TStampSet`` (mode); ``TStampWr`` (mode); ``TxReset`` (mode); ``bsastatus`` (missing-in-python, missing-in-yaml)
-     - :ref:`TPGMiniCore <register-map-tpgminicore>`
-   * - register drift allowlist: ``TPGStatus``
-     - ``CountTrig`` (offset)
-     - :ref:`TPGStatus <register-map-tpgstatus>`
-   * - register drift allowlist: ``TimingFrameRx``
-     - ``C_RxReset`` (mode); ``ClearRxCounters`` (mode); ``FrameVersion`` (missing-in-python); ``MsgDelayRst`` (missing-in-python); ``MsgNoDelay`` (missing-in-python); ``RxPllReset`` (mode); ``VersionErr`` (missing-in-python); ``timingTSEvCntGray_o`` (missing-in-python, missing-in-yaml)
-     - :ref:`TimingFrameRx <register-map-timingframerx>`
 
 Issue 229
 ---------
@@ -737,3 +653,287 @@ Tracker: :issue:`239`.
    * - header issues: ``LCLS-II/gtp7/rtl/TimingGtCoreWrapper.vhd``
      - The banner description contradicts what the file does
      - :ref:`TimingGtCoreWrapper <entity-lcls-ii-gtp7-rtl-timinggtcorewrapper-vhd>`
+
+Issue 241
+---------
+
+Tracker: :issue:`241`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/lcls2_core/test_TimingFrameRx.py::test_TimingFrameRx_known_issue_valid_on_strobe``
+     - Open question: TimingFrameRx timingMessageValid and staData(4) lag the strobe by one cycle
+     - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
+
+Issue 266
+---------
+
+Tracker: :issue:`266`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/lcls2_evr/test_EvrV2Trigger.py::test_EvrV2Trigger_known_issue_polarity_idle``
+     - EvrV2Trigger with polarity 0 idles low until the first pulse completes
+     - :ref:`EvrV2Trigger <entity-lcls-ii-evr-rtl-evrv2trigger-vhd>`
+
+Issue 275
+---------
+
+Tracker: :issue:`275`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV2Core``
+     - ``ChannelEventCnt`` (mode); ``GlobalEventCnt`` (mode)
+     - :ref:`EvrV2Core <register-map-evrv2core>`
+
+Issue 276
+---------
+
+Tracker: :issue:`276`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV2Core``
+     - ``TriggerDelay`` (offset); ``TriggerWidth`` (missing-in-python)
+     - :ref:`EvrV2Core <register-map-evrv2core>`
+
+Issue 285
+---------
+
+Tracker: :issue:`285`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/rogue/test_EvrV1Reg.py::test_EvrV1Reg_known_issue_overlap``
+     - EvrV1Reg.py declares IrqFlagWr and IrqFlagRd on the same bits of 0x08 without overlapEn, so Rogue rejects the tree
+     - :ref:`EvrV1Reg <api-evrv1reg>`
+   * - register drift allowlist: ``EvrV1Reg``
+     - ``IrqFlagRd`` (bitSize, missing-in-yaml); ``IrqFlagWr`` (mode)
+     - :ref:`EvrV1Reg <register-map-evrv1reg>`
+
+Issue 289
+---------
+
+Tracker: :issue:`289`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/lcls2_evr/test_EvrV2CorePulseGen.py::test_EvrV2CorePulseGen_known_issue_irq_request``
+     - EvrV2CorePulseGen leaves irqReq undriven so it reads unresolved after reset
+     - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
+   * - gated test: ``tests/lcls2_evr/test_EvrV2CorePulseGen.py::test_EvrV2CorePulseGen_known_issue_lcls1_strobe``
+     - EvrV2CorePulseGen with evrModeSel low aborts the simulator at the first timing strobe because the event message assignment is 32 bits narrower than its target
+     - :ref:`EvrV2CorePulseGen <entity-lcls-ii-evr-rtl-evrv2corepulsegen-vhd>`
+
+Issue 290
+---------
+
+Tracker: :issue:`290`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/rogue/test_TPGStatus.py::test_TPGStatus_known_issue_overlap``
+     - TPGStatus.py declares CountSeq with a stride of 2 bytes for 32 bit counters, so neighbouring elements overlap and Rogue rejects the tree
+     - :ref:`TPGStatus <api-tpgstatus>`
+
+Issue 292
+---------
+
+Tracker: :issue:`292`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - gated test: ``tests/rogue/test_TPG.py::test_TPG_known_issue_overlap``
+     - TPG.py inherits the TPGStatus CountSeq overlap (and the TPGSeqJump and TPGSeqState overlaps of issues 220 and 221), and also adds TPGStatus and TPGSeqJump both at 0x400, so Rogue rejects the tree
+     - :ref:`TPG <api-tpg>`
+
+Issue 293
+---------
+
+Tracker: :issue:`293`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV1Reg``
+     - ``Pulse00`` (offset); ``Pulse01`` (offset); ``Pulse02`` (offset); ``Pulse03`` (offset); ``Pulse04`` (offset); ``Pulse05`` (offset); ``Pulse06`` (offset); ``Pulse07`` (offset); ``Pulse08`` (offset); ``Pulse09`` (offset); ``Pulse10`` (offset); ``Pulse11`` (offset)
+     - :ref:`EvrV1Reg <register-map-evrv1reg>`
+   * - register drift allowlist: ``TPGStatus``
+     - ``CountTrig`` (offset)
+     - :ref:`TPGStatus <register-map-tpgstatus>`
+
+Issue 294
+---------
+
+Tracker: :issue:`294`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``TPGMiniCore``
+     - ``BsaCompleteWr`` (mode); ``CountIntervalReset`` (mode); ``PulseIdWr`` (mode); ``RateReload`` (mode); ``TStampWr`` (mode); ``TxReset`` (mode)
+     - :ref:`TPGMiniCore <register-map-tpgminicore>`
+   * - register drift allowlist: ``TimingFrameRx``
+     - ``C_RxReset`` (mode); ``ClearRxCounters`` (mode); ``RxPllReset`` (mode)
+     - :ref:`TimingFrameRx <register-map-timingframerx>`
+
+Issue 295
+---------
+
+Tracker: :issue:`295`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``TPGMiniCore``
+     - ``Lcls1BsaStart`` (mode); ``PulseIdSet`` (mode); ``TStampSet`` (mode)
+     - :ref:`TPGMiniCore <register-map-tpgminicore>`
+
+Issue 296
+---------
+
+Tracker: :issue:`296`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``TPGMiniCore``
+     - ``bsastatus`` (missing-in-python, missing-in-yaml)
+     - :ref:`TPGMiniCore <register-map-tpgminicore>`
+
+Issue 298
+---------
+
+Tracker: :issue:`298`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``TimingFrameRx``
+     - ``FrameVersion`` (missing-in-python); ``MsgDelayRst`` (missing-in-python); ``MsgNoDelay`` (missing-in-python); ``VersionErr`` (missing-in-python); ``timingTSEvCntGray_o`` (missing-in-python, missing-in-yaml)
+     - :ref:`TimingFrameRx <register-map-timingframerx>`
+
+Issue 299
+---------
+
+Tracker: :issue:`299`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``GthRxAlignCheck``
+     - ``LastPhase`` (bitSize, mode); ``PhaseCount`` (mode)
+     - :ref:`GthRxAlignCheck <register-map-gthrxaligncheck>`
+
+Issue 300
+---------
+
+Tracker: :issue:`300`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV2Core``
+     - ``LinkAddr`` (missing-in-python, missing-in-vhdl)
+     - :ref:`EvrV2Core <register-map-evrv2core>`
+
+Issue 301
+---------
+
+Tracker: :issue:`301`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV1Reg``
+     - ``MapRam1`` (missing-in-python, missing-in-vhdl); ``MapRam2`` (missing-in-python, missing-in-vhdl)
+     - :ref:`EvrV1Reg <register-map-evrv1reg>`
+
+Issue 302
+---------
+
+Tracker: :issue:`302`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 40 20
+
+   * - Source
+     - Detail
+     - Shown on
+   * - register drift allowlist: ``EvrV1Reg``
+     - ``DataBufferControl`` (missing-in-python, missing-in-yaml); ``TimestampFifo`` (missing-in-python, missing-in-yaml)
+     - :ref:`EvrV1Reg <register-map-evrv1reg>`

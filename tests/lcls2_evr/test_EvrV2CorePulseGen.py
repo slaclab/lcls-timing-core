@@ -705,7 +705,7 @@ def test_EvrV2CorePulseGen(entrypoint):
     reason=(
         "known issue: EvrV2CorePulseGen with evrModeSel low aborts the simulator at the first timing strobe "
         "because the event message assignment is 32 bits narrower than its target; "
-        "see https://github.com/slaclab/lcls-timing-core/issues/217; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/289; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2CorePulseGen_known_issue_lcls1_strobe():
@@ -716,7 +716,7 @@ def test_EvrV2CorePulseGen_known_issue_lcls1_strobe():
     KNOWN_ISSUE_SKIP,
     reason=(
         "known issue: EvrV2CorePulseGen leaves irqReq undriven so it reads unresolved after reset; "
-        "see https://github.com/slaclab/lcls-timing-core/issues/217; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
+        "see https://github.com/slaclab/lcls-timing-core/issues/289; set RUN_KNOWN_ISSUE_TESTS=1 to reproduce"
     ),
 )
 def test_EvrV2CorePulseGen_known_issue_irq_request():

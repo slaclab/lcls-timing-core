@@ -28,9 +28,9 @@ RTL generics: none. Python arguments: none.
      - [7:0]
      - RW
      - ``0x00``
-     - differs: bitSize :issue:`224`, mode :issue:`228`
+     - differs: bitSize :issue:`224`, mode :issue:`299`
        at 0x000 [31:0] RO
-     - differs: mode :issue:`228`; differs from Python: bitSize :issue:`224`
+     - differs: mode :issue:`299`; differs from Python: bitSize :issue:`224`
        at 0x000 [7:0] RO
      - Timing frame phase
    * - ``0x000`` + ``8 bits`` * i
@@ -39,9 +39,9 @@ RTL generics: none. Python arguments: none.
      - [15:8]
      - RW
      - ``0x00``
-     - differs: offset :issue:`224`, bitSize :issue:`224`, mode :issue:`228`
+     - differs: offset :issue:`224`, bitSize :issue:`224`, mode :issue:`299`
        at 0x004 [31:0] RO, step 0x4
-     - differs: mode :issue:`228`; differs from Python: offset :issue:`224`, bitSize :issue:`224`
+     - differs: mode :issue:`299`; differs from Python: offset :issue:`224`, bitSize :issue:`224`
        at 0x000 [15:8] RO, step 8 bits
      - Timing frame phase
    * - ``0x0A0`` + ``0x4`` * i
@@ -87,9 +87,9 @@ RTL generics: none. Python arguments: none.
      - [15:0]
      - RW
      - ``0x0000``
-     - differs: bitSize :issue:`228`, mode :issue:`228`
+     - differs: bitSize :issue:`299`, mode :issue:`299`
        at 0x104 [6:0] RO
-     - differs: bitSize :issue:`228`, mode :issue:`228`
+     - differs: bitSize :issue:`299`, mode :issue:`299`
        at 0x104 [6:0] RO
      - Last timing frame phase seen
    * - ``0x108``
@@ -122,10 +122,10 @@ The comparison of the sources reports these differences, each recorded against a
 
    The sources disagree on the following registers; treat the RTL as the measured behavior.
 
-   * ``LastPhase`` (bitSize): ``LastPhase python width 7 vs vhdl width 16`` :issue:`228`
-   * ``LastPhase`` (mode): ``LastPhase python mode RO vs vhdl mode RW`` :issue:`228`
+   * ``LastPhase`` (bitSize): ``LastPhase python width 7 vs vhdl width 16`` :issue:`299`
+   * ``LastPhase`` (mode): ``LastPhase python mode RO vs vhdl mode RW`` :issue:`299`
    * ``PhaseCount`` (bitSize): ``PhaseCount[0] python width 32 vs vhdl width 8 (first differing element 0 of 64, 40 differ)`` :issue:`224`
    * ``PhaseCount`` (missing-in-vhdl): ``PhaseCount[40] is in python at bit 1280 (width 32) but not in vhdl (first differing element 40 of 64, 24 differ)`` :issue:`224`
    * ``PhaseCount`` (missing-in-yaml): ``PhaseCount[40] is in python at bit 1280 (width 32) but not in yaml (first differing element 40 of 64, 24 differ)`` :issue:`224`
-   * ``PhaseCount`` (mode): ``PhaseCount[0] python mode RO vs vhdl mode RW (first differing element 0 of 64, 40 differ)`` :issue:`228`
+   * ``PhaseCount`` (mode): ``PhaseCount[0] python mode RO vs vhdl mode RW (first differing element 0 of 64, 40 differ)`` :issue:`299`
    * ``PhaseCount`` (offset): ``PhaseCount[1] python bit 32 (word 0x4 bit 0) vs vhdl bit 8 (word 0x0 bit 8) (first differing element 1 of 64, 39 differ)`` :issue:`224`

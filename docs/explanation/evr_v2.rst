@@ -78,7 +78,8 @@ compare the RTL with a cycle-accurate model on every clock; the model is
 :repo:`tests/common/evr_model.py`, and it is derived from the RTL, so it is
 evidence of what the RTL does and not of what was intended. Behavior whose
 intent the maintainers have not confirmed is stated on this page as observed,
-intent unconfirmed, and the questions are collected in :issue:`217`.
+intent unconfirmed, and each open question is linked where it is stated and
+listed on :doc:`/reference/known_issues`.
 ``EvrV2Module`` is not simulated because GHDL cannot analyze it (an index and a
 range expression are not locally static); see :repo:`tests/common/ghdl_analysis.py`.
 
@@ -126,11 +127,11 @@ the model on every sampled clock, over every mode, index, and boundary
 index, plus a seeded random run, in
 :repo:`tests/lcls2_evr/test_EvrV2EventSelect.py`.
 
-Three points are stated as observed, intent unconfirmed (:issue:`217`): the AC
-mask bits for time slots 0 and 7 overlap the index field or fall outside the
-mask field, so those slots cannot be selected cleanly; destination mode ``11``
-never selects and ``destSel(18)`` has no effect; and the header comment says the
-time slot counts from 1.
+Three points are stated as observed, intent unconfirmed: the AC mask bits for
+time slots 0 and 7 overlap the index field or fall outside the mask field, so
+those slots cannot be selected cleanly (:issue:`269`); destination mode ``11``
+never selects and ``destSel(18)`` has no effect (:issue:`270`); and the header
+comment says the time slot counts from 1 (:issue:`269`).
 
 One defect is filed. ``EvrV2EventSelect`` indexes the 18-word control array with
 ``rateSel(8:4)`` in every rate mode, behind a bound of 72 (``MAXEXPSEQDEPTH``),
@@ -157,19 +158,19 @@ Measured in :repo:`tests/lcls2_evr/test_EvrV2Trigger.py`:
 - With the output sampled just after each clock edge, the output is first high in
   cycle fire + delay + 4, for delays of 0, 1, 2, 3, 10, and 50 and widths of 1, 2,
   and 5. The header comment of the RTL says the delay plus 5 clock ticks; whether it
-  counts from a different reference cycle is asked in :issue:`217` (observed,
+  counts from a different reference cycle is asked in :issue:`239` (observed,
   intent unconfirmed).
 - The queue holds ``2**bitSize(depth) + 1`` pulses. Measured at depths of 0, 1,
   4, 16, 28, and 127 with a delay of 1000 and a fire every 4 cycles, it accepts 3,
   3, 9, 33, 33, and 129 pulses. The header comment says "up to 127 triggers"
-  (observed, intent unconfirmed, :issue:`217`).
+  (observed, intent unconfirmed, :issue:`267`).
 - When the queue is full, later fires are dropped with no flag, and if the falling
   level of the last accepted pulse is the entry that is lost, the output stays
   high until the trigger is disabled or reset (observed, intent unconfirmed,
-  :issue:`217`).
+  :issue:`268`).
 - With polarity 0 the output idles low after reset until the first pulse ends,
   because the idle level pushed into the queue at reset release does not land
-  (observed, intent unconfirmed, :issue:`217`). A gated test holds the other
+  (observed, intent unconfirmed, :issue:`266`). A gated test holds the other
   reading.
 
 One defect is filed. ``EvrV2Trigger`` indexes the ``arm`` vector with the 4-bit
@@ -185,7 +186,7 @@ gives a queue of 3 pulses. Measured in
 :repo:`tests/lcls2_evr/test_EvrV2CoreTriggers.py` with ``TRIG_DEPTH_G`` fixed at
 28: ``TRIG_PIPE_G`` of 0, 16, 4, and 1 accept 3, 33, 9, and 3 pending pulses, and
 the counter width does not change the capacity. Whether the 3-pulse default is
-intended is asked in :issue:`217`. (``EvrV2Module`` passes its ``TRIG_DEPTH_G``
+intended is asked in :issue:`267`. (``EvrV2Module`` passes its ``TRIG_DEPTH_G``
 straight through as the queue depth, so the same name means a depth there.)
 
 Complementary triggers
@@ -262,23 +263,26 @@ PyRogue variables cover 18 bits, 12 bits, and the enable and rate select of
 channel 0 only.
 
 Observed behaviors, each pinned in the tests named above and worded as observed,
-intent unconfirmed (:issue:`217`):
+intent unconfirmed, each with its own issue:
 
 - An address above a group window aliases the first group, because the decode
   compares only enough address bits for the groups it has. With one trigger in
   256-byte groups, reads at 0x104, 0x204, 0x404, 0x1004, and 0x8004 return the
-  delay of trigger 0, and a write at 0x1004 changes it.
+  delay of trigger 0, and a write at 0x1004 changes it (:issue:`273`).
 - ``EvrV2Axi`` lists ``axiRst`` in its sensitivity list but never uses it, so a
-  reset pulse clears none of its registers.
+  reset pulse clears none of its registers (:issue:`274`).
 - A write to the delay-tap word of ``EvrV2TrigReg`` pulses the tap load output
-  once for every value, including a value that does not change the tap.
+  once for every value, including a value that does not change the tap
+  (:issue:`278`).
 - The PyRogue ``ChannelEventCnt`` and ``GlobalEventCnt`` are declared read-write
-  and the firmware makes them read-only; a write is acknowledged and ignored.
+  and the firmware makes them read-only; a write is acknowledged and ignored
+  (:issue:`275`).
 - The trigger block of ``EvrV2Core.py`` starts at 0x200 with a 16-byte stride, which
   does not match the group layout of ``EvrV2TrigReg``. Which block the PyRogue
-  trigger layout describes is a question.
+  trigger layout describes is a question (:issue:`276`).
 - ``EvrV2CoreTriggers.py`` assumes ``EVR_CARD_G`` is false, because it always puts
-  channel groups at ``i * 0x100`` and trigger groups at ``0x1000 + i * 0x100``.
+  channel groups at ``i * 0x100`` and trigger groups at ``0x1000 + i * 0x100``
+  (:issue:`287`).
 
 DMA and the event cache
 -----------------------
@@ -292,7 +296,7 @@ on one clock (``clka``) with 192-bit entries and read on another (``clkb``) as s
 
 Measured in :repo:`tests/lcls2_evr/test_EvrV2Cache.py`: every entry that is
 written reads back in full, six words in order. The pointer behavior follows the
-RTL and is stated as observed, intent unconfirmed (:issue:`217`):
+RTL and is stated as observed, intent unconfirmed (:issue:`271`):
 
 - The write pointer stops at entry 1023, and later writes keep overwriting that
   entry. A signal that would gate the writes (``wea`` and not done) is computed
@@ -307,7 +311,7 @@ RTL and is stated as observed, intent unconfirmed (:issue:`217`):
 ``EvrV2TrigReg`` without ``USE_TAP_C``, so the words for the interrupt enable,
 interrupt request, debug, DMA threshold, the BSA and DMA channel fields, and the
 delay tap are not mapped: they read 0 and ignore writes, and ``irqReq`` is
-driven by nothing (observed, intent unconfirmed, :issue:`217`).
+driven by nothing (observed, intent unconfirmed, :issue:`289`).
 
 Adapting the LCLS-I stream
 --------------------------
@@ -325,10 +329,10 @@ a third. With ``disable`` high the input message passes through unchanged. All o
 this equals the model on every sampled clock in
 :repo:`tests/lcls2_evr/test_EvrV2FromV1.py`.
 
-The fields ``version``, ``resync``, ``syncStatus``, ``mpsValid``, and ``bcsFault``
-are never assigned, so they keep whatever the output held: the power-up value, or
-the last message copied with ``disable`` high (observed, intent unconfirmed,
-:issue:`217`).
+The fields ``version``, ``acTimeSlotPhase``, ``resync``, ``syncStatus``,
+``mpsValid``, and ``bcsFault`` are never assigned, so they keep whatever the
+output held: the power-up value, or the last message copied with ``disable`` high
+(observed, intent unconfirmed, :issue:`272`).
 
 Register-mapped pulse generator and the earlier module
 ------------------------------------------------------
@@ -342,16 +346,17 @@ channel selected. Its trigger register block sits in the crossbar at 0x200 with 
 9-bit window, while ``EvrV2TrigReg`` decodes twelve 256-byte groups counted from
 address 0, so only the groups at 0x200 and 0x300 answer, as triggers 2 and 3;
 reads and writes at 0x400, 0x500, 0xB00, and 0xF00 answer a decode error. That
-layout is observed, intent unconfirmed (:issue:`217`). No firmware file in this
-repository instantiates ``EvrV2CorePulseGen`` (the test wrapper aside); whether downstream firmware uses it
-is a question in the same issue.
+layout is observed, intent unconfirmed (:issue:`288`). No firmware file in this
+repository instantiates ``EvrV2CorePulseGen`` (the test wrapper aside); whether
+downstream firmware uses it is a question in :issue:`289`.
 
 ``EvrV2Module`` assembles the same leaves behind a two-slot crossbar. Its
 architecture never reads the generic ``COMMON_CLK_G``, so the channel
 configuration is always synchronized to ``evrClk``, and the synchronized trigger
 configuration that it builds is not the signal the ``EvrV2Trigger`` instances read
-(they take ``triggerConfig`` directly). Both are readings of the RTL and are asked
-in :issue:`240`; no test pins them, because GHDL cannot analyze the unit.
+(they take ``triggerConfig`` directly). Both are readings of the RTL and are
+asked in :issue:`303` (``COMMON_CLK_G``) and :issue:`304` (the synchronized
+trigger configuration); no test pins them, because GHDL cannot analyze the unit.
 
 See also
 --------

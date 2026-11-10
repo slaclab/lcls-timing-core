@@ -102,8 +102,8 @@ Measured behavior to know about
 -------------------------------
 
 These facts come from the regression and are stated as observed. Where the RTL
-carries no written intent they are marked intent unconfirmed and tied to the
-open questions issue for the core, :issue:`211`.
+carries no written intent they are marked intent unconfirmed, and each open
+question is linked on its bullet.
 
 - The clock and mode select outputs of ``TimingRx`` (``timingClkSel`` and
   ``timingModeSel``) are driven directly from the ``axilClk`` registers with no
@@ -115,15 +115,15 @@ open questions issue for the core, :issue:`211`.
   clock edge when ``axilClk`` is slower than ``rxClk``, so the regression runs
   ``axilClk`` at 12 ns against ``rxClk`` at 10 ns on purpose. Whether a faster
   ``axilClk`` is supported is not stated in the RTL (observed, intent
-  unconfirmed). Pinned in :repo:`tests/lcls2_core/test_TimingRx.py`.
+  unconfirmed, :issue:`257`). Pinned in :repo:`tests/lcls2_core/test_TimingRx.py`.
 - A write to the delay register that changes the delay, or that sets bit 31,
   pulses the reset and discards a message already waiting in the delay line. A
   write of the same delay without bit 31 leaves it alone. Observed, intent
-  unconfirmed; pinned in :repo:`tests/lcls2_core/test_TimingRx.py`
+  unconfirmed (:issue:`257`); pinned in :repo:`tests/lcls2_core/test_TimingRx.py`
   (``timingrx_message_delay``).
 - ``TimingMsgDelay`` declares ``FIFO_ADDR_WIDTH_G`` but builds both of its
   FIFOs with a fixed address width, so the generic has no effect. Observed,
-  intent unconfirmed; pinned in
+  intent unconfirmed (:issue:`250`); pinned in
   :repo:`tests/lcls2_core/test_TimingMsgDelay.py`.
 
 See also

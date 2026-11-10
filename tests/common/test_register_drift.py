@@ -284,7 +284,7 @@ def test_the_reviewed_allowlist_has_no_unreferenced_placeholder_kind():
     rd.validate_allowlist(rd.ALLOWLIST)
     assert set(rd.ALLOWLIST.values()) <= {rd.PENDING_ISSUE} | {
         f"https://github.com/slaclab/lcls-timing-core/issues/{n}"
-        for n in (214, 215, 217, 218, 222, 223, 224, 225, 226, 227, 228)
+        for n in (214, 215, 218, 222, 223, 224, 225, 226, 227, 275, 276, 285, 293, 294, 295, 296, 298, 299, 300, 301, 302)
     }
 
 

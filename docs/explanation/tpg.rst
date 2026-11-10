@@ -102,7 +102,7 @@ Measured in :repo:`tests/lcls2_core/test_TPGMiniEdef.py` and again through
   still follow the strobe. Reset returns the block to idle and clears the
   configuration, even with the enable low.
 - A write for an index that has no instance leaves every event-definition bit
-  unchanged (observed, intent unconfirmed; see :issue:`211`).
+  unchanged (observed, intent unconfirmed; see :issue:`260`).
 
 :repo:`LCLS-II/core/rtl/TPGMiniEdefTb.vhd` is a testbench that sits in an ``rtl``
 directory; no ``ruckus.tcl`` lists it, and

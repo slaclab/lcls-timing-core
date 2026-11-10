@@ -23,7 +23,7 @@ so element i lands on the byte of element 8 * i of the others. The bit
 offsets are tracked in
 https://github.com/slaclab/lcls-timing-core/issues/221, and the
 SeqCondBCount stride is asked in
-https://github.com/slaclab/lcls-timing-core/issues/228.
+https://github.com/slaclab/lcls-timing-core/issues/291.
 """
 
 from tests.common.register_tables import ArgSet, Row

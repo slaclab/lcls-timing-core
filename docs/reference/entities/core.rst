@@ -94,7 +94,7 @@ LCLS-II core
    * - :ref:`TimingFrameRx <entity-lcls-ii-core-rtl-timingframerx-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingFrameRx.vhd`
      - simulated
-     - :issue:`211`, :issue:`239`
+     - :issue:`239`, :issue:`241`
    * - :ref:`TimingGthWrapper <entity-lcls-ii-core-rtl-timinggthwrapper-vhd>`
      - :repo:`LCLS-II/core/rtl/TimingGthWrapper.vhd`
      - baseline-excluded
@@ -1337,7 +1337,7 @@ TPGNotify
 
 File: :repo:`LCLS-II/core/rtl/TPGNotify.vhd`
 
-Interrupt notifier for the pattern generator. When irqEnable and irqReq are both high, synchronized to txClk, it counts the event and presents a one word AXI-Stream message with the 32 bit count and tDest 0xFF. As observed, nothing in the file clears tValid once it is set, intent unconfirmed (issue 240), and no ruckus.tcl loads it.
+Interrupt notifier for the pattern generator. When irqEnable and irqReq are both high, synchronized to txClk, it counts the event and presents a one word AXI-Stream message with the 32 bit count and tDest 0xFF. As observed, nothing in the file clears tValid once it is set, intent unconfirmed (issue 305), and no ruckus.tcl loads it.
 
 Status: not simulated: not loaded by any ruckus.tcl; no file in the repository instantiates TPGNotify
 
@@ -1721,7 +1721,7 @@ Status: simulated
      - out
      - ``slv(4 downto 0)``
 
-Issues: :issue:`211`, :issue:`239`
+Issues: :issue:`239`, :issue:`241`
 
 .. _entity-lcls-ii-core-rtl-timinggthwrapper-vhd:
 

@@ -145,4 +145,4 @@ Each test is skipped unless ``RUN_KNOWN_ISSUE_TESTS=1`` is set, and fails while 
      - Issue
    * - ``test_TPGStatus_known_issue_overlap``
      - TPGStatus.py declares CountSeq with a stride of 2 bytes for 32 bit counters, so neighbouring elements overlap and Rogue rejects the tree
-     - :issue:`228`
+     - :issue:`290`

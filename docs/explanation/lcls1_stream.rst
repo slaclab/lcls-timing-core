@@ -67,21 +67,22 @@ Behavior as measured
 
 These statements come from the simulation in
 :repo:`tests/lcls2_core/test_TimingStream.py` and the model. Where the intent of
-the maintainers is not confirmed they are marked observed, and the questions are
-open as :issue:`211`.
+the maintainers is not confirmed they are marked observed, and each open
+question is linked on its bullet.
 
 - An unset event-code slot is ``0x0000`` ``00``, which is what ``TimingStreamTx``
   sends. ``TimingStreamRx`` reads every low-lane data symbol after the marker as
   an event code, so a slot that is not set reads as event code 0. Event code 0
   therefore cannot be sent as clear, and the receiver reports it as set in every
-  frame (observed, intent unconfirmed).
-- Event code 255 never reaches the wire (observed, intent unconfirmed).
+  frame (observed, intent unconfirmed, :issue:`261`).
+- Event code 255 never reaches the wire (observed, intent unconfirmed,
+  :issue:`262`).
 - The receiver strobes no earlier than 14000 clocks after the marker. The prompt
   output carries the newest pulse id, event codes, and data buffer, and the user
   data buffer lags two frames except ``dmod(191 downto 160)``.
 - An error cycle (``rxDecErr`` or ``rxDspErr``) after the marker clears the
   receiver for that frame, so the frame gives no strobe; the next clean frame
-  decodes again.
+  decodes again (:issue:`264`).
 
 See also
 --------

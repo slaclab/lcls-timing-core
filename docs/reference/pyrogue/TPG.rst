@@ -82,4 +82,4 @@ Each test is skipped unless ``RUN_KNOWN_ISSUE_TESTS=1`` is set, and fails while 
      - Issue
    * - ``test_TPG_known_issue_overlap``
      - TPG.py inherits the TPGStatus CountSeq overlap (and the TPGSeqJump and TPGSeqState overlaps of issues 220 and 221), and also adds TPGStatus and TPGSeqJump both at 0x400, so Rogue rejects the tree
-     - :issue:`228`
+     - :issue:`292`
