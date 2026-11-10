@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register file for TRIGGERS_C EVR triggers. Each group, 256 bytes
+-- (4096 when EVR_CARD_G is true), holds the channel, polarity, complement
+-- enable, complement AND, and enable bits in its first word, then the delay
+-- and width words; with USE_TAP_C it adds a delay tap word whose write pulses
+-- loadTap once and whose upper bits read delay_rd. Group i drives
+-- triggerConfig(i).
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

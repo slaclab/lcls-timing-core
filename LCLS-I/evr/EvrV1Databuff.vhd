@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Dual-clock 2048 byte receive buffer for the LCLS-I data buffer. Bytes are
+-- written one at a time on clka at an 11-bit byte address and read back as
+-- little endian 32-bit words on clkb at a 9-bit word address, with one clkb
+-- clock of read latency. It is four 8-bit surf SimpleDualPortRam lanes with no
+-- reset, and words never written read 0 in simulation.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

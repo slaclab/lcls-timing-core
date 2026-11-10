@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for GTX7 Core
+-- Description:
+-- Timing transceiver wrapper for the Artix-7 GTP: a surf Gtp7Core with the
+-- 8b10b decoder, the RX and TX output reset synchronizers, and an AXI-Lite to
+-- DRP bridge, presenting 16-bit rxData and txData paths with K flags and the
+-- timing PHY control and status records. PLL_G selects the PLL and GT_CONFIG_G
+-- selects the LCLS-I or LCLS-II line configuration.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

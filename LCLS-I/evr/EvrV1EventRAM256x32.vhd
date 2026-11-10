@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- True dual-port 256 by 32 bit RAM, a surf TrueDualPortRam in read-first mode,
+-- that the LCLS-I EVR uses for its event code maps. Each port has its own
+-- clock, enable, write enable, address, and data, reads take one clock, and a
+-- write to the address being read returns the old word on that port in the
+-- same cycle.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

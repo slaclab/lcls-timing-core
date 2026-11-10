@@ -2,6 +2,9 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Interrupt notifier for the pattern generator. When irqEnable and irqReq are
+-- both high, synchronized to txClk, it counts the event and presents a one
+-- word AXI-Stream message with the 32 bit count and tDest 0xFF.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

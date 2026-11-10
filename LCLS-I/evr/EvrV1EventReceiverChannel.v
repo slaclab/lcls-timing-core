@@ -7,6 +7,14 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+// Description:
+// One LCLS-I EVR pulse channel. When myEvent rises it waits myDelay ticks and
+// then holds the output for myWidth ticks, where a tick is one Clock or, for a
+// myPreScale above 1, myPreScale clocks; a width of 0 gives no pulse and
+// myPolarity sets the active level. setPulse forces the output on and
+// resetPulse forces it off, with setPulse winning, and Reset returns the
+// channel to idle.
+//////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 module EvrV1EventReceiverChannel(Clock, Reset, myEvent, myDelay, myWidth, myPolarity,
                             trigger, myPreScale, setPulse, resetPulse, channelDebug);

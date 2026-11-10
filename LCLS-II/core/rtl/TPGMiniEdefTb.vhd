@@ -2,6 +2,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Port-less testbench for TPGMiniStream. It runs a 100 ns clock, releases
+-- reset after 4 cycles, writes one event definition (navg 2, nsmp 1, rate 1,
+-- slot 2) at cycle 40, prints a trace of the timeslot and event definition
+-- flags, and stops itself after 1600 cycles. It has no assertions.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- 512 word, 72 bit first-word-fall-through FIFO between two clocks for the
+-- LCLS-I EVR time stamped event records, built from a surf FifoAsync. It keeps
+-- the first 512 words written and drops a word written into a full FIFO; the
+-- port named full is the overflow pulse, high for one cycle after such a
+-- write, and both data counts are exposed.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

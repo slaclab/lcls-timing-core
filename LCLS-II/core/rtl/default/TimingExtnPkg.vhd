@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Default definition of the extension interface, which a downstream project
+-- can replace with its own package of the same name. It declares
+-- ExptMessageType (two 32 bit base-rate counters and a 256 bit IRIG time code,
+-- 320 bits on stream id 2), the stream count and word counts, and conversions
+-- between the bit vector and the record.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

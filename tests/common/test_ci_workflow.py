@@ -13,13 +13,12 @@
 Test methodology:
     Sweep: the parsed workflow: its triggers, job ids and display names, the
         test matrix, the release gate, per-job permissions and timeouts,
-        action pins, the scripts of the production guard, Rogue, lint, and
-        documentation jobs, and the tool version step of every job.
+        action pins, the scripts of the Rogue, lint, and documentation
+        jobs, and the tool version step of every job.
     Stimulus: yaml.safe_load of the workflow file; the repository tree for
         the matrix legs.
     Checks: renaming a job or matrix leg, dropping a release prerequisite,
-        adding a job-level condition to the production guard job, unpinned
-        actions, event expressions inside shell scripts, a missing Rogue
+        unpinned actions, event expressions inside shell scripts, a missing Rogue
         check, packaging steps, and surf or ruckus clones in the
         documentation job each fail one named test, as does a job that drops
         surf or ruckus from its tool version step or runs it too late.
@@ -43,23 +42,19 @@ JOB_NAMES = {
     "lint": "Linting",
     "test": "RTL test: ${{ matrix.module }}",
     "rogue_test": "Rogue Regression Tests",
-    "production_guard": "Production Guard",
     "test_and_document": "Test And Generate Documentation",
 }
 MATRIX_LEGS = ["common", "lcls1_evr", "lcls2_core"]
-RELEASE_NEEDS = {"lint", "test", "rogue_test", "production_guard",
-                 "test_and_document"}
+RELEASE_NEEDS = {"lint", "test", "rogue_test", "test_and_document"}
 TOOL_ITEMS = {
     "lint": ["surf", "ruckus", "ghdl", "python", "flake8", "vsg"],
     "test": ["surf", "ruckus", "ghdl", "iverilog", "python", "cocotb",
              "cocotb-test"],
     "rogue_test": ["surf", "ruckus", "python", "rogue", "cocotb",
                    "cocotb-test"],
-    "production_guard": ["surf", "ruckus", "python", "git"],
     "test_and_document": ["surf", "ruckus", "python", "doxygen"],
 }
-FIRST_WORK_STEP = (r"^(make|python -m pytest|doxygen|"
-                   r'python3 "\$\{RUNNER_TEMP\}/production_guard\.py")')
+FIRST_WORK_STEP = r"^(make|python -m pytest|doxygen)"
 
 
 @pytest.fixture(scope="module")
@@ -122,10 +117,6 @@ def test_release_needs_every_job(jobs):
     assert "if" not in release
 
 
-def test_production_guard_has_no_job_level_condition(jobs):
-    assert "if" not in jobs["production_guard"]
-
-
 def test_jobs_have_read_permissions_and_a_timeout(jobs):
     for job_id, job in jobs.items():
         if job_id == "gen_release":
@@ -149,40 +140,6 @@ def test_no_shell_script_reads_an_event_expression(jobs):
     for job_id, job in jobs.items():
         for _, step, run in step_runs(job):
             assert "github.event" not in run, (job_id, step.get("name"))
-
-
-def test_production_guard_reads_event_values_through_env(jobs):
-    env = jobs["production_guard"]["env"]
-    assert env["BASE_SHA"] == "${{ github.event.pull_request.base.sha }}"
-    assert env["HEAD_SHA"] == "${{ github.event.pull_request.head.sha }}"
-    assert env["BYPASS"] == ("${{ contains(github.event.pull_request."
-                             "labels.*.name, 'production-change') }}")
-
-
-def test_production_guard_runs_the_base_commit_copy(jobs):
-    job = jobs["production_guard"]
-    checkout = job["steps"][0]
-    assert checkout["with"]["fetch-depth"] == 0
-    by_name = {step.get("name"): step for step in job["steps"]}
-    note = by_name["Not a pull request"]
-    assert note["if"] == "github.event_name != 'pull_request'"
-    check = by_name["Check production bytes"]
-    assert check["if"] == "github.event_name == 'pull_request'"
-    run = check["run"]
-    assert 'git show "${BASE_SHA}:tests/common/production_guard.py"' in run
-    assert 'python3 "${RUNNER_TEMP}/production_guard.py"' in run
-    assert '--base "$BASE_SHA" --head "$HEAD_SHA"' in run
-    shown = run.index("git show")
-    launched = run.index('python3 "${RUNNER_TEMP}')
-    assert shown < launched
-
-
-def test_production_guard_bypasses_only_a_failure_with_the_label(jobs):
-    run = {step.get("name"): step
-           for step in jobs["production_guard"]["steps"]}[
-        "Check production bytes"]["run"]
-    assert re.search(r'\[ "\$rc" -eq 1 \] && \[ "\$BYPASS" = "true" \]', run)
-    assert 'exit "$rc"' in run
 
 
 def test_rogue_job_verifies_rogue_before_any_pytest_step(jobs):

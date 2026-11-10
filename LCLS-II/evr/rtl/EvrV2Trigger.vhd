@@ -2,11 +2,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Pipeline of trigger output state.  The trigger output activates config.delay
--- plus 5 clk ticks after fire is asserted and deasserts after config.width clk
--- ticks.  The FIFO allows up to 127 triggers to be pipelined.  Individual
--- trigger delays and widths have 20 bits range, provided the 127 trigger
--- pipelining is not exceeded.
+-- One EVR trigger output. After its arm input is seen (the channel chosen by
+-- config.channel, or any channel in the config.channels mask when USE_MASK_G
+-- is true) and the next fire strobe arrives, it queues a pulse in a FIFO that
+-- a state machine plays out as an edge config.delay clocks after the strobe
+-- lasting config.width clocks. A pulse is skipped when it would start before
+-- the previous queued pulse has ended or when the width is 0, and polarity
+-- sets the pulse level. The FIFO holds up to 2**bitSize(TRIG_DEPTH_C)+1
+-- pending triggers (3 for TRIG_DEPTH_C 0 or 1, 129 for 127).
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -2,6 +2,13 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Top level of the small LCLS-II EVR. An AXI-Lite crossbar splits axiClk
+-- traffic between EvrV2Axi at AXIL_BASEADDR and EvrV2TrigReg at +0x200, and
+-- the channel configuration crosses to evrClk through a synchronizer into
+-- NCHANNELS_G EvrV2EventSelect units behind an EvrV2FromV1 stage, while the
+-- NTRIGGERS_G EvrV2Trigger units read the axiClk side trigger configuration
+-- and its synchronized copy is unused. Event counts cross back to axiClk, and
+-- trigOut carries the NTRIGGERS_G outputs.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

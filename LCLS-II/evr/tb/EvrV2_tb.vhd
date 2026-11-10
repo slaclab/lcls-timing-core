@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Free-running bench for the EVR blocks with 12 channels and 12 trigger
+-- outputs on a 5.4 ns evrClk, with a TPGMini and a TimingDeserializer
+-- producing the timing bus for EvrV2EventSelect and EvrV2Trigger instances. It
+-- also instantiates EvrV2Dma, EvrV2BsaControl, EvrV2BsaChannel, and
+-- EvrV2EventDma.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

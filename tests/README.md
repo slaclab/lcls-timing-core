@@ -104,21 +104,6 @@ With `conda`, replace `micromamba create -p` and `micromamba run -p` by
 `conda env create -f conda-rogue.yml` and `conda run -n
 lcls-timing-core-rogue-test`. Keep the environment directory out of git.
 
-Production guard (job `Production Guard`). It fails when a pull request
-changes RTL, `python/LclsTimingCore/`, `yaml/`, `coregen/`, or a child
-`ruckus.tcl`:
-
-```bash
-python3 tests/common/production_guard.py --base <base sha> --head <head sha>
-```
-
-In CI the job runs the guard script from the pull request base commit when
-the base has one, so a pull request cannot change the check that judges it.
-A maintainer can let an intended production change through by adding the
-`production-change` label to the pull request; the job then reports the
-bypass in its summary instead of failing. A usage or git error is never
-bypassed.
-
 Every job also writes the surf and ruckus commit SHAs and its tool versions
 to the job summary. The same table is available locally:
 

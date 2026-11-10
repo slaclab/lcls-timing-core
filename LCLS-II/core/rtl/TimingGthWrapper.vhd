@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Wraps the TimingGth transceiver IP as a timing receive link: it passes the
+-- reference clock, the differential receive pair, and txInhibit to the IP,
+-- drives the transmit data to zero, and returns the recovered clock, receive
+-- data, K flags, disparity and decode errors, and the receive reset done. The
+-- IP is declared as a component and is not part of this repository.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

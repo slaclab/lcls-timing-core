@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Top level of the mini pattern generator. It crosses the AXI-Lite port to
+-- txClk, instantiates TPGMiniReg for the registers, TPGMini for the LCLS-II
+-- frame on txData(1), and TPGMiniStream for the LCLS-I stream on txData(0),
+-- and passes txResetO, txLoopback, txInhibit, and txPolarity through from the
+-- register block.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,13 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Generates a 16b serial stream of the LCLS-II timing message.
+-- Description:
+-- Receives the 16-bit character stream of a timing link. A K23.7 start of
+-- frame opens a frame, each segment header routes its words to the stream with
+-- the matching streamId (words for an unknown id are sunk), K28.0 ends a
+-- segment, and K29.7 followed by two CRC words ends the frame. It outputs
+-- fiducial, sof, and eof strobes and raises crcErr when the received CRC32
+-- differs from the one it computed.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
