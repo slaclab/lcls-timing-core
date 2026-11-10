@@ -2,8 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Translation of BSA DEF to control bits in timing pattern
--- Status updates:  nToAvgOut, avgToWrOut count up
+-- Counter of the txclk cycles, while enabled, in which the rate selected by
+-- ctrdef through EventSelect is set and the destination mask of ctrdef matches
+-- the beam destination, using the same destination test as BsaControl. A
+-- rising edge of ctrrst latches the count to the count output and restarts it
+-- at 0.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

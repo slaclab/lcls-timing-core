@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Generates a 16b serial stream of the LCLS-II timing message.
+-- Description:
+-- Generates the LCLS-I stream. On fiducial it latches the data buffer, pulse
+-- ID, and event codes, sends the data buffer bytes on the high half between
+-- K28.0 and K28.1, then the pulse ID bit by bit as event codes 0x70 and 0x71,
+-- an 0x7D marker, and a scan of event codes 0 to 254 on the low half, with
+-- K28.5 commas on the idle half cycles.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

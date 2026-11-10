@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- The EvrV1StatusType and EvrV1ConfigType records that connect EvrV1Reg to
+-- EvrV1EventReceiver. Status carries the time stamps, time stamp FIFO, event
+-- RAM read data, interrupt flags, and data buffer state out of the receiver,
+-- and config carries the pulse, output map, event RAM, interrupt, and data
+-- buffer controls into it. EVR_V1_CONFIG_INIT_C is the all-zero configuration.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Family-agnostic timing receiver around the GT interface. An AXI-Lite
+-- crossbar serves TimingRx at offset 0x00000, ring buffers of the raw GT words
+-- at 0x10000 and of the decoded messages at 0x20000 (present when AXIL_RINGB_G
+-- is true), and TPGMiniCore at 0x30000. It passes either the LCLS-I stream or
+-- the LCLS-II message to appTimingBus on appTimingClk according to the
+-- selected mode, and adds EthTimingModule when STREAM_L1_G is true.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

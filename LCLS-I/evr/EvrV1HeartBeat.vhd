@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: EvrHeartBeat LED output
+-- Description:
+-- Heartbeat timeout monitor on eventClk. Event code 0x7A reloads a 32-bit
+-- counter from uSecDividerReg, any other code lets it count down, and
+-- heartBeatTimeOut pulses for one clock when the count reaches 0. With no 0x7A
+-- the counter wraps and times out again after 4294967296 clocks, and reset
+-- clears the count.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

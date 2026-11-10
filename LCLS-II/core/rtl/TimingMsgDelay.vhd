@@ -2,6 +2,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Delays decoded timing messages by a programmable number of timingClk cycles.
+-- Each strobed message is stored in a FIFO with the free-running counter value
+-- plus delay and read out, with timingMessageStrobeOut, when the counter
+-- reaches that value.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

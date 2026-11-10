@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Trigger half of the LCLS-II EVR. An AXI-Lite crossbar on axilClk places an
+-- EvrV2ChannelReg for NCHANNELS_G channels and an EvrV2TrigReg for NTRIGGERS_G
+-- triggers at AXIL_BASEADDR_G and at +0x1000 (+0x20000 when EVR_CARD_G is
+-- true). On evrClk each trigger is an EvrV2Trigger armed by its channel and
+-- fired on the strobe, and each adjacent pair passes through EvrV2TriggerCompl
+-- for an optional AND or OR.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

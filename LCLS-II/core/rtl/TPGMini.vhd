@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Generates LCLS-II timing frames. A base-rate divider paces the frames and
+-- increments the pulse ID, fixed-rate dividers and one BsaControl per
+-- definition fill the TimingMessageType frame, and TPSerializer and
+-- TimingSerializer send it on txData and txDataK with a CRC. It also keeps the
+-- status counters that TPGMiniReg reads, and the STREAM_INTF generic hands the
+-- frame out as a stream instead.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

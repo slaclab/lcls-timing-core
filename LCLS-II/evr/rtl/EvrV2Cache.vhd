@@ -2,6 +2,8 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Dual-clock capture memory that stores 192-bit entries written on clka and
+-- reads each entry back as six 32-bit words on clkb, lowest word first.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

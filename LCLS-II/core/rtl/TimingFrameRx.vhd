@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- LCLS-II receiver front end. TimingDeserializer splits the character stream
+-- into 16 segment streams, a TimingSerialDelay delays the 944 bit message on
+-- stream 0 by messageDelay clocks onto timingMessage with a strobe, and one
+-- more per stream 1 to 15 delivers the extension messages. A message version
+-- other than 1 is flagged on staData and rxVersion and lowers
+-- timingMessageValid.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

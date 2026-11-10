@@ -7,6 +7,13 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+// Description:
+// Free-running 64-bit time stamp for the LCLS-I EVR in a single Clock domain.
+// TimeStamp counts up by 1 on every Clock, and every 330556 clocks a reload
+// puts the seconds counter in bits 63:32 and clears the low word while the
+// seconds counter increments. Reset clears the seconds counter, the reload
+// counter, and TimeStamp.
+//////////////////////////////////////////////////////////////////////////////
 `timescale 1ns / 1ps
 module EvrV1TimeStampGenerator(Clock, Reset, TimeStamp);
     input 		Clock;

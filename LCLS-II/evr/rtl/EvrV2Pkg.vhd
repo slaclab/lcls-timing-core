@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Types and constants of the LCLS-II EVR: the EvrV2ChannelConfig record (81
+-- bits as a vector) and the EvrV2TriggerConfigType record, with their init
+-- constants, array types, and conversion functions to and from bit vectors. It
+-- also holds the BSA, cache, and DMA record types and the tag constants, and
+-- the channel and trigger counts used by the fixed-size EVR.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
