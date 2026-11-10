@@ -1,27 +1,27 @@
 <map id="TPGMiniCore" name="TPGMiniCore">
-<area shape="rect" id="Node000001" title=" " alt="" coords="323,225,429,251"/>
-<area shape="rect" id="Node000002" href="$classTPGMiniReg.html" title=" " alt="" coords="212,152,313,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="294,183,359,223,356,227,291,187"/>
-<area shape="rect" id="Node000003" href="$classTPGMini.html" title=" " alt="" coords="338,152,414,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="379,191,379,225,373,225,373,191"/>
-<area shape="rect" id="Node000004" href="$classDivider.html" title=" " alt="" coords="515,79,584,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="510,112,405,154,403,149,508,107"/>
-<area shape="rect" id="Node000010" href="$classTPGMiniStream.html" title=" " alt="" coords="488,152,611,177"/>
-<area shape="poly" id="edge10_Node000010_Node000004" title=" " alt="" coords="552,118,552,152,547,152,547,118"/>
-<area shape="rect" id="Node000005" href="$classBsaControl.html" title=" " alt="" coords="8,79,101,104"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="116,103,326,149,338,152,337,157,325,155,114,108"/>
-<area shape="rect" id="Node000006" href="$classEventSelect.html" title=" " alt="" coords="5,5,104,31"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="57,44,57,79,52,79,52,44"/>
-<area shape="rect" id="Node000007" href="$classTimingSerializer.html" title=" " alt="" coords="125,79,253,104"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="233,106,346,149,345,154,231,111"/>
-<area shape="rect" id="Node000008" href="$classTPSerializer.html" title=" " alt="" coords="277,79,376,104"/>
-<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="345,114,370,150,366,153,340,117"/>
-<area shape="rect" id="Node000009" href="$classClockTime.html" title=" " alt="" coords="400,79,491,104"/>
-<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="426,116,389,154,385,150,423,112"/>
-<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="475,110,534,150,531,154,472,114"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="510,185,405,228,403,223,508,180"/>
-<area shape="rect" id="Node000011" href="$classTimingStreamTx.html" title=" " alt="" coords="737,79,868,104"/>
-<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="749,110,591,154,590,149,748,105"/>
-<area shape="rect" id="Node000012" href="$classTPGMiniEdef.html" title=" " alt="" coords="609,79,714,104"/>
-<area shape="poly" id="edge13_Node000010_Node000012" title=" " alt="" coords="633,114,569,154,566,150,630,109"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="322,232,427,260"/>
+<area shape="rect" id="Node000002" href="$classTPGMiniReg.html" title=" " alt="" coords="212,157,313,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="296,190,357,232,352,232,294,196"/>
+<area shape="rect" id="Node000003" href="$classTPGMini.html" title=" " alt="" coords="337,157,412,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="376,198,377,234,372,230,373,202"/>
+<area shape="rect" id="Node000004" href="$classDivider.html" title=" " alt="" coords="514,81,582,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="506,114,406,159,404,154,500,116"/>
+<area shape="rect" id="Node000010" href="$classTPGMiniStream.html" title=" " alt="" coords="487,157,609,184"/>
+<area shape="poly" id="edge10_Node000010_Node000004" title=" " alt="" coords="550,122,550,158,546,155,546,127"/>
+<area shape="rect" id="Node000005" href="$classBsaControl.html" title=" " alt="" coords="8,81,101,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="116,107,326,154,339,159,334,159,325,159,116,112"/>
+<area shape="rect" id="Node000006" href="$classEventSelect.html" title=" " alt="" coords="5,5,104,33"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="55,46,57,81,52,80,54,51"/>
+<area shape="rect" id="Node000007" href="$classTimingSerializer.html" title=" " alt="" coords="124,81,252,109"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="235,112,344,155,339,157,235,117"/>
+<area shape="rect" id="Node000008" href="$classTPSerializer.html" title=" " alt="" coords="276,81,374,109"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="344,119,368,157,363,156,341,124"/>
+<area shape="rect" id="Node000009" href="$classClockTime.html" title=" " alt="" coords="399,81,489,109"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="423,119,388,158,385,154,419,122"/>
+<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="475,115,532,156,527,156,474,120"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="506,190,406,234,404,229,500,191"/>
+<area shape="rect" id="Node000011" href="$classTimingStreamTx.html" title=" " alt="" coords="735,81,864,109"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="743,113,594,159,592,154,738,114"/>
+<area shape="rect" id="Node000012" href="$classTPGMiniEdef.html" title=" " alt="" coords="606,81,711,109"/>
+<area shape="poly" id="edge13_Node000010_Node000012" title=" " alt="" coords="629,116,569,159,566,154,624,118"/>
 </map>

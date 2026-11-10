@@ -1,5 +1,6 @@
 var annotated_dup =
 [
+    [ "AssertLevelFail", "classAssertLevelFail.html", "classAssertLevelFail" ],
     [ "BsaControl", "classBsaControl.html", "classBsaControl" ],
     [ "ClockTime", "classClockTime.html", "classClockTime" ],
     [ "ClockTime_186MHz", "classClockTime__186MHz.html", "classClockTime__186MHz" ],
@@ -7,6 +8,7 @@ var annotated_dup =
     [ "Divider", "classDivider.html", "classDivider" ],
     [ "EthTimingModule", "classEthTimingModule.html", "classEthTimingModule" ],
     [ "EventSelect", "classEventSelect.html", "classEventSelect" ],
+    [ "EventSelectWrapper", "classEventSelectWrapper.html", "classEventSelectWrapper" ],
     [ "EvrV1Core", "classEvrV1Core.html", "classEvrV1Core" ],
     [ "EvrV1CoreIsrCtrl", "classEvrV1CoreIsrCtrl.html", "classEvrV1CoreIsrCtrl" ],
     [ "EvrV1Databuff", "classEvrV1Databuff.html", "classEvrV1Databuff" ],
@@ -53,5 +55,6 @@ var annotated_dup =
     [ "TPGMiniStream", "classTPGMiniStream.html", "classTPGMiniStream" ],
     [ "TPGNotify", "classTPGNotify.html", "classTPGNotify" ],
     [ "TPSerializer", "classTPSerializer.html", "classTPSerializer" ],
-    [ "WordSerializer", "classWordSerializer.html", "classWordSerializer" ]
+    [ "WordSerializer", "classWordSerializer.html", "classWordSerializer" ],
+    [ "WordSerializerWrapper", "classWordSerializerWrapper.html", "classWordSerializerWrapper" ]
 ];

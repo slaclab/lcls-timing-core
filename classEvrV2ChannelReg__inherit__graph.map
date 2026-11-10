@@ -1,7 +1,7 @@
 <map id="EvrV2ChannelReg" name="EvrV2ChannelReg">
-<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,235,31"/>
-<area shape="rect" id="Node000002" href="$classEvrV2CoreChannels.html" title=" " alt="" coords="5,79,156,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,41,96,80,93,76,140,37"/>
-<area shape="rect" id="Node000003" href="$classEvrV2CoreTriggers.html" title=" " alt="" coords="181,79,322,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,37,239,76,236,80,188,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,233,33"/>
+<area shape="rect" id="Node000002" href="$classEvrV2CoreChannels.html" title=" " alt="" coords="5,81,155,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,43,96,83,93,78,135,44"/>
+<area shape="rect" id="Node000003" href="$classEvrV2CoreTriggers.html" title=" " alt="" coords="179,81,320,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,41,237,81,232,80,190,46"/>
 </map>

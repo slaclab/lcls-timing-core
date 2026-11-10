@@ -1,9 +1,9 @@
 <map id="EvrV2CoreChannels" name="EvrV2CoreChannels">
-<area shape="rect" id="Node000001" title=" " alt="" coords="162,79,313,104"/>
-<area shape="rect" id="Node000002" href="$classEvrV2ChannelReg.html" title=" " alt="" coords="5,5,144,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,34,212,76,210,81,112,39"/>
-<area shape="rect" id="Node000003" href="$classEvrV2EventSelect.html" title=" " alt="" coords="169,5,306,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,44,240,79,235,79,235,44"/>
-<area shape="rect" id="Node000004" href="$classEvrV2FromV1.html" title=" " alt="" coords="330,5,441,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="351,39,263,81,260,76,348,34"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="161,81,310,109"/>
+<area shape="rect" id="Node000002" href="$classEvrV2ChannelReg.html" title=" " alt="" coords="5,5,143,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,37,209,79,204,82,116,42"/>
+<area shape="rect" id="Node000003" href="$classEvrV2EventSelect.html" title=" " alt="" coords="167,5,304,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,47,238,82,233,79,233,51"/>
+<area shape="rect" id="Node000004" href="$classEvrV2FromV1.html" title=" " alt="" coords="327,5,437,33"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="345,40,262,83,260,78,340,41"/>
 </map>

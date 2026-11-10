@@ -1,5 +1,5 @@
 <map id="TPGMini.TPGMini" name="TPGMini.TPGMini">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,140,133"/>
-<area shape="rect" id="Node000002" href="$classTPGPkg.html" title=" " alt="" coords="37,5,109,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,45,75,108,70,108,70,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,128,139,156"/>
+<area shape="rect" id="Node000002" href="$classTPGPkg.html" title=" " alt="" coords="36,5,108,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,47,75,128,69,127,70,50"/>
 </map>
