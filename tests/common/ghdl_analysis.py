@@ -64,8 +64,6 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     "timingcore": "not locally static",
     # A string literal whose length differs from the surf tKeep width.
     "evrv1coreisrctrl": "string length does not match",
-    # The testbench names a type that its package does not declare.
-    "evrv2_tb": 'no declaration for "exptbustype"',
     # The file uses "ieee" without a library clause.
     "timinggthwrapper": 'no declaration for "ieee"',
 }
