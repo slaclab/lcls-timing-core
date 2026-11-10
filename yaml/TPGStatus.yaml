@@ -88,14 +88,14 @@ TPGStatus: &TPGStatus
     #########################################################
     CountSeq:
       at:
-        offset: 0x0144
-        stride: 2
-        nelms: 64
+        offset: 0x0400
+        stride: 4
+        nelms: 384
       class: IntField
       name: CountSeq
       sizeBits: 32
       mode: RO
-      description: Sequence requests in interval
+      description: Sequence requests in interval, 4 words per sequence engine
     #########################################################
     CountRxClks:
       at:

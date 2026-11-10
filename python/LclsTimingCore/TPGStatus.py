@@ -99,15 +99,19 @@ class TPGStatus(pr.Device):
             pollInterval = 1,
         )
 
+        # AxiTPGStatusReg decodes status.countSeq (Slv128Array, MAXSEQDEPTH = 96
+        # engines) at a 16 byte stride from 0x400. Each 128 bit entry carries
+        # four 32 bit words, one per nested loop depth, so the array is exposed
+        # as 384 words at a 4 byte stride: CountSeq[4*engine + depth].
         self.addRemoteVariables(
             name         = "CountSeq",
-            description  = "Sequence requests in interval",
-            offset       =  0x144,
+            description  = "Sequence requests in interval, 4 words per sequence engine",
+            offset       =  0x400,
             bitSize      =  32,
             bitOffset    =  0x00,
             mode         = "RO",
-            number       =  64,
-            stride       =  2,
+            number       =  384,
+            stride       =  4,
             pollInterval = 1,
         )
 
