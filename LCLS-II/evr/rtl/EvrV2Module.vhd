@@ -187,7 +187,7 @@ begin  -- rtl
                       TRIG_DEPTH_C => TRIG_DEPTH_G)
         port map (    clk        => evrClk,
                       rst        => evrRst,
-                      config     => triggerConfig(i),
+                      config     => triggerConfigS(i),
                       arm        => eventSel,
                       fire       => rStrobe(5),
                       trigstate  => trigOut(i) );
