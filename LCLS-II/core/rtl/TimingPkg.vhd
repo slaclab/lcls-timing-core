@@ -399,7 +399,9 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    function toTimingMessageType (vector : slv) return TimingMessageType
    is
-      variable message : TimingMessageType;
+      -- the fields a TIMING_MESSAGE_BITS_NO_BSA_C vector does not carry keep
+      -- their TIMING_MESSAGE_INIT_C values
+      variable message : TimingMessageType := TIMING_MESSAGE_INIT_C;
       variable i       : integer := 0;
    begin
       if (vector'length = TIMING_MESSAGE_BITS_C) then
