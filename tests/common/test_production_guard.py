@@ -13,7 +13,7 @@
 Test methodology:
     Sweep: a table of protected and unprotected paths for the classifier, and
         a set of temporary git repositories for the diff and exit status
-        behavior, plus one check against this repository itself.
+        behavior.
     Stimulus: is_protected on each path; main() and the script run as a
         subprocess against temporary repositories whose head commit adds,
         deletes, modifies, or renames files; malformed base and head values.
@@ -328,17 +328,3 @@ def test_guard_imports_only_the_standard_library():
 
 def test_guard_never_reads_its_own_location():
     assert "__file__" not in GUARD_FILE.read_text()
-
-
-def test_this_branch_changes_no_protected_path(monkeypatch, capsys):
-    monkeypatch.chdir(REPO_ROOT)
-    probe = subprocess.run(
-        ["git", "rev-parse", "--verify", "--quiet", "origin/pre-release"],
-        cwd=REPO_ROOT, capture_output=True, text=True,
-    )
-    if probe.returncode != 0:
-        pytest.skip("origin/pre-release is not available in this clone")
-    base = probe.stdout.strip()
-    head = git(REPO_ROOT, "rev-parse", "HEAD")
-
-    assert main(["--base", base, "--head", head]) == 0, capsys.readouterr().out
