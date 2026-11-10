@@ -167,7 +167,7 @@ begin
           end if;
         when ENABLED_S  =>
           --  Trigger input logic
-          if ((arm(conv_integer(config.channel)) = '1' and not USE_MASK_G) or
+          if ((not USE_MASK_G and conv_integer(config.channel) < CHANNELS_C and arm(conv_integer(config.channel)) = '1') or
               ((arm and config.channels(CHANNELS_C-1 downto 0)) /= toSlv(0,CHANNELS_C) and USE_MASK_G)) then
             v.push_state := ARMED_S;
           end if;
