@@ -71,6 +71,7 @@ begin
     variable v : RegType;
   begin
     v := r;
+    v.master.tValid := '0';
     if (irqS='1') then
       v.master.tValid := '1';
       v.master.tData(r.count'range) := r.count;
