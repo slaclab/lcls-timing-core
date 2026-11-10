@@ -454,6 +454,16 @@ TPGMiniCore: &TPGMiniCore
         - { name: "Major"    , value: 2 }
         - { name: "Invalid"  , value: 3 }
     #########################################################
+    BsaStat:
+      at:
+        offset: 0x0400
+        stride: 4
+        nelms: 64
+      class: IntField
+      sizeBits: 32
+      mode: RO
+      description: BSA status num averaged (15:0) / written (31:16)
+    #########################################################
     PllCnt:
       at:
         offset: 0x0500

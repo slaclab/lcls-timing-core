@@ -514,6 +514,18 @@ class TPGMiniCore(pr.Device):
             },
         )
 
+        self.addRemoteVariables(
+            name         = "BsaStat",
+            description  = "BSA status num averaged (15:0) / written (31:16)",
+            offset       = 0x400,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = "RO",
+            number       = 64,
+            stride       = 4,
+            hidden       = True,
+        )
+
         self.add(pr.RemoteVariable(
             name         = "PllCnt",
             description  = "Count of PLL status changes",
