@@ -50,8 +50,9 @@ package EvrV2Pkg is
     -- AC   :  marker = 2:0;  TS = 8:3 (mask)
     -- seq  :  bit    = 3:0;  seq = 8:4
     destSel : slv(18 downto 0);
-    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
+    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved); reserved never selects
     -- Bits(15:0)=Mask of Destinations (when Beam)
+    -- Bit 18 is stored but unused
     -- BSA
     bsaEnabled       : sl;              -- participate in BSA
     bsaActiveSetup   : slv( 5 downto 0);
