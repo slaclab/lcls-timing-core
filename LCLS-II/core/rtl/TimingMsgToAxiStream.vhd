@@ -84,11 +84,16 @@ begin
    begin
       v := r;
 
+      -- Count the shifts while a message is being sent out
       v.count := (others => '0');
+      if (r.active = '1') then
+         v.count := r.count + 1;
+      end if;
 
       if (timingMessageStrobe = '1') then
          v.message := timingMessage;
          v.active  := '1';
+         v.count   := (others => '0');
       end if;
 
       v.ssiMaster     := ssiMasterInit(INT_AXIS_CONFIG_C);
