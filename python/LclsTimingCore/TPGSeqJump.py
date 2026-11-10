@@ -42,7 +42,7 @@ class TPGSeqJump(pr.Device):
             description  = "Sequence power class",
             offset       =  0x01,
             bitSize      =  4,
-            bitOffset    =  0x00,
+            bitOffset    =  0x04,
             mode         = "RW",
             number       =  1024,
             stride       =  4,
