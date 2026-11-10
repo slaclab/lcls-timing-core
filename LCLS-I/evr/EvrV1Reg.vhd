@@ -399,6 +399,10 @@ begin
                      v.config.outputMap(10) := axiWriteMaster.wdata(31 downto 16);
                      v.config.outputMap(11) := axiWriteMaster.wdata(15 downto 0);
                   end if;
+               when 4096 to 6143 =>
+                  -- Event RAM windows: the select, write enable, data and
+                  -- address buses above already carry the write
+                  null;
                when others =>
                   axiWriteResp := AXI_RESP_DECERR_C;
             end case;
