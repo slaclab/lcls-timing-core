@@ -52,6 +52,7 @@ class EvrV1Reg(pr.Device):
             bitSize      =  32,
             bitOffset    =  0x00,
             mode         = "WO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -62,6 +63,7 @@ class EvrV1Reg(pr.Device):
             bitOffset    =  0x00,
             mode         = "RO",
             pollInterval = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
