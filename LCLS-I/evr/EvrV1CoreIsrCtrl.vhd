@@ -244,7 +244,7 @@ begin
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
          v.txMaster.tUser  := (others => '0');
-         v.txMaster.tKeep  := x"000F";  -- --32-bit interface
+         v.txMaster.tKeep  := genTKeep(4);  -- --32-bit interface
       end if;
 
       ------------------------------
