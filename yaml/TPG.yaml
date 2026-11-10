@@ -13,7 +13,6 @@
 #include TPGStatus.yaml
 #include TPGSeqState.yaml
 #include TPGSeqJump.yaml
-#include TPGSeqMem.yaml
 
 TPG: &TPG
   class: MMIODev
@@ -41,11 +40,6 @@ TPG: &TPG
     ##################################################
     TPGSeqJump:
       <<: *TPGSeqJump
-      at:
-        offset: 0x00000400 #(is this correct?)
-    ##################################################
-    TPGSeqMem:
-      <<: *TPGSeqMem
       at:
         offset: 0x00000400 #(is this correct?)
     ##################################################
