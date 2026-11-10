@@ -26,7 +26,7 @@ TPGSeqJump: &TPGSeqJump
         stride: 4
         nelms: 1024
       sizeBits: 12
-      lsbit: 0
+      lsBit: 0
       mode: RW
       description: Sequence start offset
     #########################################################
@@ -37,7 +37,7 @@ TPGSeqJump: &TPGSeqJump
         stride: 4
         nelms: 1024
       sizeBits: 4
-      lsbit: 4
+      lsBit: 4
       mode: RW
       description: Sequence power class
     #########################################################
@@ -48,7 +48,7 @@ TPGSeqJump: &TPGSeqJump
         stride: 4
         nelms: 1024
       sizeBits: 16
-      lsbit: 0
+      lsBit: 0
       mode: RW
       description: Start synchronization condition
     #########################################################

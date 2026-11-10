@@ -217,6 +217,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse00:
       at:
         offset: 0x200 # address(14 downto 2) = [131:128]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse00
@@ -226,6 +227,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse01:
       at:
         offset: 0x210 # address(14 downto 2) = [135:132]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse01
@@ -235,6 +237,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse02:
       at:
         offset: 0x220 # address(14 downto 2) = [139:136]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse02
@@ -244,6 +247,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse03:
       at:
         offset: 0x230 # address(14 downto 2) = [143:140]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse03
@@ -253,6 +257,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse04:
       at:
         offset: 0x240 # address(14 downto 2) = [147:144]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse04
@@ -262,6 +267,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse05:
       at:
         offset: 0x250 # address(14 downto 2) = [151:148]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse05
@@ -271,6 +277,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse06:
       at:
         offset: 0x260 # address(14 downto 2) = [155:152]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse06
@@ -280,6 +287,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse07:
       at:
         offset: 0x270 # address(14 downto 2) = [159:156]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse07
@@ -289,6 +297,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse08:
       at:
         offset: 0x280 # address(14 downto 2) = [163:160]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse08
@@ -298,6 +307,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse09:
       at:
         offset: 0x290 # address(14 downto 2) = [167:164]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse09
@@ -307,6 +317,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse10:
       at:
         offset: 0x2A0 # address(14 downto 2) = [171:168]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse10
@@ -316,6 +327,7 @@ EvrV1Reg: &EvrV1Reg
     Pulse11:
       at:
         offset: 0x2B0 # address(14 downto 2) = [175:172]
+        stride: 4
         nelms: 4
       class: IntField
       name: Pulse11
@@ -346,6 +358,7 @@ EvrV1Reg: &EvrV1Reg
     MapRam1:
       at:
         offset: 0x4000 # address(14 downto 2) = [5119:4096]
+        stride: 4
         nelms: 1024
       class: IntField
       name: MapRam1
@@ -355,6 +368,7 @@ EvrV1Reg: &EvrV1Reg
     MapRam2:
       at:
         offset: 0x6000 # address(14 downto 2) = [6143:5120]
+        stride: 4
         nelms: 1024
       class: IntField
       name: MapRam2

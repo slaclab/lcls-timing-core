@@ -26,7 +26,7 @@ TPGStatus: &TPGStatus
       class: IntField
       name: BsaStat
       sizeBits: 32
-      lsbit: 0
+      lsBit: 0
       mode: RO
       description: BSA status num averaged/written
     #########################################################
@@ -78,11 +78,11 @@ TPGStatus: &TPGStatus
     CountTrig:
       at:
         offset: 0x0114
+        stride: 4
         nelms: 12
       class: IntField
       name: CountTrig
       sizeBits: 32
-      stribe: 32
       mode: RO
       description: External trigger count in interval
     #########################################################
