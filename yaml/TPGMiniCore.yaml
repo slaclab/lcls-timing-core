@@ -286,13 +286,11 @@ TPGMiniCore: &TPGMiniCore
     BsaActive:
       at:
         offset: 0x01FC
-        stride: 1
-        nelms: *NARRAYSBSA
       class: IntField
-      sizeBits: 1
+      sizeBits: 32
       lsBit: 0
       mode: RW
-      description: Activates/Deactivates BSA EDEF
+      description: Activates/Deactivates BSA EDEF, one bit per BSA array (bit i selects array i)
     #########################################################
     BsaRateSelMode:
       at:
