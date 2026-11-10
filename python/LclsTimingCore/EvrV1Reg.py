@@ -91,6 +91,10 @@ class EvrV1Reg(pr.Device):
             mode         = "RW",
         ))
 
+        # The data buffer control word at 0x20 is left to the interrupt
+        # service: a write of bit 15 or 14 pulses the data buffer enable or
+        # disable, so it is not a generic register (see yaml/EvrV1Reg.yaml)
+
         self.add(pr.RemoteVariable(
             name         = "FWVersion",
             description  = "Firmware Version Register",
@@ -169,6 +173,10 @@ class EvrV1Reg(pr.Device):
             mode         = "RO",
             pollInterval = 1,
         ))
+
+        # The time stamp FIFO at 0x70 to 0x78 is left to the interrupt
+        # service: a read of 0x74 pops the FIFO, so a polled or read-all
+        # variable would consume entries (see yaml/EvrV1Reg.yaml)
 
         self.add(pr.RemoteVariable(
             name         = "IntEventEn",
