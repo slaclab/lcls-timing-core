@@ -27,22 +27,22 @@ TPG: &TPG
     TPGControl:
       <<: *TPGControl
       at:
-        offset: 0x00000000 #(is this correct?)
+        offset: 0x00000000
     ##################################################
     TPGStatus:
       <<: *TPGStatus
       at:
-        offset: 0x00000400 #(is this correct?)
+        offset: 0x00001000
     ##################################################
     TPGSeqState:
       <<: *TPGSeqState
       at:
-        offset: 0x00000800 #(is this correct?)
+        offset: 0x00002000
     ##################################################
     TPGSeqJump:
       <<: *TPGSeqJump
       at:
-        offset: 0x00000400 #(is this correct?)
+        offset: 0x00004000
     ##################################################
     TPGSeqMem:
       <<: *TPGSeqMem

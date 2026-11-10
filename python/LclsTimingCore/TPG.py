@@ -32,13 +32,13 @@ class TPG(pr.Device):
         ))
 
         self.add(lclsTiming.TPGStatus(
-            offset       =  0x00000400,
+            offset       =  0x00001000,
         ))
 
         self.add(lclsTiming.TPGSeqState(
-            offset       =  0x00000800,
+            offset       =  0x00002000,
         ))
 
         self.add(lclsTiming.TPGSeqJump(
-            offset       =  0x00000400,
+            offset       =  0x00004000,
         ))
