@@ -313,17 +313,19 @@ class TPGMiniCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.addRemoteVariables(
-            name         = "BsaActive",
-            description  = "Activates/Deactivates BSA EDEF",
-            offset       = 0x01FC,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = "RW",
-            number       = NARRAYSBSA,
-            stride       = 1,
-            hidden       = True,
-        )
+        # TPGMiniReg decodes BSACTRL (0x01FC) as one bit per BSA array:
+        # bsadefv(i).init := regWrData(i). addRemoteVariables() can only step
+        # the byte offset, so add the elements by hand with a bit stride.
+        for i in range(NARRAYSBSA):
+            self.add(pr.RemoteVariable(
+                name         = f"BsaActive[{i}]",
+                description  = "Activates/Deactivates BSA EDEF",
+                offset       = 0x01FC,
+                bitSize      = 1,
+                bitOffset    = i,
+                mode         = "RW",
+                hidden       = True,
+            ))
 
         self.addRemoteVariables(
             name         = "BsaRateSelMode",
