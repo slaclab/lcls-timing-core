@@ -38,8 +38,8 @@ entity EvrV2CoreTriggers is
       TPD_G           : time             := 1 ns;
       NCHANNELS_G     : natural          := 1;      -- event selection channels
       NTRIGGERS_G     : natural          := 1;      -- trigger outputs
-      TRIG_DEPTH_G    : natural          := 28;
-      TRIG_PIPE_G     : natural          := 0;      -- no trigger pipeline by default
+      TRIG_DEPTH_G    : natural          := 28;     -- bit width of the trigger delay and width counters (EvrV2Trigger TRIG_WIDTH_C)
+      TRIG_PIPE_G     : natural          := 0;      -- trigger queue depth (EvrV2Trigger TRIG_DEPTH_C): 2**bitSize(TRIG_PIPE_G)+1 pending pulses, 3 by default
       COMMON_CLK_G    : boolean          := false;
       EVR_CARD_G      : boolean          := false;  -- false = packs registers in tight 256B for small BAR0 applications, true = groups registers in 4kB boundary to "virtualize" the channels allowing separate processes to memory map the register space for their dedicated channels.
       AXIL_BASEADDR_G : slv(31 downto 0) := x"00080000");
