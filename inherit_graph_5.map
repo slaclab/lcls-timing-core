@@ -1,13 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" href="$classEvrV1EventRAM256x32.html" title=" " alt="" coords="5,5,180,33"/>
 <area shape="rect" id="Node000001" href="$classEvrV1EventReceiver.html" title=" " alt="" coords="228,57,381,85"/>
-<area shape="poly" id="edge48_Node000000_Node000001" title=" " alt="" coords="167,35,247,56,242,58,167,40"/>
+<area shape="poly" id="edge26_Node000000_Node000001" title=" " alt="" coords="167,35,247,56,242,58,167,40"/>
 <area shape="rect" id="Node000002" href="$classEvrV1Core.html" title=" " alt="" coords="429,84,518,112"/>
-<area shape="poly" id="edge49_Node000001_Node000002" title=" " alt="" coords="396,83,431,91,426,91,396,88"/>
+<area shape="poly" id="edge27_Node000001_Node000002" title=" " alt="" coords="396,83,431,91,426,91,396,88"/>
 <area shape="rect" id="Node000004" href="$classEvrV1HeartBeat.html" title=" " alt="" coords="30,57,155,85"/>
-<area shape="poly" id="edge50_Node000004_Node000001" title=" " alt="" coords="170,69,230,70,225,72,171,74"/>
+<area shape="poly" id="edge28_Node000004_Node000001" title=" " alt="" coords="170,69,230,70,225,72,171,74"/>
 <area shape="rect" id="Node000003" href="$classEvrV1Reg.html" title=" " alt="" coords="262,109,346,137"/>
-<area shape="poly" id="edge51_Node000003_Node000002" title=" " alt="" coords="361,112,426,105,431,104,362,117"/>
+<area shape="poly" id="edge29_Node000003_Node000002" title=" " alt="" coords="361,112,426,105,431,104,362,117"/>
 <area shape="rect" id="Node000005" href="$classEvrV1TimeStampFIFO.html" title=" " alt="" coords="10,109,175,137"/>
-<area shape="poly" id="edge52_Node000005_Node000001" title=" " alt="" coords="166,102,242,86,247,85,167,108"/>
+<area shape="poly" id="edge30_Node000005_Node000001" title=" " alt="" coords="166,102,242,86,247,85,167,108"/>
 </map>

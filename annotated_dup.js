@@ -17,7 +17,6 @@ var annotated_dup =
     [ "EvrV1HeartBeat", "classEvrV1HeartBeat.html", "classEvrV1HeartBeat" ],
     [ "EvrV1Reg", "classEvrV1Reg.html", "classEvrV1Reg" ],
     [ "EvrV1TimeStampFIFO", "classEvrV1TimeStampFIFO.html", "classEvrV1TimeStampFIFO" ],
-    [ "EvrV2_tb", "classEvrV2__tb.html", "classEvrV2__tb" ],
     [ "EvrV2Axi", "classEvrV2Axi.html", "classEvrV2Axi" ],
     [ "EvrV2Cache", "classEvrV2Cache.html", "classEvrV2Cache" ],
     [ "EvrV2ChannelReg", "classEvrV2ChannelReg.html", "classEvrV2ChannelReg" ],

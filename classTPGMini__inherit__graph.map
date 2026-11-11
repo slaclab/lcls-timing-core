@@ -1,9 +1,7 @@
 <map id="TPGMini" name="TPGMini">
 <area shape="rect" id="Node000001" title=" " alt="" coords="239,157,314,184"/>
-<area shape="rect" id="Node000008" href="$classTPGMiniCore.html" title=" " alt="" coords="167,232,272,260"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="259,195,231,234,228,230,255,198"/>
-<area shape="rect" id="Node000010" href="$classEvrV2__tb.html" title=" " alt="" coords="296,232,375,260"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="298,194,328,232,322,231,296,199"/>
+<area shape="rect" id="Node000008" href="$classTPGMiniCore.html" title=" " alt="" coords="224,232,330,260"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="278,198,279,233,275,231,275,202"/>
 <area shape="rect" id="Node000002" href="$classDivider.html" title=" " alt="" coords="5,81,74,109"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,109,241,156,237,159,88,114"/>
 <area shape="rect" id="Node000003" href="$classBsaControl.html" title=" " alt="" coords="97,81,190,109"/>
@@ -16,6 +14,6 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="374,118,302,159,300,154,379,115"/>
 <area shape="rect" id="Node000007" href="$classClockTime.html" title=" " alt="" coords="488,81,578,109"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="470,115,316,161,314,156,475,112"/>
-<area shape="rect" id="Node000009" href="$classTimingCore.html" title=" " alt="" coords="171,308,268,336"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="221,274,222,309,217,306,218,278"/>
+<area shape="rect" id="Node000009" href="$classTimingCore.html" title=" " alt="" coords="229,308,325,336"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="279,274,279,309,275,306,275,278"/>
 </map>
