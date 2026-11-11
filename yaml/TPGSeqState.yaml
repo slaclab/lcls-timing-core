@@ -45,7 +45,7 @@ TPGSeqState: &TPGSeqState
     SeqCondBCount:
       at:
         offset: 0x0004
-        stride: 64
+        stride: 8
         nelms: 50
       class: IntField
       name: SeqCondBCount
