@@ -159,12 +159,12 @@ begin
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), v.sample(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*(i/4), 9), 8*(i mod 4), r.sample(i));
       end loop;
       axiSlaveRegister(axilEp, toSlv(256, 9), 0, v.tgt);
       axiSlaveRegister(axilEp, toSlv(256, 9), 8, v.mask);
       axiSlaveRegister(axilEp, toSlv(256, 9), 16, v.rstlen);
-      axiSlaveRegister(axilEp, toSlv(260, 9), 0, v.last);
+      axiSlaveRegisterR(axilEp, toSlv(260, 9), 0, r.last);
       axiSlaveRegisterR(axilEp, toSlv(264, 9), 0, txClkFreq);
       axiSlaveRegisterR(axilEp, toSlv(268, 9), 0, rxClkFreq);
 
@@ -209,8 +209,10 @@ begin
                v.req.request := '0';
                -- Get the index pointer
                i             := conv_integer(ack.rdData(6 downto 0));
-               -- Increment the counter
-               v.sample(i)   := r.sample(i)+1;
+               -- Increment the counter (DRP value is 7 bits, histogram has 40 entries)
+               if i < r.sample'length then
+                  v.sample(i) := r.sample(i)+1;
+               end if;
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment

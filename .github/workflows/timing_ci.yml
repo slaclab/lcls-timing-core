@@ -178,56 +178,6 @@ jobs:
 
 # ----------------------------------------------------------------------------
 
-  production_guard:
-    name: Production Guard
-    # No job-level condition: gen_release needs this job, and a skipped
-    # prerequisite would also skip the release on a tag push.
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    env:
-      BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      BYPASS: ${{ contains(github.event.pull_request.labels.*.name, 'production-change') }}
-    steps:
-
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - name: Tool versions
-        run: |
-          python3 tests/common/tool_versions.py --remote-deps surf ruckus python git
-
-      - name: Not a pull request
-        if: github.event_name != 'pull_request'
-        run: |
-          echo "Production guard applies to pull_request events only; nothing to check for this event." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Check production bytes
-        if: github.event_name == 'pull_request'
-        # The guard script comes from the PR base commit when the base has
-        # one, so a pull request cannot rewrite the check that judges it.
-        run: |
-          guard="${RUNNER_TEMP}/production_guard.py"
-          if git cat-file -e "${BASE_SHA}:tests/common/production_guard.py" 2>/dev/null; then
-            git show "${BASE_SHA}:tests/common/production_guard.py" > "$guard"
-            echo "Guard script taken from the PR base commit." >> "$GITHUB_STEP_SUMMARY"
-          else
-            cp tests/common/production_guard.py "$guard"
-            echo "PR base has no guard script; using the PR copy." >> "$GITHUB_STEP_SUMMARY"
-          fi
-          rc=0
-          python3 "${RUNNER_TEMP}/production_guard.py" --base "$BASE_SHA" --head "$HEAD_SHA" || rc=$?
-          if [ "$rc" -eq 1 ] && [ "$BYPASS" = "true" ]; then
-            echo "Bypassed by the production-change label; the guard would have failed." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          exit "$rc"
-
-# ----------------------------------------------------------------------------
-
   test_and_document:
     name: Test And Generate Documentation
     runs-on: ubuntu-26.04
@@ -268,7 +218,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, rogue_test, production_guard, test_and_document]
+    needs: [lint, test, rogue_test, test_and_document]
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'

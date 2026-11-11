@@ -2,7 +2,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
---   Need to fix:  some event codes start before x70,x71,x7d sequence
+--   Event codes are collected from the end of one frame's event window
+--   (FRAME_LEN clocks after its x7D marker) to the end of the next, so the
+--   codes that arrive before the x70,x71,x7D sequence of a frame are
+--   reported with that frame.
 --
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.

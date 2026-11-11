@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- With STREAM_L1_G true, copies the 704 bit LCLS-I timing stream into an
+-- AXI-Stream frame on each timingStrobe and passes it to ethClk through a
+-- FIFO, but only while a timeout flag is clear. The flag starts set and clears
+-- on the first inbound beat on ibEthMsgMaster, and the RTL sets it again after
+-- 2^29 ethClk cycles without one. With STREAM_L1_G false the module only holds
+-- the inbound slave ready.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -2,6 +2,9 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Records timing messages for readout over AXI-Lite. TimingMsgToAxiStream
+-- splits each message into 32 bit words and every valid word is written to a
+-- surf AxiLiteRingBuffer in the timing clock domain.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -12,14 +12,6 @@
 
 EvrV2PulsegenRegs: &EvrV2PulsegenRegs
     #########################################################
-    LinkAddr:
-      class: IntField
-      sizeBits: 16
-      mode: RO
-      description: Physical link address
-      at:
-         offset: 0x08
-    #########################################################
     GtxDebug:
       class: IntField
       sizeBits: 8

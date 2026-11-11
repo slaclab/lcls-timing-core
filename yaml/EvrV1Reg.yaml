@@ -139,7 +139,7 @@ EvrV1Reg: &EvrV1Reg
       mode: RO
       description: Timestamp Event Counter Latch
 ##############################################################
-## Controlled by ISR (not generic register interface)
+## Controlled by ISR (not generic register interface); a read of 0x074 pops the FIFO
 ##############################################################
 #    EvFIFOSec:
 #      at:

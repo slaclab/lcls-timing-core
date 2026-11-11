@@ -284,6 +284,15 @@ TimingFrameRx: &TimingFrameRx
       mode: RO
       description: Received timing frame version
     #########################################################
+    TsEventCountGray:
+      at:
+        offset: 0x0040
+      class: IntField
+      name: TsEventCountGray
+      sizeBits: 32
+      mode: RO
+      description: Gray coded time stamp event counter
+    #########################################################
     C_RxReset:
       class: SequenceCommand
       at:

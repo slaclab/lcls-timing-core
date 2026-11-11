@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Declares the configuration record of one mini event definition
+-- (TPGMiniEdefConfigType with navg, nsmp, edef, slot, rate, sevr, and a write
+-- enable), its field subtypes and reset constant, and toSlv and fromSlv
+-- conversions to the packed register word. TPGMiniReg, TPGMiniCore,
+-- TPGMiniStream, and TPGMiniEdef use it.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

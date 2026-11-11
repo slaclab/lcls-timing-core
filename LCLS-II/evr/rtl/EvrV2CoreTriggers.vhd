@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Trigger half of the LCLS-II EVR. An AXI-Lite crossbar on axilClk places an
+-- EvrV2ChannelReg for NCHANNELS_G channels and an EvrV2TrigReg for NTRIGGERS_G
+-- triggers at AXIL_BASEADDR_G and at +0x1000 (+0x20000 when EVR_CARD_G is
+-- true). On evrClk each trigger is an EvrV2Trigger armed by its channel and
+-- fired on the strobe, and each adjacent pair passes through EvrV2TriggerCompl
+-- for an optional AND or OR.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -32,8 +38,8 @@ entity EvrV2CoreTriggers is
       TPD_G           : time             := 1 ns;
       NCHANNELS_G     : natural          := 1;      -- event selection channels
       NTRIGGERS_G     : natural          := 1;      -- trigger outputs
-      TRIG_DEPTH_G    : natural          := 28;
-      TRIG_PIPE_G     : natural          := 0;      -- no trigger pipeline by default
+      TRIG_DEPTH_G    : natural          := 28;     -- bit width of the trigger delay and width counters (EvrV2Trigger TRIG_WIDTH_C)
+      TRIG_PIPE_G     : natural          := 0;      -- trigger queue depth (EvrV2Trigger TRIG_DEPTH_C): 2**bitSize(TRIG_PIPE_G)+1 pending pulses, 3 by default
       COMMON_CLK_G    : boolean          := false;
       EVR_CARD_G      : boolean          := false;  -- false = packs registers in tight 256B for small BAR0 applications, true = groups registers in 4kB boundary to "virtualize" the channels allowing separate processes to memory map the register space for their dedicated channels.
       AXIL_BASEADDR_G : slv(31 downto 0) := x"00080000");

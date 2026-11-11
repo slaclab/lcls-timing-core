@@ -17,6 +17,7 @@ import pyrogue as pr
 import LclsTimingCore as timingCore
 
 class EvrV2CoreTriggers(pr.Device):
+    # Maps EvrV2CoreTriggers.vhd with EVR_CARD_G = false: 256 byte register groups, triggers at 0x1000
     def __init__(   self,
             name        = "EvrV2CoreTriggers",
             description = "https://confluence.slac.stanford.edu/download/attachments/216713616/ConfigEvrV2CoreTriggersYaml.pdf",

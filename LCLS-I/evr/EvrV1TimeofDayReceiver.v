@@ -7,6 +7,14 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+// Description:
+// Receives the LCLS-I time of day from the event stream. Each 0x70 or 0x71
+// event code shifts a 0 or 1 into a 32-bit seconds word, most significant bit
+// first, and the 0x7D code latches the word into bits 63:32 of TimeStamp with
+// the low word cleared, after which TimeStamp counts up by 1 each clock.
+// secondsShift shows the word as it arrives, and Reset clears the seconds, the
+// bit pointer, and TimeStamp.
+//////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 module EvrV1TimeofDayReceiver(Clock, Reset, EventStream, TimeStamp, timeDebug, secondsShift);
    input Clock;

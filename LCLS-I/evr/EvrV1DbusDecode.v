@@ -7,6 +7,14 @@
 // may be copied, modified, propagated, or distributed except according to 
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
+// Description:
+// Decoder for the LCLS-I data buffer carried on the event stream. After a
+// K28.0 start code it stores alternating filler and data bytes into
+// EvrV1Databuff on EventClock until a K28.1 or K28.5 end code, checks the
+// complemented 16-bit sum in the next two bytes, and reports the byte count on
+// rxSize, dbrx while receiving, dbrdy when a buffer is ready, and dbcs on a
+// checksum error.
+//////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 module EvrV1DbusDecode(Clock, EventClock, Reset, dbus, isK, dbRdAddr, dbena, dbdis, dben,
                   rxSize, dbrx, dbrdy, dbcs, disBus, dataBuffOut, dbDebug);
@@ -213,7 +221,7 @@ module EvrV1DbusDecode(Clock, EventClock, Reset, dbus, isK, dbRdAddr, dbena, dbd
 	       iBusy <= 1'b0;
 	       iDone <= 1'b1;
 	       wrMem <= ~wrMem;
-	       rxSize <= {0, iRxSize};
+	       rxSize <= {1'b0, iRxSize};
 	    end
 	 
 	    else if (iBusy)

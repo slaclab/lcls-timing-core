@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- One event definition of the mini generator. When cnfg.wrEn is set for its
+-- EDEF_G number while it is idle, it latches navg, nsmp, rate, slot, and sevr,
+-- pulses init, and becomes active. While active it counts strb pulses into
+-- averages of navg and nsmp samples, raising avgD on each average and allD on
+-- the last, with its state advancing only on cen, and smin and smaj carry the
+-- severity bits.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

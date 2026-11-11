@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Top level of the LCLS-I EVR core. It joins the EvrV1Reg AXI-Lite register
+-- file on axiClk with the EvrV1EventReceiver on evrClk, which turns the
+-- received event codes into 12 trigger outputs, an event stream, and interrupt
+-- status. ENDIAN_G true byte-swaps the AXI-Lite data and strobes for a big
+-- endian host.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

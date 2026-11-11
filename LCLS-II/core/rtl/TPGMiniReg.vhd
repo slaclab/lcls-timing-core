@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register block of TPGMiniCore. It decodes the clock select, base
+-- divisor, fixed rate, pulse ID, timestamp, interval, and BSA definition
+-- registers into the TPGConfigType and TPGMiniEdefConfigType outputs, returns
+-- TPGStatusType counters on reads, and drives txReset, txLoopback, and
+-- txInhibit, while irqEnable and irqReq are tied low.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

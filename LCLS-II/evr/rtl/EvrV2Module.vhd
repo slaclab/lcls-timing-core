@@ -2,6 +2,13 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Top level of the small LCLS-II EVR. An AXI-Lite crossbar splits axiClk
+-- traffic between EvrV2Axi at AXIL_BASEADDR and EvrV2TrigReg at +0x200, and
+-- the channel configuration crosses to evrClk through a synchronizer into
+-- NCHANNELS_G EvrV2EventSelect units behind an EvrV2FromV1 stage, while the
+-- NTRIGGERS_G EvrV2Trigger units read the axiClk side trigger configuration
+-- and its synchronized copy is unused. Event counts cross back to axiClk, and
+-- trigOut carries the NTRIGGERS_G outputs.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -86,6 +93,7 @@ architecture mapping of EvrV2Module is
   signal rStrobe        : slv(5 downto 0) := (others=>'0');
   signal timingMsg      : TimingMessageType := TIMING_MESSAGE_INIT_C;
   signal eventSel       : slv(NCHANNELS_G-1 downto 0) := (others=>'0');
+  signal eventStatusIn  : slv(NCHANNELS_G downto 0);
   signal eventCount     : SlVectorArray(NCHANNELS_G downto 0,31 downto 0);
   signal rstCount       : sl;
 
@@ -150,11 +158,12 @@ begin  -- rtl
     end if;
   end process;
 
+  eventStatusIn <= evrBus.strobe & eventSel;
+
   Sync_EvtCount : entity surf.SyncStatusVector
     generic map ( TPD_G   => TPD_G,
                   WIDTH_G => NCHANNELS_G+1 )
-    port map    ( statusIn(NCHANNELS_G)            => evrBus.strobe,
-                  statusIn(NCHANNELS_G-1 downto 0) => eventSel,
+    port map    ( statusIn     => eventStatusIn,
                   cntRstIn     => rstCount,
                   rollOverEnIn => (others=>'1'),
                   cntOut       => eventCount,

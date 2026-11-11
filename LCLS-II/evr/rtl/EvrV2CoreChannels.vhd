@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Event-select half of the LCLS-II EVR. An EvrV2ChannelReg on axilClk
+-- configures NCHANNELS_G EvrV2EventSelect channels on evrClk, which pick
+-- frames from the timing bus after EvrV2FromV1 has converted an LCLS-I stream
+-- when evrModeSel is low. trigPulse(i) is high for one step per frame channel
+-- i selects, and the output also carries the time stamp, BSA, and dmod fields
+-- of the bus; COMMON_CLK_G true drops the clock-domain synchronizers.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

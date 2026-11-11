@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Declares the timing link definitions: the 8b10b character constants (the
+-- K28.5 comma, start and end of frame, K28.0, and K28.1), the 944 bit LCLS-II
+-- TimingMessageType, the 704 bit LCLS-I TimingStreamType with its 416 bit data
+-- buffer, the extension, bus, and PHY control records, and the functions that
+-- convert them to and from bit vectors. TimingCore, TimingRx, the serializers,
+-- and the EVR blocks use it.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -393,7 +399,9 @@ package body TimingPkg is
    -------------------------------------------------------------------------------------------------
    function toTimingMessageType (vector : slv) return TimingMessageType
    is
-      variable message : TimingMessageType;
+      -- the fields a TIMING_MESSAGE_BITS_NO_BSA_C vector does not carry keep
+      -- their TIMING_MESSAGE_INIT_C values
+      variable message : TimingMessageType := TIMING_MESSAGE_INIT_C;
       variable i       : integer := 0;
    begin
       if (vector'length = TIMING_MESSAGE_BITS_C) then

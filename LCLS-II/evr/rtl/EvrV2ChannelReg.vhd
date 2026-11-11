@@ -2,6 +2,11 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register file for NCHANNELS_G EVR event-select channels. Each
+-- channel group has a 256 byte window (4096 bytes when EVR_CARD_G is true)
+-- holding the enable, rateSel, and destSel configuration, the BSA and DMA
+-- words when DMA_ENABLE_G is true, and a read-only event count. Group i drives
+-- channelConfig(i), and an address one decode window above group 0 aliases it.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -49,6 +54,9 @@ end EvrV2ChannelReg;
 architecture rtl of EvrV2ChannelReg is
 
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   -- Only the STRIDE_C address bits that span the NCHANNELS_G groups are
+   -- decoded, as in other surf slaves: the crossbar decodes the bits above, so
+   -- a wider crossbar window repeats the groups every 2**STRIDE_C bytes.
    constant STRIDE_C : positive := bitSize(NCHANNELS_G*GRP_C-1);
 
    type RegType is record

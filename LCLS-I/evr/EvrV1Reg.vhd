@@ -2,6 +2,13 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register file of the LCLS-I EVR on axiClk. It decodes writes into
+-- the EvrV1ConfigType outputs (pulse control, prescale, delay, and width for
+-- twelve channels, output map, event RAM windows, interrupt control and clear,
+-- data buffer control) and builds reads from the EvrV1StatusType input and the
+-- firmware version of BUILD_INFO_G. A read after a reset or a time stamp latch
+-- write waits LATCH_TS_LATENCY_G clocks, and unmapped, read-only, or unaligned
+-- accesses answer DECERR.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

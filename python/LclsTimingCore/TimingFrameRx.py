@@ -252,6 +252,54 @@ class TimingFrameRx(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "VersionErr",
+            description  = "Version check error",
+            offset       =  0x20,
+            bitSize      =  1,
+            bitOffset    =  0x08,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "MsgNoDelay",
+            description  = "Transfer EDEF data promptly - 3 fiducials ahead of eventcode data",
+            offset       =  0x20,
+            bitSize      =  1,
+            bitOffset    =  24,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "MsgDelayRst",
+            description  = "Reset timing frame pipeline with new value",
+            offset       =  0x24,
+            bitSize      =  1,
+            bitOffset    =  31,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "FrameVersion",
+            description  = "Received timing frame version",
+            offset       =  0x30,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "TsEventCountGray",
+            description  = "Gray coded time stamp event counter",
+            offset       =  0x40,
+            bitSize      =  32,
+            bitOffset    =  0x00,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
     def hardReset(self):
         self.ClearRxCounters()
         self.RxDown.set(0)

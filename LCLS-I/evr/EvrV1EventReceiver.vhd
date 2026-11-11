@@ -2,6 +2,13 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Event decoder of the LCLS-I EVR on evrClk. The GT receive words feed the
+-- data buffer decoder, a time of day receiver, and four 256 by 32 event RAMs
+-- (reset, set, pulse, and interrupt maps) that drive twelve
+-- EvrV1EventReceiverChannel pulse generators for trigOut. It also queues event
+-- time stamps in EvrV1TimeStampFIFO, watches the 0x7A heartbeat code with
+-- EvrV1HeartBeat, sets the interrupt flags, and crosses the configuration and
+-- status to axiClk through surf synchronizers.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

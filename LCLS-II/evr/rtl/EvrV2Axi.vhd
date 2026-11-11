@@ -2,6 +2,13 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register block of the LCLS-II EVR channels, on axiClk. Per channel
+-- it holds the enable bit and the rateSel and destSel words at a 32 byte
+-- stride from 0x020 plus a read-only event count, and it has the count reset
+-- (0x010) and trigger select (0x014) bits; with DMA_ENABLE_G true it also maps
+-- the interrupt, debug, threshold, and BSA words. The channelConfig,
+-- irqEnable, rstCount, trigSel, and dmaFullThr outputs follow the registers,
+-- and word 0x008 is commented out of the RTL, so it reads 0.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -128,6 +135,8 @@ begin  -- mapping
     v  := r;
     sReg(0) := irqReq;
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+    -- Registers decode 9 address bits, the width of the CSR crossbar window
+    -- in EvrV2Module and EvrV2CorePulseGen; the crossbar decodes the bits above.
     axilSlaveRegisterW(X"010", 0, v.countReset);
     axilSlaveRegisterW(X"014", 0, v.trigSel);
     for i in 0 to CHANNELS_C-1 loop

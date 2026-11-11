@@ -64,7 +64,7 @@ GthRxAlignCheck: &GthRxAlignCheck
         offset: 0x0104
       class: IntField
       name: LastPhase
-      sizeBits: 7
+      sizeBits: 16
       lsBit: 0
       mode: RO
       description: Last timing frame phase seen

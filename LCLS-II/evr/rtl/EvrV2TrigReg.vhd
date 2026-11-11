@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- AXI-Lite register file for TRIGGERS_C EVR triggers. Each group, 256 bytes
+-- (4096 when EVR_CARD_G is true), holds the channel, polarity, complement
+-- enable, complement AND, and enable bits in its first word, then the delay
+-- and width words; with USE_TAP_C it adds a delay tap word whose write pulses
+-- loadTap once and whose upper bits read delay_rd. Group i drives
+-- triggerConfig(i).
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -47,6 +53,9 @@ end EvrV2TrigReg;
 architecture rtl of EvrV2TrigReg is
 
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   -- Only the STRIDE_C address bits that span the TRIGGERS_C groups are
+   -- decoded, as in other surf slaves: the crossbar decodes the bits above, so
+   -- a wider crossbar window repeats the groups every 2**STRIDE_C bytes.
    constant STRIDE_C : positive := bitSize(TRIGGERS_C*GRP_C-1);
 
    type RegType is record
@@ -97,6 +106,8 @@ begin
 
             axiSlaveRegister (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), 0, v.triggerConfig(i).delayTap);
             axiSlaveRegisterR(axilEp, toSlv(i*GRP_C + 12, STRIDE_C),16, delay_rd(i));
+            -- Every write pulses loadTap, also with an unchanged value, so that
+            -- software can re-apply the same tap
             axiWrDetect      (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), v.loadShift(i)(0));
 
          end if;

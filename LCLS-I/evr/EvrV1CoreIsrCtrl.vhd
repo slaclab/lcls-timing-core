@@ -2,6 +2,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
+-- Receive and interrupt front end of the LCLS-I EVR. On evrClk it raises
+-- rxLinkUp only after gtLinkUp has stayed high without decode or disparity
+-- errors for 0xFFFFFF clocks, then registers the GT data and flags later
+-- errors on rxError. On an interrupt request it sends an IRQ message on an AXI
+-- stream and waits for software, or, when the isrSelect bit at 0x0 is clear,
+-- reads the interrupt flags and registers itself over an AXI-Lite master and
+-- streams data buffer, event, FIFO full, pulse, heartbeat, and violation
+-- messages tagged by TDEST.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -236,7 +244,7 @@ begin
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
          v.txMaster.tUser  := (others => '0');
-         v.txMaster.tKeep  := x"000F";  -- --32-bit interface
+         v.txMaster.tKeep  := genTKeep(4);  -- --32-bit interface
       end if;
 
       ------------------------------
