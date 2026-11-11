@@ -122,7 +122,7 @@ class TPGMiniCore(pr.Device):
             name         = "FixedRateDiv",
             description  = "Fixed rate marker divisors",
             offset       = 0x18,
-            bitSize      = 32,
+            bitSize      = 20,
             bitOffset    = 0,
             mode         = "RW",
             number       = 10,
