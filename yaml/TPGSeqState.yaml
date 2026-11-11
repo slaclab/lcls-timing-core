@@ -23,7 +23,7 @@ TPGSeqState: &TPGSeqState
       class: IntField
       name: SeqIndex
       sizeBits: 32
-      lsbit: 0
+      lsBit: 0
         stride: 8
         nelms: 50
       mode: RO
@@ -38,43 +38,43 @@ TPGSeqState: &TPGSeqState
       class: IntField
       name: SeqCondACount
       sizeBits: 8
-      lsbit: 0
+      lsBit: 0
       mode: RO
       description: BSA condition A counter
     #########################################################
     SeqCondBCount:
       at:
-        offset: 0x0004
+        offset: 0x0005
         stride: 64
         nelms: 50
       class: IntField
       name: SeqCondBCount
       sizeBits: 8
-      lsbit: 8
+      lsBit: 0
       mode: RO
       description: BSA condition B counter
     #########################################################
     SeqCondCCount:
       at:
-        offset: 0x0004
+        offset: 0x0006
         stride: 8
         nelms: 50
       class: IntField
       name: SeqCondCCount
       sizeBits: 8
-      lsbit: 16
+      lsBit: 0
       mode: RO
       description: BSA condition C counter
     #########################################################
     SeqCondDCount:
       at:
-        offset: 0x0004
+        offset: 0x0007
         stride: 8
         nelms: 50
       class: IntField
       name: SeqCondDCount
       sizeBits: 8
-      lsbit: 24
+      lsBit: 0
       mode: RO
       description: BSA condition D counter
     #########################################################

@@ -328,7 +328,7 @@ TPGControl: &TPGControl
       class: IntField
       name: BsaEventSel
       sizeBits: 32
-      lsbit: 0
+      lsBit: 0
       mode: RW
       description: Bsa definition rate/destination selection
     #########################################################
@@ -340,7 +340,7 @@ TPGControl: &TPGControl
       class: IntField
       name: BsaStatSel
       sizeBits: 32
-      lsbit: 0
+      lsBit: 0
       mode: RW
       description: Bsa definition samples to average/acquire
     #########################################################
