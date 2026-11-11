@@ -71,7 +71,7 @@ EvrV2PulsegenRegs: &EvrV2PulsegenRegs
     ChannelEventCnt:
       class: IntField
       sizeBits: 32
-      mode: RW
+      mode: RO
       description: Channel event counts
       at:
          offset: 0x28
@@ -81,7 +81,7 @@ EvrV2PulsegenRegs: &EvrV2PulsegenRegs
     GlobalEventCnt:
       class: IntField
       sizeBits: 32
-      mode: RW
+      mode: RO
       description: Global Event count
       at:
          offset: 0x1A8

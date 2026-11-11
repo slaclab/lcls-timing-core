@@ -149,7 +149,7 @@ class EvrV2Core(pr.Device):
             offset       =  0x28,
             bitSize      =  32,
             bitOffset    =  0x00,
-            mode         = "RW",
+            mode         = "RO",
             number       =  12,
             stride       =  32,
         )
@@ -193,7 +193,7 @@ class EvrV2Core(pr.Device):
             offset       =  0x1A8,
             bitSize      =  32,
             bitOffset    =  0x00,
-            mode         = "RW",
+            mode         = "RO",
         ))
 
         self.addRemoteVariables(
