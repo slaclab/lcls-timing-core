@@ -54,6 +54,9 @@ end EvrV2ChannelReg;
 architecture rtl of EvrV2ChannelReg is
 
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   -- Only the STRIDE_C address bits that span the NCHANNELS_G groups are
+   -- decoded, as in other surf slaves: the crossbar decodes the bits above, so
+   -- a wider crossbar window repeats the groups every 2**STRIDE_C bytes.
    constant STRIDE_C : positive := bitSize(NCHANNELS_G*GRP_C-1);
 
    type RegType is record
