@@ -111,7 +111,7 @@ TPGMiniCore: &TPGMiniCore
         stride: 4
         nelms: 10
       class: IntField
-      sizeBits: 32
+      sizeBits: 20
       mode: RW
       description: Fixed rate marker divisors
     #########################################################
