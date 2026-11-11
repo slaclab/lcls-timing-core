@@ -34,7 +34,7 @@ entity TimingMsgDelay is
       -- General Configurations
       TPD_G             : time                        := 1 ns;
       MEMORY_TYPE_G     : string                      := "block";
-      FIFO_ADDR_WIDTH_G : positive range 1 to (2**24) := 7);
+      FIFO_ADDR_WIDTH_G : positive range 1 to (2**24) := 9);  -- both FIFOs hold 2**FIFO_ADDR_WIDTH_G messages
 
    port (
       -- Timing Msg interface
@@ -90,7 +90,7 @@ begin
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 32,
-         ADDR_WIDTH_G    => 9)
+         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst    => timingRst,
          wr_clk => timingClk,
@@ -108,7 +108,7 @@ begin
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => TIMING_MESSAGE_BITS_C,
-         ADDR_WIDTH_G    => 9)
+         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst    => timingRst,
          wr_clk => timingClk,
