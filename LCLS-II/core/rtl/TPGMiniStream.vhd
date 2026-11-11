@@ -117,6 +117,10 @@ begin
   dataBuff.dmod(                  5*32+ 0 ) <= '1'; -- fake MPS_VALID in MOD6
   dataBuff.dmod( 191       downto 5*32+ 1 ) <= (others=>'0');
 
+  -- Bits 19:0 of edefMinor and edefMajor are the per-EDEF severity flags.
+  -- The 20 all-done flags are packed into the spare bits 29:20 of the two
+  -- words: EDEF e below 10 in edefMinor(20+e), EDEF 10 to 19 in
+  -- edefMajor(10+e). The two sets never share a bit.
   dataBuff.edefMinor( 29 downto 20 )        <= edefAllDone(  9 downto  0);
   dataBuff.edefMajor( 29 downto 20 )        <= edefAllDone( 19 downto 10);
 
