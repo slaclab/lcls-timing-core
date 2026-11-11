@@ -53,6 +53,9 @@ end EvrV2TrigReg;
 architecture rtl of EvrV2TrigReg is
 
    constant GRP_C    : positive := ite(EVR_CARD_G, 4096, 256);
+   -- Only the STRIDE_C address bits that span the TRIGGERS_C groups are
+   -- decoded, as in other surf slaves: the crossbar decodes the bits above, so
+   -- a wider crossbar window repeats the groups every 2**STRIDE_C bytes.
    constant STRIDE_C : positive := bitSize(TRIGGERS_C*GRP_C-1);
 
    type RegType is record
