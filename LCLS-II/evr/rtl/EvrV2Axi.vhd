@@ -136,7 +136,7 @@ begin  -- mapping
     sReg(0) := irqReq;
     axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
     -- Registers decode 9 address bits, the width of the CSR crossbar window
-    -- in EvrV2Module and EvrV2CorePulseGen; the crossbar decodes the bits above.
+    -- in EvrV2Module; the crossbar decodes the bits above.
     axilSlaveRegisterW(X"010", 0, v.countReset);
     axilSlaveRegisterW(X"014", 0, v.trigSel);
     for i in 0 to CHANNELS_C-1 loop
