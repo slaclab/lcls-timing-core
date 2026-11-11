@@ -188,7 +188,7 @@ begin
       v.timingMessageValid := '1';
     end if;
 
-    if (rxData.decErr /= "00" or rxData.dspErr /= X"00" or rxRst='1') then
+    if (rxData.decErr /= "00" or rxData.dspErr /= "00" or rxRst='1') then
       v := REG_INIT_C;
     end if;
 
