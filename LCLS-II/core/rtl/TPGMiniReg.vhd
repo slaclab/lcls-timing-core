@@ -371,8 +371,8 @@ begin
             when "00"   => v.config.bsadefv(i).rateSel( 3 downto 0) := r.bsadefFixedRate(i);
             when "01"   => v.config.bsadefv(i).rateSel( 8 downto 3) := r.bsadefACTSMask (i);
                            v.config.bsadefv(i).rateSel( 2 downto 0) := r.bsadefACRate   (i);
-            when others => v.config.bsadefv(i).rateSel(10 downto 6) := r.bsadefSeqSel   (i);
-                           v.config.bsadefv(i).rateSel( 3 downto 0) := r.bsadefSeqBit   (i);
+            when others => v.config.bsadefv(i).rateSel(10 downto 5) := '0' & r.bsadefSeqSel(i);
+                           v.config.bsadefv(i).rateSel( 4 downto 0) := '0' & r.bsadefSeqBit(i);
           end case;
           v.config.bsadefv(i).destSel(17 downto 16) := r.bsadefDestMode(i);
           case r.bsadefDestMode(i) is
