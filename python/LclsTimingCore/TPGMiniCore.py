@@ -22,6 +22,11 @@ class TPGMiniCore(pr.Device):
             NARRAYSBSA  = 2,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        # TPGMiniReg decodes 1 to 32 BSA definition arrays
+        if ( (NARRAYSBSA<1) or (NARRAYSBSA>32) ):
+            raise ValueError('NARRAYSBSA must be between 1 to 32: (%i) is out of range' % (NARRAYSBSA) )
+
         ##############################
         # Variables
         ##############################
@@ -335,7 +340,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
             enum         = {
                 0 : "FixedRate",
                 1 : "ACRate",
@@ -353,7 +357,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
             enum         = {
                 0 : "1MHz",
                 1 : "71kHz",
@@ -375,7 +378,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
             enum         = {
                 0 : "60Hz",
                 1 : "30Hz",
@@ -396,7 +398,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -409,7 +410,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -422,7 +422,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -435,7 +434,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
             enum         = {
                 0 : "Dont_Care",
                 1 : "Inclusive",
@@ -453,7 +451,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -466,7 +463,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -479,7 +475,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -490,9 +485,8 @@ class TPGMiniCore(pr.Device):
             bitOffset    = 16,
             mode         = "RW",
             number       = NARRAYSBSA,
-            stride       = 8,
+            stride       = 16,
             hidden       = True,
-            overlapEn    = True,
         )
 
         self.addRemoteVariables(
@@ -505,7 +499,6 @@ class TPGMiniCore(pr.Device):
             number       = NARRAYSBSA,
             stride       = 16,
             hidden       = True,
-            overlapEn    = True,
             enum         = {
                 0 : "NoAlarm",
                 1 : "Minor",
