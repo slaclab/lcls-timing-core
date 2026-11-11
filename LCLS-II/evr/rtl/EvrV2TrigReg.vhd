@@ -106,6 +106,8 @@ begin
 
             axiSlaveRegister (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), 0, v.triggerConfig(i).delayTap);
             axiSlaveRegisterR(axilEp, toSlv(i*GRP_C + 12, STRIDE_C),16, delay_rd(i));
+            -- Every write pulses loadTap, also with an unchanged value, so that
+            -- software can re-apply the same tap
             axiWrDetect      (axilEp, toSlv(i*GRP_C + 12, STRIDE_C), v.loadShift(i)(0));
 
          end if;
