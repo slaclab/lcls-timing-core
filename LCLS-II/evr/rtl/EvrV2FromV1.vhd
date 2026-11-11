@@ -3,7 +3,10 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- Reformats LCLS timing stream into LCLS2 timing frame.  Only data buffer and
--- sequencer event codes are reformatted.
+-- sequencer event codes are reformatted.  Fields with no LCLS-I source
+-- (version, acTimeSlotPhase, resync, syncStatus, mpsValid, bcsFault) take
+-- their TIMING_MESSAGE_INIT_C value on every mapped frame, so a mapped frame
+-- never carries state from a message copied earlier with disable high.
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS Timing Core'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -44,6 +47,8 @@ begin
     if rising_edge(clk) then
       if timingIn.strobe='1' then
         if disable = '0' then  -- map LCLS timing stream to look like LCLS-II frame
+          --  Fields with no LCLS-I source take their init value
+          timingOut             <= TIMING_MESSAGE_INIT_C;
           timingOut.pulseId     <= resize(timingIn.stream.pulseId,17) &
                                    timingIn.stream.dbuff.epicsTime(31 downto 17) &
                                    timingIn.stream.dbuff.epicsTime(63 downto 32);
