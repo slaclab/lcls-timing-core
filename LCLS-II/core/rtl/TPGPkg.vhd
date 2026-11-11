@@ -49,7 +49,7 @@ package TPGPkg is
       -- Bits(12:11)=(fixed,AC,seq,reserved)
       -- fixed:  marker = 3:0
       -- AC   :  marker = 2:0;  TS = 8:3 (mask)
-      -- seq  :  bit    = 5:0;  seq = 10:6
+      -- seq  :  bit    = 4:0;  seq = 10:5
       destSel : slv(18 downto 0);
    -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
    -- Bits(15:0)=Mask of Destinations (when Beam)
@@ -68,7 +68,7 @@ package TPGPkg is
       -- Bits(12:11)=(fixed,AC,seq,reserved)
       -- fixed:  marker = 3:0
       -- AC   :  marker = 2:0;  TS = 8:3 (mask)
-      -- seq  :  bit    = 5:0;  seq = 10:6
+      -- seq  :  bit    = 4:0;  seq = 10:5
       destSel : slv(18 downto 0);
       -- Bits(17:16)=(Beam,NoBeam,DONT_CARE,reserved)
       -- Bits(15:0)=Mask of Destinations (when Beam)
