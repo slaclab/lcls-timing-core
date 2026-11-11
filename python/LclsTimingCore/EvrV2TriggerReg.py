@@ -61,7 +61,7 @@ class EvrV2TriggerReg(pr.Device):
             description = "Enable complementary trigger outputs",
             offset      = 0x00,
             bitSize     = 1,
-            bitOffset   = 29,
+            bitOffset   = 28,
             mode        = "RW",
             enum         = {
                 0x0: 'Disabled',
@@ -74,7 +74,7 @@ class EvrV2TriggerReg(pr.Device):
             description = "Complementary trigger logic",
             offset      = 0x00,
             bitSize     = 1,
-            bitOffset   = 30,
+            bitOffset   = 29,
             mode        = "RW",
             enum         = {
                 0x0: 'LogicOR',
