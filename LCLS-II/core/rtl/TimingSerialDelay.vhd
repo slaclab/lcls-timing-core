@@ -5,7 +5,8 @@
 -- Inputs:
 --   delay      : number of clocks to delay output
 --   fiducial_i : delay start marker
---   advance_i  : accept stream input word (precedes fiducial)
+--   advance_i  : accept stream input word (follows fiducial); must not
+--                assert in the cycle of fiducial_i (the word is dropped)
 --   stream_i   : input stream; ready tested on fiducial
 --   frame_o    : Deserialized output
 --   strobe_o   : delay expiring
@@ -179,7 +180,7 @@ begin
       v.advance := advance_i;
 
       case (r.wrState) is
-         --  Can fiducial_i and advance_i assert at the same time??
+         --  fiducial_i and advance_i must not assert in the same cycle (see header)
          when WR_IDLE_S =>
 	    if fiducial_i = '1' then
       	       v.fifoWr  := '1';
