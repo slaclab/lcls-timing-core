@@ -43,12 +43,12 @@ class GthRxAlignCheck(pr.Device):
             name         = "PhaseCount",
             description  = "Timing frame phase",
             offset       =  0x00,
-            bitSize      =  32,
+            bitSize      =  8,
             bitOffset    =  0x00,
             mode         = "RO",
             pollInterval = 1,
-            number       =  64,
-            stride       =  4,
+            number       =  40,
+            stride       =  1,
             hidden       =  True,
         )
 
