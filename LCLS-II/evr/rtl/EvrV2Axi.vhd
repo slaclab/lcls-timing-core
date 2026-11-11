@@ -161,6 +161,12 @@ begin  -- mapping
     end if;
 
     axilSlaveDefault(AXI_RESP_OK_C);
+
+    -- Reset
+    if (axiRst = '1') then
+      v := REG_INIT_C;
+    end if;
+
     rin <= v;
   end process;
 
