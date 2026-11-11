@@ -175,6 +175,7 @@ EvrV1Reg: &EvrV1Reg
         offset: 0x0A0 # address(14 downto 2) = 40
       class: IntField
       name: IntEventEn
+      sizeBits: 1
       mode: RW
       description: Internal Event Enable
     #########################################################
@@ -183,7 +184,6 @@ EvrV1Reg: &EvrV1Reg
         offset: 0x0A4 # address(14 downto 2) = 41
       class: IntField
       name: IntEventCount
-      sizeBits: 1
       mode: RW
       description: Internal Event Count
     #########################################################
