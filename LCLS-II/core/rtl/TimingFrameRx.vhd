@@ -160,7 +160,7 @@ begin
    rxVersion <= r.version;
    staData   <= r.vsnErr & (crcErr or doverflow0) & fiducial & eof & sof;
 
-   comb : process (delayRst, dframe, dstrobe, dstrobe0, dvalid, iTimingMessage, r) is
+   comb : process (delayRst, dframe, dstrobe, dstrobe0, dvalid, iTimingMessage, r, rxRst) is
       variable v          : RegType;
       variable extensionV : TimingExtensionArray;
    begin
@@ -190,6 +190,10 @@ begin
             extensionV(i).data  := (others => '0');
          end if;
       end loop;
+
+      if rxRst = '1' then
+         v := REG_INIT_C;
+      end if;
 
       rin             <= v;
       timingExtension <= extensionV;
