@@ -13,7 +13,7 @@
 Test methodology:
     Sweep: one temporary git repository per case, holding the smallest set
         of .vhd, .tcl, and .py files that exercises a single rule or edge
-        (trailing blanks, raw non-ASCII bytes, tabs, the three exempt
+        (trailing blanks, raw non-ASCII bytes, tabs, the two exempt
         paths and their near misses, CRLF endings, empty scans).
     Stimulus: lint_checks.main() is called with a repo_root override on
         each temporary repository and once on the real repository with
@@ -106,9 +106,8 @@ def test_tab_exemption_does_not_cover_near_misses(tmp_path, capsys):
         assert "%s:1: tab" % name in out
 
 
-def test_tab_exempt_set_is_exactly_the_three_production_files():
+def test_tab_exempt_set_is_exactly_the_two_production_files():
     assert lint_checks.TAB_EXEMPT == frozenset({
-        "LCLS-II/core/rtl/TPGMiniEdefTb.vhd",
         "LCLS-II/core/rtl/TPGMiniStream.vhd",
         "LCLS-II/core/rtl/TimingSerialDelay.vhd",
     })

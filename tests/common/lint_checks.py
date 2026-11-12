@@ -48,7 +48,6 @@ TAB_SUFFIXES = (".vhd", ".tcl", ".py")
 # These production files already contain tabs and cannot be edited, so they
 # are matched by exact repo-relative path (near misses are still reported).
 TAB_EXEMPT = frozenset({
-    "LCLS-II/core/rtl/TPGMiniEdefTb.vhd",
     "LCLS-II/core/rtl/TPGMiniStream.vhd",
     "LCLS-II/core/rtl/TimingSerialDelay.vhd",
 })

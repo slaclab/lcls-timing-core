@@ -11,10 +11,10 @@
 """Analysis gate: every imported design unit must still analyze under GHDL.
 
 Test methodology:
-    Sweep: every entity found in build/SRC_VHDL/lcls_timing_core plus the one
-        production file that no ruckus.tcl loads (TimingGthWrapper.vhd), one
-        pytest case per unit. The pure tests below sweep the verdict rules,
-        the baseline sanity rules and the entity discovery edge cases.
+    Sweep: every entity found in build/SRC_VHDL/lcls_timing_core plus any
+        production file listed in UNLOADED_FILES, one pytest case per unit.
+        The pure tests below sweep the verdict rules, the baseline sanity
+        rules and the entity discovery edge cases.
     Stimulus: ghdl -i of every imported library into a per-unit scratch work
         directory, then ghdl -m for the unit (ghdl -a for the unloaded file).
         No simulation runs, analysis only.
@@ -82,7 +82,7 @@ def test_baseline_keys_exist():
 
 def test_baseline_is_specific():
     validate_baseline()
-    assert len(KNOWN_GHDL_UNANALYZABLE) == 4
+    assert len(KNOWN_GHDL_UNANALYZABLE) == 3
     for unit, fragment in KNOWN_GHDL_UNANALYZABLE.items():
         assert not re.search(r":\d+:\d+", fragment), f"{unit}: line number in fragment"
         assert ".vhd" not in fragment, f"{unit}: file path in fragment"
@@ -159,8 +159,9 @@ def test_discover_units_empty_dir_returns_empty_list(tmp_path):
     assert discover_units(tmp_path) == []
 
 
-def test_unit_ids_are_the_sorted_union_in_any_discovery_order():
-    expected = ["aa", "timinggthwrapper", "zz"]
+def test_unit_ids_are_the_sorted_union_in_any_discovery_order(monkeypatch):
+    monkeypatch.setitem(UNLOADED_FILES, "mm", "Mm.vhd")
+    expected = ["aa", "mm", "zz"]
     assert _collect_unit_ids(lambda: ["zz", "aa"]) == expected
     assert _collect_unit_ids(lambda: ["aa", "zz"]) == expected
 

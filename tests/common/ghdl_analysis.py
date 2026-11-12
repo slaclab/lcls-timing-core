@@ -62,15 +62,11 @@ KNOWN_GHDL_UNANALYZABLE: dict[str, str] = {
     # The next two fail while re-analyzing TPGMiniReg and report its errors.
     "tpgminicore": "not locally static",
     "timingcore": "not locally static",
-    # The file uses "ieee" without a library clause.
-    "timinggthwrapper": 'no declaration for "ieee"',
 }
 
 # Production files that no ruckus.tcl loads, so they are absent from the
 # imported library. They are analyzed directly with ghdl -a.
-UNLOADED_FILES: dict[str, str] = {
-    "timinggthwrapper": "LCLS-II/core/rtl/TimingGthWrapper.vhd",
-}
+UNLOADED_FILES: dict[str, str] = {}
 
 ENTITY_RE = re.compile(
     r"^\s*entity\s+([a-z][a-z0-9_]*)\s+is\b",
